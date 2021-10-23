@@ -14,6 +14,7 @@ setup(
     name='zengl',
     version='0.2.1',
     py_modules=['_zengl'],
+    data_files=[('.', ['zengl.pyi'])],
     ext_modules=[ext],
     long_description=long_description,
     long_description_content_type='text/markdown',
