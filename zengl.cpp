@@ -1138,7 +1138,7 @@ PyObject * Image_meth_read(Image * self, PyObject * vargs, PyObject * kwargs) {
     int x = 0;
     int y = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "|(ii)(ii)", keywords, &width, &height, &x, &y)) {
+    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "|(ii)$(ii)", keywords, &width, &height, &x, &y)) {
         return NULL;
     }
 
