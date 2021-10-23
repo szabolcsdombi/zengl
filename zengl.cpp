@@ -1371,19 +1371,17 @@ PyObject * meth_camera(PyObject * self, PyObject * args, PyObject * kwargs) {
 PyObject * meth_rgba(PyObject * self, PyObject * vargs, PyObject * kwargs) {
     static char * keywords[] = {"data", "format", NULL};
 
-    struct {
-        PyObject * data;
-        PyObject * format;
-    } args;
+    PyObject * data;
+    PyObject * format;
 
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
         "OO!",
         keywords,
-        &args.data,
+        &data,
         &PyUnicode_Type,
-        &args.format
+        &format
     );
 
     if (!args_ok) {
@@ -1391,17 +1389,17 @@ PyObject * meth_rgba(PyObject * self, PyObject * vargs, PyObject * kwargs) {
     }
 
     Py_buffer view = {};
-    if (PyObject_GetBuffer(args.data, &view, PyBUF_SIMPLE)) {
+    if (PyObject_GetBuffer(data, &view, PyBUF_SIMPLE)) {
         return NULL;
     }
 
     PyObject * res = NULL;
 
-    if (!PyUnicode_CompareWithASCIIString(args.format, "rgba")) {
+    if (!PyUnicode_CompareWithASCIIString(format, "rgba")) {
         res = PyBytes_FromStringAndSize((char *)view.buf, view.len);
     }
 
-    if (!PyUnicode_CompareWithASCIIString(args.format, "bgr")) {
+    if (!PyUnicode_CompareWithASCIIString(format, "bgr")) {
         uint32_t pixel_count = (uint32_t)view.len / 3;
         res = PyBytes_FromStringAndSize(NULL, pixel_count * 4);
         uint8_t * data = (uint8_t *)PyBytes_AsString(res);
@@ -1416,7 +1414,7 @@ PyObject * meth_rgba(PyObject * self, PyObject * vargs, PyObject * kwargs) {
         }
     }
 
-    if (!PyUnicode_CompareWithASCIIString(args.format, "rgb")) {
+    if (!PyUnicode_CompareWithASCIIString(format, "rgb")) {
         uint32_t pixel_count = (uint32_t)view.len / 3;
         res = PyBytes_FromStringAndSize(NULL, pixel_count * 4);
         uint8_t * data = (uint8_t *)PyBytes_AsString(res);
@@ -1431,7 +1429,7 @@ PyObject * meth_rgba(PyObject * self, PyObject * vargs, PyObject * kwargs) {
         }
     }
 
-    if (!PyUnicode_CompareWithASCIIString(args.format, "bgra")) {
+    if (!PyUnicode_CompareWithASCIIString(format, "bgra")) {
         uint32_t pixel_count = (uint32_t)view.len / 4;
         res = PyBytes_FromStringAndSize(NULL, view.len);
         uint8_t * data = (uint8_t *)PyBytes_AsString(res);
@@ -1446,7 +1444,7 @@ PyObject * meth_rgba(PyObject * self, PyObject * vargs, PyObject * kwargs) {
         }
     }
 
-    if (!PyUnicode_CompareWithASCIIString(args.format, "lum")) {
+    if (!PyUnicode_CompareWithASCIIString(format, "lum")) {
         uint32_t pixel_count = (uint32_t)view.len;
         res = PyBytes_FromStringAndSize(NULL, pixel_count * 4);
         uint8_t * data = (uint8_t *)PyBytes_AsString(res);
