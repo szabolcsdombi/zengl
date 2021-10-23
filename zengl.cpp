@@ -1065,7 +1065,7 @@ PyObject * Image_meth_write(Image * self, PyObject * vargs, PyObject * kwargs) {
     int y = 0;
     int layer = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "y*|(ii)(ii)i", keywords, &view, &width, &height, &x, &y, &layer)) {
+    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "y*|(ii)$(ii)i", keywords, &view, &width, &height, &x, &y, &layer)) {
         return NULL;
     }
 
