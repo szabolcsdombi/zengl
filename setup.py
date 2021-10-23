@@ -12,7 +12,7 @@ with open('README.md') as readme:
 
 setup(
     name='zengl',
-    version='0.2.0',
+    version='0.2.1',
     py_modules=['_zengl'],
     ext_modules=[ext],
     long_description=long_description,
