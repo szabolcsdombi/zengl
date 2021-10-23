@@ -965,7 +965,7 @@ PyObject * Buffer_meth_write(Buffer * self, PyObject * vargs, PyObject * kwargs)
 }
 
 PyObject * Buffer_meth_map(Buffer * self, PyObject * vargs, PyObject * kwargs) {
-    static char * keywords[] = {"size", "offset", NULL};
+    static char * keywords[] = {"size", "offset", "discard", NULL};
 
     int size = -1;
     int offset = 0;
