@@ -1,3 +1,4 @@
 include zengl.hpp
+include zengl.pyi
 include README.md
 include LICENSE
