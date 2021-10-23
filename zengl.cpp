@@ -1107,14 +1107,18 @@ PyObject * Image_meth_mipmaps(Image * self, PyObject * vargs, PyObject * kwargs)
     static char * keywords[] = {"base", "levels", NULL};
 
     int base = 0;
-    int levels = count_mipmaps(self->width, self->height);
+    int levels = -1;
 
     if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "|(ii)", keywords, &base, &levels)) {
         return NULL;
     }
 
-    if (base < 0 || levels < 0) {
+    if (base < 0) {
         return NULL;
+    }
+
+    if (levels < 0) {
+        levels = count_mipmaps(self->width, self->height);
     }
 
     const GLMethods & gl = self->instance->gl;
