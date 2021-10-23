@@ -7,9 +7,18 @@ ext = Extension(
     extra_compile_args=['-fpermissive'],
 )
 
+with open('README.md') as readme:
+    long_description = readme.read()
+
 setup(
     name='zengl',
     version='0.2.0',
     py_modules=['_zengl'],
     ext_modules=[ext],
+    long_description=long_description,
+    long_description_content_type='text/markdown',
+    url='https://github.com/szabolcsdombi/zengl/',
+    author='Szabolcs Dombi',
+    author_email='cprogrammer1994@gmail.com',
+    license='MIT',
 )
