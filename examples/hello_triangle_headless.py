@@ -48,4 +48,4 @@ triangle = ctx.renderer(
 image.clear(1.0, 1.0, 1.0, 1.0)
 triangle.render()
 
-Image.frombuffer('RGBA', size, image.read(), 'raw', 'RGBA', 0, -1).save('test.png')
+Image.frombuffer('RGBA', size, image.read(), 'raw', 'RGBA', 0, -1).save('hello.png')
