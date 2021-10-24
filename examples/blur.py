@@ -51,23 +51,14 @@ blur = ctx.renderer(
     vertex_shader='''
         #version 330
 
-        out vec2 v_text;
-
         vec2 positions[3] = vec2[](
             vec2(-1.0, -1.0),
             vec2(3.0, -1.0),
             vec2(-1.0, 3.0)
         );
 
-        vec2 text[3] = vec2[](
-            vec2(0.0, 0.0),
-            vec2(2.0, 0.0),
-            vec2(0.0, 2.0)
-        );
-
         void main() {
             gl_Position = vec4(positions[gl_VertexID], 0.0, 1.0);
-            v_text = text[gl_VertexID];
         }
     ''',
     fragment_shader='''
@@ -75,18 +66,22 @@ blur = ctx.renderer(
 
         uniform sampler2D Texture;
 
-        in vec2 v_text;
-
         layout (location = 0) out vec4 out_color;
+
+        float coeff[25] = float[](
+            1.0 / 273.0, 4.0 / 273.0, 7.0 / 273.0, 4.0 / 273.0, 1.0 / 273.0,
+            4.0 / 273.0, 16.0 / 273.0, 26.0 / 273.0, 16.0 / 273.0, 4.0 / 273.0,
+            7.0 / 273.0, 26.0 / 273.0, 41.0 / 273.0, 26.0 / 273.0, 7.0 / 273.0,
+            4.0 / 273.0, 16.0 / 273.0, 26.0 / 273.0, 16.0 / 273.0, 4.0 / 273.0,
+            1.0 / 273.0, 4.0 / 273.0, 7.0 / 273.0, 4.0 / 273.0, 1.0 / 273.0
+        );
 
         void main() {
             vec3 color = vec3(0.0, 0.0, 0.0);
-            for (int i = -2; i <= 2; ++i) {
-                for (int j = -2; j <= 2; ++j) {
-                    color += texture(Texture, v_text + vec2(i, j) * 0.01).rgb;
-                }
+            for (int i = 0; i < 25; ++i) {
+                color += texelFetch(Texture, ivec2(gl_FragCoord.xy) + ivec2(i % 5 - 2, i / 5 - 2) * 3, 0).rgb * coeff[i];
             }
-            out_color = vec4(color / 25.0, 1.0);
+            out_color = vec4(color, 1.0);
         }
     ''',
     layout=[
