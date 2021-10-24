@@ -934,7 +934,7 @@ Renderer * Instance_meth_renderer(Instance * self, PyObject * vargs, PyObject * 
     DescriptorSetImages * descriptor_set_images = build_descriptor_set_images(self, sampler_bindings);
     GlobalSettings * global_settings = build_global_settings(self, settings);
 
-    Image * first_image = (Image *)PyTuple_GetItem(attachments, 0);
+    Image * first_image = (Image *)PySequence_GetItem(framebuffer_images, 0);
 
     Renderer * res = PyObject_New(Renderer, self->module_state->Renderer_type);
     res->instance = self;

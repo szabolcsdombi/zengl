@@ -278,7 +278,7 @@ def settings(primitive_restart, point_size, line_width, front_face, cull_face, c
             float(polygon_offset['units']),
         ])
 
-    res.append(len(attachments))
+    res.append(len(attachments[0]))
     return tuple(res)
 
 
