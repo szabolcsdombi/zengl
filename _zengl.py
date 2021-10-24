@@ -250,7 +250,7 @@ def settings(primitive_restart, point_size, line_width, front_face, cull_face, c
 
     else:
         res.extend([
-            int(blending['blend_mask']),
+            int(blending['enable']),
             BLEND_CONSTANT[blending['src_color']],
             BLEND_CONSTANT[blending['dst_color']],
             BLEND_CONSTANT[blending['src_alpha']],
