@@ -218,7 +218,7 @@ def settings(primitive_restart, point_size, line_width, front_face, cull_face, c
     res = [bool(primitive_restart), float(point_size), float(line_width), FRONT_FACE[front_face], CULL_FACE[cull_face], color_mask]
 
     if depth is True or depth is False:
-        res.extend([depth, depth, COMPARE_FUNC['less']])
+        res.extend([depth, depth, 0x0201])
 
     else:
         res.extend([bool(depth['test']), bool(depth['write']), COMPARE_FUNC[depth['func']]])
