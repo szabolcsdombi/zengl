@@ -31,7 +31,7 @@ struct GlobalSettings {
     int polygon_offset;
     float polygon_offset_factor;
     float polygon_offset_units;
-    int blend_mask;
+    int blend_enable;
     int blend_src_color;
     int blend_dst_color;
     int blend_src_alpha;
@@ -178,7 +178,7 @@ void bind_global_settings(Instance * self, GlobalSettings * settings) {
     gl.BlendFuncSeparate(settings->blend_src_color, settings->blend_dst_color, settings->blend_src_alpha, settings->blend_dst_alpha);
     gl.PolygonOffset(settings->polygon_offset_factor, settings->polygon_offset_units);
     for (int i = 0; i < settings->attachments; ++i) {
-        if (settings->blend_mask >> i & 1) {
+        if (settings->blend_enable >> i & 1) {
             gl.Enablei(GL_BLEND, i);
         } else {
             gl.Disablei(GL_BLEND, i);
@@ -416,7 +416,7 @@ GlobalSettings * build_global_settings(Instance * self, PyObject * settings) {
         PyLong_AsLong(seq[22]),
         PyLong_AsLong(seq[23]),
     };
-    res->blend_mask = PyLong_AsLong(seq[24]);
+    res->blend_enable = PyLong_AsLong(seq[24]);
     res->blend_src_color = PyLong_AsLong(seq[25]);
     res->blend_dst_color = PyLong_AsLong(seq[26]);
     res->blend_src_alpha = PyLong_AsLong(seq[27]);
