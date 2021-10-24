@@ -113,6 +113,9 @@ class BlendingSettings(TypedDict, total=False):
     dst_alpha: BlendConstant
 
 
+Viewport = Tuple[int, int, int, int] | Tuple[int, int] | None
+
+
 class Context:
     def load(name: str) -> int: ...
 
@@ -140,6 +143,7 @@ class Image:
 class Renderer:
     vertex_count: int
     instance_count: int
+    viewport: Viewport
     def render(self) -> None: ...
 
 
@@ -153,7 +157,7 @@ class Instance:
         index_buffer: Buffer | None = None, vertex_count: int = 0, instance_count: int = 0, short_index: bool = False,
         primitive_restart: bool = False, point_size: float = 1.0, line_width: float = 1.0, front_face: str = 'ccw', cull_face: str = 'none',
         color_mask: int = 0xffffffffffffffff, depth: DepthSettings | bool | None = None, stencil: StencilSettings | None = None,
-        blending: BlendingSettings | None = None, polygon_offset: PolygonOffsetSettings | None = None, viewport: Tuple[int, int, int, int] | None) -> Renderer: ...
+        blending: BlendingSettings | None = None, polygon_offset: PolygonOffsetSettings | None = None, viewport: Viewport = None) -> Renderer: ...
 
 
 def instance(context: Context | Any) -> Instance: ...
