@@ -219,35 +219,39 @@ int build_framebuffer(Instance * self, PyObject * attachments) {
         return PyLong_AsLong(cache);
     }
 
+    PyObject * color_attachments = PyTuple_GetItem(attachments, 0);
+    PyObject * depth_stencil_attachment = PyTuple_GetItem(attachments, 1);
+
     const GLMethods & gl = self->gl;
 
     int framebuffer = 0;
     gl.GenFramebuffers(1, (unsigned *)&framebuffer);
     bind_framebuffer(self, framebuffer);
-    int attachment_count = (int)PyTuple_Size(attachments);
-    for (int i = 0; i < attachment_count; ++i) {
-        Image * image = (Image *)PyTuple_GetItem(attachments, i);
+    int color_attachment_count = (int)PyTuple_Size(color_attachments);
+    for (int i = 0; i < color_attachment_count; ++i) {
+        Image * image = (Image *)PyTuple_GetItem(color_attachments, i);
         if (image->renderbuffer) {
-            if (image->format.attachment == GL_COLOR_ATTACHMENT0) {
-                gl.FramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_RENDERBUFFER, image->image);
-            } else {
-                gl.FramebufferRenderbuffer(GL_FRAMEBUFFER, image->format.attachment, GL_RENDERBUFFER, image->image);
-            }
+            gl.FramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_RENDERBUFFER, image->image);
         } else {
-            if (image->format.attachment == GL_COLOR_ATTACHMENT0) {
-                gl.FramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, image->image, 0);
-            } else {
-                gl.FramebufferTexture2D(GL_FRAMEBUFFER, image->format.attachment, GL_TEXTURE_2D, image->image, 0);
-            }
+            gl.FramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, image->image, 0);
+        }
+    }
+
+    if (depth_stencil_attachment != Py_None) {
+        Image * image = (Image *)depth_stencil_attachment;
+        if (image->renderbuffer) {
+            gl.FramebufferRenderbuffer(GL_FRAMEBUFFER, image->format.attachment, GL_RENDERBUFFER, image->image);
+        } else {
+            gl.FramebufferTexture2D(GL_FRAMEBUFFER, image->format.attachment, GL_TEXTURE_2D, image->image, 0);
         }
     }
 
     unsigned int draw_buffers[MAX_ATTACHMENTS];
-    for (int i = 0; i < attachment_count; ++i) {
+    for (int i = 0; i < color_attachment_count; ++i) {
         draw_buffers[i] = GL_COLOR_ATTACHMENT0 + i;
     }
 
-    gl.DrawBuffers(attachment_count, draw_buffers);
+    gl.DrawBuffers(color_attachment_count, draw_buffers);
     gl.ReadBuffer(GL_COLOR_ATTACHMENT0);
 
     PyDict_SetItem(self->framebuffer_cache, attachments, PyLong_FromLong(framebuffer));
@@ -617,8 +621,13 @@ Image * Instance_meth_image(Instance * self, PyObject * vargs, PyObject * kwargs
 
     res->framebuffer = 0;
     if (!cubemap && !array) {
-        PyObject * attachments = PyTuple_Pack(1, res);
-        res->framebuffer = build_framebuffer(self, attachments);
+        if (format.color) {
+            PyObject * attachments = Py_BuildValue("((O)O)", res, Py_None);
+            res->framebuffer = build_framebuffer(self, attachments);
+        } else {
+            PyObject * attachments = Py_BuildValue("(()O)", res);
+            res->framebuffer = build_framebuffer(self, attachments);
+        }
     }
 
     if (data != Py_None) {
@@ -873,7 +882,7 @@ Renderer * Instance_meth_renderer(Instance * self, PyObject * vargs, PyObject * 
         }
     }
 
-    PyObject * attachments = PySequence_Tuple(framebuffer_images);
+    PyObject * attachments = PyObject_CallMethod(self->module_state->helper, "framebuffer_attachments", "(O)", framebuffer_images);
     if (!attachments) {
         return NULL;
     }
@@ -1207,7 +1216,7 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
         return NULL;
     }
 
-    if (self->cubemap || self->array) {
+    if (self->cubemap || self->array || !self->format.color) {
         return NULL;
     }
 
@@ -1535,6 +1544,7 @@ PyMethodDef Image_methods[] = {
 PyMemberDef Image_members[] = {
     {"size", T_OBJECT_EX, offsetof(Image, size), READONLY, NULL},
     {"samples", T_INT, offsetof(Image, samples), READONLY, NULL},
+    {"color", T_BOOL, offsetof(Image, format.color), READONLY, NULL},
     {},
 };
 

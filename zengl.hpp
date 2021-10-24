@@ -335,6 +335,7 @@ struct ImageFormat {
     int components;
     int pixel_size;
     int attachment;
+    int color;
 };
 
 struct UniformBufferBinding {
@@ -406,44 +407,44 @@ VertexFormat get_vertex_format(const char * format) {
 }
 
 ImageFormat get_image_format(const char * format) {
-    if (!strcmp(format, "r8unorm")) return {GL_R8, GL_RED, GL_UNSIGNED_BYTE, 1, 1, GL_COLOR_ATTACHMENT0};
-    if (!strcmp(format, "rg8unorm")) return {GL_RG8, GL_RG, GL_UNSIGNED_BYTE, 2, 2, GL_COLOR_ATTACHMENT0};
-    if (!strcmp(format, "rgba8unorm")) return {GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 4, 4, GL_COLOR_ATTACHMENT0};
-    if (!strcmp(format, "bgra8unorm")) return {GL_RGBA8, GL_BGRA, GL_UNSIGNED_BYTE, 4, 4, GL_COLOR_ATTACHMENT0};
-    if (!strcmp(format, "r8snorm")) return {GL_R8_SNORM, GL_RED, GL_UNSIGNED_BYTE, 1, 1, GL_COLOR_ATTACHMENT0};
-    if (!strcmp(format, "rg8snorm")) return {GL_RG8_SNORM, GL_RG, GL_UNSIGNED_BYTE, 2, 2, GL_COLOR_ATTACHMENT0};
-    if (!strcmp(format, "rgba8snorm")) return {GL_RGBA8_SNORM, GL_RGBA, GL_UNSIGNED_BYTE, 4, 4, GL_COLOR_ATTACHMENT0};
-    if (!strcmp(format, "r8uint")) return {GL_R8UI, GL_RED, GL_UNSIGNED_BYTE, 1, 1, GL_COLOR_ATTACHMENT0};
-    if (!strcmp(format, "rg8uint")) return {GL_RG8UI, GL_RG, GL_UNSIGNED_BYTE, 2, 2, GL_COLOR_ATTACHMENT0};
-    if (!strcmp(format, "rgba8uint")) return {GL_RGBA8UI, GL_RGBA, GL_UNSIGNED_BYTE, 4, 4, GL_COLOR_ATTACHMENT0};
-    if (!strcmp(format, "r16uint")) return {GL_R16UI, GL_RED, GL_UNSIGNED_SHORT, 1, 2, GL_COLOR_ATTACHMENT0};
-    if (!strcmp(format, "rg16uint")) return {GL_RG16UI, GL_RG, GL_UNSIGNED_SHORT, 2, 4, GL_COLOR_ATTACHMENT0};
-    if (!strcmp(format, "rgba16uint")) return {GL_RGBA16UI, GL_RGBA, GL_UNSIGNED_SHORT, 4, 8, GL_COLOR_ATTACHMENT0};
-    if (!strcmp(format, "r32uint")) return {GL_R32UI, GL_RED, GL_UNSIGNED_INT, 1, 4, GL_COLOR_ATTACHMENT0};
-    if (!strcmp(format, "rg32uint")) return {GL_RG32UI, GL_RG, GL_UNSIGNED_INT, 2, 8, GL_COLOR_ATTACHMENT0};
-    if (!strcmp(format, "rgba32uint")) return {GL_RGBA32UI, GL_RGBA, GL_UNSIGNED_INT, 4, 16, GL_COLOR_ATTACHMENT0};
-    if (!strcmp(format, "r8sint")) return {GL_R8I, GL_RED, GL_BYTE, 1, 1, GL_COLOR_ATTACHMENT0};
-    if (!strcmp(format, "rg8sint")) return {GL_RG8I, GL_RG, GL_BYTE, 2, 2, GL_COLOR_ATTACHMENT0};
-    if (!strcmp(format, "rgba8sint")) return {GL_RGBA8I, GL_RGBA, GL_BYTE, 4, 4, GL_COLOR_ATTACHMENT0};
-    if (!strcmp(format, "r16sint")) return {GL_R16I, GL_RED, GL_SHORT, 1, 2, GL_COLOR_ATTACHMENT0};
-    if (!strcmp(format, "rg16sint")) return {GL_RG16I, GL_RG, GL_SHORT, 2, 4, GL_COLOR_ATTACHMENT0};
-    if (!strcmp(format, "rgba16sint")) return {GL_RGBA16I, GL_RGBA, GL_SHORT, 4, 8, GL_COLOR_ATTACHMENT0};
-    if (!strcmp(format, "r32sint")) return {GL_R32I, GL_RED, GL_INT, 1, 4, GL_COLOR_ATTACHMENT0};
-    if (!strcmp(format, "rg32sint")) return {GL_RG32I, GL_RG, GL_INT, 2, 8, GL_COLOR_ATTACHMENT0};
-    if (!strcmp(format, "rgba32sint")) return {GL_RGBA32I, GL_RGBA, GL_INT, 4, 16, GL_COLOR_ATTACHMENT0};
-    if (!strcmp(format, "r16float")) return {GL_R16F, GL_RED, GL_FLOAT, 1, 2, GL_COLOR_ATTACHMENT0};
-    if (!strcmp(format, "rg16float")) return {GL_RG16F, GL_RG, GL_FLOAT, 2, 4, GL_COLOR_ATTACHMENT0};
-    if (!strcmp(format, "rgba16float")) return {GL_RGBA16F, GL_RGBA, GL_FLOAT, 4, 8, GL_COLOR_ATTACHMENT0};
-    if (!strcmp(format, "r32float")) return {GL_R32F, GL_RED, GL_FLOAT, 1, 4, GL_COLOR_ATTACHMENT0};
-    if (!strcmp(format, "rg32float")) return {GL_RG32F, GL_RG, GL_FLOAT, 2, 8, GL_COLOR_ATTACHMENT0};
-    if (!strcmp(format, "rgba32float")) return {GL_RGBA32F, GL_RGBA, GL_FLOAT, 4, 16, GL_COLOR_ATTACHMENT0};
-    if (!strcmp(format, "rgba8unorm-srgb")) return {GL_SRGB8_ALPHA8, GL_RGBA, GL_UNSIGNED_BYTE, 4, 4, GL_COLOR_ATTACHMENT0};
-    if (!strcmp(format, "bgra8unorm-srgb")) return {GL_SRGB8_ALPHA8, GL_BGRA, GL_UNSIGNED_BYTE, 4, 4, GL_COLOR_ATTACHMENT0};
-    if (!strcmp(format, "stencil8")) return {GL_STENCIL_INDEX8, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, 1, 1, GL_STENCIL_ATTACHMENT};
-    if (!strcmp(format, "depth16unorm")) return {GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT, GL_FLOAT, 1, 2, GL_DEPTH_ATTACHMENT};
-    if (!strcmp(format, "depth24plus")) return {GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_FLOAT, 1, 4, GL_DEPTH_ATTACHMENT};
-    if (!strcmp(format, "depth24plus-stencil8")) return {GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_FLOAT, 2, 4, GL_DEPTH_STENCIL_ATTACHMENT};
-    if (!strcmp(format, "depth32float")) return {GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, 1, 4, GL_DEPTH_ATTACHMENT};
+    if (!strcmp(format, "r8unorm")) return {GL_R8, GL_RED, GL_UNSIGNED_BYTE, 1, 1, GL_COLOR_ATTACHMENT0, true};
+    if (!strcmp(format, "rg8unorm")) return {GL_RG8, GL_RG, GL_UNSIGNED_BYTE, 2, 2, GL_COLOR_ATTACHMENT0, true};
+    if (!strcmp(format, "rgba8unorm")) return {GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 4, 4, GL_COLOR_ATTACHMENT0, true};
+    if (!strcmp(format, "bgra8unorm")) return {GL_RGBA8, GL_BGRA, GL_UNSIGNED_BYTE, 4, 4, GL_COLOR_ATTACHMENT0, true};
+    if (!strcmp(format, "r8snorm")) return {GL_R8_SNORM, GL_RED, GL_UNSIGNED_BYTE, 1, 1, GL_COLOR_ATTACHMENT0, true};
+    if (!strcmp(format, "rg8snorm")) return {GL_RG8_SNORM, GL_RG, GL_UNSIGNED_BYTE, 2, 2, GL_COLOR_ATTACHMENT0, true};
+    if (!strcmp(format, "rgba8snorm")) return {GL_RGBA8_SNORM, GL_RGBA, GL_UNSIGNED_BYTE, 4, 4, GL_COLOR_ATTACHMENT0, true};
+    if (!strcmp(format, "r8uint")) return {GL_R8UI, GL_RED, GL_UNSIGNED_BYTE, 1, 1, GL_COLOR_ATTACHMENT0, true};
+    if (!strcmp(format, "rg8uint")) return {GL_RG8UI, GL_RG, GL_UNSIGNED_BYTE, 2, 2, GL_COLOR_ATTACHMENT0, true};
+    if (!strcmp(format, "rgba8uint")) return {GL_RGBA8UI, GL_RGBA, GL_UNSIGNED_BYTE, 4, 4, GL_COLOR_ATTACHMENT0, true};
+    if (!strcmp(format, "r16uint")) return {GL_R16UI, GL_RED, GL_UNSIGNED_SHORT, 1, 2, GL_COLOR_ATTACHMENT0, true};
+    if (!strcmp(format, "rg16uint")) return {GL_RG16UI, GL_RG, GL_UNSIGNED_SHORT, 2, 4, GL_COLOR_ATTACHMENT0, true};
+    if (!strcmp(format, "rgba16uint")) return {GL_RGBA16UI, GL_RGBA, GL_UNSIGNED_SHORT, 4, 8, GL_COLOR_ATTACHMENT0, true};
+    if (!strcmp(format, "r32uint")) return {GL_R32UI, GL_RED, GL_UNSIGNED_INT, 1, 4, GL_COLOR_ATTACHMENT0, true};
+    if (!strcmp(format, "rg32uint")) return {GL_RG32UI, GL_RG, GL_UNSIGNED_INT, 2, 8, GL_COLOR_ATTACHMENT0, true};
+    if (!strcmp(format, "rgba32uint")) return {GL_RGBA32UI, GL_RGBA, GL_UNSIGNED_INT, 4, 16, GL_COLOR_ATTACHMENT0, true};
+    if (!strcmp(format, "r8sint")) return {GL_R8I, GL_RED, GL_BYTE, 1, 1, GL_COLOR_ATTACHMENT0, true};
+    if (!strcmp(format, "rg8sint")) return {GL_RG8I, GL_RG, GL_BYTE, 2, 2, GL_COLOR_ATTACHMENT0, true};
+    if (!strcmp(format, "rgba8sint")) return {GL_RGBA8I, GL_RGBA, GL_BYTE, 4, 4, GL_COLOR_ATTACHMENT0, true};
+    if (!strcmp(format, "r16sint")) return {GL_R16I, GL_RED, GL_SHORT, 1, 2, GL_COLOR_ATTACHMENT0, true};
+    if (!strcmp(format, "rg16sint")) return {GL_RG16I, GL_RG, GL_SHORT, 2, 4, GL_COLOR_ATTACHMENT0, true};
+    if (!strcmp(format, "rgba16sint")) return {GL_RGBA16I, GL_RGBA, GL_SHORT, 4, 8, GL_COLOR_ATTACHMENT0, true};
+    if (!strcmp(format, "r32sint")) return {GL_R32I, GL_RED, GL_INT, 1, 4, GL_COLOR_ATTACHMENT0, true};
+    if (!strcmp(format, "rg32sint")) return {GL_RG32I, GL_RG, GL_INT, 2, 8, GL_COLOR_ATTACHMENT0, true};
+    if (!strcmp(format, "rgba32sint")) return {GL_RGBA32I, GL_RGBA, GL_INT, 4, 16, GL_COLOR_ATTACHMENT0, true};
+    if (!strcmp(format, "r16float")) return {GL_R16F, GL_RED, GL_FLOAT, 1, 2, GL_COLOR_ATTACHMENT0, true};
+    if (!strcmp(format, "rg16float")) return {GL_RG16F, GL_RG, GL_FLOAT, 2, 4, GL_COLOR_ATTACHMENT0, true};
+    if (!strcmp(format, "rgba16float")) return {GL_RGBA16F, GL_RGBA, GL_FLOAT, 4, 8, GL_COLOR_ATTACHMENT0, true};
+    if (!strcmp(format, "r32float")) return {GL_R32F, GL_RED, GL_FLOAT, 1, 4, GL_COLOR_ATTACHMENT0, true};
+    if (!strcmp(format, "rg32float")) return {GL_RG32F, GL_RG, GL_FLOAT, 2, 8, GL_COLOR_ATTACHMENT0, true};
+    if (!strcmp(format, "rgba32float")) return {GL_RGBA32F, GL_RGBA, GL_FLOAT, 4, 16, GL_COLOR_ATTACHMENT0, true};
+    if (!strcmp(format, "rgba8unorm-srgb")) return {GL_SRGB8_ALPHA8, GL_RGBA, GL_UNSIGNED_BYTE, 4, 4, GL_COLOR_ATTACHMENT0, true};
+    if (!strcmp(format, "bgra8unorm-srgb")) return {GL_SRGB8_ALPHA8, GL_BGRA, GL_UNSIGNED_BYTE, 4, 4, GL_COLOR_ATTACHMENT0, true};
+    if (!strcmp(format, "stencil8")) return {GL_STENCIL_INDEX8, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, 1, 1, GL_STENCIL_ATTACHMENT, false};
+    if (!strcmp(format, "depth16unorm")) return {GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT, GL_FLOAT, 1, 2, GL_DEPTH_ATTACHMENT, false};
+    if (!strcmp(format, "depth24plus")) return {GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_FLOAT, 1, 4, GL_DEPTH_ATTACHMENT, false};
+    if (!strcmp(format, "depth24plus-stencil8")) return {GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_FLOAT, 2, 4, GL_DEPTH_STENCIL_ATTACHMENT, false};
+    if (!strcmp(format, "depth32float")) return {GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, 1, 4, GL_DEPTH_ATTACHMENT, false};
     return {};
 }
 
