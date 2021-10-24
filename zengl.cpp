@@ -56,11 +56,10 @@ struct Instance {
     DescriptorSetBuffers * current_buffers;
     DescriptorSetImages * current_images;
     GlobalSettings * current_global_settings;
+    Viewport viewport;
     int current_framebuffer;
     int current_program;
     int current_vertex_array;
-    int viewport_width;
-    int viewport_height;
     int default_texture_unit;
     GLMethods gl;
 };
@@ -98,8 +97,7 @@ struct Renderer {
     int vertex_count;
     int instance_count;
     int index_type;
-    int framebuffer_width;
-    int framebuffer_height;
+    Viewport viewport;
     DescriptorSetBuffers * descriptor_set_buffers;
     DescriptorSetImages * descriptor_set_images;
     GlobalSettings * global_settings;
@@ -477,8 +475,7 @@ Instance * meth_instance(PyObject * self, PyObject * vargs, PyObject * kwargs) {
     res->current_framebuffer = 0;
     res->current_program = 0;
     res->current_vertex_array = 0;
-    res->viewport_width = -1;
-    res->viewport_height = -1;
+    res->viewport = {};
     res->default_texture_unit = default_texture_unit;
     res->gl = gl;
     return res;
@@ -748,6 +745,7 @@ Renderer * Instance_meth_renderer(Instance * self, PyObject * vargs, PyObject * 
         "stencil",
         "blending",
         "polygon_offset",
+        "viewport",
         NULL,
     };
 
@@ -772,11 +770,12 @@ Renderer * Instance_meth_renderer(Instance * self, PyObject * vargs, PyObject * 
     PyObject * stencil = Py_False;
     PyObject * blending = Py_False;
     PyObject * polygon_offset = Py_False;
+    PyObject * viewport = Py_None;
 
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
-        "|$OOOsOOOOiipOOOOOOOOOO",
+        "|$OOOsOOOOiipOOOOOOOOOOO",
         keywords,
         &vertex_shader,
         &fragment_shader,
@@ -798,7 +797,8 @@ Renderer * Instance_meth_renderer(Instance * self, PyObject * vargs, PyObject * 
         &depth,
         &stencil,
         &blending,
-        &polygon_offset
+        &polygon_offset,
+        &viewport
     );
 
     if (!args_ok) {
@@ -934,7 +934,15 @@ Renderer * Instance_meth_renderer(Instance * self, PyObject * vargs, PyObject * 
     DescriptorSetImages * descriptor_set_images = build_descriptor_set_images(self, sampler_bindings);
     GlobalSettings * global_settings = build_global_settings(self, settings);
 
-    Image * first_image = (Image *)PySequence_GetItem(framebuffer_images, 0);
+    Viewport viewport_value = to_viewport(viewport);
+    if (!viewport_value.viewport) {
+        if (PyErr_Occurred()) {
+            return NULL;
+        }
+        Image * first_image = (Image *)PySequence_GetItem(framebuffer_images, 0);
+        viewport_value.width = (short)first_image->width;
+        viewport_value.height = (short)first_image->height;
+    }
 
     Renderer * res = PyObject_New(Renderer, self->module_state->Renderer_type);
     res->instance = self;
@@ -945,8 +953,7 @@ Renderer * Instance_meth_renderer(Instance * self, PyObject * vargs, PyObject * 
     res->vertex_count = vertex_count;
     res->instance_count = instance_count;
     res->index_type = index_type;
-    res->framebuffer_width = first_image->width;
-    res->framebuffer_height = first_image->height;
+    res->viewport = viewport_value;
     res->descriptor_set_buffers = descriptor_set_buffers;
     res->descriptor_set_images = descriptor_set_images;
     res->global_settings = global_settings;
@@ -1267,8 +1274,8 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
 
 PyObject * Renderer_meth_render(Renderer * self) {
     const GLMethods & gl = self->instance->gl;
-    if (self->framebuffer_width != self->instance->viewport_width || self->framebuffer_height != self->instance->viewport_height) {
-        gl.Viewport(0, 0, self->framebuffer_width, self->framebuffer_height);
+    if (self->viewport.viewport != self->instance->viewport.viewport) {
+        gl.Viewport(self->viewport.x, self->viewport.y, self->viewport.width, self->viewport.height);
     }
     bind_global_settings(self->instance, self->global_settings);
     bind_framebuffer(self->instance, self->framebuffer);
@@ -1282,6 +1289,19 @@ PyObject * Renderer_meth_render(Renderer * self) {
         gl.DrawArraysInstanced(self->topology, 0, self->vertex_count, self->instance_count);
     }
     Py_RETURN_NONE;
+}
+
+PyObject * Renderer_get_viewport(Renderer * self) {
+    return Py_BuildValue("iiii", self->viewport.x, self->viewport.y, self->viewport.width, self->viewport.height);
+}
+
+int Renderer_set_viewport(Renderer * self, PyObject * viewport) {
+    Viewport viewport_value = to_viewport(viewport);
+    if (!viewport_value.viewport) {
+        return -1;
+    }
+    self->viewport = viewport_value;
+    return 0;
 }
 
 struct vec3 {
@@ -1556,6 +1576,11 @@ PyMethodDef Renderer_methods[] = {
     {},
 };
 
+PyGetSetDef Renderer_getset[] = {
+    {"viewport", (getter)Renderer_get_viewport, (setter)Renderer_set_viewport, NULL, NULL},
+    {},
+};
+
 PyMemberDef Renderer_members[] = {
     {"vertex_count", T_OBJECT_EX, offsetof(Renderer, vertex_count), 0, NULL},
     {"instance_count", T_OBJECT_EX, offsetof(Renderer, instance_count), 0, NULL},
@@ -1585,6 +1610,7 @@ PyType_Slot Image_slots[] = {
 
 PyType_Slot Renderer_slots[] = {
     {Py_tp_methods, Renderer_methods},
+    {Py_tp_getset, Renderer_getset},
     {Py_tp_members, Renderer_members},
     {Py_tp_dealloc, default_dealloc},
     {},

@@ -372,6 +372,16 @@ struct StencilSettings {
     int reference;
 };
 
+union Viewport {
+    unsigned long long viewport;
+    struct {
+        short x;
+        short y;
+        short width;
+        short height;
+    };
+};
+
 VertexFormat get_vertex_format(const char * format) {
     if (!strcmp(format, "uint8x2")) return {GL_UNSIGNED_BYTE, 2, false, true};
     if (!strcmp(format, "uint8x4")) return {GL_UNSIGNED_BYTE, 4, false, true};
@@ -474,6 +484,30 @@ PyObject * to_str(const unsigned char * ptr) {
         return PyUnicode_FromString("");
     }
     return PyUnicode_FromString((char *)ptr);
+}
+
+Viewport to_viewport(PyObject * obj) {
+    Viewport res = {};
+    if (obj == Py_None) {
+        return res;
+    }
+    PyObject * seq = PySequence_Fast(obj, "viewport is not iterable");
+    if (!seq) {
+        return res;
+    }
+    int size = (int)PySequence_Size(seq);
+    if (size != 2 && size != 4) {
+        return res;
+    }
+    PyObject ** items = PySequence_Fast_ITEMS(seq);
+    res.x = (short)PyLong_AsLong(items[0]);
+    res.y = (short)PyLong_AsLong(items[1]);
+    res.width = (short)PyLong_AsLong(items[2]);
+    res.height = (short)PyLong_AsLong(items[3]);
+    if (PyErr_Occurred()) {
+        return res;
+    }
+    return res;
 }
 
 void * load_method(PyObject * context, const char * method) {
