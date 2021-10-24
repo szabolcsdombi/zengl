@@ -20,24 +20,24 @@ struct GlobalSettings {
     PyObject_HEAD
     unsigned long long color_mask;
     int primitive_restart;
-    int stencil_test;
+    float point_size;
+    float line_width;
+    int front_face;
+    int cull_face;
     int depth_test;
     int depth_write;
     int depth_func;
-    int cull_face;
-    int front_face;
-    float line_width;
-    float point_size;
-    int polygon_offset;
-    float polygon_offset_factor;
-    float polygon_offset_units;
+    int stencil_test;
+    StencilSettings stencil_front;
+    StencilSettings stencil_back;
     int blend_enable;
     int blend_src_color;
     int blend_dst_color;
     int blend_src_alpha;
     int blend_dst_alpha;
-    StencilSettings stencil_front;
-    StencilSettings stencil_back;
+    int polygon_offset;
+    float polygon_offset_factor;
+    float polygon_offset_units;
     int attachments;
 };
 
@@ -78,14 +78,14 @@ struct Image {
     PyObject * size;
     ImageFormat format;
     int image;
-    int framebuffer;
     int width;
     int height;
+    int samples;
     int array;
     int cubemap;
     int target;
-    int samples;
     int renderbuffer;
+    int framebuffer;
 };
 
 struct Renderer {
@@ -452,6 +452,7 @@ Instance * meth_instance(PyObject * self, PyObject * vargs, PyObject * kwargs) {
 
     int max_texture_image_units = 0;
     gl.GetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &max_texture_image_units);
+    int default_texture_unit = GL_TEXTURE0 + max_texture_image_units - 1;
     gl.PrimitiveRestartIndex(-1);
 
     PyObject * info = PyTuple_New(3);
@@ -461,7 +462,6 @@ Instance * meth_instance(PyObject * self, PyObject * vargs, PyObject * kwargs) {
 
     Instance * res = PyObject_New(Instance, module_state->Instance_type);
     res->module_state = module_state;
-    res->default_texture_unit = GL_TEXTURE0 + max_texture_image_units - 1;
     res->descriptor_set_buffers_cache = PyDict_New();
     res->descriptor_set_images_cache = PyDict_New();
     res->settings_cache = PyDict_New();
@@ -479,6 +479,7 @@ Instance * meth_instance(PyObject * self, PyObject * vargs, PyObject * kwargs) {
     res->current_vertex_array = 0;
     res->viewport_width = -1;
     res->viewport_height = -1;
+    res->default_texture_unit = default_texture_unit;
     res->gl = gl;
     return res;
 }
@@ -613,11 +614,11 @@ Image * Instance_meth_image(Instance * self, PyObject * vargs, PyObject * kwargs
     res->image = image;
     res->width = width;
     res->height = height;
+    res->samples = samples;
     res->array = array;
     res->cubemap = cubemap;
     res->target = target;
     res->renderbuffer = renderbuffer;
-    res->samples = samples;
 
     res->framebuffer = 0;
     if (!cubemap && !array) {
@@ -806,6 +807,8 @@ Renderer * Instance_meth_renderer(Instance * self, PyObject * vargs, PyObject * 
 
     const GLMethods & gl = self->gl;
 
+    int index_type = index_buffer != Py_None ? (short_index ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT) : 0;
+
     int program = compile_program(self, vertex_shader, fragment_shader);
     if (!program) {
         return NULL;
@@ -941,12 +944,12 @@ Renderer * Instance_meth_renderer(Instance * self, PyObject * vargs, PyObject * 
     res->topology = get_topology(topology);
     res->vertex_count = vertex_count;
     res->instance_count = instance_count;
+    res->index_type = index_type;
+    res->framebuffer_width = first_image->width;
+    res->framebuffer_height = first_image->height;
     res->descriptor_set_buffers = descriptor_set_buffers;
     res->descriptor_set_images = descriptor_set_images;
     res->global_settings = global_settings;
-    res->index_type = index_buffer != Py_None ? (short_index ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT) : 0;
-    res->framebuffer_width = first_image->width;
-    res->framebuffer_height = first_image->height;
     return res;
 }
 
