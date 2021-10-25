@@ -121,7 +121,7 @@ monkey_wire = ctx.renderer(
     topology='line_loop',
     vertex_buffers=zengl.bind(vertex_buffer, '3f 3f', 0, -1),
     index_buffer=index_buffer,
-    vertex_count=index_buffer.size // 4,
+    vertex_count=index_buffer.size // 4 - 124 * 4,
 )
 
 camera = zengl.camera((3.0, 2.0, 2.0), (0.0, 0.0, 0.5), aspect=window.aspect, fov=45.0)
