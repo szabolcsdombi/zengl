@@ -53,6 +53,8 @@ class BufferResourceBinding(TypedDict, total=False):
     type: Literal['uniform_buffer']
     binding: int
     buffer: 'Buffer'
+    offset: int
+    size: int
 
 
 class ImageResourceBinding(TypedDict, total=False):

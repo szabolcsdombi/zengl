@@ -187,7 +187,11 @@ def vertex_array_bindings(vertex_buffers, index_buffer):
 def buffer_bindings(resources):
     res = []
     for obj in sorted((x for x in resources if x['type'] == 'uniform_buffer'), key=lambda x: x['binding']):
-        res.extend([obj['binding'], obj['buffer']])
+        binding = obj['binding']
+        buffer = obj['buffer']
+        offset = obj.get('offset', 0)
+        size = obj.get('size', buffer.size - offset)
+        res.extend([binding, buffer, offset, size])
     return tuple(res)
 
 

@@ -344,9 +344,11 @@ DescriptorSetBuffers * build_descriptor_set_buffers(Instance * self, PyObject * 
     memset(res->buffer, 0, sizeof(res->buffer));
     res->buffers = 0;
 
-    for (int i = 0; i < length; i += 2) {
+    for (int i = 0; i < length; i += 4) {
         int binding = PyLong_AsLong(seq[i + 0]);
         Buffer * buffer = (Buffer *)seq[i + 1];
+        int offset = PyLong_AsLong(seq[i + 2]);
+        int size = PyLong_AsLong(seq[i + 3]);
         res->buffer[binding] = {buffer->buffer, 0, buffer->size};
         res->buffers = res->buffers > (binding + 1) ? res->buffers : (binding + 1);
     }
