@@ -7,13 +7,17 @@ from window import Window
 
 window = Window(1280, 720)
 ctx = zengl.instance(zengl.context())
+
 image = ctx.image(window.size, 'rgba8unorm', samples=4)
 depth = ctx.image(window.size, 'depth24plus', samples=4)
+image.clear_value = (1.0, 1.0, 1.0, 1.0)
+
 model = Obj.open('examples/data/box.obj').pack('vx vy vz nx ny nz tx ty')
 vertex_buffer = ctx.buffer(model)
 
 texture_ms = ctx.image((256, 256), 'rgba8unorm', samples=4)
 texture = ctx.image((256, 256), 'rgba8unorm')
+texture_ms.clear_value = (0.5, 0.5, 0.5, 1.0)
 
 uniform_buffer = ctx.buffer(size=80)
 
@@ -130,7 +134,7 @@ crate = ctx.renderer(
     vertex_count=vertex_buffer.size // zengl.calcsize('3f 3f 2f'),
 )
 
-texture_ms.clear(0.5, 0.5, 0.5, 1.0)
+texture_ms.clear()
 triangle.render()
 texture_ms.blit(texture)
 
@@ -143,7 +147,7 @@ def render():
     uniform_buffer.write(camera)
     uniform_buffer.write(zengl.pack(x, y, 2.0, 0.0), offset=64)
 
-    image.clear(1.0, 1.0, 1.0, 1.0)
+    image.clear()
     depth.clear()
     crate.render()
     image.blit()

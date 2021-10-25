@@ -45,7 +45,8 @@ triangle = ctx.renderer(
     vertex_count=3,
 )
 
-image.clear(1.0, 1.0, 1.0, 1.0)
+image.clear_value = (1.0, 1.0, 1.0, 1.0)
+image.clear()
 triangle.render()
 
 Image.frombuffer('RGBA', size, image.read(), 'raw', 'RGBA', 0, -1).save('hello.png')

@@ -6,6 +6,7 @@ from window import Window
 window = Window(1280, 720)
 ctx = zengl.instance(zengl.context())
 image = ctx.image(window.size, 'rgba8unorm', samples=4)
+image.clear_value = (1.0, 1.0, 1.0, 1.0)
 
 ctx.files['test.h'] = ''
 
@@ -51,7 +52,7 @@ triangle = ctx.renderer(
 
 @window.render
 def render():
-    image.clear(1.0, 1.0, 1.0, 1.0)
+    image.clear()
     triangle.render()
     image.blit()
 

@@ -27,8 +27,11 @@ vertex_data, index_data = create_terrain(64)
 
 window = Window(1280, 720)
 ctx = zengl.instance(zengl.context())
+
 image = ctx.image(window.size, 'rgba8unorm', samples=4)
 depth = ctx.image(window.size, 'depth24plus', samples=4)
+image.clear_value = (1.0, 1.0, 1.0, 1.0)
+
 vertex_buffer = ctx.buffer(vertex_data)
 index_buffer = ctx.buffer(index_data)
 
@@ -84,7 +87,7 @@ uniform_buffer.write(camera)
 
 @window.render
 def render():
-    image.clear(1.0, 1.0, 1.0, 1.0)
+    image.clear()
     depth.clear()
     terrain.render()
     image.blit()

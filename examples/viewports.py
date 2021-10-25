@@ -8,6 +8,7 @@ ctx = zengl.instance(zengl.context())
 window.set_caption('Hello World | Vendor: %s | Renderer: %s | Version: %s' % ctx.info)
 
 image = ctx.image(window.size, 'rgba8unorm', samples=4)
+image.clear_value = (1.0, 1.0, 1.0, 1.0)
 
 triangle = ctx.renderer(
     vertex_shader='''
@@ -51,7 +52,7 @@ triangle = ctx.renderer(
 
 @window.render
 def render():
-    image.clear(1.0, 1.0, 1.0, 1.0)
+    image.clear()
     triangle.viewport = (0, 0, 640, 360)
     triangle.render()
     triangle.viewport = (0, 360, 640, 360)

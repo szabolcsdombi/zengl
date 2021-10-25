@@ -5,8 +5,11 @@ from window import Window
 
 window = Window(1280, 720)
 ctx = zengl.instance(zengl.context())
+
 image = ctx.image(window.size, 'rgba8unorm', samples=4)
 depth = ctx.image(window.size, 'depth24plus', samples=4)
+image.clear_value = (0.2, 0.2, 0.2, 1.0)
+
 model = Obj.open('examples/data/monkey.obj').pack('vx vy vz nx ny nz')
 vertex_buffer = ctx.buffer(model)
 
@@ -69,7 +72,7 @@ uniform_buffer.write(camera)
 
 @window.render
 def render():
-    image.clear(0.2, 0.2, 0.2, 1.0)
+    image.clear()
     depth.clear()
     monkey.render()
     image.blit()

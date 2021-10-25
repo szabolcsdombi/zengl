@@ -10,6 +10,8 @@ ctx = zengl.instance(zengl.context())
 
 image = ctx.image(window.size, 'rgba8unorm', samples=4)
 depth = ctx.image(window.size, 'depth24plus', samples=4)
+image.clear_value = (1.0, 1.0, 1.0, 1.0)
+
 model = Obj.open('examples/data/box.obj').pack('vx vy vz nx ny nz tx ty')
 vertex_buffer = ctx.buffer(model)
 
@@ -118,7 +120,7 @@ def render():
     z[:, 2] += np.random.normal(0.0, 0.01, z.shape[0])
     instance_buffer.unmap()
 
-    image.clear(1.0, 1.0, 1.0, 1.0)
+    image.clear()
     depth.clear()
     crate.render()
     image.blit()

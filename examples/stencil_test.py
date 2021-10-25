@@ -8,6 +8,8 @@ ctx = zengl.instance(zengl.context())
 
 image = ctx.image(window.size, 'rgba8unorm', samples=4)
 depth_stencil = ctx.image(window.size, 'depth24plus-stencil8', samples=4)
+image.clear_value = (1.0, 1.0, 1.0, 1.0)
+depth_stencil.clear_value = (1.0, 0)
 
 model = Obj.open('examples/data/monkey.obj').pack('vx vy vz nx ny nz')
 vertex_buffer = ctx.buffer(model)
@@ -139,8 +141,8 @@ uniform_buffer.write(camera)
 
 @window.render
 def render():
-    depth_stencil.clear(1.0, 0)
-    image.clear(1.0, 1.0, 1.0, 1.0)
+    depth_stencil.clear()
+    image.clear()
     triangle.render()
     monkey.render()
     image.blit()

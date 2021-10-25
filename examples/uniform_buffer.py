@@ -7,6 +7,7 @@ window = Window(1280, 720)
 ctx = zengl.instance(zengl.context())
 
 image = ctx.image(window.size, 'rgba8unorm', samples=4)
+image.clear_value = (1.0, 1.0, 1.0, 1.0)
 
 uniform_buffer = ctx.buffer(size=16)
 
@@ -80,7 +81,7 @@ def render():
     ]
     uniform_buffer.unmap()
 
-    image.clear(1.0, 1.0, 1.0, 1.0)
+    image.clear()
     triangle.render()
     image.blit()
 
