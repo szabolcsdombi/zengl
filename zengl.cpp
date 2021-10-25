@@ -75,6 +75,7 @@ struct Image {
     PyObject_HEAD
     Instance * instance;
     PyObject * size;
+    ClearValue clear_value;
     ImageFormat format;
     int image;
     int width;
@@ -237,10 +238,12 @@ int build_framebuffer(Instance * self, PyObject * attachments) {
 
     if (depth_stencil_attachment != Py_None) {
         Image * image = (Image *)depth_stencil_attachment;
+        int buffer = image->format.buffer;
+        int attachment = buffer == GL_DEPTH ? GL_DEPTH_ATTACHMENT : buffer == GL_STENCIL ? GL_STENCIL_ATTACHMENT : GL_DEPTH_STENCIL_ATTACHMENT;
         if (image->renderbuffer) {
-            gl.FramebufferRenderbuffer(GL_FRAMEBUFFER, image->format.attachment, GL_RENDERBUFFER, image->image);
+            gl.FramebufferRenderbuffer(GL_FRAMEBUFFER, attachment, GL_RENDERBUFFER, image->image);
         } else {
-            gl.FramebufferTexture2D(GL_FRAMEBUFFER, image->format.attachment, GL_TEXTURE_2D, image->image, 0);
+            gl.FramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, image->image, 0);
         }
     }
 
@@ -606,9 +609,15 @@ Image * Instance_meth_image(Instance * self, PyObject * vargs, PyObject * kwargs
         }
     }
 
+    ClearValue clear_value = {};
+    if (format.buffer == GL_DEPTH || format.buffer == GL_DEPTH_STENCIL) {
+        clear_value.clear_floats[0] = 1.0f;
+    }
+
     Image * res = PyObject_New(Image, self->module_state->Image_type);
     res->instance = self;
     res->size = Py_BuildValue("(ii)", width, height);
+    res->clear_value = clear_value;
     res->format = format;
     res->image = image;
     res->width = width;
@@ -1019,59 +1028,25 @@ PyObject * Buffer_meth_unmap(Buffer * self) {
     Py_RETURN_NONE;
 }
 
-PyObject * Image_meth_clear(Image * self, PyObject ** args, Py_ssize_t nargs) {
-    float clear_color[4] = {};
-    float clear_depth = 1.0f;
-    int clear_stencil = 0;
-    if (nargs) {
-        if (nargs != self->format.components) {
-            return NULL;
-        }
-        if (self->format.attachment == GL_COLOR_ATTACHMENT0) {
-            for (int i = 0; i < self->format.components; ++i) {
-                clear_color[i] = (float)PyFloat_AsDouble(args[i]);
-            }
-        } else {
-            clear_depth = (float)PyFloat_AsDouble(args[0]);
-            if (self->format.components == 2) {
-                clear_stencil = PyLong_AsLong(args[1]);
-            }
-        }
-    }
-
+PyObject * Image_meth_clear(Image * self) {
     const GLMethods & gl = self->instance->gl;
     bind_framebuffer(self->instance, self->framebuffer);
-    if (self->format.attachment == GL_COLOR_ATTACHMENT0) {
-        gl.ColorMaski(0, 1, 1, 1, 1);
-        gl.ClearColor(clear_color[0], clear_color[1], clear_color[2], clear_color[3]);
-        gl.Clear(GL_COLOR_BUFFER_BIT);
-        if (GlobalSettings * settings = self->instance->current_global_settings) {
-            gl.ColorMaski(0, settings->color_mask & 1, settings->color_mask & 2, settings->color_mask & 4, settings->color_mask & 8);
-        }
-    } else if (self->format.attachment == GL_DEPTH_ATTACHMENT) {
-        gl.DepthMask(1);
-        gl.ClearDepth(clear_depth);
-        gl.Clear(GL_DEPTH_BUFFER_BIT);
-        if (GlobalSettings * settings = self->instance->current_global_settings) {
-            gl.DepthMask(settings->depth_write);
-        }
-    } else if (self->format.attachment == GL_DEPTH_STENCIL_ATTACHMENT) {
-        gl.DepthMask(1);
-        gl.StencilMaskSeparate(GL_FRONT, 0xff);
-        gl.ClearDepth(clear_depth);
-        gl.ClearStencil(clear_stencil);
-        gl.Clear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-        if (GlobalSettings * settings = self->instance->current_global_settings) {
-            gl.StencilMaskSeparate(GL_FRONT, settings->stencil_front.write_mask);
-            gl.DepthMask(settings->depth_write);
-        }
-    } else if (self->format.attachment == GL_STENCIL_ATTACHMENT) {
-        gl.StencilMaskSeparate(GL_FRONT, 0xff);
-        gl.ClearStencil(clear_stencil);
-        gl.Clear(GL_STENCIL_BUFFER_BIT);
-        if (GlobalSettings * settings = self->instance->current_global_settings) {
-            gl.StencilMaskSeparate(GL_FRONT, settings->stencil_front.write_mask);
-        }
+    gl.ColorMaski(0, 1, 1, 1, 1);
+    gl.DepthMask(1);
+    gl.StencilMaskSeparate(GL_FRONT, 0xff);
+    if (self->format.clear_type == 'f') {
+        self->instance->gl.ClearBufferfv(self->format.buffer, 0, self->clear_value.clear_floats);
+    } else if (self->format.clear_type == 'i') {
+        self->instance->gl.ClearBufferiv(self->format.buffer, 0, self->clear_value.clear_ints);
+    } else if (self->format.clear_type == 'u') {
+        self->instance->gl.ClearBufferuiv(self->format.buffer, 0, self->clear_value.clear_uints);
+    } else if (self->format.clear_type == 'x') {
+        self->instance->gl.ClearBufferfi(self->format.buffer, 0, self->clear_value.clear_floats[0], self->clear_value.clear_ints[1]);
+    }
+    if (GlobalSettings * settings = self->instance->current_global_settings) {
+        gl.ColorMaski(0, settings->color_mask & 1, settings->color_mask & 2, settings->color_mask & 4, settings->color_mask & 8);
+        gl.StencilMaskSeparate(GL_FRONT, settings->stencil_front.write_mask);
+        gl.DepthMask(settings->depth_write);
     }
     Py_RETURN_NONE;
 }
@@ -1272,6 +1247,66 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
         gl.ColorMaski(0, settings->color_mask & 1, settings->color_mask & 2, settings->color_mask & 4, settings->color_mask & 8);
     }
     Py_RETURN_NONE;
+}
+
+PyObject * Image_get_clear_value(Image * self) {
+    if (self->format.clear_type == 'x') {
+        return Py_BuildValue("fi", self->clear_value.clear_floats[0], self->clear_value.clear_ints[1]);
+    }
+    if (self->format.components = 1) {
+        if (self->format.clear_type == 'f') {
+            return PyFloat_FromDouble(self->clear_value.clear_floats[0]);
+        } else if (self->format.clear_type == 'i') {
+            return PyLong_FromLong(self->clear_value.clear_ints[0]);
+        } else if (self->format.clear_type == 'u') {
+            return PyLong_FromUnsignedLong(self->clear_value.clear_uints[0]);
+        }
+    }
+    PyObject * res = PyTuple_New(self->format.components);
+    for (int i = 0; i < self->format.components; ++i) {
+        if (self->format.clear_type == 'f') {
+            PyTuple_SetItem(res, i, PyFloat_FromDouble(self->clear_value.clear_floats[i]));
+        } else if (self->format.clear_type == 'i') {
+            PyTuple_SetItem(res, i, PyLong_FromLong(self->clear_value.clear_ints[i]));
+        } else if (self->format.clear_type == 'u') {
+            PyTuple_SetItem(res, i, PyLong_FromUnsignedLong(self->clear_value.clear_uints[i]));
+        }
+    }
+    return res;
+}
+
+int Image_set_clear_value(Image * self, PyObject * value) {
+    PyObject ** seq = &value;
+    if (self->format.components > 1) {
+        PyObject * values = PySequence_Fast(value, "not iterable");
+        int size = (int)PySequence_Fast_GET_SIZE(values);
+        if (size != self->format.components) {
+            return -1;
+        }
+        seq = PySequence_Fast_ITEMS(values);
+    }
+    ClearValue clear_value = {};
+    if (self->format.clear_type == 'f') {
+        for (int i = 0; i < self->format.components; ++i) {
+            clear_value.clear_floats[i] = (float)PyFloat_AsDouble(seq[i]);
+        }
+    } else if (self->format.clear_type == 'i') {
+        for (int i = 0; i < self->format.components; ++i) {
+            clear_value.clear_ints[i] = PyLong_AsLong(seq[i]);
+        }
+    } else if (self->format.clear_type == 'u') {
+        for (int i = 0; i < self->format.components; ++i) {
+            clear_value.clear_uints[i] = PyLong_AsUnsignedLong(seq[i]);
+        }
+    } else if (self->format.clear_type == 'x') {
+        clear_value.clear_floats[0] = (float)PyFloat_AsDouble(seq[0]);
+        clear_value.clear_ints[1] = PyLong_AsLong(seq[1]);
+    }
+    if (PyErr_Occurred()) {
+        return -1;
+    }
+    self->clear_value = clear_value;
+    return 0;
 }
 
 PyObject * Renderer_meth_render(Renderer * self) {
@@ -1558,11 +1593,16 @@ PyMemberDef Buffer_members[] = {
 };
 
 PyMethodDef Image_methods[] = {
-    {"clear", (PyCFunction)Image_meth_clear, METH_FASTCALL, NULL},
+    {"clear", (PyCFunction)Image_meth_clear, METH_NOARGS, NULL},
     {"write", (PyCFunction)Image_meth_write, METH_VARARGS | METH_KEYWORDS, NULL},
     {"read", (PyCFunction)Image_meth_read, METH_VARARGS | METH_KEYWORDS, NULL},
     {"mipmaps", (PyCFunction)Image_meth_mipmaps, METH_VARARGS | METH_KEYWORDS, NULL},
     {"blit", (PyCFunction)Image_meth_blit, METH_VARARGS | METH_KEYWORDS, NULL},
+    {},
+};
+
+PyGetSetDef Image_getset[] = {
+    {"clear_value", (getter)Image_get_clear_value, (setter)Image_set_clear_value, NULL, NULL},
     {},
 };
 
@@ -1605,6 +1645,7 @@ PyType_Slot Buffer_slots[] = {
 
 PyType_Slot Image_slots[] = {
     {Py_tp_methods, Image_methods},
+    {Py_tp_getset, Image_getset},
     {Py_tp_members, Image_members},
     {Py_tp_dealloc, default_dealloc},
     {},

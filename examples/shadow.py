@@ -9,9 +9,11 @@ ctx = zengl.instance(zengl.context())
 
 shadow = ctx.image((512, 512), 'r32float')
 depth1 = ctx.image((512, 512), 'depth24plus')
+shadow.clear_value = 1.0
 
 image = ctx.image(window.size, 'rgba8unorm', samples=4)
 depth2 = ctx.image(window.size, 'depth24plus', samples=4)
+image.clear_value = (0.2, 0.2, 0.2, 1.0)
 
 model = Obj.open('examples/data/monkey.obj').pack('vx vy vz nx ny nz')
 vertex_buffer = ctx.buffer(model)
@@ -159,8 +161,8 @@ uniform_buffer.write(b''.join([
 
 @window.render
 def render():
-    image.clear(0.2, 0.2, 0.2, 1.0)
-    shadow.clear(1.0)
+    image.clear()
+    shadow.clear()
     depth1.clear()
     depth2.clear()
     shadow_program.render()

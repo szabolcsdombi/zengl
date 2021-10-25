@@ -7,6 +7,7 @@ ctx = zengl.instance(zengl.context())
 
 temp = ctx.image(window.size, 'rgba8unorm')
 image = ctx.image(window.size, 'rgba8unorm')
+temp.clear_value = (1.0, 1.0, 1.0, 1.0)
 
 triangle = ctx.renderer(
     vertex_shader='''
@@ -105,7 +106,7 @@ blur = ctx.renderer(
 
 @window.render
 def render():
-    temp.clear(1.0, 1.0, 1.0, 1.0)
+    temp.clear()
     triangle.render()
     blur.render()
     temp.blit()
