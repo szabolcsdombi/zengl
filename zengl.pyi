@@ -105,6 +105,7 @@ class StencilSettings(TypedDict, total=False):
     test: bool
     front: StencilFaceSettings
     back: StencilFaceSettings
+    both: StencilFaceSettings
 
 
 class BlendingSettings(TypedDict, total=False):

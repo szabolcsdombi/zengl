@@ -242,22 +242,24 @@ def settings(primitive_restart, point_size, line_width, front_face, cull_face, c
         res.extend([True, 0x1E00, 0x1E00, 0x1E00, 0x0207, 0xff, 0xff, 0, 0x1E00, 0x1E00, 0x1E00, 0x0207, 0xff, 0xff, 0])
 
     else:
+        front = stencil.get('front', stencil.get('both', {}))
+        back = stencil.get('back', stencil.get('both', {}))
         res.extend([
             bool(stencil['test']),
-            STENCIL_OP[stencil['front']['fail_op']],
-            STENCIL_OP[stencil['front']['pass_op']],
-            STENCIL_OP[stencil['front']['depth_fail_op']],
-            COMPARE_FUNC[stencil['front']['compare_op']],
-            int(stencil['front']['compare_mask']),
-            int(stencil['front']['write_mask']),
-            int(stencil['front']['reference']),
-            STENCIL_OP[stencil['back']['fail_op']],
-            STENCIL_OP[stencil['back']['pass_op']],
-            STENCIL_OP[stencil['back']['depth_fail_op']],
-            COMPARE_FUNC[stencil['back']['compare_op']],
-            int(stencil['back']['compare_mask']),
-            int(stencil['back']['write_mask']),
-            int(stencil['back']['reference']),
+            STENCIL_OP[front.get('fail_op', 'keep')],
+            STENCIL_OP[front.get('pass_op', 'keep')],
+            STENCIL_OP[front.get('depth_fail_op', 'keep')],
+            COMPARE_FUNC[front.get('compare_op', 'always')],
+            int(front.get('compare_mask', 0xff)),
+            int(front.get('write_mask', 0xff)),
+            int(front.get('reference', 0)),
+            STENCIL_OP[back.get('fail_op', 'keep')],
+            STENCIL_OP[back.get('pass_op', 'keep')],
+            STENCIL_OP[back.get('depth_fail_op', 'keep')],
+            COMPARE_FUNC[back.get('compare_op', 'always')],
+            int(back.get('compare_mask', 0xff)),
+            int(back.get('write_mask', 0xff)),
+            int(back.get('reference', 0)),
         ])
 
     if blending is False:
