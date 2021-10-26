@@ -127,6 +127,7 @@
 #define GL_UNIFORM_BUFFER 0x8A11
 #define GL_ACTIVE_UNIFORM_BLOCKS 0x8A36
 #define GL_UNIFORM_BLOCK_DATA_SIZE 0x8A40
+#define GL_PROGRAM_POINT_SIZE 0x8642
 
 typedef void (GLAPI * glActiveTextureProc)(unsigned int texture);
 typedef void (GLAPI * glAttachShaderProc)(unsigned int program, unsigned int shader);
@@ -195,7 +196,6 @@ typedef int (GLAPI * glGetUniformLocationProc)(unsigned int program, const char 
 typedef void (GLAPI * glLineWidthProc)(float width);
 typedef void (GLAPI * glLinkProgramProc)(unsigned int program);
 typedef void * (GLAPI * glMapBufferRangeProc)(unsigned int target, long long int offset, long long int length, unsigned int access);
-typedef void (GLAPI * glPointSizeProc)(float size);
 typedef void (GLAPI * glPolygonOffsetProc)(float factor, float units);
 typedef void (GLAPI * glPrimitiveRestartIndexProc)(unsigned int index);
 typedef void (GLAPI * glReadBufferProc)(unsigned int src);
@@ -294,7 +294,6 @@ struct GLMethods {
     glLineWidthProc LineWidth;
     glLinkProgramProc LinkProgram;
     glMapBufferRangeProc MapBufferRange;
-    glPointSizeProc PointSize;
     glPolygonOffsetProc PolygonOffset;
     glPrimitiveRestartIndexProc PrimitiveRestartIndex;
     glReadBufferProc ReadBuffer;
@@ -599,7 +598,6 @@ GLMethods load_gl(PyObject * context) {
     load(LineWidth);
     load(LinkProgram);
     load(MapBufferRange);
-    load(PointSize);
     load(PolygonOffset);
     load(PrimitiveRestartIndex);
     load(ReadBuffer);
