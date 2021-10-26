@@ -456,6 +456,7 @@ Instance * meth_instance(PyObject * self, PyObject * vargs, PyObject * kwargs) {
     gl.PrimitiveRestartIndex(-1);
     gl.Enable(GL_PROGRAM_POINT_SIZE);
     gl.Enable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+    gl.Enable(GL_FRAMEBUFFER_SRGB);
 
     PyObject * info = PyTuple_New(3);
     PyTuple_SetItem(info, 0, to_str(gl.GetString(GL_VENDOR)));
@@ -1160,7 +1161,7 @@ PyObject * Image_meth_read(Image * self, PyObject * vargs, PyObject * kwargs) {
 }
 
 PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
-    static char * keywords[] = {"dst", "dst_size", "dst_offset", "src_size", "src_offset", "filter", NULL};
+    static char * keywords[] = {"dst", "dst_size", "dst_offset", "src_size", "src_offset", "filter", "srgb", NULL};
 
     PyObject * dst = Py_None;
     int dst_width = -1;
@@ -1172,11 +1173,12 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
     int src_x = 0;
     int src_y = 0;
     int filter = true;
+    int srgb = false;
 
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
-        "|O$(ii)(ii)(ii)(ii)p",
+        "|O$(ii)(ii)(ii)(ii)pp",
         keywords,
         &dst,
         &dst_width,
@@ -1187,7 +1189,8 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
         &src_height,
         &src_x,
         &src_y,
-        &filter
+        &filter,
+        &srgb
     );
 
     if (!args_ok) {
@@ -1233,6 +1236,9 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
 
     const GLMethods & gl = self->instance->gl;
 
+    if (!srgb) {
+        gl.Disable(GL_FRAMEBUFFER_SRGB);
+    }
     gl.ColorMaski(0, 1, 1, 1, 1);
     gl.BindFramebuffer(GL_READ_FRAMEBUFFER, self->framebuffer);
     gl.BindFramebuffer(GL_DRAW_FRAMEBUFFER, dst_image ? dst_image->framebuffer : 0);
@@ -1240,6 +1246,9 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
     gl.BindFramebuffer(GL_FRAMEBUFFER, self->instance->current_framebuffer);
     if (GlobalSettings * settings = self->instance->current_global_settings) {
         gl.ColorMaski(0, settings->color_mask & 1, settings->color_mask & 2, settings->color_mask & 4, settings->color_mask & 8);
+    }
+    if (!srgb) {
+        gl.Enable(GL_FRAMEBUFFER_SRGB);
     }
     Py_RETURN_NONE;
 }
