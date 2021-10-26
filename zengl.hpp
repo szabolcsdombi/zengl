@@ -128,6 +128,7 @@
 #define GL_ACTIVE_UNIFORM_BLOCKS 0x8A36
 #define GL_UNIFORM_BLOCK_DATA_SIZE 0x8A40
 #define GL_PROGRAM_POINT_SIZE 0x8642
+#define GL_TEXTURE_CUBE_MAP_SEAMLESS 0x884F
 
 typedef void (GLAPI * glActiveTextureProc)(unsigned int texture);
 typedef void (GLAPI * glAttachShaderProc)(unsigned int program, unsigned int shader);
