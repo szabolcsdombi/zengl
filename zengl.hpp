@@ -592,7 +592,8 @@ void * load_method(PyObject * context, const char * method) {
 GLMethods load_gl(PyObject * context) {
     GLMethods res = {};
 
-    #define load(name) res.name = (gl ## name ## Proc)load_method(context, "gl" # name)
+    #define check(name) if (!res.name) PyErr_Format(PyExc_KeyError, "gl" # name)
+    #define load(name) res.name = (gl ## name ## Proc)load_method(context, "gl" # name); check(name)
 
     // GL_VERSION_1_0
     load(CullFace);
@@ -707,5 +708,6 @@ GLMethods load_gl(PyObject * context) {
     load(VertexAttribDivisor);
 
     #undef load
+    #undef check
     return res;
 }
