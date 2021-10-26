@@ -455,6 +455,7 @@ Instance * meth_instance(PyObject * self, PyObject * vargs, PyObject * kwargs) {
     int default_texture_unit = GL_TEXTURE0 + max_texture_image_units - 1;
     gl.PrimitiveRestartIndex(-1);
     gl.Enable(GL_PROGRAM_POINT_SIZE);
+    gl.Enable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
     PyObject * info = PyTuple_New(3);
     PyTuple_SetItem(info, 0, to_str(gl.GetString(GL_VENDOR)));
