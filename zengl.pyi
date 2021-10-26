@@ -159,7 +159,7 @@ class Instance:
         self, /, *, vertex_shader: str = ..., fragment_shader: str = ..., framebuffer: Iterable[Image] = (), topology: Topology = 'triangles',
         layout: Iterable[LayoutBinding] = (), resources: Iterable[ResourceBinding] = (), vertex_buffers: Iterable[VertexBufferBinding] = (),
         index_buffer: Buffer | None = None, vertex_count: int = 0, instance_count: int = 0, short_index: bool = False,
-        primitive_restart: bool = False, point_size: float = 1.0, line_width: float = 1.0, front_face: str = 'ccw', cull_face: str = 'none',
+        primitive_restart: bool = False, line_width: float = 1.0, front_face: str = 'ccw', cull_face: str = 'none',
         color_mask: int = 0xffffffffffffffff, depth: DepthSettings | bool | None = None, stencil: StencilSettings | None = None,
         blending: BlendingSettings | None = None, polygon_offset: PolygonOffsetSettings | None = None, viewport: Viewport = None) -> Renderer: ...
 

@@ -20,7 +20,6 @@ struct GlobalSettings {
     PyObject_HEAD
     unsigned long long color_mask;
     int primitive_restart;
-    float point_size;
     float line_width;
     int front_face;
     int cull_face;
@@ -164,7 +163,6 @@ void bind_global_settings(Instance * self, GlobalSettings * settings) {
     } else {
         gl.Disable(GL_CULL_FACE);
     }
-    gl.PointSize(settings->point_size);
     gl.LineWidth(settings->line_width);
     gl.FrontFace(settings->front_face);
     gl.DepthMask(settings->depth_write);
@@ -396,42 +394,41 @@ GlobalSettings * build_global_settings(Instance * self, PyObject * settings) {
     GlobalSettings * res = PyObject_New(GlobalSettings, self->module_state->GlobalSettings_type);
 
     res->primitive_restart = PyObject_IsTrue(seq[0]);
-    res->point_size = (float)PyFloat_AsDouble(seq[1]);
-    res->line_width = (float)PyFloat_AsDouble(seq[2]);
-    res->front_face = PyLong_AsLong(seq[3]);
-    res->cull_face = PyLong_AsLong(seq[4]);
-    res->color_mask = PyLong_AsUnsignedLongLong(seq[5]);
-    res->depth_test = PyObject_IsTrue(seq[6]);
-    res->depth_write = PyObject_IsTrue(seq[7]);
-    res->depth_func = PyLong_AsLong(seq[8]);
-    res->stencil_test = PyObject_IsTrue(seq[9]);
+    res->line_width = (float)PyFloat_AsDouble(seq[1]);
+    res->front_face = PyLong_AsLong(seq[2]);
+    res->cull_face = PyLong_AsLong(seq[3]);
+    res->color_mask = PyLong_AsUnsignedLongLong(seq[4]);
+    res->depth_test = PyObject_IsTrue(seq[5]);
+    res->depth_write = PyObject_IsTrue(seq[6]);
+    res->depth_func = PyLong_AsLong(seq[7]);
+    res->stencil_test = PyObject_IsTrue(seq[8]);
     res->stencil_front = {
+        PyLong_AsLong(seq[9]),
         PyLong_AsLong(seq[10]),
         PyLong_AsLong(seq[11]),
         PyLong_AsLong(seq[12]),
         PyLong_AsLong(seq[13]),
         PyLong_AsLong(seq[14]),
         PyLong_AsLong(seq[15]),
-        PyLong_AsLong(seq[16]),
     };
     res->stencil_back = {
+        PyLong_AsLong(seq[16]),
         PyLong_AsLong(seq[17]),
         PyLong_AsLong(seq[18]),
         PyLong_AsLong(seq[19]),
         PyLong_AsLong(seq[20]),
         PyLong_AsLong(seq[21]),
         PyLong_AsLong(seq[22]),
-        PyLong_AsLong(seq[23]),
     };
-    res->blend_enable = PyLong_AsLong(seq[24]);
-    res->blend_src_color = PyLong_AsLong(seq[25]);
-    res->blend_dst_color = PyLong_AsLong(seq[26]);
-    res->blend_src_alpha = PyLong_AsLong(seq[27]);
-    res->blend_dst_alpha = PyLong_AsLong(seq[28]);
-    res->polygon_offset = PyObject_IsTrue(seq[29]);
-    res->polygon_offset_factor = (float)PyFloat_AsDouble(seq[30]);
-    res->polygon_offset_units = (float)PyFloat_AsDouble(seq[31]);
-    res->attachments = PyLong_AsLong(seq[32]);
+    res->blend_enable = PyLong_AsLong(seq[23]);
+    res->blend_src_color = PyLong_AsLong(seq[24]);
+    res->blend_dst_color = PyLong_AsLong(seq[25]);
+    res->blend_src_alpha = PyLong_AsLong(seq[26]);
+    res->blend_dst_alpha = PyLong_AsLong(seq[27]);
+    res->polygon_offset = PyObject_IsTrue(seq[28]);
+    res->polygon_offset_factor = (float)PyFloat_AsDouble(seq[29]);
+    res->polygon_offset_units = (float)PyFloat_AsDouble(seq[30]);
+    res->attachments = PyLong_AsLong(seq[31]);
 
     PyDict_SetItem(self->settings_cache, settings, (PyObject *)res);
     return res;
@@ -457,6 +454,7 @@ Instance * meth_instance(PyObject * self, PyObject * vargs, PyObject * kwargs) {
     gl.GetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &max_texture_image_units);
     int default_texture_unit = GL_TEXTURE0 + max_texture_image_units - 1;
     gl.PrimitiveRestartIndex(-1);
+    gl.Enable(GL_PROGRAM_POINT_SIZE);
 
     PyObject * info = PyTuple_New(3);
     PyTuple_SetItem(info, 0, to_str(gl.GetString(GL_VENDOR)));
@@ -747,7 +745,6 @@ Renderer * Instance_meth_renderer(Instance * self, PyObject * vargs, PyObject * 
         "instance_count",
         "short_index",
         "primitive_restart",
-        "point_size",
         "line_width",
         "front_face",
         "cull_face",
@@ -772,7 +769,6 @@ Renderer * Instance_meth_renderer(Instance * self, PyObject * vargs, PyObject * 
     int instance_count = 1;
     int short_index = false;
     PyObject * primitive_restart = Py_False;
-    PyObject * point_size = self->module_state->float_one;
     PyObject * line_width = self->module_state->float_one;
     PyObject * front_face = self->module_state->str_ccw;
     PyObject * cull_face = self->module_state->str_none;
@@ -786,7 +782,7 @@ Renderer * Instance_meth_renderer(Instance * self, PyObject * vargs, PyObject * 
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
-        "|$OOOsOOOOiipOOOOOOOOOOO",
+        "|$OOOsOOOOiipOOOOOOOOOO",
         keywords,
         &vertex_shader,
         &fragment_shader,
@@ -800,7 +796,6 @@ Renderer * Instance_meth_renderer(Instance * self, PyObject * vargs, PyObject * 
         &instance_count,
         &short_index,
         &primitive_restart,
-        &point_size,
         &line_width,
         &front_face,
         &cull_face,
@@ -923,9 +918,8 @@ Renderer * Instance_meth_renderer(Instance * self, PyObject * vargs, PyObject * 
     PyObject * settings = PyObject_CallMethod(
         self->module_state->helper,
         "settings",
-        "OOOOOOOOOOO",
+        "OOOOOOOOOO",
         primitive_restart,
-        point_size,
         line_width,
         front_face,
         cull_face,
