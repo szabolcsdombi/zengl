@@ -268,10 +268,10 @@ def settings(primitive_restart, line_width, front_face, cull_face, color_mask, d
     else:
         res.extend([
             int(blending['enable']),
-            BLEND_CONSTANT[blending['src_color']],
-            BLEND_CONSTANT[blending['dst_color']],
-            BLEND_CONSTANT[blending['src_alpha']],
-            BLEND_CONSTANT[blending['dst_alpha']],
+            BLEND_CONSTANT[blending.get('src_color', 'one')],
+            BLEND_CONSTANT[blending.get('dst_color', 'zero')],
+            BLEND_CONSTANT[blending.get('src_alpha', 'one')],
+            BLEND_CONSTANT[blending.get('dst_alpha', 'zero')],
         ])
 
     if polygon_offset is False:
