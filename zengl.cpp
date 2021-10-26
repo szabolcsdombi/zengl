@@ -434,6 +434,93 @@ GlobalSettings * build_global_settings(Instance * self, PyObject * settings) {
     return res;
 }
 
+int compile_shader(Instance * self, PyObject * code, int type, const char * name) {
+    if (PyObject * cache = PyDict_GetItem(self->shader_cache, code)) {
+        return PyLong_AsLong(cache);
+    }
+
+    const GLMethods & gl = self->gl;
+
+    int shader = gl.CreateShader(type);
+    const char * src = PyBytes_AsString(code);
+    gl.ShaderSource(shader, 1, &src, 0);
+    gl.CompileShader(shader);
+
+    int shader_compiled = false;
+    gl.GetShaderiv(shader, GL_COMPILE_STATUS, &shader_compiled);
+
+    if (!shader_compiled) {
+        int log_size = 0;
+        gl.GetShaderiv(shader, GL_INFO_LOG_LENGTH, &log_size);
+        char * log_text = (char *)malloc(log_size + 1);
+        gl.GetShaderInfoLog(shader, log_size, &log_size, log_text);
+        log_text[log_size] = 0;
+        PyErr_Format(PyExc_Exception, "%s Error\n\n%s", name, log_text);
+        free(log_text);
+        return 0;
+    }
+
+    return shader;
+}
+
+int compile_program(Instance * self, PyObject * vert, PyObject * frag) {
+    const GLMethods & gl = self->gl;
+
+    PyObject * pair = PyObject_CallMethod(self->module_state->helper, "normalize_shaders", "OOO", vert, frag, self->files);
+    if (!pair) {
+        return 0;
+    }
+
+    PyObject * vert_code = PyTuple_GetItem(pair, 0);
+    PyObject * frag_code = PyTuple_GetItem(pair, 1);
+
+    if (PyObject * cache = PyDict_GetItem(self->shader_cache, pair)) {
+        int program = PyLong_AsLong(cache);
+        PyDict_SetItem(self->shader_cache, pair, PyLong_FromLong(program));
+        Py_DECREF(pair);
+        return program;
+    }
+
+    int vertex_shader = compile_shader(self, vert_code, GL_VERTEX_SHADER, "Vertex Shader");
+    if (!vertex_shader) {
+        Py_DECREF(pair);
+        return 0;
+    }
+
+    PyDict_SetItem(self->shader_cache, vert_code, PyLong_FromLong(vertex_shader));
+
+    int fragment_shader = compile_shader(self, frag_code, GL_FRAGMENT_SHADER, "Fragment Shader");
+    if (!fragment_shader) {
+        Py_DECREF(pair);
+        return 0;
+    }
+
+    PyDict_SetItem(self->shader_cache, frag_code, PyLong_FromLong(fragment_shader));
+
+    int program = gl.CreateProgram();
+    gl.AttachShader(program, vertex_shader);
+    gl.AttachShader(program, fragment_shader);
+    gl.LinkProgram(program);
+
+    int linked = false;
+    gl.GetProgramiv(program, GL_LINK_STATUS, &linked);
+
+    if (!linked) {
+        int log_size = 0;
+        gl.GetProgramiv(program, GL_INFO_LOG_LENGTH, &log_size);
+        char * log_text = (char *)malloc(log_size + 1);
+        gl.GetProgramInfoLog(program, log_size, &log_size, log_text);
+        log_text[log_size] = 0;
+        PyErr_Format(PyExc_Exception, "Linker Error\n\n%s", log_text);
+        free(log_text);
+        return 0;
+    }
+
+    PyDict_SetItem(self->shader_cache, pair, PyLong_FromLong(program));
+    Py_DECREF(pair);
+    return program;
+}
+
 Instance * meth_instance(PyObject * self, PyObject * vargs, PyObject * kwargs) {
     static char * keywords[] = {"context", NULL};
 
@@ -644,93 +731,6 @@ Image * Instance_meth_image(Instance * self, PyObject * vargs, PyObject * kwargs
     }
 
     return res;
-}
-
-int compile_shader(Instance * self, PyObject * code, int type, const char * name) {
-    if (PyObject * cache = PyDict_GetItem(self->shader_cache, code)) {
-        return PyLong_AsLong(cache);
-    }
-
-    const GLMethods & gl = self->gl;
-
-    int shader = gl.CreateShader(type);
-    const char * src = PyBytes_AsString(code);
-    gl.ShaderSource(shader, 1, &src, 0);
-    gl.CompileShader(shader);
-
-    int shader_compiled = false;
-    gl.GetShaderiv(shader, GL_COMPILE_STATUS, &shader_compiled);
-
-    if (!shader_compiled) {
-        int log_size = 0;
-        gl.GetShaderiv(shader, GL_INFO_LOG_LENGTH, &log_size);
-        char * log_text = (char *)malloc(log_size + 1);
-        gl.GetShaderInfoLog(shader, log_size, &log_size, log_text);
-        log_text[log_size] = 0;
-        PyErr_Format(PyExc_Exception, "%s Error\n\n%s", name, log_text);
-        free(log_text);
-        return 0;
-    }
-
-    return shader;
-}
-
-int compile_program(Instance * self, PyObject * vert, PyObject * frag) {
-    const GLMethods & gl = self->gl;
-
-    PyObject * pair = PyObject_CallMethod(self->module_state->helper, "normalize_shaders", "OOO", vert, frag, self->files);
-    if (!pair) {
-        return 0;
-    }
-
-    PyObject * vert_code = PyTuple_GetItem(pair, 0);
-    PyObject * frag_code = PyTuple_GetItem(pair, 1);
-
-    if (PyObject * cache = PyDict_GetItem(self->shader_cache, pair)) {
-        int program = PyLong_AsLong(cache);
-        PyDict_SetItem(self->shader_cache, pair, PyLong_FromLong(program));
-        Py_DECREF(pair);
-        return program;
-    }
-
-    int vertex_shader = compile_shader(self, vert_code, GL_VERTEX_SHADER, "Vertex Shader");
-    if (!vertex_shader) {
-        Py_DECREF(pair);
-        return 0;
-    }
-
-    PyDict_SetItem(self->shader_cache, vert_code, PyLong_FromLong(vertex_shader));
-
-    int fragment_shader = compile_shader(self, frag_code, GL_FRAGMENT_SHADER, "Fragment Shader");
-    if (!fragment_shader) {
-        Py_DECREF(pair);
-        return 0;
-    }
-
-    PyDict_SetItem(self->shader_cache, frag_code, PyLong_FromLong(fragment_shader));
-
-    int program = gl.CreateProgram();
-    gl.AttachShader(program, vertex_shader);
-    gl.AttachShader(program, fragment_shader);
-    gl.LinkProgram(program);
-
-    int linked = false;
-    gl.GetProgramiv(program, GL_LINK_STATUS, &linked);
-
-    if (!linked) {
-        int log_size = 0;
-        gl.GetProgramiv(program, GL_INFO_LOG_LENGTH, &log_size);
-        char * log_text = (char *)malloc(log_size + 1);
-        gl.GetProgramInfoLog(program, log_size, &log_size, log_text);
-        log_text[log_size] = 0;
-        PyErr_Format(PyExc_Exception, "Linker Error\n\n%s", log_text);
-        free(log_text);
-        return 0;
-    }
-
-    PyDict_SetItem(self->shader_cache, pair, PyLong_FromLong(program));
-    Py_DECREF(pair);
-    return program;
 }
 
 Renderer * Instance_meth_renderer(Instance * self, PyObject * vargs, PyObject * kwargs) {
