@@ -412,18 +412,6 @@ struct SamplerBinding {
     int image;
 };
 
-struct DescriptorSetBuffers {
-    PyObject_HEAD
-    int buffers;
-    UniformBufferBinding buffer[MAX_UNIFORM_BUFFER_BINDINGS];
-};
-
-struct DescriptorSetImages {
-    PyObject_HEAD
-    int samplers;
-    SamplerBinding sampler[MAX_SAMPLER_BINDINGS];
-};
-
 struct StencilSettings {
     int fail_op;
     int pass_op;
@@ -547,6 +535,23 @@ int count_mipmaps(int width, int height) {
     return 32;
 }
 
+void remove_dict_value(PyObject * dict, PyObject * obj) {
+    PyObject * key = NULL;
+    PyObject * value = NULL;
+    Py_ssize_t pos = 0;
+    while (PyDict_Next(dict, &pos, &key, &value)) {
+        if (value == obj) {
+            PyDict_DelItem(dict, key);
+            break;
+        }
+    }
+}
+
+void * new_ref(void * obj) {
+    Py_INCREF(obj);
+    return obj;
+}
+
 PyObject * to_str(const unsigned char * ptr) {
     if (!ptr) {
         return PyUnicode_FromString("");
@@ -557,33 +562,37 @@ PyObject * to_str(const unsigned char * ptr) {
 Viewport to_viewport(PyObject * obj) {
     Viewport res = {};
     if (obj == Py_None) {
-        return res;
+        return {};
     }
-    PyObject * seq = PySequence_Fast(obj, "viewport is not iterable");
-    if (!seq) {
-        return res;
+    PyObject * values = PySequence_Fast(obj, "");
+    if (!values) {
+        PyErr_Clear();
+        PyErr_Format(PyExc_TypeError, "viewport must be a 2-tuple or 4-tuple of ints");
+        return {};
     }
-    int size = (int)PySequence_Size(seq);
+    int size = (int)PySequence_Size(values);
     if (size != 2 && size != 4) {
-        return res;
+        Py_DECREF(values);
+        PyErr_Format(PyExc_TypeError, "viewport must be a 2-tuple or 4-tuple of ints");
+        return {};
     }
-    PyObject ** items = PySequence_Fast_ITEMS(seq);
-    res.x = (short)PyLong_AsLong(items[0]);
-    res.y = (short)PyLong_AsLong(items[1]);
-    res.width = (short)PyLong_AsLong(items[2]);
-    res.height = (short)PyLong_AsLong(items[3]);
-    if (PyErr_Occurred()) {
-        return res;
+    PyObject ** seq = PySequence_Fast_ITEMS(values);
+    if (!PyLong_CheckExact(seq[0]) || !PyLong_CheckExact(seq[1]) || !PyLong_CheckExact(seq[2]) || !PyLong_CheckExact(seq[3])) {
+        Py_DECREF(values);
+        PyErr_Format(PyExc_TypeError, "viewport must be a 2-tuple or 4-tuple of ints");
+        return {};
     }
+    res.x = (short)PyLong_AsLong(seq[0]);
+    res.y = (short)PyLong_AsLong(seq[1]);
+    res.width = (short)PyLong_AsLong(seq[2]);
+    res.height = (short)PyLong_AsLong(seq[3]);
+    Py_DECREF(values);
     return res;
 }
 
 void * load_method(PyObject * context, const char * method) {
     PyObject * res = PyObject_CallMethod(context, "load", "s", method);
     if (!res) {
-        if (!PyErr_Occurred()) {
-            PyErr_Format(PyExc_Exception, "Cannot load %s", method);
-        }
         return NULL;
     }
     return PyLong_AsVoidPtr(res);
@@ -592,7 +601,7 @@ void * load_method(PyObject * context, const char * method) {
 GLMethods load_gl(PyObject * context) {
     GLMethods res = {};
 
-    #define check(name) if (!res.name) PyErr_Format(PyExc_KeyError, "gl" # name)
+    #define check(name) if (!res.name) return {}
     #define load(name) res.name = (gl ## name ## Proc)load_method(context, "gl" # name); check(name)
 
     // GL_VERSION_1_0
