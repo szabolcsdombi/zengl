@@ -438,6 +438,14 @@ union ClearValue {
     unsigned int clear_uints[4];
 };
 
+union IntPair {
+    unsigned long long pair;
+    struct {
+        int x;
+        int y;
+    };
+};
+
 VertexFormat get_vertex_format(const char * format) {
     if (!strcmp(format, "uint8x2")) return {GL_UNSIGNED_BYTE, 2, false, true};
     if (!strcmp(format, "uint8x4")) return {GL_UNSIGNED_BYTE, 4, false, true};
@@ -559,33 +567,37 @@ PyObject * to_str(const unsigned char * ptr) {
     return PyUnicode_FromString((char *)ptr);
 }
 
+bool is_int_pair(PyObject * obj) {
+    return (
+        PyTuple_CheckExact(obj) && PyTuple_Size(obj) == 2 &&
+        PyLong_CheckExact(PyTuple_GetItem(obj, 0)) &&
+        PyLong_CheckExact(PyTuple_GetItem(obj, 1))
+    );
+}
+
+bool is_viewport(PyObject * obj) {
+    return (
+        PyTuple_CheckExact(obj) && PyTuple_Size(obj) == 4 &&
+        PyLong_CheckExact(PyTuple_GetItem(obj, 0)) &&
+        PyLong_CheckExact(PyTuple_GetItem(obj, 1)) &&
+        PyLong_CheckExact(PyTuple_GetItem(obj, 2)) &&
+        PyLong_CheckExact(PyTuple_GetItem(obj, 3))
+    );
+}
+
+IntPair to_int_pair(PyObject * obj) {
+    IntPair res = {};
+    res.x = PyLong_AsLong(PyTuple_GetItem(obj, 0));
+    res.y = PyLong_AsLong(PyTuple_GetItem(obj, 1));
+    return res;
+}
+
 Viewport to_viewport(PyObject * obj) {
     Viewport res = {};
-    if (obj == Py_None) {
-        return {};
-    }
-    PyObject * values = PySequence_Fast(obj, "");
-    if (!values) {
-        PyErr_Clear();
-        PyErr_Format(PyExc_TypeError, "viewport must be a tuple of 4 ints");
-        return {};
-    }
-    if (PySequence_Size(values) != 4) {
-        Py_DECREF(values);
-        PyErr_Format(PyExc_TypeError, "viewport must be a tuple of 4 ints");
-        return {};
-    }
-    PyObject ** seq = PySequence_Fast_ITEMS(values);
-    if (!PyLong_CheckExact(seq[0]) || !PyLong_CheckExact(seq[1]) || !PyLong_CheckExact(seq[2]) || !PyLong_CheckExact(seq[3])) {
-        Py_DECREF(values);
-        PyErr_Format(PyExc_TypeError, "viewport must be a tuple of 4 ints");
-        return {};
-    }
-    res.x = (short)PyLong_AsLong(seq[0]);
-    res.y = (short)PyLong_AsLong(seq[1]);
-    res.width = (short)PyLong_AsLong(seq[2]);
-    res.height = (short)PyLong_AsLong(seq[3]);
-    Py_DECREF(values);
+    res.x = (short)PyLong_AsLong(PyTuple_GetItem(obj, 0));
+    res.y = (short)PyLong_AsLong(PyTuple_GetItem(obj, 1));
+    res.width = (short)PyLong_AsLong(PyTuple_GetItem(obj, 2));
+    res.height = (short)PyLong_AsLong(PyTuple_GetItem(obj, 3));
     return res;
 }
 

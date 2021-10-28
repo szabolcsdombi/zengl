@@ -915,6 +915,11 @@ Renderer * Instance_meth_renderer(Instance * self, PyObject * vargs, PyObject * 
         return NULL;
     }
 
+    if (viewport != Py_None && !is_viewport(viewport)) {
+        PyErr_Format(PyExc_ValueError, "the viewport must be a tuple of 4 ints");
+        return NULL;
+    }
+
     const GLMethods & gl = self->gl;
 
     int index_type = index_buffer != Py_None ? (short_index ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT) : 0;
@@ -1052,9 +1057,6 @@ Renderer * Instance_meth_renderer(Instance * self, PyObject * vargs, PyObject * 
     Viewport viewport_value = {};
     if (viewport != Py_None) {
         viewport_value = to_viewport(viewport);
-        if (PyErr_Occurred()) {
-            return NULL;
-        }
     } else {
         Image * first_image = (Image *)PySequence_GetItem(framebuffer_images, 0);
         if (!first_image) {
@@ -1273,33 +1275,41 @@ PyObject * Image_meth_write(Image * self, PyObject * vargs, PyObject * kwargs) {
     static char * keywords[] = {"data", "size", "offset", "layer", NULL};
 
     Py_buffer view;
-    PyObject * size = Py_None;
-    PyObject * offset = Py_None;
-    int layer = 0;
+    PyObject * size_arg = Py_None;
+    PyObject * offset_arg = Py_None;
+    PyObject * layer_arg = Py_None;
 
-    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "y*|O$Oi", keywords, &view, &size, &offset, &layer)) {
+    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "y*|O$OO", keywords, &view, &size_arg, &offset_arg, &layer_arg)) {
         return NULL;
     }
 
-    int x = 0;
-    int y = 0;
-    int width = self->width;
-    int height = self->height;
+    IntPair size = {};
+    IntPair offset = {};
+    int layer = 0;
 
-    if (size != Py_None) {
-        width = PyLong_AsLong(PyTuple_GetItem(size, 0));
-        height = PyLong_AsLong(PyTuple_GetItem(size, 1));
+    const bool invalid_size_type = !is_int_pair(size_arg);
+    const bool invalid_offset_type = !is_int_pair(offset_arg);
+    const bool invalid_layer_type = layer_arg != Py_None && !PyLong_CheckExact(layer_arg);
+
+    if (size_arg != Py_None && !invalid_size_type) {
+        size = to_int_pair(size_arg);
+    } else {
+        size.x = self->width;
+        size.y = self->height;
     }
 
-    if (offset != Py_None) {
-        x = PyLong_AsLong(PyTuple_GetItem(offset, 0));
-        y = PyLong_AsLong(PyTuple_GetItem(offset, 1));
+    if (offset_arg != Py_None && !invalid_offset_type) {
+        offset = to_int_pair(offset_arg);
     }
 
-    const bool offset_but_no_size = size == Py_None && offset != Py_None;
-    const bool invalid_size = width <= 0 || height <= 0 || width > self->width || height > self->height;
-    const bool invalid_offset = x < 0 || y < 0 || width + x > self->width || height + y > self->height;
-    const bool invalid_layer = layer < 0 || (self->cubemap && layer >= 6) || (self->array && layer >= self->array);
+    if (layer_arg != Py_None && !invalid_layer_type) {
+        layer = PyLong_AsLong(layer_arg);
+    }
+
+    const bool offset_but_no_size = size_arg == Py_None && offset_arg != Py_None;
+    const bool invalid_size = invalid_size_type || size.x <= 0 || size.y <= 0 || size.x > self->width || size.y > self->height;
+    const bool invalid_offset = invalid_offset_type || offset.x < 0 || offset.y < 0 || size.x + offset.x > self->width || size.y + offset.y > self->height;
+    const bool invalid_layer = invalid_layer_type || layer < 0 || (self->cubemap && layer >= 6) || (self->array && layer >= self->array);
     const bool layer_but_simple = !self->cubemap && !self->array && layer;
     const bool invalid_type = !self->format.color || self->samples != 1;
 
@@ -1308,9 +1318,9 @@ PyObject * Image_meth_write(Image * self, PyObject * vargs, PyObject * kwargs) {
         if (offset_but_no_size) {
             PyErr_Format(PyExc_ValueError, "the size is required when the offset is not None");
         } else if (invalid_size) {
-            PyErr_Format(PyExc_ValueError, "invalid size");
+            PyErr_Format(PyExc_ValueError, "the size must be a tuple of 2 ints");
         } else if (invalid_offset) {
-            PyErr_Format(PyExc_ValueError, "invalid offset");
+            PyErr_Format(PyExc_ValueError, "the offset must be a tuple of 2 ints");
         } else if (invalid_layer) {
             PyErr_Format(PyExc_ValueError, "invalid layer");
         } else if (layer_but_simple) {
@@ -1329,11 +1339,11 @@ PyObject * Image_meth_write(Image * self, PyObject * vargs, PyObject * kwargs) {
     gl.BindTexture(self->target, self->image);
     if (self->cubemap) {
         int face = GL_TEXTURE_CUBE_MAP_POSITIVE_X + layer;
-        gl.TexSubImage2D(face, 0, x, y, width, height, self->format.format, self->format.type, view.buf);
+        gl.TexSubImage2D(face, 0, offset.x, offset.y, size.x, size.y, self->format.format, self->format.type, view.buf);
     } else if (self->array) {
-        gl.TexSubImage3D(self->target, 0, x, y, layer, width, height, 1, self->format.format, self->format.type, view.buf);
+        gl.TexSubImage3D(self->target, 0, offset.x, offset.y, layer, size.x, size.y, 1, self->format.format, self->format.type, view.buf);
     } else {
-        gl.TexSubImage2D(self->target, 0, x, y, width, height, self->format.format, self->format.type, view.buf);
+        gl.TexSubImage2D(self->target, 0, offset.x, offset.y, size.x, size.y, self->format.format, self->format.type, view.buf);
     }
 
     PyBuffer_Release(&view);
@@ -1384,31 +1394,33 @@ PyObject * Image_meth_mipmaps(Image * self, PyObject * vargs, PyObject * kwargs)
 PyObject * Image_meth_read(Image * self, PyObject * vargs, PyObject * kwargs) {
     static char * keywords[] = {"size", "offset", NULL};
 
-    PyObject * size = Py_None;
-    PyObject * offset = Py_None;
+    PyObject * size_arg = Py_None;
+    PyObject * offset_arg = Py_None;
 
-    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "|O$O", keywords, &size, &offset)) {
+    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "|O$O", keywords, &size_arg, &offset_arg)) {
         return NULL;
     }
 
-    int x = 0;
-    int y = 0;
-    int width = self->width;
-    int height = self->height;
+    IntPair size = {};
+    IntPair offset = {};
 
-    if (size != Py_None) {
-        width = PyLong_AsLong(PyTuple_GetItem(size, 0));
-        height = PyLong_AsLong(PyTuple_GetItem(size, 1));
+    const bool invalid_size_type = !is_int_pair(size_arg);
+    const bool invalid_offset_type = !is_int_pair(offset_arg);
+
+    if (size_arg != Py_None && !invalid_size_type) {
+        size = to_int_pair(size_arg);
+    } else {
+        size.x = self->width;
+        size.y = self->height;
     }
 
-    if (offset != Py_None) {
-        x = PyLong_AsLong(PyTuple_GetItem(offset, 0));
-        y = PyLong_AsLong(PyTuple_GetItem(offset, 1));
+    if (offset_arg != Py_None && !invalid_offset_type) {
+        offset = to_int_pair(offset_arg);
     }
 
-    const bool offset_but_no_size = size == Py_None && offset != Py_None;
-    const bool invalid_size = width <= 0 || height <= 0 || width > self->width || height > self->height;
-    const bool invalid_offset = x < 0 || y < 0 || width + x > self->width || height + y > self->height;
+    const bool offset_but_no_size = size_arg == Py_None && offset_arg != Py_None;
+    const bool invalid_size = invalid_size_type || size.x <= 0 || size.y <= 0 || size.x > self->width || size.y > self->height;
+    const bool invalid_offset = invalid_offset_type || offset.x < 0 || offset.y < 0 || size.x + offset.x > self->width || size.y + offset.y > self->height;
     const bool invalid_type = self->cubemap || self->array || self->samples != 1;
 
     if (offset_but_no_size || invalid_size || invalid_offset || invalid_type) {
@@ -1430,9 +1442,9 @@ PyObject * Image_meth_read(Image * self, PyObject * vargs, PyObject * kwargs) {
 
     const GLMethods & gl = self->instance->gl;
 
-    PyObject * res = PyBytes_FromStringAndSize(NULL, width * height * self->format.pixel_size);
+    PyObject * res = PyBytes_FromStringAndSize(NULL, size.x * size.y * self->format.pixel_size);
     bind_framebuffer(self->instance, self->framebuffer->obj);
-    gl.ReadPixels(x, y, width, height, self->format.format, self->format.type, PyBytes_AS_STRING(res));
+    gl.ReadPixels(offset.x, offset.y, size.x, size.y, self->format.format, self->format.type, PyBytes_AS_STRING(res));
     return res;
 }
 
@@ -1440,10 +1452,10 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
     static char * keywords[] = {"dst", "dst_size", "dst_offset", "src_size", "src_offset", "filter", "srgb", NULL};
 
     PyObject * dst = Py_None;
-    PyObject * dst_size = Py_None;
-    PyObject * dst_offset = Py_None;
-    PyObject * src_size = Py_None;
-    PyObject * src_offset = Py_None;
+    PyObject * dst_size_arg = Py_None;
+    PyObject * dst_offset_arg = Py_None;
+    PyObject * src_size_arg = Py_None;
+    PyObject * src_offset_arg = Py_None;
     int filter = true;
     int srgb = false;
 
@@ -1453,10 +1465,10 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
         "|O$OOOOpp",
         keywords,
         &dst,
-        &dst_size,
-        &dst_offset,
-        &src_size,
-        &src_offset,
+        &dst_size_arg,
+        &dst_offset_arg,
+        &src_size_arg,
+        &src_offset_arg,
         &filter,
         &srgb
     );
@@ -1467,50 +1479,55 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
 
     Image * dst_image = dst != Py_None ? (Image *)dst : NULL;
 
-    int dst_x = 0;
-    int dst_y = 0;
-    int dst_w = self->width;
-    int dst_h = self->height;
+    IntPair dst_size = {};
+    IntPair dst_offset = {};
+    IntPair src_size = {};
+    IntPair src_offset = {};
 
-    if (dst_size != Py_None) {
-        dst_w = PyLong_AsLong(PyTuple_GetItem(dst_size, 0));
-        dst_h = PyLong_AsLong(PyTuple_GetItem(dst_size, 1));
+    const bool invalid_dst_size_type = dst_size_arg != Py_None && !is_int_pair(dst_size_arg);
+    const bool invalid_dst_offset_type = dst_offset_arg != Py_None && !is_int_pair(dst_offset_arg);
+    const bool invalid_src_size_type = src_size_arg != Py_None && !is_int_pair(src_size_arg);
+    const bool invalid_src_offset_type = src_offset_arg != Py_None && !is_int_pair(src_offset_arg);
+
+    if (dst_size_arg != Py_None && !invalid_dst_size_type) {
+        dst_size = to_int_pair(dst_size_arg);
+    } else {
+        dst_size.x = self->width;
+        dst_size.y = self->height;
     }
 
-    if (dst_offset != Py_None) {
-        dst_x = PyLong_AsLong(PyTuple_GetItem(dst_offset, 0));
-        dst_y = PyLong_AsLong(PyTuple_GetItem(dst_offset, 1));
+    if (dst_offset_arg != Py_None && !invalid_dst_offset_type) {
+        dst_offset = to_int_pair(dst_offset_arg);
     }
 
-    int src_x = 0;
-    int src_y = 0;
-    int src_w = self->width;
-    int src_h = self->height;
-
-    if (src_size != Py_None) {
-        src_w = PyLong_AsLong(PyTuple_GetItem(src_size, 0));
-        src_h = PyLong_AsLong(PyTuple_GetItem(src_size, 1));
+    if (src_size_arg != Py_None && !invalid_src_size_type) {
+        src_size = to_int_pair(src_size_arg);
+    } else {
+        src_size.x = self->width;
+        src_size.y = self->height;
     }
 
-    if (src_offset != Py_None) {
-        src_x = PyLong_AsLong(PyTuple_GetItem(src_offset, 0));
-        src_y = PyLong_AsLong(PyTuple_GetItem(src_offset, 1));
+    if (src_offset_arg != Py_None && !invalid_src_offset_type) {
+        src_offset = to_int_pair(src_offset_arg);
     }
 
     const bool invalid_target = dst != Py_None && Py_TYPE(dst) != self->instance->module_state->Image_type;
-    const bool dst_offset_but_no_size = dst_size == Py_None && dst_offset != Py_None;
-    const bool src_offset_but_no_size = src_size == Py_None && src_offset != Py_None;
-    const bool invalid_dst_size = dst_w <= 0 || dst_h <= 0 || dst_w > self->width || dst_h > self->height;
-    const bool invalid_dst_offset = dst_x < 0 || dst_y < 0 || dst_w + dst_x > self->width || dst_h + dst_y > self->height;
-    const bool invalid_src_size = src_w <= 0 || src_h <= 0 || src_w > self->width || src_h > self->height;
-    const bool invalid_src_offset = src_x < 0 || src_y < 0 || src_w + src_x > self->width || src_h + src_y > self->height;
+    const bool dst_offset_but_no_size = dst_size_arg == Py_None && dst_offset_arg != Py_None;
+    const bool src_offset_but_no_size = src_size_arg == Py_None && src_offset_arg != Py_None;
+    const bool invalid_dst_size = invalid_dst_size_type || dst_size.x <= 0 || dst_size.y <= 0 || dst_size.x > self->width || dst_size.y > self->height;
+    const bool invalid_dst_offset = invalid_dst_offset_type || dst_offset.x < 0 || dst_offset.y < 0 || dst_size.x + dst_offset.x > self->width || dst_size.y + dst_offset.y > self->height;
+    const bool invalid_src_size = invalid_src_size_type || src_size.x <= 0 || src_size.y <= 0 || src_size.x > self->width || src_size.y > self->height;
+    const bool invalid_src_offset = invalid_src_offset_type || src_offset.x < 0 || src_offset.y < 0 || src_size.x + src_offset.x > self->width || src_size.y + src_offset.y > self->height;
     const bool invalid_dst_type = dst_image && (dst_image->cubemap || dst_image->array || !dst_image->format.color);
     const bool invalid_src_type = self->cubemap || self->array || !self->format.color;
 
-    const bool invalid_dst = dst_offset_but_no_size || invalid_dst_size || invalid_dst_offset;
-    const bool invalid_src = src_offset_but_no_size || invalid_src_size || invalid_src_offset;
+    const bool error = (
+        invalid_target || dst_offset_but_no_size || src_offset_but_no_size ||
+        invalid_dst_size || invalid_dst_offset || invalid_src_size ||
+        invalid_src_offset || invalid_dst_type || invalid_src_type
+    );
 
-    if (invalid_target || invalid_dst || invalid_src || invalid_dst_type || invalid_src_type) {
+    if (error) {
         if (invalid_target) {
             PyErr_Format(PyExc_ValueError, "dst must be an Image or None");
         } else if (dst_offset_but_no_size) {
@@ -1549,7 +1566,7 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
     gl.ColorMaski(0, 1, 1, 1, 1);
     gl.BindFramebuffer(GL_READ_FRAMEBUFFER, self->framebuffer->obj);
     gl.BindFramebuffer(GL_DRAW_FRAMEBUFFER, dst_image ? dst_image->framebuffer->obj : 0);
-    gl.BlitFramebuffer(src_x, src_y, src_w, src_h, dst_x, dst_y, dst_w, dst_h, GL_COLOR_BUFFER_BIT, filter ? GL_LINEAR : GL_NEAREST);
+    gl.BlitFramebuffer(src_offset.x, src_offset.y, src_size.x, src_size.y, dst_offset.x, dst_offset.y, dst_size.x, dst_size.y, GL_COLOR_BUFFER_BIT, filter ? GL_LINEAR : GL_NEAREST);
     gl.BindFramebuffer(GL_FRAMEBUFFER, self->instance->current_framebuffer);
     if (GlobalSettings * settings = self->instance->current_global_settings) {
         gl.ColorMaski(0, settings->color_mask & 1, settings->color_mask & 2, settings->color_mask & 4, settings->color_mask & 8);
@@ -1676,11 +1693,11 @@ PyObject * Renderer_get_viewport(Renderer * self) {
 }
 
 int Renderer_set_viewport(Renderer * self, PyObject * viewport) {
-    Viewport viewport_value = to_viewport(viewport);
-    if (!viewport_value.viewport) {
+    if (!is_viewport(viewport)) {
+        PyErr_Format(PyExc_ValueError, "the viewport must be a tuple of 4 ints");
         return -1;
     }
-    self->viewport = viewport_value;
+    self->viewport = to_viewport(viewport);
     return 0;
 }
 
