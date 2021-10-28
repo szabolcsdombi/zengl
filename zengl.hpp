@@ -567,19 +567,18 @@ Viewport to_viewport(PyObject * obj) {
     PyObject * values = PySequence_Fast(obj, "");
     if (!values) {
         PyErr_Clear();
-        PyErr_Format(PyExc_TypeError, "viewport must be a 2-tuple or 4-tuple of ints");
+        PyErr_Format(PyExc_TypeError, "viewport must be a tuple of 4 ints");
         return {};
     }
-    int size = (int)PySequence_Size(values);
-    if (size != 2 && size != 4) {
+    if (PySequence_Size(values) != 4) {
         Py_DECREF(values);
-        PyErr_Format(PyExc_TypeError, "viewport must be a 2-tuple or 4-tuple of ints");
+        PyErr_Format(PyExc_TypeError, "viewport must be a tuple of 4 ints");
         return {};
     }
     PyObject ** seq = PySequence_Fast_ITEMS(values);
     if (!PyLong_CheckExact(seq[0]) || !PyLong_CheckExact(seq[1]) || !PyLong_CheckExact(seq[2]) || !PyLong_CheckExact(seq[3])) {
         Py_DECREF(values);
-        PyErr_Format(PyExc_TypeError, "viewport must be a 2-tuple or 4-tuple of ints");
+        PyErr_Format(PyExc_TypeError, "viewport must be a tuple of 4 ints");
         return {};
     }
     res.x = (short)PyLong_AsLong(seq[0]);
