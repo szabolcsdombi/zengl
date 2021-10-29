@@ -70,7 +70,6 @@ triangle = ctx.renderer(
             }
             float alpha = 1.0 - smoothstep(0.9, 1.0, dist);
             out_color = vec4(v_color, alpha);
-            out_color.rg;
         }
     ''',
     blending={
