@@ -116,7 +116,7 @@ class BlendingSettings(TypedDict, total=False):
     dst_alpha: BlendConstant
 
 
-Viewport = Tuple[int, int, int, int] | Tuple[int, int] | None
+Viewport = Tuple[int, int, int, int] | None
 
 
 class Context:
@@ -140,8 +140,8 @@ class Image:
     def mipmaps(self, /, *, base: int = 0, levels: int | None = None) -> None: ...
     def read(self, /, size: Tuple[int, int] | None = None, *, offset: Tuple[int, int] | None = None) -> bytes: ...
     def blit(
-        self, /, dst: 'Image' | None = None, *, dst_size: Tuple[int, int] | None = None, dst_offset: Tuple[int, int] | None = None,
-        src_size: Tuple[int, int] | None = None, src_offset: Tuple[int, int] | None = None, filter: bool = True, srgb: bool = False) -> None: ...
+        self, /, dst: 'Image' | None = None, *, target_viewport: Viewport = None,
+        source_viewport: Viewport = None, filter: bool = True, srgb: bool = False) -> None: ...
 
 
 class Renderer:
@@ -158,7 +158,7 @@ class Instance:
     def renderer(
         self, /, *, vertex_shader: str = ..., fragment_shader: str = ..., framebuffer: Iterable[Image] = (), topology: Topology = 'triangles',
         layout: Iterable[LayoutBinding] = (), resources: Iterable[ResourceBinding] = (), vertex_buffers: Iterable[VertexBufferBinding] = (),
-        index_buffer: Buffer | None = None, vertex_count: int = 0, instance_count: int = 0, short_index: bool = False,
+        index_buffer: Buffer | None = None, vertex_count: int = 0, instance_count: int = 0, first_vertex: int = 0, short_index: bool = False,
         primitive_restart: bool = False, line_width: float = 1.0, front_face: str = 'ccw', cull_face: str = 'none',
         color_mask: int = 0xffffffffffffffff, depth: DepthSettings | bool | None = None, stencil: StencilSettings | None = None,
         blending: BlendingSettings | None = None, polygon_offset: PolygonOffsetSettings | None = None, viewport: Viewport = None) -> Renderer: ...
