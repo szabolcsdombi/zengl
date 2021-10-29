@@ -1295,8 +1295,8 @@ PyObject * Image_meth_write(Image * self, PyObject * vargs, PyObject * kwargs) {
     IntPair offset = {};
     int layer = 0;
 
-    const bool invalid_size_type = !is_int_pair(size_arg);
-    const bool invalid_offset_type = !is_int_pair(offset_arg);
+    const bool invalid_size_type = size_arg != Py_None && !is_int_pair(size_arg);
+    const bool invalid_offset_type = offset_arg != Py_None && !is_int_pair(offset_arg);
     const bool invalid_layer_type = layer_arg != Py_None && !PyLong_CheckExact(layer_arg);
 
     if (size_arg != Py_None && !invalid_size_type) {
@@ -1412,8 +1412,8 @@ PyObject * Image_meth_read(Image * self, PyObject * vargs, PyObject * kwargs) {
     IntPair size = {};
     IntPair offset = {};
 
-    const bool invalid_size_type = !is_int_pair(size_arg);
-    const bool invalid_offset_type = !is_int_pair(offset_arg);
+    const bool invalid_size_type = size_arg != Py_None && !is_int_pair(size_arg);
+    const bool invalid_offset_type = offset_arg != Py_None && !is_int_pair(offset_arg);
 
     if (size_arg != Py_None && !invalid_size_type) {
         size = to_int_pair(size_arg);
