@@ -125,7 +125,9 @@ struct Renderer {
     int topology;
     int vertex_count;
     int instance_count;
+    int first_vertex;
     int index_type;
+    int index_size;
     Viewport viewport;
 };
 
@@ -847,6 +849,7 @@ Renderer * Instance_meth_renderer(Instance * self, PyObject * vargs, PyObject * 
         "index_buffer",
         "vertex_count",
         "instance_count",
+        "first_vertex",
         "short_index",
         "primitive_restart",
         "line_width",
@@ -871,6 +874,7 @@ Renderer * Instance_meth_renderer(Instance * self, PyObject * vargs, PyObject * 
     PyObject * index_buffer = Py_None;
     int vertex_count = 0;
     int instance_count = 1;
+    int first_vertex = 0;
     int short_index = false;
     PyObject * primitive_restart = Py_False;
     PyObject * line_width = self->module_state->float_one;
@@ -886,7 +890,7 @@ Renderer * Instance_meth_renderer(Instance * self, PyObject * vargs, PyObject * 
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
-        "|$OOOsOOOOiipOOOOOOOOOO",
+        "|$OOOsOOOOiiipOOOOOOOOOO",
         keywords,
         &vertex_shader,
         &fragment_shader,
@@ -898,6 +902,7 @@ Renderer * Instance_meth_renderer(Instance * self, PyObject * vargs, PyObject * 
         &index_buffer,
         &vertex_count,
         &instance_count,
+        &first_vertex,
         &short_index,
         &primitive_restart,
         &line_width,
@@ -922,6 +927,7 @@ Renderer * Instance_meth_renderer(Instance * self, PyObject * vargs, PyObject * 
 
     const GLMethods & gl = self->gl;
 
+    int index_size = short_index ? 2 : 4;
     int index_type = index_buffer != Py_None ? (short_index ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT) : 0;
 
     GLObject * program = compile_program(self, vertex_shader, fragment_shader);
@@ -1074,7 +1080,9 @@ Renderer * Instance_meth_renderer(Instance * self, PyObject * vargs, PyObject * 
     res->topology = get_topology(topology);
     res->vertex_count = vertex_count;
     res->instance_count = instance_count;
+    res->first_vertex = first_vertex;
     res->index_type = index_type;
+    res->index_size = index_size;
     res->viewport = viewport_value;
     res->descriptor_set_buffers = descriptor_set_buffers;
     res->descriptor_set_images = descriptor_set_images;
@@ -1681,9 +1689,10 @@ PyObject * Renderer_meth_render(Renderer * self) {
     bind_descriptor_set_buffers(self->instance, self->descriptor_set_buffers);
     bind_descriptor_set_images(self->instance, self->descriptor_set_images);
     if (self->index_type) {
-        gl.DrawElementsInstanced(self->topology, self->vertex_count, self->index_type, NULL, self->instance_count);
+        long long offset = self->first_vertex * self->index_size;
+        gl.DrawElementsInstanced(self->topology, self->vertex_count, self->index_type, (void *)offset, self->instance_count);
     } else {
-        gl.DrawArraysInstanced(self->topology, 0, self->vertex_count, self->instance_count);
+        gl.DrawArraysInstanced(self->topology, self->first_vertex, self->vertex_count, self->instance_count);
     }
     Py_RETURN_NONE;
 }
@@ -2037,6 +2046,7 @@ PyGetSetDef Renderer_getset[] = {
 PyMemberDef Renderer_members[] = {
     {"vertex_count", T_OBJECT_EX, offsetof(Renderer, vertex_count), 0, NULL},
     {"instance_count", T_OBJECT_EX, offsetof(Renderer, instance_count), 0, NULL},
+    {"first_vertex", T_OBJECT_EX, offsetof(Renderer, first_vertex), 0, NULL},
     {},
 };
 
