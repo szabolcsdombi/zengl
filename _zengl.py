@@ -219,6 +219,13 @@ def sampler_bindings(resources):
 
 
 def framebuffer_attachments(attachments):
+    size = attachments[0].size
+    samples = attachments[0].samples
+    for attachment in attachments:
+        if attachment.size != size:
+            raise ValueError('Attachments must be images with the same size')
+        if attachment.samples != samples:
+            raise ValueError('Attachments must be images with the same number of samples')
     depth_stencil_attachment = None
     if not attachments[-1].color:
         depth_stencil_attachment = attachments[-1]
