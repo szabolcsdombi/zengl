@@ -1457,26 +1457,22 @@ PyObject * Image_meth_read(Image * self, PyObject * vargs, PyObject * kwargs) {
 }
 
 PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
-    static char * keywords[] = {"dst", "dst_size", "dst_offset", "src_size", "src_offset", "filter", "srgb", NULL};
+    static char * keywords[] = {"target", "target_viewport", "source_viewport", "filter", "srgb", NULL};
 
-    PyObject * dst = Py_None;
-    PyObject * dst_size_arg = Py_None;
-    PyObject * dst_offset_arg = Py_None;
-    PyObject * src_size_arg = Py_None;
-    PyObject * src_offset_arg = Py_None;
+    PyObject * target_arg = Py_None;
+    PyObject * target_viewport_arg = Py_None;
+    PyObject * source_viewport_arg = Py_None;
     int filter = true;
     int srgb = false;
 
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
-        "|O$OOOOpp",
+        "|OO$Opp",
         keywords,
-        &dst,
-        &dst_size_arg,
-        &dst_offset_arg,
-        &src_size_arg,
-        &src_offset_arg,
+        &target_arg,
+        &target_viewport_arg,
+        &source_viewport_arg,
         &filter,
         &srgb
     );
@@ -1485,82 +1481,70 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
         return NULL;
     }
 
-    Image * dst_image = dst != Py_None ? (Image *)dst : NULL;
+    const bool invalid_target_type = target_arg != Py_None && Py_TYPE(target_arg) != self->instance->module_state->Image_type;
 
-    IntPair dst_size = {};
-    IntPair dst_offset = {};
-    IntPair src_size = {};
-    IntPair src_offset = {};
+    Image * target = target_arg != Py_None && !invalid_target_type ? (Image *)target_arg : NULL;
 
-    const bool invalid_dst_size_type = dst_size_arg != Py_None && !is_int_pair(dst_size_arg);
-    const bool invalid_dst_offset_type = dst_offset_arg != Py_None && !is_int_pair(dst_offset_arg);
-    const bool invalid_src_size_type = src_size_arg != Py_None && !is_int_pair(src_size_arg);
-    const bool invalid_src_offset_type = src_offset_arg != Py_None && !is_int_pair(src_offset_arg);
+    Viewport target_viewport = {};
+    Viewport source_viewport = {};
 
-    if (dst_size_arg != Py_None && !invalid_dst_size_type) {
-        dst_size = to_int_pair(dst_size_arg);
+    const bool invalid_target_viewport_type = target_viewport_arg != Py_None && !is_viewport(target_viewport_arg);
+    const bool invalid_source_viewport_type = source_viewport_arg != Py_None && !is_viewport(source_viewport_arg);
+
+    if (target_viewport_arg != Py_None && !invalid_target_viewport_type) {
+        target_viewport = to_viewport(target_viewport_arg);
     } else {
-        dst_size.x = self->width;
-        dst_size.y = self->height;
+        target_viewport.width = target ? target->width : self->width;
+        target_viewport.height = target ? target->height : self->height;
     }
 
-    if (dst_offset_arg != Py_None && !invalid_dst_offset_type) {
-        dst_offset = to_int_pair(dst_offset_arg);
-    }
-
-    if (src_size_arg != Py_None && !invalid_src_size_type) {
-        src_size = to_int_pair(src_size_arg);
+    if (source_viewport_arg != Py_None && !invalid_source_viewport_type) {
+        source_viewport = to_viewport(source_viewport_arg);
     } else {
-        src_size.x = self->width;
-        src_size.y = self->height;
+        source_viewport.width = self->width;
+        source_viewport.height = self->height;
     }
 
-    if (src_offset_arg != Py_None && !invalid_src_offset_type) {
-        src_offset = to_int_pair(src_offset_arg);
-    }
+    const bool invalid_target_viewport = invalid_target_viewport_type || (
+        target_viewport.x < 0 || target_viewport.y < 0 || target_viewport.width <= 0 || target_viewport.height <= 0 ||
+        (target && (target_viewport.x + target_viewport.width > target->width || target_viewport.y + target_viewport.height > target->height))
+    );
 
-    const bool invalid_target = dst != Py_None && Py_TYPE(dst) != self->instance->module_state->Image_type;
-    const bool dst_offset_but_no_size = dst_size_arg == Py_None && dst_offset_arg != Py_None;
-    const bool src_offset_but_no_size = src_size_arg == Py_None && src_offset_arg != Py_None;
-    const bool invalid_dst_size = invalid_dst_size_type || dst_size.x <= 0 || dst_size.y <= 0 || dst_size.x > self->width || dst_size.y > self->height;
-    const bool invalid_dst_offset = invalid_dst_offset_type || dst_offset.x < 0 || dst_offset.y < 0 || dst_size.x + dst_offset.x > self->width || dst_size.y + dst_offset.y > self->height;
-    const bool invalid_src_size = invalid_src_size_type || src_size.x <= 0 || src_size.y <= 0 || src_size.x > self->width || src_size.y > self->height;
-    const bool invalid_src_offset = invalid_src_offset_type || src_offset.x < 0 || src_offset.y < 0 || src_size.x + src_offset.x > self->width || src_size.y + src_offset.y > self->height;
-    const bool invalid_dst_type = dst_image && (dst_image->cubemap || dst_image->array || !dst_image->format.color);
-    const bool invalid_src_type = self->cubemap || self->array || !self->format.color;
+    const bool invalid_source_viewport = invalid_source_viewport_type || (
+        source_viewport.x < 0 || source_viewport.y < 0 || source_viewport.width <= 0 || source_viewport.height <= 0 ||
+        source_viewport.x + source_viewport.width > self->width || source_viewport.y + source_viewport.height > self->height
+    );
+
+    const bool invalid_target = invalid_target_type && (target->cubemap || target->array || !target->format.color);
+    const bool invalid_source = self->cubemap || self->array || !self->format.color;
 
     const bool error = (
-        invalid_target || dst_offset_but_no_size || src_offset_but_no_size ||
-        invalid_dst_size || invalid_dst_offset || invalid_src_size ||
-        invalid_src_offset || invalid_dst_type || invalid_src_type
+        invalid_target_type || invalid_target_viewport_type || invalid_source_viewport_type ||
+        invalid_target_viewport || invalid_source_viewport || invalid_target || invalid_source
     );
 
     if (error) {
-        if (invalid_target) {
-            PyErr_Format(PyExc_ValueError, "dst must be an Image or None");
-        } else if (dst_offset_but_no_size) {
-            PyErr_Format(PyExc_ValueError, "the dst size is required when the dst offset is not None");
-        } else if (src_offset_but_no_size) {
-            PyErr_Format(PyExc_ValueError, "the src size is required when the src offset is not None");
-        } else if (invalid_dst_size) {
-            PyErr_Format(PyExc_ValueError, "invalid dst size");
-        } else if (invalid_dst_offset) {
-            PyErr_Format(PyExc_ValueError, "invalid dst offset");
-        } else if (invalid_src_size) {
-            PyErr_Format(PyExc_ValueError, "invalid src size");
-        } else if (invalid_src_offset) {
-            PyErr_Format(PyExc_ValueError, "invalid src offset");
+        if (invalid_target_type) {
+            PyErr_Format(PyExc_ValueError, "target must be an Image or None");
+        } else if (invalid_target_viewport_type) {
+            PyErr_Format(PyExc_ValueError, "the target viewport must be a tuple of 4 ints");
+        } else if (invalid_source_viewport_type) {
+            PyErr_Format(PyExc_ValueError, "the source viewport must be a tuple of 4 ints");
+        } else if (invalid_target_viewport) {
+            PyErr_Format(PyExc_ValueError, "the target viewport is out of range");
+        } else if (invalid_source_viewport) {
+            PyErr_Format(PyExc_ValueError, "the source viewport is out of range");
         } else if (self->cubemap) {
             PyErr_Format(PyExc_TypeError, "cannot blit cubemap images");
         } else if (self->array) {
             PyErr_Format(PyExc_TypeError, "cannot blit array images");
         } else if (!self->format.color) {
             PyErr_Format(PyExc_TypeError, "cannot blit depth or stencil images");
-        } else if (dst_image && dst_image->cubemap) {
+        } else if (target && target->cubemap) {
             PyErr_Format(PyExc_TypeError, "cannot blit to cubemap images");
-        } else if (dst_image && dst_image->array) {
+        } else if (target && target->array) {
             PyErr_Format(PyExc_TypeError, "cannot blit to array images");
-        } else if (!dst_image && dst_image->format.color) {
+        } else if (!target && target->format.color) {
             PyErr_Format(PyExc_TypeError, "cannot blit to depth or stencil images");
         }
         return NULL;
@@ -1573,8 +1557,12 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
     }
     gl.ColorMaski(0, 1, 1, 1, 1);
     gl.BindFramebuffer(GL_READ_FRAMEBUFFER, self->framebuffer->obj);
-    gl.BindFramebuffer(GL_DRAW_FRAMEBUFFER, dst_image ? dst_image->framebuffer->obj : 0);
-    gl.BlitFramebuffer(src_offset.x, src_offset.y, src_size.x, src_size.y, dst_offset.x, dst_offset.y, dst_size.x, dst_size.y, GL_COLOR_BUFFER_BIT, filter ? GL_LINEAR : GL_NEAREST);
+    gl.BindFramebuffer(GL_DRAW_FRAMEBUFFER, target ? target->framebuffer->obj : 0);
+    gl.BlitFramebuffer(
+        source_viewport.x, source_viewport.y, source_viewport.x + source_viewport.width, source_viewport.y + source_viewport.height,
+        target_viewport.x, target_viewport.y, target_viewport.x + target_viewport.width, target_viewport.y + target_viewport.height,
+        GL_COLOR_BUFFER_BIT, filter ? GL_LINEAR : GL_NEAREST
+    );
     gl.BindFramebuffer(GL_FRAMEBUFFER, self->instance->current_framebuffer);
     if (GlobalSettings * settings = self->instance->current_global_settings) {
         gl.ColorMaski(0, settings->color_mask & 1, settings->color_mask & 2, settings->color_mask & 4, settings->color_mask & 8);

@@ -5,8 +5,9 @@ from window import Window
 window = Window(1280, 720)
 ctx = zengl.instance(zengl.context())
 
-image1 = ctx.image(window.size, 'rgba8unorm', samples=4)
-image2 = ctx.image(window.size, 'rgba8unorm', samples=4)
+image_size = (640, 720)
+image1 = ctx.image(image_size, 'rgba8unorm', samples=4)
+image2 = ctx.image(image_size, 'rgba8unorm', samples=4)
 image1.clear_value = (1.0, 1.0, 1.0, 1.0)
 image2.clear_value = (1.0, 1.0, 1.0, 1.0)
 
@@ -57,7 +58,8 @@ def render():
     image1.clear()
     image2.clear()
     triangle.render()
-    image2.blit()
+    image1.blit(None, (0, 0, 640, 720))
+    image2.blit(None, (640, 0, 640, 720))
 
 
 window.run()
