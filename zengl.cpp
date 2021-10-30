@@ -525,10 +525,10 @@ GLObject * compile_shader(Instance * self, PyObject * code, int type, const char
     return res;
 }
 
-GLObject * compile_program(Instance * self, PyObject * vert, PyObject * frag) {
+GLObject * compile_program(Instance * self, PyObject * vert, PyObject * frag, PyObject * layout) {
     const GLMethods & gl = self->gl;
 
-    PyObject * pair = PyObject_CallMethod(self->module_state->helper, "normalize_shaders", "OOO", vert, frag, self->files);
+    PyObject * pair = PyObject_CallMethod(self->module_state->helper, "program", "OOOO", vert, frag, layout, self->files);
     if (!pair) {
         return NULL;
     }
@@ -930,7 +930,7 @@ Renderer * Instance_meth_renderer(Instance * self, PyObject * vargs, PyObject * 
     int index_size = short_index ? 2 : 4;
     int index_type = index_buffer != Py_None ? (short_index ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT) : 0;
 
-    GLObject * program = compile_program(self, vertex_shader, fragment_shader);
+    GLObject * program = compile_program(self, vertex_shader, fragment_shader, layout);
     if (!program) {
         return NULL;
     }
