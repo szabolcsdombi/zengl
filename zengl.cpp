@@ -876,7 +876,7 @@ Renderer * Instance_meth_renderer(Instance * self, PyObject * vargs, PyObject * 
     int instance_count = 1;
     int first_vertex = 0;
     int short_index = false;
-    PyObject * primitive_restart = Py_False;
+    PyObject * primitive_restart = Py_True;
     PyObject * line_width = self->module_state->float_one;
     PyObject * front_face = self->module_state->str_ccw;
     PyObject * cull_face = self->module_state->str_none;
@@ -1370,7 +1370,7 @@ PyObject * Image_meth_mipmaps(Image * self, PyObject * vargs, PyObject * kwargs)
     int base = 0;
     PyObject * levels_arg = Py_None;
 
-    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "|iO", keywords, &base, &levels_arg)) {
+    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "|$iO", keywords, &base, &levels_arg)) {
         return NULL;
     }
 
@@ -1474,7 +1474,7 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
-        "|OO$Opp",
+        "|O$OOpp",
         keywords,
         &target_arg,
         &target_viewport_arg,
