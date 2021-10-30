@@ -1070,6 +1070,7 @@ Renderer * Instance_meth_renderer(Instance * self, PyObject * vargs, PyObject * 
         }
         viewport_value.width = (short)first_image->width;
         viewport_value.height = (short)first_image->height;
+        Py_DECREF(first_image);
     }
 
     Renderer * res = PyObject_New(Renderer, self->module_state->Renderer_type);
@@ -1112,6 +1113,11 @@ PyObject * Instance_meth_release(Instance * self, PyObject * arg) {
         Py_DECREF(arg);
     } else if (Py_TYPE(arg) == self->module_state->Image_type) {
         Image * image = (Image *)arg;
+        image->framebuffer->uses -= 1;
+        if (!image->framebuffer->uses) {
+            remove_dict_value(self->framebuffer_cache, (PyObject *)image->framebuffer);
+            gl.DeleteFramebuffers(1, (unsigned int *)&image->framebuffer->obj);
+        }
         if (image->renderbuffer) {
             gl.DeleteRenderbuffers(1, (unsigned int *)&image->image);
         } else {
@@ -1143,7 +1149,7 @@ PyObject * Instance_meth_release(Instance * self, PyObject * arg) {
         renderer->framebuffer->uses -= 1;
         if (!renderer->framebuffer->uses) {
             remove_dict_value(self->framebuffer_cache, (PyObject *)renderer->framebuffer);
-            gl.DeleteFramebuffers(1, (unsigned int *)&renderer->vertex_array->obj);
+            gl.DeleteFramebuffers(1, (unsigned int *)&renderer->framebuffer->obj);
         }
         renderer->program->uses -= 1;
         if (!renderer->program->uses) {
@@ -1942,6 +1948,7 @@ void Buffer_dealloc(Buffer * self) {
 
 void Image_dealloc(Image * self) {
     Py_DECREF(self->instance);
+    Py_DECREF(self->framebuffer);
     Py_DECREF(self->size);
     Py_TYPE(self)->tp_free(self);
 }
