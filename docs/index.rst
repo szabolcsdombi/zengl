@@ -140,9 +140,15 @@ Utils
 
 .. py:method:: zengl.pack(*values: Iterable[float | int]) -> bytes
 
+| Encodes floats and ints into bytes.
+
 .. py:method:: zengl.bind(buffer: Buffer, layout: str, *attributes: Iterable[int]) -> List[VertexBufferBinding]
 
+| Shorthand for binding a single buffer to multiple vertex attributes.
+
 .. py:method:: zengl.calcsize(layout: str) -> int
+
+| Calculates the size of a vertex attribute buffer layout.
 
 Image Formats
 -------------
