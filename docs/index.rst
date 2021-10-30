@@ -1,5 +1,5 @@
 ZenGL
-=====
+-----
 
 ZenGL is a minimalist Python module providing exactly **one** way to render scenes with OpenGL.
 
@@ -26,9 +26,6 @@ ZenGL is a minimalist Python module providing exactly **one** way to render scen
 
     This document is still in draft
 
-Objects
-=======
-
 .. py:class:: Instance
 
 | Represents an OpenGL context.
@@ -46,11 +43,8 @@ Objects
 | Represents an entire rendering pipeline including the global state, shader program, framebuffer, vertex state,
   uniform buffer bindings, samplers and sampler bindings.
 
-Documentation
-=============
-
-Instance Objects
-----------------
+Instance
+--------
 
 .. py:method:: zengl.instance(context: Context) -> Instance
 
@@ -82,8 +76,8 @@ ZenGL does not implement OpenGL function loading. glcontext is used when no alte
 
     ctx = zengl.instance(zengl.context(headless=True))
 
-Buffer Objects
---------------
+Buffer
+------
 
 .. py:method:: Instance.buffer(data, size, dynamic) -> Buffer
 
@@ -102,12 +96,50 @@ Buffers are not variable sized, they are allocated upfront in the device memory.
 
     vertex_buffer = ctx.buffer(size=1024)
 
-Image Objects
--------------
+Image
+-----
 
 .. py:method:: Instance.image(size, format, data, samples, texture) -> Image
 
-Renderer Objects
-----------------
+Renderer
+--------
 
 .. py:method:: Instance.renderer(vertex_shader, fragment_shader, layout, resources, depth, stencil, blending, polygon_offset, color_mask, framebuffer, vertex_buffers, index_buffer, short_index, primitive_restart, front_face, cull_face, topology, vertex_count, instance_count, first_vertex, line_width, viewport) -> Renderer
+
+Cleanup
+-------
+
+Clean only if necessary. It is ok not to cleanup before the program ends.
+
+.. py:method:: Instance.clear_shader_cache()
+
+This method calls glDeleteShader for all the previously created vertex and fragment shader modules.
+The resources released by this method are likely to be insignificant in size.
+
+.. py:method:: Instance.release(obj: Buffer | Image | Renderer)
+
+This method releases the OpenGL resources associated with the parameter.
+OpenGL resources are not released automatically on grabage collection.
+Release Renderers before the Images and Buffers they use.
+
+Utils
+-----
+
+.. py:method:: zengl.camera(eye, target, up, fov, aspect, near, far, size, clip) -> bytes
+
+| Returns a Model-View-Projection matrix for uniform buffers.
+| The return value is bytes and can be used as a parameter for :py:meth:`Buffer.write`.
+
+.. code-block::
+
+    mvp = zengl.camera(eye=(4.0, 3.0, 2.0), target=(0.0, 0.0, 0.0), aspect=16.0 / 9.0, fov=45.0)
+
+.. py:method:: zengl.rgba(data: bytes, format: str) -> bytes
+
+| Converts the image stored in data with the given format into rgba.
+
+.. py:method:: zengl.pack(*values: Iterable[float | int]) -> bytes
+
+.. py:method:: zengl.bind(buffer: Buffer, layout: str, *attributes: Iterable[int]) -> List[VertexBufferBinding]
+
+.. py:method:: zengl.calcsize(layout: str) -> int
