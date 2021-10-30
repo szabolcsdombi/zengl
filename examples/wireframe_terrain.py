@@ -37,7 +37,7 @@ index_buffer = ctx.buffer(index_data)
 
 uniform_buffer = ctx.buffer(size=64)
 
-terrain = ctx.renderer(
+terrain = ctx.pipeline(
     vertex_shader='''
         #version 330
 

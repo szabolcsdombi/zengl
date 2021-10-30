@@ -15,7 +15,7 @@ vertex_buffer = ctx.buffer(model)
 
 uniform_buffer = ctx.buffer(size=80)
 
-monkey = ctx.renderer(
+monkey = ctx.pipeline(
     vertex_shader='''
         #version 330
 

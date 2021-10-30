@@ -27,7 +27,7 @@ texture.mipmaps()
 
 uniform_buffer = ctx.buffer(size=80)
 
-crate = ctx.renderer(
+crate = ctx.pipeline(
     vertex_shader='''
         #version 330
 

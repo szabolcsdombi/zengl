@@ -21,7 +21,7 @@ texture = ctx.image(img.size, 'rgba8unorm', img.tobytes())
 
 uniform_buffer = ctx.buffer(size=80)
 
-crate = ctx.renderer(
+crate = ctx.pipeline(
     vertex_shader='''
         #version 330
 

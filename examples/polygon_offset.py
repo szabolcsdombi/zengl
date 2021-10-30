@@ -25,7 +25,7 @@ index_buffer = ctx.buffer(np.array([
 
 uniform_buffer = ctx.buffer(size=80)
 
-monkey = ctx.renderer(
+monkey = ctx.pipeline(
     vertex_shader='''
         #version 330
 
@@ -80,7 +80,7 @@ monkey = ctx.renderer(
     vertex_count=vertex_count,
 )
 
-monkey_wire = ctx.renderer(
+monkey_wire = ctx.pipeline(
     vertex_shader='''
         #version 330
 

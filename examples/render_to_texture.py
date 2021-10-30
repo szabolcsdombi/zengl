@@ -21,7 +21,7 @@ texture_ms.clear_value = (0.5, 0.5, 0.5, 1.0)
 
 uniform_buffer = ctx.buffer(size=80)
 
-triangle = ctx.renderer(
+triangle = ctx.pipeline(
     vertex_shader='''
         #version 330
 
@@ -60,7 +60,7 @@ triangle = ctx.renderer(
     vertex_count=3,
 )
 
-crate = ctx.renderer(
+crate = ctx.pipeline(
     vertex_shader='''
         #version 330
 

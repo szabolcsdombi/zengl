@@ -11,7 +11,7 @@ image.clear_value = (1.0, 1.0, 1.0, 1.0)
 
 uniform_buffer = ctx.buffer(size=16)
 
-triangle = ctx.renderer(
+triangle = ctx.pipeline(
     vertex_shader='''
         #version 330
 

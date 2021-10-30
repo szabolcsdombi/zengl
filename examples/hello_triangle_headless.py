@@ -6,7 +6,7 @@ ctx = zengl.instance(zengl.context(headless=True))
 size = (1280, 720)
 image = ctx.image(size, 'rgba8unorm', samples=1)
 
-triangle = ctx.renderer(
+triangle = ctx.pipeline(
     vertex_shader='''
         #version 330
 

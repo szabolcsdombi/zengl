@@ -14,7 +14,7 @@ ctx.files['parameters'] = '''
 
 image = ctx.image(window.size, 'rgba8unorm', samples=4)
 
-scene = ctx.renderer(
+scene = ctx.pipeline(
     vertex_shader='''
         #version 330
 

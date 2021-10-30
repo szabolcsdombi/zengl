@@ -21,7 +21,7 @@ vertex_buffer = ctx.buffer(np.array([
     0.0, 0.0, 1.0, 0.5,
 ], 'f4'))
 
-triangle = ctx.renderer(
+triangle = ctx.pipeline(
     vertex_shader='''
         #version 330
 

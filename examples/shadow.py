@@ -20,7 +20,7 @@ vertex_buffer = ctx.buffer(model)
 
 uniform_buffer = ctx.buffer(size=160)
 
-shadow_program = ctx.renderer(
+shadow_program = ctx.pipeline(
     vertex_shader='''
         #version 330
 
@@ -71,7 +71,7 @@ shadow_program = ctx.renderer(
     vertex_count=vertex_buffer.size // zengl.calcsize('3f 12x'),
 )
 
-monkey = ctx.renderer(
+monkey = ctx.pipeline(
     vertex_shader='''
         #version 330
 

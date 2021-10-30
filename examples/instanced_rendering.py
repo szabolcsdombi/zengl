@@ -19,7 +19,7 @@ xy = np.array([np.cos(angle) * 0.42, np.sin(angle) * 0.75])
 
 instance_buffer = ctx.buffer(xy.T.astype('f4').tobytes())
 
-triangle = ctx.renderer(
+triangle = ctx.pipeline(
     vertex_shader='''
         #version 330
 
