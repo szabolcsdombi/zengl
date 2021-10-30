@@ -33,7 +33,7 @@ vertex_buffer = ctx.buffer(model)
 
 uniform_buffer = ctx.buffer(size=80)
 
-monkey = ctx.renderer(
+monkey = ctx.pipeline(
     vertex_shader='''
         #version 330
 
@@ -84,7 +84,7 @@ monkey = ctx.renderer(
     vertex_count=vertex_buffer.size // zengl.calcsize('3f 3f'),
 )
 
-blur_x = ctx.renderer(
+blur_x = ctx.pipeline(
     vertex_shader='''
         #version 330
 
@@ -133,7 +133,7 @@ blur_x = ctx.renderer(
     vertex_count=3,
 )
 
-blur_y = ctx.renderer(
+blur_y = ctx.pipeline(
     vertex_shader='''
         #version 330
 

@@ -152,7 +152,7 @@ class Image:
         source_viewport: Viewport | None = None, filter: bool = True, srgb: bool = False) -> None: ...
 
 
-class Renderer:
+class Pipeline:
     vertex_count: int
     instance_count: int
     viewport: Viewport
@@ -165,7 +165,7 @@ class Instance:
     def image(
         self, size: Tuple[int, int], format: str, /, data: Bytes | None = None, *,
         samples: int = 1, texture: bool | None = None) -> Image: ...
-    def renderer(
+    def pipeline(
         self, /, *,
         vertex_shader: str = ...,
         fragment_shader: str = ...,
@@ -188,9 +188,9 @@ class Instance:
         instance_count: int = 0,
         first_vertex: int = 0,
         line_width: float = 1.0,
-        viewport: Viewport | None = None) -> Renderer: ...
+        viewport: Viewport | None = None) -> Pipeline: ...
     def clear_shader_cache(self) -> None: ...
-    def release(self, obj: Buffer | Image | Renderer) -> None: ...
+    def release(self, obj: Buffer | Image | Pipeline) -> None: ...
 
 
 def instance(context: Context | Any) -> Instance: ...

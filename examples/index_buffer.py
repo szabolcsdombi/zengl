@@ -21,7 +21,7 @@ index_buffer = ctx.buffer(np.array([
     2, 1, 3,
 ], 'i4'))
 
-square = ctx.renderer(
+square = ctx.pipeline(
     vertex_shader='''
         #version 330
 

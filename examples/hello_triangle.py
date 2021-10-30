@@ -10,7 +10,7 @@ window.set_caption('Hello World | Vendor: %s | Renderer: %s | Version: %s' % ctx
 image = ctx.image(window.size, 'rgba8unorm', samples=4)
 image.clear_value = (1.0, 1.0, 1.0, 1.0)
 
-triangle = ctx.renderer(
+triangle = ctx.pipeline(
     vertex_shader='''
         #version 330
 

@@ -10,7 +10,7 @@ struct ModuleState {
     PyTypeObject * Instance_type;
     PyTypeObject * Buffer_type;
     PyTypeObject * Image_type;
-    PyTypeObject * Renderer_type;
+    PyTypeObject * Pipeline_type;
     PyTypeObject * DescriptorSetBuffers_type;
     PyTypeObject * DescriptorSetImages_type;
     PyTypeObject * GlobalSettings_type;
@@ -113,7 +113,7 @@ struct Image {
     int renderbuffer;
 };
 
-struct Renderer {
+struct Pipeline {
     PyObject_HEAD
     Instance * instance;
     DescriptorSetBuffers * descriptor_set_buffers;
@@ -837,7 +837,7 @@ Image * Instance_meth_image(Instance * self, PyObject * vargs, PyObject * kwargs
     return res;
 }
 
-Renderer * Instance_meth_renderer(Instance * self, PyObject * vargs, PyObject * kwargs) {
+Pipeline * Instance_meth_pipeline(Instance * self, PyObject * vargs, PyObject * kwargs) {
     static char * keywords[] = {
         "vertex_shader",
         "fragment_shader",
@@ -1073,7 +1073,7 @@ Renderer * Instance_meth_renderer(Instance * self, PyObject * vargs, PyObject * 
         Py_DECREF(first_image);
     }
 
-    Renderer * res = PyObject_New(Renderer, self->module_state->Renderer_type);
+    Pipeline * res = PyObject_New(Pipeline, self->module_state->Pipeline_type);
     res->instance = (Instance *)new_ref(self);
     res->framebuffer = framebuffer;
     res->vertex_array = vertex_array;
@@ -1124,44 +1124,44 @@ PyObject * Instance_meth_release(Instance * self, PyObject * arg) {
             gl.DeleteTextures(1, (unsigned int *)&image->image);
         }
         Py_DECREF(arg);
-    } else if (Py_TYPE(arg) == self->module_state->Renderer_type) {
-        Renderer * renderer = (Renderer *)arg;
-        renderer->descriptor_set_buffers->uses -= 1;
-        if (!renderer->descriptor_set_buffers->uses) {
-            remove_dict_value(self->descriptor_set_buffers_cache, (PyObject *)renderer->descriptor_set_buffers);
+    } else if (Py_TYPE(arg) == self->module_state->Pipeline_type) {
+        Pipeline * pipeline = (Pipeline *)arg;
+        pipeline->descriptor_set_buffers->uses -= 1;
+        if (!pipeline->descriptor_set_buffers->uses) {
+            remove_dict_value(self->descriptor_set_buffers_cache, (PyObject *)pipeline->descriptor_set_buffers);
         }
-        renderer->descriptor_set_images->uses -= 1;
-        if (!renderer->descriptor_set_images->uses) {
-            for (int i = 0; i < renderer->descriptor_set_images->samplers; ++i) {
-                GLObject * sampler = renderer->descriptor_set_images->sampler[i];
+        pipeline->descriptor_set_images->uses -= 1;
+        if (!pipeline->descriptor_set_images->uses) {
+            for (int i = 0; i < pipeline->descriptor_set_images->samplers; ++i) {
+                GLObject * sampler = pipeline->descriptor_set_images->sampler[i];
                 sampler->uses -= 1;
                 if (!sampler->uses) {
                     remove_dict_value(self->sampler_cache, (PyObject *)sampler);
                     gl.DeleteSamplers(1, (unsigned int *)&sampler->obj);
                 }
             }
-            remove_dict_value(self->descriptor_set_images_cache, (PyObject *)renderer->descriptor_set_images);
+            remove_dict_value(self->descriptor_set_images_cache, (PyObject *)pipeline->descriptor_set_images);
         }
-        renderer->global_settings->uses -= 1;
-        if (!renderer->global_settings->uses) {
-            remove_dict_value(self->global_settings_cache, (PyObject *)renderer->global_settings);
+        pipeline->global_settings->uses -= 1;
+        if (!pipeline->global_settings->uses) {
+            remove_dict_value(self->global_settings_cache, (PyObject *)pipeline->global_settings);
         }
-        renderer->framebuffer->uses -= 1;
-        if (!renderer->framebuffer->uses) {
-            remove_dict_value(self->framebuffer_cache, (PyObject *)renderer->framebuffer);
-            gl.DeleteFramebuffers(1, (unsigned int *)&renderer->framebuffer->obj);
+        pipeline->framebuffer->uses -= 1;
+        if (!pipeline->framebuffer->uses) {
+            remove_dict_value(self->framebuffer_cache, (PyObject *)pipeline->framebuffer);
+            gl.DeleteFramebuffers(1, (unsigned int *)&pipeline->framebuffer->obj);
         }
-        renderer->program->uses -= 1;
-        if (!renderer->program->uses) {
-            remove_dict_value(self->program_cache, (PyObject *)renderer->program);
-            gl.DeleteProgram(renderer->program->obj);
+        pipeline->program->uses -= 1;
+        if (!pipeline->program->uses) {
+            remove_dict_value(self->program_cache, (PyObject *)pipeline->program);
+            gl.DeleteProgram(pipeline->program->obj);
         }
-        renderer->vertex_array->uses -= 1;
-        if (!renderer->vertex_array->uses) {
-            remove_dict_value(self->vertex_array_cache, (PyObject *)renderer->vertex_array);
-            gl.DeleteVertexArrays(1, (unsigned int *)&renderer->vertex_array->obj);
+        pipeline->vertex_array->uses -= 1;
+        if (!pipeline->vertex_array->uses) {
+            remove_dict_value(self->vertex_array_cache, (PyObject *)pipeline->vertex_array);
+            gl.DeleteVertexArrays(1, (unsigned int *)&pipeline->vertex_array->obj);
         }
-        Py_DECREF(renderer);
+        Py_DECREF(pipeline);
     }
     Py_RETURN_NONE;
 }
@@ -1684,7 +1684,7 @@ int Image_set_clear_value(Image * self, PyObject * value) {
     return 0;
 }
 
-PyObject * Renderer_meth_render(Renderer * self) {
+PyObject * Pipeline_meth_render(Pipeline * self) {
     if (self->instance->mapped_buffers) {
         PyErr_Format(PyExc_RuntimeError, "rendering with mapped buffers");
         return NULL;
@@ -1708,11 +1708,11 @@ PyObject * Renderer_meth_render(Renderer * self) {
     Py_RETURN_NONE;
 }
 
-PyObject * Renderer_get_viewport(Renderer * self) {
+PyObject * Pipeline_get_viewport(Pipeline * self) {
     return Py_BuildValue("iiii", self->viewport.x, self->viewport.y, self->viewport.width, self->viewport.height);
 }
 
-int Renderer_set_viewport(Renderer * self, PyObject * viewport) {
+int Pipeline_set_viewport(Pipeline * self, PyObject * viewport) {
     if (!is_viewport(viewport)) {
         PyErr_Format(PyExc_TypeError, "the viewport must be a tuple of 4 ints");
         return -1;
@@ -1970,7 +1970,7 @@ void Image_dealloc(Image * self) {
     Py_TYPE(self)->tp_free(self);
 }
 
-void Renderer_dealloc(Renderer * self) {
+void Pipeline_dealloc(Pipeline * self) {
     Py_DECREF(self->instance);
     Py_DECREF(self->descriptor_set_buffers);
     Py_DECREF(self->descriptor_set_images);
@@ -2000,7 +2000,7 @@ void GLObject_dealloc(GLObject * self) {
 PyMethodDef Instance_methods[] = {
     {"buffer", (PyCFunction)Instance_meth_buffer, METH_VARARGS | METH_KEYWORDS, NULL},
     {"image", (PyCFunction)Instance_meth_image, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"renderer", (PyCFunction)Instance_meth_renderer, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"pipeline", (PyCFunction)Instance_meth_pipeline, METH_VARARGS | METH_KEYWORDS, NULL},
     {"clear_shader_cache", (PyCFunction)Instance_meth_clear_shader_cache, METH_NOARGS, NULL},
     {"release", (PyCFunction)Instance_meth_release, METH_O, NULL},
     {},
@@ -2045,20 +2045,20 @@ PyMemberDef Image_members[] = {
     {},
 };
 
-PyMethodDef Renderer_methods[] = {
-    {"render", (PyCFunction)Renderer_meth_render, METH_NOARGS, NULL},
+PyMethodDef Pipeline_methods[] = {
+    {"render", (PyCFunction)Pipeline_meth_render, METH_NOARGS, NULL},
     {},
 };
 
-PyGetSetDef Renderer_getset[] = {
-    {"viewport", (getter)Renderer_get_viewport, (setter)Renderer_set_viewport, NULL, NULL},
+PyGetSetDef Pipeline_getset[] = {
+    {"viewport", (getter)Pipeline_get_viewport, (setter)Pipeline_set_viewport, NULL, NULL},
     {},
 };
 
-PyMemberDef Renderer_members[] = {
-    {"vertex_count", T_OBJECT_EX, offsetof(Renderer, vertex_count), 0, NULL},
-    {"instance_count", T_OBJECT_EX, offsetof(Renderer, instance_count), 0, NULL},
-    {"first_vertex", T_OBJECT_EX, offsetof(Renderer, first_vertex), 0, NULL},
+PyMemberDef Pipeline_members[] = {
+    {"vertex_count", T_OBJECT_EX, offsetof(Pipeline, vertex_count), 0, NULL},
+    {"instance_count", T_OBJECT_EX, offsetof(Pipeline, instance_count), 0, NULL},
+    {"first_vertex", T_OBJECT_EX, offsetof(Pipeline, first_vertex), 0, NULL},
     {},
 };
 
@@ -2084,11 +2084,11 @@ PyType_Slot Image_slots[] = {
     {},
 };
 
-PyType_Slot Renderer_slots[] = {
-    {Py_tp_methods, Renderer_methods},
-    {Py_tp_getset, Renderer_getset},
-    {Py_tp_members, Renderer_members},
-    {Py_tp_dealloc, Renderer_dealloc},
+PyType_Slot Pipeline_slots[] = {
+    {Py_tp_methods, Pipeline_methods},
+    {Py_tp_getset, Pipeline_getset},
+    {Py_tp_members, Pipeline_members},
+    {Py_tp_dealloc, Pipeline_dealloc},
     {},
 };
 
@@ -2115,7 +2115,7 @@ PyType_Slot GLObject_slots[] = {
 PyType_Spec Instance_spec = {"zengl.Instance", sizeof(Instance), 0, Py_TPFLAGS_DEFAULT, Instance_slots};
 PyType_Spec Buffer_spec = {"zengl.Buffer", sizeof(Buffer), 0, Py_TPFLAGS_DEFAULT, Buffer_slots};
 PyType_Spec Image_spec = {"zengl.Image", sizeof(Image), 0, Py_TPFLAGS_DEFAULT, Image_slots};
-PyType_Spec Renderer_spec = {"zengl.Renderer", sizeof(Renderer), 0, Py_TPFLAGS_DEFAULT, Renderer_slots};
+PyType_Spec Pipeline_spec = {"zengl.Pipeline", sizeof(Pipeline), 0, Py_TPFLAGS_DEFAULT, Pipeline_slots};
 PyType_Spec DescriptorSetBuffers_spec = {"zengl.DescriptorSetBuffers", sizeof(DescriptorSetBuffers), 0, Py_TPFLAGS_DEFAULT, DescriptorSetBuffers_slots};
 PyType_Spec DescriptorSetImages_spec = {"zengl.DescriptorSetImages", sizeof(DescriptorSetImages), 0, Py_TPFLAGS_DEFAULT, DescriptorSetImages_slots};
 PyType_Spec GlobalSettings_spec = {"zengl.GlobalSettings", sizeof(GlobalSettings), 0, Py_TPFLAGS_DEFAULT, GlobalSettings_slots};
@@ -2137,7 +2137,7 @@ int module_exec(PyObject * self) {
     state->Instance_type = (PyTypeObject *)PyType_FromSpec(&Instance_spec);
     state->Buffer_type = (PyTypeObject *)PyType_FromSpec(&Buffer_spec);
     state->Image_type = (PyTypeObject *)PyType_FromSpec(&Image_spec);
-    state->Renderer_type = (PyTypeObject *)PyType_FromSpec(&Renderer_spec);
+    state->Pipeline_type = (PyTypeObject *)PyType_FromSpec(&Pipeline_spec);
     state->DescriptorSetBuffers_type = (PyTypeObject *)PyType_FromSpec(&DescriptorSetBuffers_spec);
     state->DescriptorSetImages_type = (PyTypeObject *)PyType_FromSpec(&DescriptorSetImages_spec);
     state->GlobalSettings_type = (PyTypeObject *)PyType_FromSpec(&GlobalSettings_spec);
@@ -2146,7 +2146,7 @@ int module_exec(PyObject * self) {
     PyModule_AddObject(self, "Instance", (PyObject *)state->Instance_type);
     PyModule_AddObject(self, "Buffer", (PyObject *)state->Buffer_type);
     PyModule_AddObject(self, "Image", (PyObject *)state->Image_type);
-    PyModule_AddObject(self, "Renderer", (PyObject *)state->Renderer_type);
+    PyModule_AddObject(self, "Pipeline", (PyObject *)state->Pipeline_type);
 
     PyModule_AddObject(self, "context", (PyObject *)new_ref(PyObject_GetAttrString(state->helper, "context")));
     PyModule_AddObject(self, "calcsize", (PyObject *)new_ref(PyObject_GetAttrString(state->helper, "calcsize")));
@@ -2181,7 +2181,7 @@ void module_free(PyObject * self) {
     Py_DECREF(state->Instance_type);
     Py_DECREF(state->Buffer_type);
     Py_DECREF(state->Image_type);
-    Py_DECREF(state->Renderer_type);
+    Py_DECREF(state->Pipeline_type);
     Py_DECREF(state->DescriptorSetBuffers_type);
     Py_DECREF(state->DescriptorSetImages_type);
     Py_DECREF(state->GlobalSettings_type);

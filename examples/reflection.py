@@ -18,7 +18,7 @@ vertex_buffer = ctx.buffer(model)
 
 uniform_buffer = ctx.buffer(size=80)
 
-monkey = ctx.renderer(
+monkey = ctx.pipeline(
     vertex_shader='''
         #version 330
 
@@ -69,7 +69,7 @@ monkey = ctx.renderer(
     vertex_count=vertex_buffer.size // zengl.calcsize('3f 3f'),
 )
 
-monkey_reflection = ctx.renderer(
+monkey_reflection = ctx.pipeline(
     vertex_shader='''
         #version 330
 
@@ -121,7 +121,7 @@ monkey_reflection = ctx.renderer(
     vertex_count=vertex_buffer.size // zengl.calcsize('3f 3f'),
 )
 
-monkey_shadow = ctx.renderer(
+monkey_shadow = ctx.pipeline(
     vertex_shader='''
         #version 330
 
@@ -184,7 +184,7 @@ monkey_shadow = ctx.renderer(
     vertex_count=vertex_buffer.size // zengl.calcsize('3f 3f'),
 )
 
-plane = ctx.renderer(
+plane = ctx.pipeline(
     vertex_shader='''
         #version 330
 

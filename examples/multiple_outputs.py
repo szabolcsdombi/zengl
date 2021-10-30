@@ -11,7 +11,7 @@ image2 = ctx.image(image_size, 'rgba8unorm', samples=4)
 image1.clear_value = (1.0, 1.0, 1.0, 1.0)
 image2.clear_value = (1.0, 1.0, 1.0, 1.0)
 
-triangle = ctx.renderer(
+triangle = ctx.pipeline(
     vertex_shader='''
         #version 330
 

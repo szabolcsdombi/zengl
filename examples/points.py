@@ -40,7 +40,7 @@ color_buffer = ctx.buffer(np.array([
     for _ in range(ps.N)
 ]).astype('f4').tobytes())
 
-triangle = ctx.renderer(
+triangle = ctx.pipeline(
     vertex_shader='''
         #version 330
 

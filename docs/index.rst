@@ -38,7 +38,7 @@ ZenGL is a minimalist Python module providing exactly **one** way to render scen
 
 | Represents an OpenGL texture or renderbuffer.
 
-.. py:class:: Renderer
+.. py:class:: Pipeline
 
 | Represents an entire rendering pipeline including the global state, shader program, framebuffer, vertex state,
   uniform buffer bindings, samplers and sampler bindings.
@@ -101,10 +101,10 @@ Image
 
 .. py:method:: Instance.image(size, format, data, samples, texture) -> Image
 
-Renderer
+Pipeline
 --------
 
-.. py:method:: Instance.renderer(vertex_shader, fragment_shader, layout, resources, depth, stencil, blending, polygon_offset, color_mask, framebuffer, vertex_buffers, index_buffer, short_index, primitive_restart, front_face, cull_face, topology, vertex_count, instance_count, first_vertex, line_width, viewport) -> Renderer
+.. py:method:: Instance.pipeline(vertex_shader, fragment_shader, layout, resources, depth, stencil, blending, polygon_offset, color_mask, framebuffer, vertex_buffers, index_buffer, short_index, primitive_restart, front_face, cull_face, topology, vertex_count, instance_count, first_vertex, line_width, viewport) -> Pipeline
 
 Cleanup
 -------
@@ -116,11 +116,11 @@ Clean only if necessary. It is ok not to cleanup before the program ends.
 This method calls glDeleteShader for all the previously created vertex and fragment shader modules.
 The resources released by this method are likely to be insignificant in size.
 
-.. py:method:: Instance.release(obj: Buffer | Image | Renderer)
+.. py:method:: Instance.release(obj: Buffer | Image | Pipeline)
 
 This method releases the OpenGL resources associated with the parameter.
 OpenGL resources are not released automatically on grabage collection.
-Release Renderers before the Images and Buffers they use.
+Release Pipelines before the Images and Buffers they use.
 
 Utils
 -----
