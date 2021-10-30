@@ -44,7 +44,7 @@ Objects
 .. py:class:: Renderer
 
 | Represents an entire rendering pipeline including the global state, shader progra, framebuffer, vertex state,
-| uniform buffer bindings, samplers and sampler bindings.
+  uniform buffer bindings, samplers and sampler bindings.
 
 Documentation
 =============
