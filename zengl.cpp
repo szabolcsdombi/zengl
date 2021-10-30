@@ -1491,7 +1491,7 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
-        "|O$OOpp",
+        "|OO$Opp",
         keywords,
         &target_arg,
         &target_viewport_arg,
