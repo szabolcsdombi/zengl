@@ -295,7 +295,7 @@ def settings(primitive_restart, line_width, front_face, cull_face, color_mask, d
     return tuple(res)
 
 
-def normalize_shaders(vertex_shader, fragment_shader, files):
+def program(vertex_shader, fragment_shader, layout, files):
     def include(match):
         name = match.group(1)
         content = files.get(name)
@@ -311,7 +311,11 @@ def normalize_shaders(vertex_shader, fragment_shader, files):
     frag = re.sub(r'#include\s+"([^"]+)"', include, frag)
     frag = frag.encode().replace(b'\r', b'')
 
-    return vert, frag
+    bindings = []
+    for obj in sorted(layout, key=lambda x: x['name']):
+        bindings.extend((obj['name'], obj['binding']))
+
+    return vert, frag, tuple(bindings)
 
 
 def validate(attributes, uniforms, uniform_buffers, vertex_buffers, layout, resources):
