@@ -170,17 +170,17 @@ class Instance:
         vertex_shader: str = ...,
         fragment_shader: str = ...,
         layout: Iterable[LayoutBinding] = (),
-        framebuffer: Iterable[Image] = (),
         resources: Iterable[BufferResourceBinding | ImageResourceBinding] = (),
-        color_mask: int = 0xffffffffffffffff,
         depth: DepthSettings | bool | None = None,
-        stencil: StencilSettings | None = None,
-        blending: BlendingSettings | None = None,
-        polygon_offset: PolygonOffsetSettings | None = None,
+        stencil: StencilSettings | bool = False,
+        blending: BlendingSettings | bool = False,
+        polygon_offset: PolygonOffsetSettings | bool = False,
+        color_mask: int = 0xffffffffffffffff,
+        framebuffer: Iterable[Image] = (),
         vertex_buffers: Iterable[VertexBufferBinding] = (),
         index_buffer: Buffer | None = None,
-        primitive_restart: bool = True,
         short_index: bool = False,
+        primitive_restart: bool = True,
         front_face: str = 'ccw',
         cull_face: str = 'none',
         topology: Topology = 'triangles',
@@ -188,7 +188,7 @@ class Instance:
         instance_count: int = 0,
         first_vertex: int = 0,
         line_width: float = 1.0,
-        viewport: Viewport = None) -> Renderer: ...
+        viewport: Viewport | None = None) -> Renderer: ...
     def clear_shader_cache(self) -> None: ...
     def release(self, obj: Buffer | Image | Renderer) -> None: ...
 
