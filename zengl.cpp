@@ -512,7 +512,7 @@ GLObject * compile_shader(Instance * self, PyObject * code, int type, const char
         char * log_text = (char *)malloc(log_size + 1);
         gl.GetShaderInfoLog(shader, log_size, &log_size, log_text);
         log_text[log_size] = 0;
-        PyErr_Format(PyExc_Exception, "%s Error\n\n%s", name, log_text);
+        PyErr_Format(PyExc_ValueError, "%s Error\n\n%s", name, log_text);
         free(log_text);
         return 0;
     }
@@ -573,7 +573,7 @@ GLObject * compile_program(Instance * self, PyObject * vert, PyObject * frag) {
         gl.GetProgramInfoLog(program, log_size, &log_size, log_text);
         log_text[log_size] = 0;
         Py_DECREF(pair);
-        PyErr_Format(PyExc_Exception, "Linker Error\n\n%s", log_text);
+        PyErr_Format(PyExc_ValueError, "Linker Error\n\n%s", log_text);
         free(log_text);
         return 0;
     }
@@ -674,7 +674,7 @@ Buffer * Instance_meth_buffer(Instance * self, PyObject * vargs, PyObject * kwar
 
     if (invalid_size_type || invalid_size || data_but_size) {
         if (invalid_size_type) {
-            PyErr_Format(PyExc_ValueError, "the size must be an int");
+            PyErr_Format(PyExc_TypeError, "the size must be an int");
         } else if (invalid_size) {
             PyErr_Format(PyExc_ValueError, "invalid size");
         } else if (data_but_size) {
@@ -747,17 +747,17 @@ Image * Instance_meth_image(Instance * self, PyObject * vargs, PyObject * kwargs
         if (invalid_texture_parameter) {
             PyErr_Format(PyExc_TypeError, "invalid texture parameter");
         } else if (samples_but_texture) {
-            PyErr_Format(PyExc_ValueError, "for multisampled images texture must be False");
+            PyErr_Format(PyExc_TypeError, "for multisampled images texture must be False");
         } else if (cubemap_array) {
-            PyErr_Format(PyExc_ValueError, "cubemap arrays are not supported");
+            PyErr_Format(PyExc_TypeError, "cubemap arrays are not supported");
         } else if (array && samples > 1) {
-            PyErr_Format(PyExc_ValueError, "multisampled array images are not supported");
+            PyErr_Format(PyExc_TypeError, "multisampled array images are not supported");
         } else if (cubemap && samples > 1) {
-            PyErr_Format(PyExc_ValueError, "multisampled cubemap images are not supported");
+            PyErr_Format(PyExc_TypeError, "multisampled cubemap images are not supported");
         } else if (array && texture == Py_False) {
-            PyErr_Format(PyExc_ValueError, "for array images texture must be True");
+            PyErr_Format(PyExc_TypeError, "for array images texture must be True");
         } else if (cubemap && texture == Py_False) {
-            PyErr_Format(PyExc_ValueError, "for cubemap images texture must be True");
+            PyErr_Format(PyExc_TypeError, "for cubemap images texture must be True");
         }
         return NULL;
     }
@@ -921,7 +921,7 @@ Renderer * Instance_meth_renderer(Instance * self, PyObject * vargs, PyObject * 
     }
 
     if (viewport != Py_None && !is_viewport(viewport)) {
-        PyErr_Format(PyExc_ValueError, "the viewport must be a tuple of 4 ints");
+        PyErr_Format(PyExc_TypeError, "the viewport must be a tuple of 4 ints");
         return NULL;
     }
 
@@ -1183,7 +1183,7 @@ PyObject * Buffer_meth_write(Buffer * self, PyObject * vargs, PyObject * kwargs)
     if (already_mapped || invalid_offset || invalid_size) {
         PyBuffer_Release(&view);
         if (already_mapped) {
-            PyErr_Format(PyExc_ValueError, "already mapped");
+            PyErr_Format(PyExc_RuntimeError, "already mapped");
         } else if (invalid_offset) {
             PyErr_Format(PyExc_ValueError, "invalid offset");
         } else if (invalid_size) {
@@ -1212,27 +1212,34 @@ PyObject * Buffer_meth_map(Buffer * self, PyObject * vargs, PyObject * kwargs) {
         return NULL;
     }
 
-    int offset = 0;
     int size = self->size;
+    int offset = 0;
 
-    if (size_arg != Py_None) {
+    const bool invalid_size_type = size_arg != Py_None && !PyLong_CheckExact(size_arg);
+    const bool invalid_offset_type = offset_arg != Py_None && !PyLong_CheckExact(offset_arg);
+
+    if (size_arg != Py_None && !invalid_size_type) {
         size = PyLong_AsLong(size_arg);
     }
 
-    if (offset_arg != Py_None) {
+    if (offset_arg != Py_None && !invalid_offset_type) {
         offset = PyLong_AsLong(offset_arg);
     }
 
     const bool already_mapped = self->mapped;
     const bool offset_but_no_size = size_arg == Py_None && offset_arg != Py_None;
-    const bool invalid_size = size <= 0 || size > self->size;
-    const bool invalid_offset = offset < 0 || offset + size > self->size;
+    const bool invalid_size = invalid_size_type || size <= 0 || size > self->size;
+    const bool invalid_offset = invalid_offset_type || offset < 0 || offset + size > self->size;
 
     if (already_mapped || offset_but_no_size || invalid_size || invalid_offset) {
         if (already_mapped) {
-            PyErr_Format(PyExc_TypeError, "already mapped");
+            PyErr_Format(PyExc_RuntimeError, "already mapped");
         } else if (offset_but_no_size) {
             PyErr_Format(PyExc_ValueError, "the size is required when the offset is not None");
+        } else if (invalid_size_type) {
+            PyErr_Format(PyExc_TypeError, "the size must be an int or None");
+        } else if (invalid_offset_type) {
+            PyErr_Format(PyExc_TypeError, "the offset must be an int or None");
         } else if (invalid_size) {
             PyErr_Format(PyExc_ValueError, "invalid size");
         } else if (invalid_offset) {
@@ -1331,14 +1338,20 @@ PyObject * Image_meth_write(Image * self, PyObject * vargs, PyObject * kwargs) {
         PyBuffer_Release(&view);
         if (offset_but_no_size) {
             PyErr_Format(PyExc_ValueError, "the size is required when the offset is not None");
+        } else if (invalid_size_type) {
+            PyErr_Format(PyExc_TypeError, "the size must be a tuple of 2 ints");
+        } else if (invalid_offset_type) {
+            PyErr_Format(PyExc_TypeError, "the offset must be a tuple of 2 ints");
+        } else if (invalid_layer_type) {
+            PyErr_Format(PyExc_TypeError, "the layer must be an int or None");
         } else if (invalid_size) {
-            PyErr_Format(PyExc_ValueError, "the size must be a tuple of 2 ints");
+            PyErr_Format(PyExc_ValueError, "invalid size");
         } else if (invalid_offset) {
-            PyErr_Format(PyExc_ValueError, "the offset must be a tuple of 2 ints");
+            PyErr_Format(PyExc_ValueError, "invalid offset");
         } else if (invalid_layer) {
             PyErr_Format(PyExc_ValueError, "invalid layer");
         } else if (layer_but_simple) {
-            PyErr_Format(PyExc_ValueError, "this image is not layered");
+            PyErr_Format(PyExc_TypeError, "the image is not layered");
         } else if (!self->format.color) {
             PyErr_Format(PyExc_TypeError, "cannot write to depth or stencil images");
         } else if (self->samples != 1) {
@@ -1440,6 +1453,10 @@ PyObject * Image_meth_read(Image * self, PyObject * vargs, PyObject * kwargs) {
     if (offset_but_no_size || invalid_size || invalid_offset || invalid_type) {
         if (offset_but_no_size) {
             PyErr_Format(PyExc_ValueError, "the size is required when the offset is not None");
+        } else if (invalid_size_type) {
+            PyErr_Format(PyExc_TypeError, "the size must be a tuple of 2 ints");
+        } else if (invalid_offset_type) {
+            PyErr_Format(PyExc_TypeError, "the offset must be a tuple of 2 ints");
         } else if (invalid_size) {
             PyErr_Format(PyExc_ValueError, "invalid size");
         } else if (invalid_offset) {
@@ -1531,11 +1548,11 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
 
     if (error) {
         if (invalid_target_type) {
-            PyErr_Format(PyExc_ValueError, "target must be an Image or None");
+            PyErr_Format(PyExc_TypeError, "target must be an Image or None");
         } else if (invalid_target_viewport_type) {
-            PyErr_Format(PyExc_ValueError, "the target viewport must be a tuple of 4 ints");
+            PyErr_Format(PyExc_TypeError, "the target viewport must be a tuple of 4 ints");
         } else if (invalid_source_viewport_type) {
-            PyErr_Format(PyExc_ValueError, "the source viewport must be a tuple of 4 ints");
+            PyErr_Format(PyExc_TypeError, "the source viewport must be a tuple of 4 ints");
         } else if (invalid_target_viewport) {
             PyErr_Format(PyExc_ValueError, "the target viewport is out of range");
         } else if (invalid_source_viewport) {
@@ -1669,7 +1686,7 @@ int Image_set_clear_value(Image * self, PyObject * value) {
 
 PyObject * Renderer_meth_render(Renderer * self) {
     if (self->instance->mapped_buffers) {
-        PyErr_Format(PyExc_ValueError, "rendering with mapped buffers");
+        PyErr_Format(PyExc_RuntimeError, "rendering with mapped buffers");
         return NULL;
     }
     const GLMethods & gl = self->instance->gl;
@@ -1697,7 +1714,7 @@ PyObject * Renderer_get_viewport(Renderer * self) {
 
 int Renderer_set_viewport(Renderer * self, PyObject * viewport) {
     if (!is_viewport(viewport)) {
-        PyErr_Format(PyExc_ValueError, "the viewport must be a tuple of 4 ints");
+        PyErr_Format(PyExc_TypeError, "the viewport must be a tuple of 4 ints");
         return -1;
     }
     self->viewport = to_viewport(viewport);
