@@ -143,3 +143,87 @@ Utils
 .. py:method:: zengl.bind(buffer: Buffer, layout: str, *attributes: Iterable[int]) -> List[VertexBufferBinding]
 
 .. py:method:: zengl.calcsize(layout: str) -> int
+
+Image Formats
+-------------
+
+==================== =================
+format               OpenGL equivalent
+==================== =================
+r8unorm              .
+rg8unorm             .
+rgba8unorm           .
+bgra8unorm           .
+r8snorm              .
+rg8snorm             .
+rgba8snorm           .
+r8uint               .
+rg8uint              .
+rgba8uint            .
+r16uint              .
+rg16uint             .
+rgba16uint           .
+r32uint              .
+rg32uint             .
+rgba32uint           .
+r8sint               .
+rg8sint              .
+rgba8sint            .
+r16sint              .
+rg16sint             .
+rgba16sint           .
+r32sint              .
+rg32sint             .
+rgba32sint           .
+r16float             .
+rg16float            .
+rgba16float          .
+r32float             .
+rg32float            .
+rgba32float          .
+rgba8unorm-srgb      .
+bgra8unorm-srgb      .
+stencil8             .
+depth16unorm         .
+depth24plus          .
+depth24plus-stencil8 .
+depth32float         .
+==================== =================
+
+Vertex Formats
+--------------
+
+========= ============= =================
+shorthand vertex format OpenGL equivalent
+========= ============= =================
+1f        float32       .
+2f        float32x2     .
+3f        float32x3     .
+4f        float32x4     .
+1u        uint32        .
+2u        uint32x2      .
+3u        uint32x3      .
+4u        uint32x4      .
+1i        sint32        .
+2i        sint32x2      .
+3i        sint32x3      .
+4i        sint32x4      .
+2u1       uint8x2       .
+4u1       uint8x4       .
+2i1       sint8x2       .
+4i1       sint8x4       .
+2h        float16x2     .
+4h        float16x4     .
+2nu1      unorm8x2      .
+4nu1      unorm8x4      .
+2ni1      snorm8x2      .
+4ni1      snorm8x4      .
+2u2       uint16x2      .
+4u2       uint16x4      .
+2i2       sint16x2      .
+4i2       sint16x4      .
+2nu2      unorm16x2     .
+4nu2      unorm16x4     .
+2ni2      snorm16x2     .
+4ni2      snorm16x4     .
+========= ============= =================
