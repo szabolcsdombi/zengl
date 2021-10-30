@@ -841,78 +841,78 @@ Renderer * Instance_meth_renderer(Instance * self, PyObject * vargs, PyObject * 
     static char * keywords[] = {
         "vertex_shader",
         "fragment_shader",
-        "framebuffer",
-        "topology",
         "layout",
         "resources",
-        "vertex_buffers",
-        "index_buffer",
-        "vertex_count",
-        "instance_count",
-        "first_vertex",
-        "short_index",
-        "primitive_restart",
-        "line_width",
-        "front_face",
-        "cull_face",
-        "color_mask",
         "depth",
         "stencil",
         "blending",
         "polygon_offset",
+        "color_mask",
+        "framebuffer",
+        "vertex_buffers",
+        "index_buffer",
+        "short_index",
+        "primitive_restart",
+        "front_face",
+        "cull_face",
+        "topology",
+        "vertex_count",
+        "instance_count",
+        "first_vertex",
+        "line_width",
         "viewport",
         NULL,
     };
 
     PyObject * vertex_shader = NULL;
     PyObject * fragment_shader = NULL;
-    PyObject * framebuffer_images = NULL;
-    const char * topology = "triangles";
     PyObject * layout = self->module_state->empty_tuple;
     PyObject * resources = self->module_state->empty_tuple;
-    PyObject * vertex_buffers = self->module_state->empty_tuple;
-    PyObject * index_buffer = Py_None;
-    int vertex_count = 0;
-    int instance_count = 1;
-    int first_vertex = 0;
-    int short_index = false;
-    PyObject * primitive_restart = Py_True;
-    PyObject * line_width = self->module_state->float_one;
-    PyObject * front_face = self->module_state->str_ccw;
-    PyObject * cull_face = self->module_state->str_none;
-    PyObject * color_mask = self->module_state->default_color_mask;
     PyObject * depth = Py_True;
     PyObject * stencil = Py_False;
     PyObject * blending = Py_False;
     PyObject * polygon_offset = Py_False;
+    PyObject * color_mask = self->module_state->default_color_mask;
+    PyObject * framebuffer_images = NULL;
+    PyObject * vertex_buffers = self->module_state->empty_tuple;
+    PyObject * index_buffer = Py_None;
+    int short_index = false;
+    PyObject * primitive_restart = Py_True;
+    PyObject * front_face = self->module_state->str_ccw;
+    PyObject * cull_face = self->module_state->str_none;
+    const char * topology = "triangles";
+    int vertex_count = 0;
+    int instance_count = 1;
+    int first_vertex = 0;
+    PyObject * line_width = self->module_state->float_one;
     PyObject * viewport = Py_None;
 
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
-        "|$OOOsOOOOiiipOOOOOOOOOO",
+        "|$OOOOOOOOOOOOpOOOsiiiOO",
         keywords,
         &vertex_shader,
         &fragment_shader,
-        &framebuffer_images,
-        &topology,
         &layout,
         &resources,
-        &vertex_buffers,
-        &index_buffer,
-        &vertex_count,
-        &instance_count,
-        &first_vertex,
-        &short_index,
-        &primitive_restart,
-        &line_width,
-        &front_face,
-        &cull_face,
-        &color_mask,
         &depth,
         &stencil,
         &blending,
         &polygon_offset,
+        &color_mask,
+        &framebuffer_images,
+        &vertex_buffers,
+        &index_buffer,
+        &short_index,
+        &primitive_restart,
+        &front_face,
+        &cull_face,
+        &topology,
+        &vertex_count,
+        &instance_count,
+        &first_vertex,
+        &line_width,
         &viewport
     );
 
