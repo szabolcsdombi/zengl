@@ -99,12 +99,70 @@ Buffers are not variable sized, they are allocated upfront in the device memory.
 Image
 -----
 
-.. py:method:: Context.image(size, format, data, samples, texture) -> Image
+.. py:method:: Context.image(size, format, data, samples, array, texture, cubemap) -> Image
+
+**size**
+
+    | The image size as a tuple of two ints.
+
+**format**
+
+    | The image format represented as string. (:ref:`list of image format<Image Formats>`)
+    | The two most common are ``'rgba8unorm'`` and ``'depth24plus'``
+
+**data**
+
+    | The image content represented as ``bytes`` or a buffer for example a numpy array.
+    | If the data is None the content of the image will be uninitialized. The default value is None.
+
+**samples**
+
+    | The number of samples for the image. Multisample render targets must have samples > 1.
+    | Textures must have samples = 1. Only a power of two is possible. The default value is 1.
+    | For multisampled rendering usually 4 is a good choice.
+
+**array**
+
+    | The number of array layers for the image. For non-array textures the value must be 0.
+    | The default value is 0.
+
+**texture**
+
+    | A boolean representing the image to be sampled from shaders or not.
+    | For textures this flag must be True, for render targets it should be False.
+    | Multisampled textures to be sampled from the shaders are not supported.
+    | The default is None and it means to be determined from the image type.
+
+**cubemap**
+
+    | A boolean representing the image to be a cubemap texture. The default value is False.
+
+.. py:method:: Image.blit(target, target, target_viewport, source_viewport, filter, srgb)
+
+**target**
+    | The target image to copy to. The default value is None and it means to copy to the screen.
+
+**target_viewport** and **source_viewport**
+    | The source and target viewports defined as tuples of four ints in (x, y, width, height) format.
+
+**filter**
+    | A boolean to enable linear filtering for scaled images. By default it is True.
+      It has no effect if the source and target viewports have the same size.
+
+**srgb**
+    | A boolean to enable linear to srgb conversion. By default it is False.
 
 Pipeline
 --------
 
 .. py:method:: Context.pipeline(vertex_shader, fragment_shader, layout, resources, depth, stencil, blending, polygon_offset, color_mask, framebuffer, vertex_buffers, index_buffer, short_index, primitive_restart, front_face, cull_face, topology, vertex_count, instance_count, first_vertex, line_width, viewport) -> Pipeline
+
+Rendering to Texture
+--------------------
+
+Rendering to texture is supported. However for multisampled images must be downsampled before used as textures.
+In that case an intermediate render target must be samples > 1 and texture = False.
+Then this image can be downsampled with :py:meth:`Image.blit` to another image with samples = 1 and texture = True.
 
 Shader Code
 -----------
@@ -233,6 +291,8 @@ Utils
 .. py:method:: zengl.calcsize(layout: str) -> int
 
 | Calculates the size of a vertex attribute buffer layout.
+
+.. _Image Formats:
 
 Image Formats
 -------------
