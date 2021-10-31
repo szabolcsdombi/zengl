@@ -242,7 +242,7 @@ Pipeline
 
         | **buffer:** A buffer to be used as the vertex attribute source
         | **format:** The vertex attribute format. (:ref:`list of vertex format<Vertex Formats>`)
-        | **location:** The vertex attribute location or -1 for not yet imlemented attributes
+        | **location:** The vertex attribute location
         | **offset:** The buffer offset in bytes
         | **stride:** The stride in bytes
         | **step:** ``'vertex'`` for per vertex attributes. ``'instance'`` for per instance attributes
@@ -434,7 +434,9 @@ Utils
 
 .. py:method:: zengl.bind(buffer: Buffer, layout: str, *attributes: Iterable[int]) -> List[VertexBufferBinding]
 
-| Shorthand for binding a single buffer to multiple vertex attributes.
+| Helper function for binding a single buffer to multiple vertex attributes.
+| The -1 is a special value allowed in the attributes to represent not yet implemented attribute.
+| An ending ``/i`` is allowed in the layout to represent per instance stepping.
 
 .. py:method:: zengl.calcsize(layout: str) -> int
 
