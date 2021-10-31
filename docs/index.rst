@@ -54,7 +54,7 @@ A Context is created with the help of a context loader.
 A context loader is an object implementing the load method to resolve OpenGL functions by name.
 This enables zengl to be entirely platform independent.
 
-.. py:method:: zengl.context(headless: bool = False) -> Context
+.. py:method:: zengl.loader(headless: bool = False) -> Context
 
 This method provides a default context loader. It requires `glcontext` to be installed.
 ZenGL does not implement OpenGL function loading. glcontext is used when no alternatives are provided.
