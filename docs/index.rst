@@ -131,10 +131,10 @@ Shader Code
 Shader Includes
 ---------------
 
-Shader includes were designed to solve a single problem of sharing code among shaders without having to field format the shader code.
-Includes are simple string replacements from :py:attr:`Instance.includes`.
-The include statement stands for including constants, functions, logic or behavior, but not files. Hence the naming should not contain extensions like ``.h``.
-Nested includes do not work, they are overcomplicated and could cause other sort of issues.
+| Shader includes were designed to solve a single problem of sharing code among shaders without having to field format the shader code.
+| Includes are simple string replacements from :py:attr:`Instance.includes`
+| The include statement stands for including constants, functions, logic or behavior, but not files. Hence the naming should not contain extensions like ``.h``
+| Nested includes do not work, they are overcomplicated and could cause other sort of issues.
 
 **Example**
 
