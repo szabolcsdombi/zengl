@@ -600,6 +600,9 @@ Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwargs) {
 
     if (loader == Py_None) {
         loader = PyObject_CallMethod(module_state->helper, "loader", NULL);
+        if (!loader) {
+            return NULL;
+        }
     } else {
         Py_INCREF(loader);
     }
