@@ -229,7 +229,7 @@ Pipeline
 **color_mask**
     | The color mask defined as a single integer.
     | The bits of the color mask grouped in fours represent the color mask for the attachments.
-    | The bits in the groups of four represent the color mask for (r, g, b, a) chanel respectively.
+    | The bits in the group of fours represent the mask for the red, green, blue and alpha channels.
     | It is easier to understand it from the `implementation <https://github.com/szabolcsdombi/zengl/search?l=C%2B%2B&q=color_mask>`_.
 
 **framebuffer**
