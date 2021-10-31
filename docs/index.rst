@@ -378,13 +378,6 @@ Pipeline
 
     | The render viewport defined as tuples of four ints in (x, y, width, height) format.
 
-Rendering to Texture
---------------------
-
-Rendering to texture is supported. However for multisampled images must be downsampled before used as textures.
-In that case an intermediate render target must be samples > 1 and texture = False.
-Then this image can be downsampled with :py:meth:`Image.blit` to another image with samples = 1 and texture = True.
-
 Shader Code
 -----------
 
@@ -468,6 +461,13 @@ Include Patterns
         return f'const int N = {s * 2 + 1};\nfloat coeff[N] = float[]({v});'
 
     ctx.includes['kernel'] = kernel(19)
+
+Rendering to Texture
+--------------------
+
+Rendering to texture is supported. However for multisampled images must be downsampled before used as textures.
+In that case an intermediate render target must be samples > 1 and texture = False.
+Then this image can be downsampled with :py:meth:`Image.blit` to another image with samples = 1 and texture = True.
 
 Cleanup
 -------
