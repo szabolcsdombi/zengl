@@ -14,7 +14,7 @@ ZenGL is a minimalist Python module providing exactly **one** way to render scen
 **ZenGL is ...**
 
 - **high-performance**
-- **simple** - *buffers, images, renderes and there you go*
+- **simple** - *buffers, images, pipelines and there you go*
 - **easy-to-learn** - *it is simply OpenGL with no magic added*
 - **verbose** - *most common mistakes are catched and reported in a clear and understandable way*
 - **robust** - *there is no global state or external trouble-maker affecting the render*
