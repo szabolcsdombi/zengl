@@ -147,7 +147,7 @@ Image
 
 | Images hold texture data or render outputs.
 | Images with texture support are implemented with OpenGL textures.
-| Render outputs that are not sampled from the shaders use OpenGL renderbuffers instead.
+| Render outputs that are not sampled from the shaders are using OpenGL renderbuffers instead.
 
 **render targets**
 
