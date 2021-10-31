@@ -79,8 +79,6 @@ ZenGL does not implement OpenGL function loading. glcontext is used when no alte
 Buffer
 ------
 
-.. py:method:: Context.buffer(data, size, dynamic) -> Buffer
-
 Buffer objects hold data used by rendering.
 Buffers are not variable sized, they are allocated upfront in the device memory.
 
@@ -96,45 +94,86 @@ Buffers are not variable sized, they are allocated upfront in the device memory.
 
     vertex_buffer = ctx.buffer(size=1024)
 
+.. py:method:: Context.buffer(data, size, dynamic) -> Buffer
+
+**data**
+    | The buffer content represented as ``bytes`` or a buffer for example a numpy array.
+    | If the data is None the content of the buffer will be uninitialized and the size is mandatory.
+    | The default value is None.
+
+**size**
+    | The size of the buffer. It must be None if the data parameter was provided.
+    | The default value is None and it means the size of the data.
+
+**dynamic**
+    | A boolean to enable ``GL_DYNAMIC_DRAW`` on buffer creation.
+    | When this flag is False the ``GL_STATIC_DRAW`` is used.
+    | The default value is True.
+
+.. py:method:: Buffer.write(data, offset)
+
+**data**
+    | The content to be written into the buffer represented as ``bytes`` or a buffer.
+
+**offset**
+    | An int representing the write offset in bytes.
+
+.. py:method:: Buffer.map(size, offset, discard) -> memoryview
+
+**size**
+    | An int representing the size of the buffer in bytes to be mapped.
+    | The default value is None and it means the entire buffer.
+
+**offset**
+    | An int representing the offset in bytes for the mapping.
+    | When the offset is not None the size must also be defined.
+    | The default value is None and it means the beginning of the buffer.
+
+**discard**
+    | A boolean to enable the ``GL_MAP_INVALIDATE_RANGE_BIT``
+    | When this flag is True the contents of the buffer is undefined.
+    | The default value is False.
+
+.. py:method:: Buffer.unmap()
+
+    Unmap the buffer.
+
+.. py:attribute:: Buffer.size
+
+    An int representing the size of the buffer in bytes.
+
 Image
 -----
 
 .. py:method:: Context.image(size, format, data, samples, array, texture, cubemap) -> Image
 
 **size**
-
     | The image size as a tuple of two ints.
 
 **format**
-
     | The image format represented as string. (:ref:`list of image format<Image Formats>`)
     | The two most common are ``'rgba8unorm'`` and ``'depth24plus'``
 
 **data**
-
     | The image content represented as ``bytes`` or a buffer for example a numpy array.
     | If the data is None the content of the image will be uninitialized. The default value is None.
 
 **samples**
-
     | The number of samples for the image. Multisample render targets must have samples > 1.
     | Textures must have samples = 1. Only a power of two is possible. The default value is 1.
     | For multisampled rendering usually 4 is a good choice.
 
 **array**
-
     | The number of array layers for the image. For non-array textures the value must be 0.
     | The default value is 0.
 
 **texture**
-
     | A boolean representing the image to be sampled from shaders or not.
     | For textures this flag must be True, for render targets it should be False.
     | Multisampled textures to be sampled from the shaders are not supported.
     | The default is None and it means to be determined from the image type.
 
 **cubemap**
-
     | A boolean representing the image to be a cubemap texture. The default value is False.
 
 .. py:method:: Image.blit(target, target_viewport, source_viewport, filter, srgb)
