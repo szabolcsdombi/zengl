@@ -128,6 +128,68 @@ Shader Code
 
 - **do** arrange piplines in such an order to minimize framebuffer then program changes.
 
+Shader Includes
+---------------
+
+Shader includes were designed to solve a single problem of sharing code among shaders without having to field format the shader code.
+Includes are simple string replacements from :py:attr:`Instance.includes`.
+The include statement stands for including constants, functions, logic or behavior, but not files. Hence the naming should not contain extensions like ``.h``.
+Nested includes do not work, they are overcomplicated and could cause other sort of issues.
+
+**Example**
+
+.. code-block::
+
+    ctx.includes['common'] = '...'
+
+    pipeline = ctx.pipeline(
+        vertex_shader='''
+            #version 330
+
+            #include "common"
+            #include "qtransform"
+
+            void main() {
+            }
+        ''',
+    )
+
+Include Patterns
+----------------
+
+**common uniform buffer**
+
+.. code-block::
+
+    ctx.includes['common'] = '''
+        layout (std140) uniform Common {
+            mat4 mvp;
+        };
+    '''
+
+**quaternion transform**
+
+.. code-block::
+
+    ctx.includes['qtransform'] = '''
+        vec3 qtransform(vec4 q, vec3 v) {
+            return v + 2.0 * cross(cross(v, q.xyz) - q.w * v, q.xyz);
+        }
+    '''
+
+**gaussian filter**
+
+.. code-block::
+
+    def kernel(s):
+        x = np.arange(-s, s + 1)
+        y = np.exp(-x * x / (s * s / 4))
+        y /= y.sum()
+        v = ', '.join(f'{t:.8f}' for t in y)
+        return f'const int N = {s * 2 + 1};\nfloat coeff[N] = float[]({v});'
+
+    ctx.includes['kernel'] = kernel(19)
+
 Cleanup
 -------
 
