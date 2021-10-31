@@ -4,7 +4,7 @@ import zengl
 from window import Window
 
 window = Window(512, 512)
-ctx = zengl.instance(zengl.context())
+ctx = zengl.context(zengl.loader())
 
 image = ctx.image(window.size, 'rgba8unorm')
 temp = ctx.image(window.size, 'rgba8unorm')

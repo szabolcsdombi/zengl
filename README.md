@@ -6,7 +6,7 @@
 import zengl
 from PIL import Image
 
-ctx = zengl.instance(zengl.context(headless=True))
+ctx = zengl.context(zengl.loader(headless=True))
 
 size = (1280, 720)
 image = ctx.image(size, 'rgba8unorm', samples=1)

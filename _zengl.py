@@ -121,7 +121,7 @@ STEP = {
 }
 
 
-def context(headless=False):
+def loader(headless=False):
     import glcontext
     mode = 'standalone' if headless else 'detect'
     return glcontext.default_backend()(glversion=330, mode=mode)

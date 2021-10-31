@@ -8,7 +8,7 @@ it = iter(reader)
 height, width = next(it).shape[:2]
 
 window = Window(width, height)
-ctx = zengl.instance(zengl.context())
+ctx = zengl.context(zengl.loader())
 
 image = ctx.image(window.size, 'rgba8unorm')
 
