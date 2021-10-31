@@ -717,7 +717,7 @@ Buffer * Context_meth_buffer(Context * self, PyObject * vargs, PyObject * kwargs
 }
 
 Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * kwargs) {
-    static char * keywords[] = {"size", "format", "data", "samples", "texture", NULL};
+    static char * keywords[] = {"size", "format", "data", "samples", "array", "texture", "cubemap", NULL};
 
     int width;
     int height;
