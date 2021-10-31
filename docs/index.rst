@@ -22,10 +22,6 @@ ZenGL is a minimalist Python module providing exactly **one** way to render scen
 - **cached** - *most OpenGL objects are reused between renders*
 - **zen** - *there is one way to do it*
 
-.. warning::
-
-    This document is still in draft
-
 .. py:class:: Context
 
 | Represents an OpenGL context.
