@@ -202,6 +202,109 @@ Pipeline
 
 .. py:method:: Context.pipeline(vertex_shader, fragment_shader, layout, resources, depth, stencil, blending, polygon_offset, color_mask, framebuffer, vertex_buffers, index_buffer, short_index, primitive_restart, front_face, cull_face, topology, vertex_count, instance_count, first_vertex, line_width, viewport) -> Pipeline
 
+**vertex_shader**
+    | The vertex shader code.
+
+**fragment_shader**
+    | The fragment shader code.
+
+**layout**
+    | Layout binding definition for the uniform buffers and samplers.
+
+**resources**
+    | The list of uniform buffers and samplers to be bound.
+
+**depth**
+    | The depth settings
+
+**stencil**
+    | The stencil settings
+
+**blending**
+    | The blending settings
+
+**polygon_offset**
+    | The polygon offset
+
+**color_mask**
+    | The color mask defined as a single integer.
+    | The bits of the color mask grouped in fours represent the color mask for the attachments.
+    | The bits in the groups of four represent the color mask for (r, g, b, a) chanel respectively.
+    | It is easier to understand it from the `implementation <https://github.com/szabolcsdombi/zengl/search?l=C%2B%2B&q=color_mask>`_.
+
+**framebuffer**
+    | A list of images representing the framebuffer for the rendering.
+    | The depth or stencil attachment must be the last one in the list.
+    | The size and number of samples of the images must match.
+
+**vertex_buffers**
+    | A list of vertex attribute bindings with the following keys:
+
+        | **buffer:** A buffer to be used as the vertex attribute source
+        | **format:** The vertex attribute format. (:ref:`list of vertex format<Vertex Formats>`)
+        | **location:** The vertex attribute location or -1 for not yet imlemented attributes
+        | **offset:** The buffer offset in bytes
+        | **stride:** The stride in bytes
+        | **step:** ``'vertex'`` for per vertex attributes. ``'instance'`` for per instance attributes
+
+    The :py:meth:`zengl.bind` method produces this list in a more compact form.
+
+**index_buffer**
+    | A buffer object to be used as the index buffer.
+    | The default value is None and it means to disable indexed rendering.
+
+**short_index**
+    | A boolean to enable ``GL_UNSIGNED_SHORT`` as the index type.
+    | When this flag is False the ``GL_UNSIGNED_INT`` is used.
+    | The default value is False.
+
+**primitive_restart**
+    | A boolean to enable the primitive restart index. The default primitive restart index is -1.
+    | The default value is True.
+
+**front_face**
+    | A string representing the front face. It must be ``'cw'`` or ``'ccw'``
+    | The default value is ``'ccw'``
+
+**cull_face**
+    | A string representing the cull face. It must be ``'front'``, ``'back'`` or ``'none'``
+    | The default value is ``'none'``
+
+**topology**
+    | A string representing the rendered primitive topology.
+    | It must be one of the following:
+
+        - ``'points'``
+        - ``'lines'``
+        - ``'line_loop'``
+        - ``'line_strip'``
+        - ``'triangles'``
+        - ``'triangle_strip'``
+        - ``'triangle_fan'``
+
+    | The default value is ``'triangles'``
+
+**vertex_count**
+    | The number of vertices or the number of elements to draw.
+
+**instance_count**
+    | The number of instances to draw.
+
+**first_vertex**
+    | The first vertex or the first index to start drawing from.
+    | The default value is 0. This is a mutable parameter at runtime.
+
+**line_width**
+    | A float defining the rasterized line size in pixels. Beware wide lines are not a core feature.
+    | Wondering where the point_size is? ZenGL only supports the more generic gl_PointSize_.
+
+.. _gl_PointSize: https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/gl_PointSize.xhtml
+
+**viewport**
+    | The render viewport defined as tuples of four ints in (x, y, width, height) format.
+    | The default is the full size of the framebuffer.
+
+
 Rendering to Texture
 --------------------
 
@@ -384,6 +487,8 @@ depth24plus          .
 depth24plus-stencil8 .
 depth32float         .
 ==================== =================
+
+.. _Vertex Formats:
 
 Vertex Formats
 --------------
