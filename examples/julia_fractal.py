@@ -6,7 +6,7 @@ from window import Window
 window = Window(1280, 720)
 ctx = zengl.instance(zengl.context())
 
-ctx.files['parameters'] = '''
+ctx.includes['parameters'] = '''
     vec2 Size = vec2(1280.0, 720.0);
     vec2 Center = vec2(0.49, 0.32);
     int Iter = 100;

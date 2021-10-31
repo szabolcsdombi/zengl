@@ -295,10 +295,10 @@ def settings(primitive_restart, line_width, front_face, cull_face, color_mask, d
     return tuple(res)
 
 
-def program(vertex_shader, fragment_shader, layout, files):
+def program(vertex_shader, fragment_shader, layout, includes):
     def include(match):
         name = match.group(1)
-        content = files.get(name)
+        content = includes.get(name)
         if content is None:
             raise FileNotFoundError('cannot include "%s"' % name)
         return content

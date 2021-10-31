@@ -9,7 +9,7 @@ ctx = zengl.instance(zengl.context())
 image = ctx.image(window.size, 'rgba8unorm')
 temp = ctx.image(window.size, 'rgba8unorm')
 
-ctx.files['size'] = 'ivec2 SIZE = ivec2(512);'
+ctx.includes['size'] = 'ivec2 SIZE = ivec2(512);'
 
 scene = ctx.pipeline(
     vertex_shader='''
