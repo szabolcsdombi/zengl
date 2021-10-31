@@ -74,7 +74,7 @@ struct Instance {
     PyObject * framebuffer_cache;
     PyObject * program_cache;
     PyObject * shader_cache;
-    PyObject * files;
+    PyObject * includes;
     PyObject * info;
     DescriptorSetBuffers * current_buffers;
     DescriptorSetImages * current_images;
@@ -528,7 +528,7 @@ GLObject * compile_shader(Instance * self, PyObject * code, int type, const char
 GLObject * compile_program(Instance * self, PyObject * vert, PyObject * frag, PyObject * layout) {
     const GLMethods & gl = self->gl;
 
-    PyObject * pair = PyObject_CallMethod(self->module_state->helper, "program", "OOOO", vert, frag, layout, self->files);
+    PyObject * pair = PyObject_CallMethod(self->module_state->helper, "program", "OOOO", vert, frag, layout, self->includes);
     if (!pair) {
         return NULL;
     }
@@ -626,7 +626,7 @@ Instance * meth_instance(PyObject * self, PyObject * vargs, PyObject * kwargs) {
     res->framebuffer_cache = PyDict_New();
     res->program_cache = PyDict_New();
     res->shader_cache = PyDict_New();
-    res->files = PyDict_New();
+    res->includes = PyDict_New();
     res->info = info;
     res->current_buffers = NULL;
     res->current_images = NULL;
@@ -1953,7 +1953,7 @@ void Instance_dealloc(Instance * self) {
     Py_DECREF(self->framebuffer_cache);
     Py_DECREF(self->program_cache);
     Py_DECREF(self->shader_cache);
-    Py_DECREF(self->files);
+    Py_DECREF(self->includes);
     Py_DECREF(self->info);
     Py_TYPE(self)->tp_free(self);
 }
@@ -2007,7 +2007,7 @@ PyMethodDef Instance_methods[] = {
 };
 
 PyMemberDef Instance_members[] = {
-    {"files", T_OBJECT_EX, offsetof(Instance, files), READONLY, NULL},
+    {"includes", T_OBJECT_EX, offsetof(Instance, includes), READONLY, NULL},
     {"info", T_OBJECT_EX, offsetof(Instance, info), READONLY, NULL},
     {},
 };

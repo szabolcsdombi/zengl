@@ -160,7 +160,7 @@ class Pipeline:
 
 
 class Instance:
-    files: Dict[str, str]
+    includes: Dict[str, str]
     def buffer(self, /, data: Bytes | None = None, *, size: int | None = None, dynamic: bool = False) -> Buffer: ...
     def image(
         self, size: Tuple[int, int], format: str, /, data: Bytes | None = None, *,
