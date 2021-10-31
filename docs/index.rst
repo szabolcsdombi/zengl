@@ -79,8 +79,8 @@ ZenGL does not implement OpenGL function loading. glcontext is used when no alte
 Buffer
 ------
 
-Buffer objects hold data used by rendering.
-Buffers are not variable sized, they are allocated upfront in the device memory.
+| Buffers hold vertex, index and uniform data used by rendering.
+| Buffers are not variable sized, they are allocated upfront in the device memory.
 
 .. code-block::
 
@@ -144,6 +144,25 @@ Buffers are not variable sized, they are allocated upfront in the device memory.
 
 Image
 -----
+
+| Images hold texture data or render outputs.
+| Images with texture support are implemented with OpenGL textures.
+| Rendertargets that are not sampled from the shaders use OpenGL renderbuffers instead.
+
+**render targets**
+
+.. code-block::
+
+    image = ctx.image(window.size, 'rgba8unorm', samples=4)
+    depth = ctx.image(window.size, 'depth24plus', samples=4)
+    framebuffer = [image, depth]
+
+**textures**
+
+.. code-block::
+
+    img = Image.open('example.png').convert('RGBA')
+    texture = ctx.image(img.size, 'rgba8unorm', img.tobytes())
 
 .. py:method:: Context.image(size, format, data, samples, array, texture, cubemap) -> Image
 
