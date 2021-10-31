@@ -300,7 +300,7 @@ def program(vertex_shader, fragment_shader, layout, includes):
         name = match.group(1)
         content = includes.get(name)
         if content is None:
-            raise FileNotFoundError('cannot include "%s"' % name)
+            raise KeyError('cannot include "%s"' % name)
         return content
 
     vert = textwrap.dedent(vertex_shader).strip()
