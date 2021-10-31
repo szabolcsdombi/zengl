@@ -68,7 +68,7 @@ ZenGL does not implement OpenGL function loading. glcontext is used when no alte
 
 .. code-block::
 
-    ctx = zengl.context(zengl.loader())
+    ctx = zengl.context()
 
 **Context for headless rendering**
 

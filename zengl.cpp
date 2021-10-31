@@ -590,15 +590,23 @@ GLObject * compile_program(Context * self, PyObject * vert, PyObject * frag, PyO
 Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwargs) {
     static char * keywords[] = {"loader", NULL};
 
-    PyObject * loader;
+    PyObject * loader = Py_None;
 
-    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "O", keywords, &loader)) {
+    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "|O", keywords, &loader)) {
         return NULL;
     }
 
     ModuleState * module_state = (ModuleState *)PyModule_GetState(self);
 
+    if (loader == Py_None) {
+        loader = PyObject_CallMethod(module_state->helper, "loader", NULL);
+    } else {
+        Py_INCREF(loader);
+    }
+
     GLMethods gl = load_gl(loader);
+    Py_DECREF(loader);
+
     if (PyErr_Occurred()) {
         return NULL;
     }

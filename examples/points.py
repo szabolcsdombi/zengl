@@ -26,7 +26,7 @@ class ParticleSystem:
 
 
 window = Window(1280, 720)
-ctx = zengl.context(zengl.loader())
+ctx = zengl.context()
 
 image = ctx.image(window.size, 'rgba8unorm', samples=4)
 image.clear_value = (1.0, 1.0, 1.0, 1.0)

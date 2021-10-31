@@ -5,7 +5,7 @@ from objloader import Obj
 from window import Window
 
 window = Window(1280, 720)
-ctx = zengl.context(zengl.loader())
+ctx = zengl.context()
 
 shadow = ctx.image((512, 512), 'r32float')
 depth1 = ctx.image((512, 512), 'depth24plus')

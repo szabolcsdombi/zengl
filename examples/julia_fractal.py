@@ -4,7 +4,7 @@ import zengl
 from window import Window
 
 window = Window(1280, 720)
-ctx = zengl.context(zengl.loader())
+ctx = zengl.context()
 
 ctx.includes['parameters'] = '''
     vec2 Size = vec2(1280.0, 720.0);

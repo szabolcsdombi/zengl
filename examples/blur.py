@@ -17,7 +17,7 @@ def kernel(s):
 
 
 window = Window(1280, 720)
-ctx = zengl.context(zengl.loader())
+ctx = zengl.context()
 ctx.includes['kernel'] = kernel(19)
 
 image = ctx.image(window.size, 'rgba8unorm')
