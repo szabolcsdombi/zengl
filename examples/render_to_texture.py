@@ -6,7 +6,7 @@ from objloader import Obj
 from window import Window
 
 window = Window(1280, 720)
-ctx = zengl.instance(zengl.context())
+ctx = zengl.context(zengl.loader())
 
 image = ctx.image(window.size, 'rgba8unorm', samples=4)
 depth = ctx.image(window.size, 'depth24plus', samples=4)

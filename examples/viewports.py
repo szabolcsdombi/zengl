@@ -3,7 +3,7 @@ import zengl
 from window import Window
 
 window = Window(1280, 720)
-ctx = zengl.instance(zengl.context())
+ctx = zengl.context(zengl.loader())
 
 window.set_caption('Hello World | Vendor: %s | Renderer: %s | Version: %s' % ctx.info)
 

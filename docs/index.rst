@@ -26,7 +26,7 @@ ZenGL is a minimalist Python module providing exactly **one** way to render scen
 
     This document is still in draft
 
-.. py:class:: Instance
+.. py:class:: Context
 
 | Represents an OpenGL context.
 
@@ -43,14 +43,14 @@ ZenGL is a minimalist Python module providing exactly **one** way to render scen
 | Represents an entire rendering pipeline including the global state, shader program, framebuffer, vertex state,
   uniform buffer bindings, samplers and sampler bindings.
 
-Instance
---------
+Context
+-------
 
-.. py:method:: zengl.instance(context: Context) -> Instance
+.. py:method:: zengl.context(loader: ContextLoader) -> Context
 
-All interactions with OpenGL is done by an Instance object.
-There should be a single Instance created per application.
-An Instance is created with the help of a context loader.
+All interactions with OpenGL is done by a Context object.
+There should be a single Context created per application.
+A Context is created with the help of a context loader.
 A context loader is an object implementing the load method to resolve OpenGL functions by name.
 This enables zengl to be entirely platform independent.
 
@@ -64,22 +64,22 @@ ZenGL does not implement OpenGL function loading. glcontext is used when no alte
     Implementing a context loader enables zengl to run in custom environments.
     ZenGL uses a subset of the OpenGL 3.3 core, the list of methods can be found in the project source.
 
-**Instance for a window**
+**Context for a window**
 
 .. code-block::
 
-    ctx = zengl.instance(zengl.context())
+    ctx = zengl.context(zengl.loader())
 
-**Instance for headless rendering**
+**Context for headless rendering**
 
 .. code-block::
 
-    ctx = zengl.instance(zengl.context(headless=True))
+    ctx = zengl.context(zengl.loader(headless=True))
 
 Buffer
 ------
 
-.. py:method:: Instance.buffer(data, size, dynamic) -> Buffer
+.. py:method:: Context.buffer(data, size, dynamic) -> Buffer
 
 Buffer objects hold data used by rendering.
 Buffers are not variable sized, they are allocated upfront in the device memory.
@@ -99,12 +99,12 @@ Buffers are not variable sized, they are allocated upfront in the device memory.
 Image
 -----
 
-.. py:method:: Instance.image(size, format, data, samples, texture) -> Image
+.. py:method:: Context.image(size, format, data, samples, texture) -> Image
 
 Pipeline
 --------
 
-.. py:method:: Instance.pipeline(vertex_shader, fragment_shader, layout, resources, depth, stencil, blending, polygon_offset, color_mask, framebuffer, vertex_buffers, index_buffer, short_index, primitive_restart, front_face, cull_face, topology, vertex_count, instance_count, first_vertex, line_width, viewport) -> Pipeline
+.. py:method:: Context.pipeline(vertex_shader, fragment_shader, layout, resources, depth, stencil, blending, polygon_offset, color_mask, framebuffer, vertex_buffers, index_buffer, short_index, primitive_restart, front_face, cull_face, topology, vertex_count, instance_count, first_vertex, line_width, viewport) -> Pipeline
 
 Shader Code
 -----------
@@ -132,7 +132,7 @@ Shader Includes
 ---------------
 
 | Shader includes were designed to solve a single problem of sharing code among shaders without having to field format the shader code.
-| Includes are simple string replacements from :py:attr:`Instance.includes`
+| Includes are simple string replacements from :py:attr:`Context.includes`
 | The include statement stands for including constants, functions, logic or behavior, but not files. Hence the naming should not contain extensions like ``.h``
 | Nested includes do not work, they are overcomplicated and could cause other sort of issues.
 
@@ -195,12 +195,12 @@ Cleanup
 
 Clean only if necessary. It is ok not to cleanup before the program ends.
 
-.. py:method:: Instance.clear_shader_cache()
+.. py:method:: Context.clear_shader_cache()
 
 This method calls glDeleteShader for all the previously created vertex and fragment shader modules.
 The resources released by this method are likely to be insignificant in size.
 
-.. py:method:: Instance.release(obj: Buffer | Image | Pipeline)
+.. py:method:: Context.release(obj: Buffer | Image | Pipeline)
 
 This method releases the OpenGL resources associated with the parameter.
 OpenGL resources are not released automatically on grabage collection.
