@@ -362,6 +362,21 @@ Pipeline
     | The render viewport defined as tuples of four ints in (x, y, width, height) format.
     | The default is the full size of the framebuffer.
 
+.. py:attribute:: Pipeline.vertex_count
+
+    | The number of vertices or the number of elements to draw.
+
+.. py:attribute:: Pipeline.instance_count
+
+    | The number of instances to draw.
+
+.. py:attribute:: Pipeline.first_vertex
+
+    | The first vertex or the first index to start drawing from.
+
+.. py:attribute:: Pipeline.viewport
+
+    | The render viewport defined as tuples of four ints in (x, y, width, height) format.
 
 Rendering to Texture
 --------------------

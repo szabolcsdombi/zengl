@@ -155,6 +155,7 @@ class Image:
 class Pipeline:
     vertex_count: int
     instance_count: int
+    first_vertex: int
     viewport: Viewport
     def render(self) -> None: ...
 
