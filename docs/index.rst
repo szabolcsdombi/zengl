@@ -67,7 +67,7 @@ Concept
   ZenGL is not the next version of ModernGL. ZenGL is a simplification of a subset of ModernGL with some extras
   that was not possible to include in ModernGL.
 
-| Future plans include a Vulkan 1.0 backend that was considered when designing and developmenting ZenGL.
+| Future plans include a Vulkan 1.0 backend that was considered when designing and developing ZenGL.
 
 Context
 -------
