@@ -106,6 +106,28 @@ Pipeline
 
 .. py:method:: Instance.pipeline(vertex_shader, fragment_shader, layout, resources, depth, stencil, blending, polygon_offset, color_mask, framebuffer, vertex_buffers, index_buffer, short_index, primitive_restart, front_face, cull_face, topology, vertex_count, instance_count, first_vertex, line_width, viewport) -> Pipeline
 
+Shader Code
+-----------
+
+- **do** use ``#version 330`` as the first line in the shader.
+- **do** use ``layout (std140)`` for uniform buffers.
+- **do** use ``layout (location = ...)`` for the vertex shader inputs.
+- **do** use ``layout (location = ...)`` for the fragment shader outputs.
+
+- **don't** use ``layout (location = ...)`` for the vertex shader outputs or the fragment shader inputs.
+  Matching name and order is sufficient and much more readable.
+
+- **don't** use ``layout (binding = ...)`` for the uniform buffers or samplers.
+  It is not a core feature in OpenGL 3.3 and ZenGL enforces the program layout from the pipeline parameters.
+
+- **do** use uniform buffers, use a single one if possible.
+- **don't** use uniforms, use uniform buffers instead.
+- **don't** put constants in uniform buffers, use ``#include`` and string formatting.
+- **don't** over-use the ``#include`` statement.
+- **do** use includes without extensions.
+
+- **do** arrange piplines in such an order to minimize framebuffer then program changes.
+
 Cleanup
 -------
 
