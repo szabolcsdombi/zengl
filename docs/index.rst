@@ -137,7 +137,7 @@ Image
 
     | A boolean representing the image to be a cubemap texture. The default value is False.
 
-.. py:method:: Image.blit(target, target, target_viewport, source_viewport, filter, srgb)
+.. py:method:: Image.blit(target, target_viewport, source_viewport, filter, srgb)
 
 **target**
     | The target image to copy to. The default value is None and it means to copy to the screen.
@@ -151,6 +151,51 @@ Image
 
 **srgb**
     | A boolean to enable linear to srgb conversion. By default it is False.
+
+.. py:method:: Image.clear()
+
+Clear the image with the :py:attr:`Image.clear_value`
+
+.. py:method:: Image.mipmaps(base, levels)
+
+Generate mipmaps for the image.
+
+**base**
+    | The base image level. The default value is 0.
+
+**levels**
+    | The number of mipmap levels to generate starting from the base.
+    | The default is None and it means to generate mipmaps all the mipmap levels.
+
+.. py:method:: Image.read(size, offset) -> bytes
+
+**size and offset**
+    | The size and offset defining a sub-part of the image to be read.
+    | Both the size and offset are tuples of two ints.
+    | The size is mandatory when the offset is not None.
+    | By default the size is None and it means the full size of the image.
+    | By default the offset is None and it means zero offset.
+
+.. py:attribute:: Image.clear_value
+
+| The clear value for the image used by the :py:meth:`Image.clear`
+| For the color and stencil components the default value is zero. For depth the default value is 1.0
+| For single component images the value is float or int depending on the image type.
+| For multi component images the value is a tuple of ints or floats.
+| The clear value type for the ``depth24plus-stencil8`` format is a tuple of float and int.
+
+.. py:attribute:: Image.size
+
+| The image size as a tuple of two ints.
+
+.. py:attribute:: Image.samples
+
+| The number of samples the image has.
+
+.. py:attribute:: Image.color
+
+| A boolean representing if the image is a color image.
+| For depth and stencil images this value is False.
 
 Pipeline
 --------
