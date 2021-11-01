@@ -204,6 +204,7 @@ def sampler_bindings(resources):
             MAG_FILTER[obj.get('mag_filter', 'linear')],
             float(obj.get('min_lod', -1000.0)),
             float(obj.get('max_lod', 1000.0)),
+            float(obj.get('lod_bias', 0.0)),
             TEXTURE_WRAP[obj.get('wrap_x', 'repeat')],
             TEXTURE_WRAP[obj.get('wrap_y', 'repeat')],
             TEXTURE_WRAP[obj.get('wrap_z', 'repeat')],
