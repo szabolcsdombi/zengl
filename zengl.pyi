@@ -77,6 +77,7 @@ class ImageResourceBinding(TypedDict, total=False):
     mag_filter: MagFilter
     min_lod: float
     max_lod: float
+    lod_bias: float
     wrap_x: TextureWrap
     wrap_y: TextureWrap
     wrap_z: TextureWrap
