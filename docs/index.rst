@@ -260,6 +260,24 @@ Generate mipmaps for the image.
     | By default the size is None and it means the full size of the image.
     | By default the offset is None and it means zero offset.
 
+.. py:method:: Image.write(data, size, offset, layer) -> bytes
+
+**data**
+    | The content to be written to the image represented as ``bytes`` or a buffer for example a numpy array.
+
+**size and offset**
+    | The size and offset defining a sub-part of the image to be read.
+    | Both the size and offset are tuples of two ints.
+    | The size is mandatory when the offset is not None.
+    | By default the size is None and it means the full size of the image.
+    | By default the offset is None and it means zero offset.
+
+**layer**
+    | An int representing the layer to be written to.
+    | This value must be None for non-layered textures.
+    | For array and cubemap textures the layer must be specified.
+    | The default value is None and it means the only layer of the non-layered image.
+
 .. py:attribute:: Image.clear_value
 
 | The clear value for the image used by the :py:meth:`Image.clear`
