@@ -1,4 +1,4 @@
-from typing import Any, Dict, Iterable, List, Literal, Tuple, TypedDict, Union
+from typing import Any, Dict, Iterable, List, Literal, Tuple, TypedDict
 
 FrontFace = Literal['cw', 'ccw']
 CullFace = Literal['front', 'back', 'front_and_back', 'none']
@@ -162,6 +162,7 @@ class Pipeline:
 
 
 class Context:
+    info: Tuple[str, str, str]
     includes: Dict[str, str]
     def buffer(self, data: Bytes | None = None, *, size: int | None = None, dynamic: bool = False) -> Buffer: ...
     def image(
