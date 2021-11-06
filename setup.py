@@ -1,10 +1,17 @@
+import sys
+
 from setuptools import Extension, setup
+
+extra_compile_args = []
+
+if sys.platform.startswith('linux'):
+    extra_compile_args = ['-fpermissive', '-Wno-write-strings', '-Wno-narrowing']
 
 ext = Extension(
     name='zengl',
     sources=['zengl.cpp'],
     depends=['zengl.hpp'],
-    extra_compile_args=['-fpermissive', '-Wno-write-strings', '-Wno-narrowing'],
+    extra_compile_args=extra_compile_args,
 )
 
 with open('README.md') as readme:
