@@ -237,7 +237,10 @@ def framebuffer_attachments(attachments):
     return tuple(attachments), depth_stencil_attachment
 
 
-def settings(primitive_restart, line_width, front_face, cull_face, color_mask, depth, stencil, blending, polygon_offset, attachments):
+def settings(
+        primitive_restart, line_width, front_face, cull_face, color_mask,
+        depth, stencil, blending, polygon_offset, attachments):
+
     res = [bool(primitive_restart), float(line_width), FRONT_FACE[front_face], CULL_FACE[cull_face], color_mask]
 
     if depth is True or depth is False:
@@ -247,7 +250,9 @@ def settings(primitive_restart, line_width, front_face, cull_face, color_mask, d
         res.extend([bool(depth['test']), bool(depth['write']), COMPARE_FUNC[depth['func']]])
 
     if stencil is False:
-        res.extend([True, 0x1E00, 0x1E00, 0x1E00, 0x0207, 0xff, 0xff, 0, 0x1E00, 0x1E00, 0x1E00, 0x0207, 0xff, 0xff, 0])
+        res.extend([
+            True, 0x1E00, 0x1E00, 0x1E00, 0x0207, 0xff, 0xff, 0, 0x1E00, 0x1E00, 0x1E00, 0x0207, 0xff, 0xff, 0
+        ])
 
     else:
         front = stencil.get('front', stencil.get('both', {}))
@@ -392,7 +397,8 @@ def validate(attributes, uniforms, uniform_buffers, vertex_buffers, layout, reso
                 raise ValueError('Duplicate uniform buffer binding for "{}" with binding {}'.format(name, binding))
             size = uniform_buffer_map[name]['size']
             if buffer.size < size:
-                raise ValueError('Uniform buffer is too small {} is less than {} for "{}" with binding {}'.format(buffer.size, size, name, binding))
+                msg = 'Uniform buffer is too small {} is less than {} for "{}" with binding {}'
+                raise ValueError(msg.format(buffer.size, size, name, binding))
             bound_uniform_buffers.add(binding)
         elif resource_type == 'sampler':
             image = obj['image']
