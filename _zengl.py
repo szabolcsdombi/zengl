@@ -411,4 +411,4 @@ def validate(attributes, uniforms, uniform_buffers, vertex_buffers, layout, reso
                 raise ValueError('Multisample images cannot be attached to "{}" with binding {}'.format(name, binding))
             bound_uniforms.add(binding)
         else:
-            raise ValueError('Invalid resource type'.format(resource_type))
+            raise ValueError('Invalid resource type "{}"'.format(resource_type))
