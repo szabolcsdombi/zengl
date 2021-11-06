@@ -385,8 +385,6 @@ DescriptorSetBuffers * build_descriptor_set_buffers(Context * self, PyObject * b
         return cache;
     }
 
-    const GLMethods & gl = self->gl;
-
     int length = (int)PyTuple_Size(bindings);
     PyObject ** seq = PySequence_Fast_ITEMS(bindings);
 
@@ -400,7 +398,7 @@ DescriptorSetBuffers * build_descriptor_set_buffers(Context * self, PyObject * b
         Buffer * buffer = (Buffer *)seq[i + 1];
         int offset = PyLong_AsLong(seq[i + 2]);
         int size = PyLong_AsLong(seq[i + 3]);
-        res->binding[binding] = {buffer->buffer, 0, buffer->size};
+        res->binding[binding] = {buffer->buffer, offset, size};
         res->buffers = res->buffers > (binding + 1) ? res->buffers : (binding + 1);
     }
 
@@ -414,8 +412,6 @@ DescriptorSetImages * build_descriptor_set_images(Context * self, PyObject * bin
         Py_INCREF(cache);
         return cache;
     }
-
-    const GLMethods & gl = self->gl;
 
     int length = (int)PyTuple_Size(bindings);
     PyObject ** seq = PySequence_Fast_ITEMS(bindings);
@@ -1612,7 +1608,7 @@ PyObject * Image_get_clear_value(Image * self) {
     if (self->format.clear_type == 'x') {
         return Py_BuildValue("fi", self->clear_value.clear_floats[0], self->clear_value.clear_ints[1]);
     }
-    if (self->format.components = 1) {
+    if (self->format.components == 1) {
         if (self->format.clear_type == 'f') {
             return PyFloat_FromDouble(self->clear_value.clear_floats[0]);
         } else if (self->format.clear_type == 'i') {
@@ -2077,14 +2073,14 @@ PyMemberDef Pipeline_members[] = {
 PyType_Slot Context_slots[] = {
     {Py_tp_methods, Context_methods},
     {Py_tp_members, Context_members},
-    {Py_tp_dealloc, Context_dealloc},
+    {Py_tp_dealloc, (void *)Context_dealloc},
     {},
 };
 
 PyType_Slot Buffer_slots[] = {
     {Py_tp_methods, Buffer_methods},
     {Py_tp_members, Buffer_members},
-    {Py_tp_dealloc, Buffer_dealloc},
+    {Py_tp_dealloc, (void *)Buffer_dealloc},
     {},
 };
 
@@ -2092,7 +2088,7 @@ PyType_Slot Image_slots[] = {
     {Py_tp_methods, Image_methods},
     {Py_tp_getset, Image_getset},
     {Py_tp_members, Image_members},
-    {Py_tp_dealloc, Image_dealloc},
+    {Py_tp_dealloc, (void *)Image_dealloc},
     {},
 };
 
@@ -2100,27 +2096,27 @@ PyType_Slot Pipeline_slots[] = {
     {Py_tp_methods, Pipeline_methods},
     {Py_tp_getset, Pipeline_getset},
     {Py_tp_members, Pipeline_members},
-    {Py_tp_dealloc, Pipeline_dealloc},
+    {Py_tp_dealloc, (void *)Pipeline_dealloc},
     {},
 };
 
 PyType_Slot DescriptorSetBuffers_slots[] = {
-    {Py_tp_dealloc, DescriptorSetBuffers_dealloc},
+    {Py_tp_dealloc, (void *)DescriptorSetBuffers_dealloc},
     {},
 };
 
 PyType_Slot DescriptorSetImages_slots[] = {
-    {Py_tp_dealloc, DescriptorSetImages_dealloc},
+    {Py_tp_dealloc, (void *)DescriptorSetImages_dealloc},
     {},
 };
 
 PyType_Slot GlobalSettings_slots[] = {
-    {Py_tp_dealloc, GlobalSettings_dealloc},
+    {Py_tp_dealloc, (void *)GlobalSettings_dealloc},
     {},
 };
 
 PyType_Slot GLObject_slots[] = {
-    {Py_tp_dealloc, GLObject_dealloc},
+    {Py_tp_dealloc, (void *)GLObject_dealloc},
     {},
 };
 
@@ -2168,7 +2164,7 @@ int module_exec(PyObject * self) {
 }
 
 PyModuleDef_Slot module_slots[] = {
-    {Py_mod_exec, module_exec},
+    {Py_mod_exec, (void *)module_exec},
     {},
 };
 
