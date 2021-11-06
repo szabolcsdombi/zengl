@@ -1,8 +1,5 @@
-import math
-
 import zengl
 from objloader import Obj
-from PIL import Image
 from skimage.data import gravel
 
 from window import Window
