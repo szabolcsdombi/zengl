@@ -37,7 +37,7 @@ ZenGL is a minimalist Python module providing exactly **one** way to render scen
 .. py:class:: Pipeline
 
 | Represents an entire rendering pipeline including the global state, shader program, framebuffer, vertex state,
-  uniform buffer bindings, samplers and sampler bindings.
+  uniform buffer bindings, samplers, and sampler bindings.
 
 Concept
 -------
@@ -47,38 +47,36 @@ Concept
   what we render. The window does not have to be multisample, and it requires no depth buffer at all.
 
 | Offscreen rendering works out of the box on all platforms if the right loader is provided.
-| Loaders implement a load method to resolve a subset of OpenGL 3.3 core. The return value of the the load method is
+| Loaders implement a load method to resolve a subset of OpenGL 3.3 core. The return value of the load method is
   an int, a void pointer to the function implementation.
-| Virtualized, traced and debug environments can be provided by custom loaders.
+| Virtualized, traced, and debug environments can be provided by custom loaders.
 | The current implementation uses the glcontext from moderngl to load the OpenGL methods.
 
 | ZenGL's main focus is on readability and maintainability. Pipelines in ZenGL are almost entirely immutable and they
-  cannot affect each other expect when one draws on top of the other's result that is totally expected.
+  cannot affect each other except when one draws on top of the other's result that is expected.
   No global state is affecting the render, if something breaks there is one place to debug.
 
 | ZenGL does not use anything beyond OpenGL 3.3 core, not even if the more convenient methods are available.
-  Implementation is kept simple. Usually this is not a bottleneck.
+  Implementation is kept simple. Usually, this is not a bottleneck.
 
-| ZenGL does not implement transform feedback, storage buffers or storage images, tesselation, geometry shader and maybe many more.
-  We have a strong reason not to include them in the feature list. They add to complexity and are against ZenGL's main philosophy.
-  ZenGL was built on top experience gathered on real life projects that could never make good use of any of that.
+| ZenGL does not implement transform feedback, storage buffers or storage images, tesselation, geometry shader, and maybe many more.
+  We have a strong reason not to include them in the feature list. They add to the complexity and are against ZenGL's main philosophy.
+  ZenGL was built on top experience gathered on real-life projects that could never make good use of any of that.
 
 | ZenGL is using the same vertex and image format naming as WebGPU and keeping the vertex array definition from ModernGL.
   ZenGL is not the next version of ModernGL. ZenGL is a simplification of a subset of ModernGL with some extras
   that was not possible to include in ModernGL.
-
-| Future plans include a Vulkan 1.0 backend that was considered when designing and developing ZenGL.
 
 Context
 -------
 
 .. py:method:: zengl.context(loader: ContextLoader) -> Context
 
-All interactions with OpenGL is done by a Context object.
+All interactions with OpenGL are done by a Context object.
 There should be a single Context created per application.
 A Context is created with the help of a context loader.
 A context loader is an object implementing the load method to resolve OpenGL functions by name.
-This enables zengl to be entirely platform independent.
+This enables zengl to be entirely platform-independent.
 
 .. py:method:: zengl.loader(headless: bool = False) -> ContextLoader
 
@@ -105,8 +103,8 @@ ZenGL does not implement OpenGL function loading. glcontext is used when no alte
 Buffer
 ------
 
-| Buffers hold vertex, index and uniform data used by rendering.
-| Buffers are not variable sized, they are allocated upfront in the device memory.
+| Buffers hold vertex, index, and uniform data used by rendering.
+| Buffers are not variable-sized, they are allocated upfront in the device memory.
 
 .. code-block::
 
@@ -123,7 +121,7 @@ Buffer
 .. py:method:: Context.buffer(data, size, dynamic) -> Buffer
 
 **data**
-    | The buffer content represented as ``bytes`` or a buffer for example a numpy array.
+    | The buffer content, represented as ``bytes`` or a buffer for example a numpy array.
     | If the data is None the content of the buffer will be uninitialized and the size is mandatory.
     | The default value is None.
 
@@ -139,25 +137,25 @@ Buffer
 .. py:method:: Buffer.write(data, offset)
 
 **data**
-    | The content to be written into the buffer represented as ``bytes`` or a buffer.
+    | The content to be written into the buffer, represented as ``bytes`` or a buffer.
 
 **offset**
-    | An int representing the write offset in bytes.
+    | An int, representing the write offset in bytes.
 
 .. py:method:: Buffer.map(size, offset, discard) -> memoryview
 
 **size**
-    | An int representing the size of the buffer in bytes to be mapped.
+    | An int, representing the size of the buffer in bytes to be mapped.
     | The default value is None and it means the entire buffer.
 
 **offset**
-    | An int representing the offset in bytes for the mapping.
+    | An int, representing the offset in bytes for the mapping.
     | When the offset is not None the size must also be defined.
     | The default value is None and it means the beginning of the buffer.
 
 **discard**
     | A boolean to enable the ``GL_MAP_INVALIDATE_RANGE_BIT``
-    | When this flag is True the contents of the buffer is undefined.
+    | When this flag is True, the content of the buffer is undefined.
     | The default value is False.
 
 .. py:method:: Buffer.unmap()
@@ -166,7 +164,7 @@ Buffer
 
 .. py:attribute:: Buffer.size
 
-    An int representing the size of the buffer in bytes.
+    An int, representing the size of the buffer in bytes.
 
 Image
 -----
@@ -200,21 +198,21 @@ Image
     | The two most common are ``'rgba8unorm'`` and ``'depth24plus'``
 
 **data**
-    | The image content represented as ``bytes`` or a buffer for example a numpy array.
+    | The image content, represented as ``bytes`` or a buffer for example a numpy array.
     | If the data is None the content of the image will be uninitialized. The default value is None.
 
 **samples**
     | The number of samples for the image. Multisample render targets must have samples > 1.
-    | Textures must have samples = 1. Only a power of two is possible. The default value is 1.
+    | Textures must have samples = 1. Only powers of two are possible. The default value is 1.
     | For multisampled rendering usually 4 is a good choice.
 
 **array**
-    | The number of array layers for the image. For non-array textures the value must be 0.
+    | The number of array layers for the image. For non-array textures, the value must be 0.
     | The default value is 0.
 
 **texture**
     | A boolean representing the image to be sampled from shaders or not.
-    | For textures this flag must be True, for render targets it should be False.
+    | For textures, this flag must be True, for render targets it should be False.
     | Multisampled textures to be sampled from the shaders are not supported.
     | The default is None and it means to be determined from the image type.
 
@@ -254,11 +252,11 @@ Generate mipmaps for the image.
 .. py:method:: Image.read(size, offset) -> bytes
 
 **size and offset**
-    | The size and offset defining a sub-part of the image to be read.
+    | The size and offset, defining a sub-part of the image to be read.
     | Both the size and offset are tuples of two ints.
     | The size is mandatory when the offset is not None.
     | By default the size is None and it means the full size of the image.
-    | By default the offset is None and it means zero offset.
+    | By default the offset is None and it means a zero offset.
 
 .. py:method:: Image.write(data, size, offset, layer) -> bytes
 
@@ -266,24 +264,24 @@ Generate mipmaps for the image.
     | The content to be written to the image represented as ``bytes`` or a buffer for example a numpy array.
 
 **size and offset**
-    | The size and offset defining a sub-part of the image to be read.
+    | The size and offset, defining a sub-part of the image to be read.
     | Both the size and offset are tuples of two ints.
     | The size is mandatory when the offset is not None.
     | By default the size is None and it means the full size of the image.
-    | By default the offset is None and it means zero offset.
+    | By default the offset is None and it means a zero offset.
 
 **layer**
     | An int representing the layer to be written to.
     | This value must be None for non-layered textures.
-    | For array and cubemap textures the layer must be specified.
+    | For array and cubemap textures, the layer must be specified.
     | The default value is None and it means the only layer of the non-layered image.
 
 .. py:attribute:: Image.clear_value
 
 | The clear value for the image used by the :py:meth:`Image.clear`
-| For the color and stencil components the default value is zero. For depth the default value is 1.0
-| For single component images the value is float or int depending on the image type.
-| For multi component images the value is a tuple of ints or floats.
+| For the color and stencil components, the default value is zero. For depth, the default value is 1.0
+| For single component images, the value is float or int depending on the image type.
+| For multi-component images, the value is a tuple of ints or floats.
 | The clear value type for the ``depth24plus-stencil8`` format is a tuple of float and int.
 
 .. py:attribute:: Image.size
@@ -329,9 +327,9 @@ Pipeline
     | The polygon offset
 
 **color_mask**
-    | The color mask defined as a single integer.
+    | The color mask, defined as a single integer.
     | The bits of the color mask grouped in fours represent the color mask for the attachments.
-    | The bits in the group of fours represent the mask for the red, green, blue and alpha channels.
+    | The bits in the groups of four represent the mask for the red, green, blue, and alpha channels.
     | It is easier to understand it from the `implementation <https://github.com/szabolcsdombi/zengl/search?l=C%2B%2B&q=color_mask>`_.
 
 **framebuffer**
@@ -347,7 +345,7 @@ Pipeline
         | **location:** The vertex attribute location
         | **offset:** The buffer offset in bytes
         | **stride:** The stride in bytes
-        | **step:** ``'vertex'`` for per vertex attributes. ``'instance'`` for per instance attributes
+        | **step:** ``'vertex'`` for per-vertex attributes. ``'instance'`` for per-instance attributes
 
     The :py:meth:`zengl.bind` method produces this list in a more compact form.
 
@@ -403,7 +401,7 @@ Pipeline
 .. _gl_PointSize: https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/gl_PointSize.xhtml
 
 **viewport**
-    | The render viewport defined as tuples of four ints in (x, y, width, height) format.
+    | The render viewport, defined as tuples of four ints in (x, y, width, height) format.
     | The default is the full size of the framebuffer.
 
 .. py:attribute:: Pipeline.vertex_count
@@ -420,7 +418,7 @@ Pipeline
 
 .. py:attribute:: Pipeline.viewport
 
-    | The render viewport defined as tuples of four ints in (x, y, width, height) format.
+    | The render viewport, defined as tuples of four ints in (x, y, width, height) format.
 
 Shader Code
 -----------
@@ -431,7 +429,7 @@ Shader Code
 - **do** use ``layout (location = ...)`` for the fragment shader outputs.
 
 - **don't** use ``layout (location = ...)`` for the vertex shader outputs or the fragment shader inputs.
-  Matching name and order is sufficient and much more readable.
+  Matching name and order are sufficient and much more readable.
 
 - **don't** use ``layout (binding = ...)`` for the uniform buffers or samplers.
   It is not a core feature in OpenGL 3.3 and ZenGL enforces the program layout from the pipeline parameters.
@@ -442,7 +440,7 @@ Shader Code
 - **don't** over-use the ``#include`` statement.
 - **do** use includes without extensions.
 
-- **do** arrange piplines in such an order to minimize framebuffer then program changes.
+- **do** arrange pipelines in such an order to minimize framebuffer then program changes.
 
 Shader Includes
 ---------------
@@ -450,7 +448,7 @@ Shader Includes
 | Shader includes were designed to solve a single problem of sharing code among shaders without having to field format the shader code.
 | Includes are simple string replacements from :py:attr:`Context.includes`
 | The include statement stands for including constants, functions, logic or behavior, but not files. Hence the naming should not contain extensions like ``.h``
-| Nested includes do not work, they are overcomplicated and could cause other sort of issues.
+| Nested includes do not work, they are overcomplicated and could cause other sorts of issues.
 
 **Example**
 
@@ -509,14 +507,14 @@ Include Patterns
 Rendering to Texture
 --------------------
 
-Rendering to texture is supported. However for multisampled images must be downsampled before used as textures.
-In that case an intermediate render target must be samples > 1 and texture = False.
+Rendering to texture is supported. However, multisampled images must be downsampled before being used as textures.
+In that case, an intermediate render target must be samples > 1 and texture = False.
 Then this image can be downsampled with :py:meth:`Image.blit` to another image with samples = 1 and texture = True.
 
 Cleanup
 -------
 
-Clean only if necessary. It is ok not to cleanup before the program ends.
+Clean only if necessary. It is ok not to clean up before the program ends.
 
 .. py:method:: Context.clear_shader_cache()
 
@@ -526,7 +524,7 @@ The resources released by this method are likely to be insignificant in size.
 .. py:method:: Context.release(obj: Buffer | Image | Pipeline)
 
 This method releases the OpenGL resources associated with the parameter.
-OpenGL resources are not released automatically on grabage collection.
+OpenGL resources are not released automatically on garbage collection.
 Release Pipelines before the Images and Buffers they use.
 
 Utils
@@ -552,7 +550,7 @@ Utils
 .. py:method:: zengl.bind(buffer: Buffer, layout: str, *attributes: Iterable[int]) -> List[VertexBufferBinding]
 
 | Helper function for binding a single buffer to multiple vertex attributes.
-| The -1 is a special value allowed in the attributes to represent not yet implemented attribute.
+| The -1 is a special value allowed in the attributes to represent not yet implemented attributes.
 | An ending ``/i`` is allowed in the layout to represent per instance stepping.
 
 .. py:method:: zengl.calcsize(layout: str) -> int
