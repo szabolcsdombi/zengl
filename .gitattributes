@@ -1,0 +1,2 @@
+.github/** linguist-detectable=false
+tests/Dockerfile linguist-detectable=false
