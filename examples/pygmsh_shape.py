@@ -28,11 +28,72 @@ with pygmsh.geo.Geometry() as geom:
 
 vertex_data = mesh.points[:, :2]
 index_data = mesh.cells[1].data
+lines_index_data = mesh.cells[0].data
+loops_index_data = np.full((mesh.cells[1].data.shape[0], 4), -1)
+loops_index_data[:, :3] = mesh.cells[1].data
 
 vertex_buffer = ctx.buffer(vertex_data.astype('f4').tobytes())
 index_buffer = ctx.buffer(index_data.astype('i4').tobytes())
+lines_index_buffer = ctx.buffer(lines_index_data.astype('i4').tobytes())
+loops_index_buffer = ctx.buffer(loops_index_data.astype('i4').tobytes())
 
-triangle = ctx.pipeline(
+mesh = ctx.pipeline(
+    vertex_shader='''
+        #version 330
+
+        layout (location = 0) in vec2 in_vert;
+
+        out vec3 v_color;
+
+        void main() {
+            gl_Position = vec4(in_vert - 0.5, 0.0, 1.0);
+        }
+    ''',
+    fragment_shader='''
+        #version 330
+
+        layout (location = 0) out vec4 out_color;
+
+        void main() {
+            out_color = vec4(0.8, 0.8, 0.8, 1.0);
+        }
+    ''',
+    framebuffer=[image],
+    topology='triangles',
+    vertex_buffers=zengl.bind(vertex_buffer, '2f', 0),
+    index_buffer=index_buffer,
+    vertex_count=index_buffer.size // 4,
+)
+
+loops = ctx.pipeline(
+    vertex_shader='''
+        #version 330
+
+        layout (location = 0) in vec2 in_vert;
+
+        out vec3 v_color;
+
+        void main() {
+            gl_Position = vec4(in_vert - 0.5, 0.0, 1.0);
+        }
+    ''',
+    fragment_shader='''
+        #version 330
+
+        layout (location = 0) out vec4 out_color;
+
+        void main() {
+            out_color = vec4(0.5, 0.5, 0.5, 1.0);
+        }
+    ''',
+    framebuffer=[image],
+    topology='line_loop',
+    vertex_buffers=zengl.bind(vertex_buffer, '2f', 0),
+    index_buffer=loops_index_buffer,
+    vertex_count=loops_index_buffer.size // 4,
+)
+
+edges = ctx.pipeline(
     vertex_shader='''
         #version 330
 
@@ -54,17 +115,19 @@ triangle = ctx.pipeline(
         }
     ''',
     framebuffer=[image],
-    topology='triangles',
+    topology='lines',
     vertex_buffers=zengl.bind(vertex_buffer, '2f', 0),
-    index_buffer=index_buffer,
-    vertex_count=index_buffer.size // 4,
+    index_buffer=lines_index_buffer,
+    vertex_count=lines_index_buffer.size // 4,
 )
 
 
 @window.render
 def render():
     image.clear()
-    triangle.render()
+    mesh.render()
+    loops.render()
+    edges.render()
     image.blit()
 
 
