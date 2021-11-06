@@ -1,6 +1,7 @@
-import zengl
-import numpy as np
 from colorsys import hls_to_rgb
+
+import numpy as np
+import zengl
 
 from window import Window
 
