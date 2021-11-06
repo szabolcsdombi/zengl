@@ -18,9 +18,9 @@ def create_terrain(size):
     X, Y = np.meshgrid(np.linspace(-1.0, 1.0, size), np.linspace(-1.0, 1.0, size))
     P = np.array([X.flatten(), Y.flatten(), V]).T
     A, B = np.meshgrid(np.arange(size + 1), np.arange(size))
-    I = np.concatenate([A + B * size, A * size + B])
-    I[:, -1] = -1
-    return P.astype('f4').tobytes(), I.astype('i4').tobytes()
+    Q = np.concatenate([A + B * size, A * size + B])
+    Q[:, -1] = -1
+    return P.astype('f4').tobytes(), Q.astype('i4').tobytes()
 
 
 vertex_data, index_data = create_terrain(64)

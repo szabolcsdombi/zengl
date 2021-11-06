@@ -15,8 +15,8 @@ class ParticleSystem:
         self.sweep = 0
 
     def update(self):
-        self.position[self.sweep : self.sweep + self.K] = 0.0
-        self.velocity[self.sweep : self.sweep + self.K] = np.random.normal((0.003, 0.01), 0.001, (self.K, 2))
+        self.position[self.sweep:self.sweep + self.K] = 0.0
+        self.velocity[self.sweep:self.sweep + self.K] = np.random.normal((0.003, 0.01), 0.001, (self.K, 2))
         self.sweep = (self.sweep + self.K) % self.N
         self.position += self.velocity
         self.velocity -= (0.0, 0.0001)
