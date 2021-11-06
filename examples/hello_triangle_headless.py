@@ -3,7 +3,7 @@ from PIL import Image
 
 ctx = zengl.context(zengl.loader(headless=True))
 
-size = (1280, 720)
+size = (256, 256)
 image = ctx.image(size, 'rgba8unorm', samples=1)
 
 triangle = ctx.pipeline(
