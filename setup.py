@@ -16,6 +16,7 @@ setup(
     py_modules=['_zengl'],
     data_files=[('.', ['zengl.pyi'])],
     ext_modules=[ext],
+    description='high-performance rendering',
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/szabolcsdombi/zengl/',
