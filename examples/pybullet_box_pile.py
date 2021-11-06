@@ -145,8 +145,8 @@ def render():
     z = np.frombuffer(instance_buffer.map(), 'f4').reshape(-1, 8)
     for i, obj in enumerate(bullet_crates):
         pos, rot = pb.getBasePositionAndOrientation(obj)
-        z[i,:3] = pos
-        z[i,4:] = rot
+        z[i, :3] = pos
+        z[i, 4:] = rot
 
     instance_buffer.unmap()
 

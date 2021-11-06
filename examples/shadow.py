@@ -159,6 +159,7 @@ uniform_buffer.write(b''.join([
     np.array([3.0, 2.0, 4.0], 'f4').tobytes(),
 ]))
 
+
 @window.render
 def render():
     image.clear()
