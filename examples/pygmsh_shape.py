@@ -1,5 +1,4 @@
 import pygmsh
-import numpy as np
 import zengl
 
 from window import Window
