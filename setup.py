@@ -4,7 +4,7 @@ ext = Extension(
     name='zengl',
     sources=['zengl.cpp'],
     depends=['zengl.hpp'],
-    extra_compile_args=['-fpermissive'],
+    extra_compile_args=['-fpermissive', '-Wno-write-strings', '-Wno-narrowing'],
 )
 
 with open('README.md') as readme:
