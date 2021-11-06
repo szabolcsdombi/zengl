@@ -166,7 +166,7 @@ class Context:
     includes: Dict[str, str]
     def buffer(self, data: Bytes | None = None, *, size: int | None = None, dynamic: bool = False) -> Buffer: ...
     def image(
-        self, size: Tuple[int, int], format: str, data: Bytes | None = None, *,
+        self, size: Tuple[int, int], format: ImageFormat, data: Bytes | None = None, *,
         samples: int = 1, array: int = 0, texture: bool | None = None, cubemap: bool = False) -> Image: ...
     def pipeline(
         self, *,
@@ -184,8 +184,8 @@ class Context:
         index_buffer: Buffer | None = None,
         short_index: bool = False,
         primitive_restart: bool = True,
-        front_face: str = 'ccw',
-        cull_face: str = 'none',
+        front_face: FrontFace = 'ccw',
+        cull_face: CullFace = 'none',
         topology: Topology = 'triangles',
         vertex_count: int = 0,
         instance_count: int = 0,
