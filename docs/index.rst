@@ -420,6 +420,10 @@ Pipeline
 
     | The render viewport, defined as tuples of four ints in (x, y, width, height) format.
 
+.. py:method:: Pipeline.render()
+
+    | Execute the rendering pipeline.
+
 Shader Code
 -----------
 
