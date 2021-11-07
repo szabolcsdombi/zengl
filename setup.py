@@ -19,7 +19,7 @@ with open('README.md') as readme:
 
 setup(
     name='zengl',
-    version='0.4.1',
+    version='1.0.0',
     py_modules=['_zengl'],
     data_files=[('.', ['zengl.pyi'])],
     ext_modules=[ext],
