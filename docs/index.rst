@@ -454,6 +454,10 @@ Shader Includes
 | The include statement stands for including constants, functions, logic or behavior, but not files. Hence the naming should not contain extensions like ``.h``
 | Nested includes do not work, they are overcomplicated and could cause other sorts of issues.
 
+.. py:attribute:: Context.includes
+
+    | A string to string mapping dict.
+
 **Example**
 
 .. code-block::
@@ -533,6 +537,10 @@ Release Pipelines before the Images and Buffers they use.
 
 Utils
 -----
+
+.. py:attribute:: Context.info
+
+| The GL_VENDOR, GL_RENDERER, and GL_VERSION strings as a tuple.
 
 .. py:method:: zengl.camera(eye, target, up, fov, aspect, near, far, size, clip) -> bytes
 
