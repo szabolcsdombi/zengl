@@ -5,6 +5,20 @@ import zengl
 
 from window import Window
 
+
+def grass_mesh():
+    a = np.linspace(0.0, 1.0, 8)
+    b = np.square(a)
+    c = np.sin(b * (np.pi - 1.0) + 1.0)
+    verts = []
+    for i in range(7):
+        verts.append((-c[i] * 0.03, b[i] * 0.2, a[i]))
+        verts.append((c[i] * 0.03, b[i] * 0.2, a[i]))
+    verts.append((0.0, 0.2, 1.0))
+    verts = ','.join('vec3(%.8f, %.8f, %.8f)' % x for x in verts)
+    return 'vec3 grass[15] = vec3[](%s);' % verts
+
+
 window = Window(1280, 720)
 ctx = zengl.context()
 image = ctx.image(window.size, 'rgba8unorm', samples=4)
@@ -23,18 +37,6 @@ instances = np.array([
 ]).T
 
 instance_buffer = ctx.buffer(instances.astype('f4').tobytes())
-
-def grass_mesh():
-    a = np.linspace(0.0, 1.0, 8)
-    b = np.square(a)
-    c = np.sin(b * (np.pi - 1.0) + 1.0)
-    verts = []
-    for i in range(7):
-        verts.append((-c[i] * 0.03, b[i] * 0.2, a[i]))
-        verts.append((c[i] * 0.03, b[i] * 0.2, a[i]))
-    verts.append((0.0, 0.2, 1.0))
-    verts = ','.join('vec3(%.8f, %.8f, %.8f)' % x for x in verts)
-    return 'vec3 grass[15] = vec3[](%s);' % verts
 
 ctx.includes['grass'] = grass_mesh()
 
@@ -96,6 +98,7 @@ triangle = ctx.pipeline(
     instance_count=N,
     vertex_count=15,
 )
+
 
 @window.render
 def render():
