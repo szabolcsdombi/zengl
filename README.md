@@ -48,7 +48,101 @@ ZenGL is using the same vertex and image format naming as WebGPU and keeping the
 ZenGL is not the next version of ModernGL. ZenGL is a simplification of a subset of ModernGL with some extras
 that were not possible to include in ModernGL.
 
-## Example
+## Examples
+
+#### [grass.py](https://github.com/szabolcsdombi/zengl/blob/main/examples/grass.py)
+
+[![grass](https://github.com/szabolcsdombi/zengl/raw/examples/grass.png)](#)
+
+#### [envmap.py](https://github.com/szabolcsdombi/zengl/blob/main/examples/envmap.py)
+
+[![envmap](https://github.com/szabolcsdombi/zengl/raw/examples/envmap.png)](#)
+
+#### [instanced_crates.py](https://github.com/szabolcsdombi/zengl/blob/main/examples/instanced_crates.py)
+
+[![instanced_crates](https://github.com/szabolcsdombi/zengl/raw/examples/instanced_crates.png)](#)
+
+#### [julia_fractal.py](https://github.com/szabolcsdombi/zengl/blob/main/examples/julia_fractal.py)
+
+[![julia_fractal](https://github.com/szabolcsdombi/zengl/raw/examples/julia_fractal.png)](#)
+
+#### [blending.py](https://github.com/szabolcsdombi/zengl/blob/main/examples/blending.py)
+
+[![blending](https://github.com/szabolcsdombi/zengl/raw/examples/blending.png)](#)
+
+#### [render_to_texture.py](https://github.com/szabolcsdombi/zengl/blob/main/examples/render_to_texture.py)
+
+[![render_to_texture](https://github.com/szabolcsdombi/zengl/raw/examples/render_to_texture.png)](#)
+
+#### [pybullet_box_pile.py](https://github.com/szabolcsdombi/zengl/blob/main/examples/pybullet_box_pile.py)
+
+[![pybullet_box_pile](https://github.com/szabolcsdombi/zengl/raw/examples/pybullet_box_pile.png)](#)
+
+#### [pygmsh_shape.py](https://github.com/szabolcsdombi/zengl/blob/main/examples/pygmsh_shape.py)
+
+[![pygmsh_shape](https://github.com/szabolcsdombi/zengl/raw/examples/pygmsh_shape.png)](#)
+
+#### [texture_array.py](https://github.com/szabolcsdombi/zengl/blob/main/examples/texture_array.py)
+
+[![texture_array](https://github.com/szabolcsdombi/zengl/raw/examples/texture_array.png)](#)
+
+#### [monkey.py](https://github.com/szabolcsdombi/zengl/blob/main/examples/monkey.py)
+
+[![monkey](https://github.com/szabolcsdombi/zengl/raw/examples/monkey.png)](#)
+
+#### [reflection.py](https://github.com/szabolcsdombi/zengl/blob/main/examples/reflection.py)
+
+[![reflection](https://github.com/szabolcsdombi/zengl/raw/examples/reflection.png)](#)
+
+#### [polygon_offset.py](https://github.com/szabolcsdombi/zengl/blob/main/examples/polygon_offset.py)
+
+[![polygon_offset](https://github.com/szabolcsdombi/zengl/raw/examples/polygon_offset.png)](#)
+
+#### [viewports.py](https://github.com/szabolcsdombi/zengl/blob/main/examples/viewports.py)
+
+#### [blur.py](https://github.com/szabolcsdombi/zengl/blob/main/examples/blur.py)
+
+[![blur](https://github.com/szabolcsdombi/zengl/raw/examples/blur.png)](#)
+
+#### [hello_triangle.py](https://github.com/szabolcsdombi/zengl/blob/main/examples/hello_triangle.py)
+
+[![hello_triangle](https://github.com/szabolcsdombi/zengl/raw/examples/hello_triangle.png)](#)
+
+#### [hello_triangle_srgb.py](https://github.com/szabolcsdombi/zengl/blob/main/examples/hello_triangle_srgb.py)
+
+[![hello_triangle_srgb](https://github.com/szabolcsdombi/zengl/raw/examples/hello_triangle_srgb.png)](#)
+
+[![viewports](https://github.com/szabolcsdombi/zengl/raw/examples/viewports.png)](#)
+
+#### [points.py](https://github.com/szabolcsdombi/zengl/blob/main/examples/points.py)
+
+[![points](https://github.com/szabolcsdombi/zengl/raw/examples/points.png)](#)
+
+#### [wireframe_terrain.py](https://github.com/szabolcsdombi/zengl/blob/main/examples/wireframe_terrain.py)
+
+[![wireframe_terrain](https://github.com/szabolcsdombi/zengl/raw/examples/wireframe_terrain.png)](#)
+
+#### [crate.py](https://github.com/szabolcsdombi/zengl/blob/main/examples/crate.py)
+
+[![crate](https://github.com/szabolcsdombi/zengl/raw/examples/crate.png)](#)
+
+#### [sdf_example.py](https://github.com/szabolcsdombi/zengl/blob/main/examples/sdf_example.py)
+
+[![sdf_example](https://github.com/szabolcsdombi/zengl/raw/examples/sdf_example.png)](#)
+
+#### [sdf_tree.py](https://github.com/szabolcsdombi/zengl/blob/main/examples/sdf_tree.py)
+
+[![sdf_tree](https://github.com/szabolcsdombi/zengl/raw/examples/sdf_tree.png)](#)
+
+#### [mipmaps.py](https://github.com/szabolcsdombi/zengl/blob/main/examples/mipmaps.py)
+
+[![mipmaps](https://github.com/szabolcsdombi/zengl/raw/examples/mipmaps.png)](#)
+
+#### [conways_game_of_life.py](https://github.com/szabolcsdombi/zengl/blob/main/examples/conways_game_of_life.py)
+
+[![conways_game_of_life](https://github.com/szabolcsdombi/zengl/raw/examples/conways_game_of_life.png)](#)
+
+#### Headless
 
 ```py
 import zengl
