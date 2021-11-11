@@ -98,8 +98,6 @@ that were not possible to include in ModernGL.
 
 [![polygon_offset](https://github.com/szabolcsdombi/zengl/raw/examples/polygon_offset.png)](#)
 
-#### [viewports.py](https://github.com/szabolcsdombi/zengl/blob/main/examples/viewports.py)
-
 #### [blur.py](https://github.com/szabolcsdombi/zengl/blob/main/examples/blur.py)
 
 [![blur](https://github.com/szabolcsdombi/zengl/raw/examples/blur.png)](#)
@@ -111,6 +109,8 @@ that were not possible to include in ModernGL.
 #### [hello_triangle_srgb.py](https://github.com/szabolcsdombi/zengl/blob/main/examples/hello_triangle_srgb.py)
 
 [![hello_triangle_srgb](https://github.com/szabolcsdombi/zengl/raw/examples/hello_triangle_srgb.png)](#)
+
+#### [viewports.py](https://github.com/szabolcsdombi/zengl/blob/main/examples/viewports.py)
 
 [![viewports](https://github.com/szabolcsdombi/zengl/raw/examples/viewports.png)](#)
 
