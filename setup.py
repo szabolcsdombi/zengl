@@ -33,4 +33,5 @@ setup(
     author='Szabolcs Dombi',
     author_email='cprogrammer1994@gmail.com',
     license='MIT',
+    install_requires=['numpy'],
 )
