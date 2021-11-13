@@ -33,4 +33,17 @@ setup(
     author='Szabolcs Dombi',
     author_email='cprogrammer1994@gmail.com',
     license='MIT',
+    extras_require={
+        'examples': [
+            'ffmpeg',
+            'glcontext',
+            'numpy',
+            'objloader',
+            'pyglet',
+            'pillow',
+            'pybullet',
+            'sdf',
+            'scimage',
+        ],
+    },
 )
