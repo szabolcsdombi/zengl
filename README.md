@@ -31,7 +31,7 @@ Offscreen rendering works out of the box on all platforms if the right loader is
 Loaders implement a load method to resolve a subset of OpenGL 3.3 core. The return value of the load method is
 an int, a void pointer to the function implementation.
 Virtualized, traced, and debug environments can be provided by custom loaders.
-The current implementation uses the glcontext from moderngl to load the OpenGL methods.
+The current implementation uses the [glcontext](https://github.com/moderngl/glcontext) from [ModernGL](https://github.com/moderngl/moderngl) to load the OpenGL methods.
 
 ZenGL's main focus is on readability and maintainability. Pipelines in ZenGL are almost entirely immutable and they
 cannot affect each other except when one draws on top of the other's result that is expected.
@@ -44,7 +44,7 @@ ZenGL does not implement transform feedback, storage buffers or storage images, 
 We have a strong reason not to include them in the feature list. They add to the complexity and are against ZenGL's main philosophy.
 ZenGL was built on top experience gathered on real-life projects that could never make good use of any of that.
 
-ZenGL is using the same vertex and image format naming as WebGPU and keeping the vertex array definition from ModernGL.
+ZenGL is using the same vertex and image format naming as WebGPU and keeping the vertex array definition from [ModernGL](https://github.com/moderngl/moderngl).
 ZenGL is not the next version of ModernGL. ZenGL is a simplification of a subset of ModernGL with some extras
 that were not possible to include in ModernGL.
 
