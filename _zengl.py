@@ -324,7 +324,7 @@ def program(vertex_shader, fragment_shader, layout, includes):
     return vert, frag, tuple(bindings)
 
 
-def validate(attributes, uniforms, uniform_buffers, vertex_buffers, layout, resources):
+def validate(attributes, uniforms, uniform_buffers, vertex_buffers, layout, resources, limits):
     bound_attributes = set()
     bound_uniforms = set()
     bound_uniform_buffers = set()
@@ -336,6 +336,12 @@ def validate(attributes, uniforms, uniform_buffers, vertex_buffers, layout, reso
     layout_map = {obj['name']: obj for obj in layout}
     uniform_buffer_resources = {obj['binding']: obj for obj in resources if obj['type'] == 'uniform_buffer'}
     sampler_resources = {obj['binding']: obj for obj in resources if obj['type'] == 'sampler'}
+    max_uniform_block_size = limits['max_uniform_block_size']
+
+    for obj in uniform_buffers:
+        if obj['size'] > max_uniform_block_size:
+            msg = 'Uniform buffer "{}" is too large, the maximum supported size is {}'
+            raise ValueError(msg.format(obj['name'], max_uniform_block_size))
 
     for obj in vertex_buffers:
         location = obj['location']
