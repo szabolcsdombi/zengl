@@ -75,6 +75,7 @@ struct Context {
     PyObject * program_cache;
     PyObject * shader_cache;
     PyObject * includes;
+    PyObject * limits;
     PyObject * info;
     DescriptorSetBuffers * current_buffers;
     DescriptorSetImages * current_images;
@@ -612,6 +613,27 @@ Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwargs) {
         return NULL;
     }
 
+    int max_uniform_buffer_bindings = 0;
+    gl.GetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &max_uniform_buffer_bindings);
+
+    int max_uniform_block_size = 0;
+    gl.GetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &max_uniform_block_size);
+
+    int max_combined_uniform_blocks = 0;
+    gl.GetIntegerv(GL_MAX_COMBINED_UNIFORM_BLOCKS, &max_combined_uniform_blocks);
+
+    int max_combined_texture_image_units = 0;
+    gl.GetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_combined_texture_image_units);
+
+    int max_vertex_attribs = 0;
+    gl.GetIntegerv(GL_MAX_VERTEX_ATTRIBS, &max_vertex_attribs);
+
+    int max_varying_components = 0;
+    gl.GetIntegerv(GL_MAX_VARYING_COMPONENTS, &max_varying_components);
+
+    int max_draw_buffers = 0;
+    gl.GetIntegerv(GL_MAX_DRAW_BUFFERS, &max_draw_buffers);
+
     int max_samples = 0;
     gl.GetIntegerv(GL_MAX_SAMPLES, &max_samples);
 
@@ -623,6 +645,18 @@ Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwargs) {
     gl.Enable(GL_PROGRAM_POINT_SIZE);
     gl.Enable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
     gl.Enable(GL_FRAMEBUFFER_SRGB);
+
+    PyObject * limits = Py_BuildValue(
+        "{sisisisisisisisi}",
+        "max_uniform_buffer_bindings", max_uniform_buffer_bindings,
+        "max_uniform_block_size", max_uniform_block_size,
+        "max_combined_uniform_blocks", max_combined_uniform_blocks,
+        "max_combined_texture_image_units", max_combined_texture_image_units,
+        "max_vertex_attribs", max_vertex_attribs,
+        "max_varying_components", max_varying_components,
+        "max_draw_buffers", max_draw_buffers,
+        "max_samples", max_samples
+    );
 
     PyObject * info = PyTuple_New(3);
     PyTuple_SetItem(info, 0, to_str(gl.GetString(GL_VENDOR)));
@@ -640,6 +674,7 @@ Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwargs) {
     res->program_cache = PyDict_New();
     res->shader_cache = PyDict_New();
     res->includes = PyDict_New();
+    res->limits = limits;
     res->info = info;
     res->current_buffers = NULL;
     res->current_images = NULL;
@@ -999,13 +1034,14 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     PyObject * validate = PyObject_CallMethod(
         self->module_state->helper,
         "validate",
-        "NNNOOO",
+        "NNNOOOO",
         program_attributes,
         program_uniforms,
         program_uniform_buffers,
         vertex_buffers,
         layout,
-        resources
+        resources,
+        self->limits
     );
 
     if (!validate) {
@@ -1975,6 +2011,7 @@ void Context_dealloc(Context * self) {
     Py_DECREF(self->program_cache);
     Py_DECREF(self->shader_cache);
     Py_DECREF(self->includes);
+    Py_DECREF(self->limits);
     Py_DECREF(self->info);
     Py_TYPE(self)->tp_free(self);
 }
@@ -2029,6 +2066,7 @@ PyMethodDef Context_methods[] = {
 
 PyMemberDef Context_members[] = {
     {"includes", T_OBJECT_EX, offsetof(Context, includes), READONLY, NULL},
+    {"limits", T_OBJECT_EX, offsetof(Context, limits), READONLY, NULL},
     {"info", T_OBJECT_EX, offsetof(Context, info), READONLY, NULL},
     {},
 };

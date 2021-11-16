@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 # [main](https://github.com/szabolcsdombi/zengl/compare/1.0.1...main)
 
 - Implement soft limit for max number of samples
+- Implement `Context.limits`
+- Validate uniform buffer size
 
 # [1.0.1](https://github.com/szabolcsdombi/zengl/compare/1.0.0...1.0.1)
 

@@ -128,6 +128,17 @@ class BlendingSettings(TypedDict, total=False):
     dst_alpha: BlendConstant
 
 
+class Limits(TypedDict):
+    max_uniform_buffer_bindings: int
+    max_uniform_block_size: int
+    max_combined_uniform_blocks: int
+    max_combined_texture_image_units: int
+    max_vertex_attribs: int
+    max_varying_components: int
+    max_draw_buffers: int
+    max_samples: int
+
+
 class ContextLoader:
     def load(name: str) -> int: ...
 
@@ -165,6 +176,7 @@ class Pipeline:
 
 class Context:
     info: Tuple[str, str, str]
+    limits: Limits
     includes: Dict[str, str]
     def buffer(self, data: Bytes | None = None, *, size: int | None = None, dynamic: bool = False) -> Buffer: ...
     def image(

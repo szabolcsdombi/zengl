@@ -542,6 +542,17 @@ Utils
 
 | The GL_VENDOR, GL_RENDERER, and GL_VERSION strings as a tuple.
 
+.. py:attribute:: Context.limits
+
+- max_uniform_buffer_bindings
+- max_uniform_block_size
+- max_combined_uniform_blocks
+- max_combined_texture_image_units
+- max_vertex_attribs
+- max_varying_components
+- max_draw_buffers
+- max_samples
+
 .. py:method:: zengl.camera(eye, target, up, fov, aspect, near, far, size, clip) -> bytes
 
 | Returns a Model-View-Projection matrix for uniform buffers.
