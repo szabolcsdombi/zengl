@@ -84,6 +84,7 @@ struct Context {
     int current_program;
     int current_vertex_array;
     int default_texture_unit;
+    int max_samples;
     int mapped_buffers;
     GLMethods gl;
 };
@@ -611,9 +612,13 @@ Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwargs) {
         return NULL;
     }
 
+    int max_samples = 0;
+    gl.GetIntegerv(GL_MAX_SAMPLES, &max_samples);
+
     int max_texture_image_units = 0;
     gl.GetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &max_texture_image_units);
     int default_texture_unit = GL_TEXTURE0 + max_texture_image_units - 1;
+
     gl.PrimitiveRestartIndex(-1);
     gl.Enable(GL_PROGRAM_POINT_SIZE);
     gl.Enable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
@@ -644,6 +649,7 @@ Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwargs) {
     res->current_vertex_array = 0;
     res->viewport = {};
     res->default_texture_unit = default_texture_unit;
+    res->max_samples = max_samples;
     res->mapped_buffers = 0;
     res->gl = gl;
     return res;
@@ -748,14 +754,17 @@ Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * kwargs) 
 
     const bool invalid_texture_parameter = texture != Py_True && texture != Py_False && texture != Py_None;
     const bool samples_but_texture = samples > 1 && texture == Py_True;
+    const bool invalid_samples = samples < 1 || (samples & (samples - 1)) || samples > 16;
     const bool cubemap_array = cubemap && array;
     const bool cubemap_or_array_renderbuffer = (array || cubemap) && (samples > 1 || texture == Py_False);
 
-    if (invalid_texture_parameter || samples_but_texture || cubemap_array || cubemap_or_array_renderbuffer) {
+    if (invalid_texture_parameter || samples_but_texture || invalid_samples || cubemap_array || cubemap_or_array_renderbuffer) {
         if (invalid_texture_parameter) {
             PyErr_Format(PyExc_TypeError, "invalid texture parameter");
         } else if (samples_but_texture) {
             PyErr_Format(PyExc_TypeError, "for multisampled images texture must be False");
+        } else if (invalid_samples) {
+            PyErr_Format(PyExc_ValueError, "samples must be 1, 2, 4, 8 or 16");
         } else if (cubemap_array) {
             PyErr_Format(PyExc_TypeError, "cubemap arrays are not supported");
         } else if (array && samples > 1) {
@@ -772,6 +781,10 @@ Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * kwargs) 
 
     int renderbuffer = samples > 1 || texture == Py_False;
     int target = cubemap ? GL_TEXTURE_CUBE_MAP : array ? GL_TEXTURE_2D_ARRAY : GL_TEXTURE_2D;
+
+    if (samples > self->max_samples) {
+        samples = self->max_samples;
+    }
 
     Py_buffer view = {};
 
