@@ -174,6 +174,7 @@ typedef void (GLAPI * glTexImage2DProc)(unsigned int target, int level, int inte
 typedef void (GLAPI * glDepthMaskProc)(unsigned char flag);
 typedef void (GLAPI * glDisableProc)(unsigned int cap);
 typedef void (GLAPI * glEnableProc)(unsigned int cap);
+typedef void (GLAPI * glFlushProc)();
 typedef void (GLAPI * glDepthFuncProc)(unsigned int func);
 typedef void (GLAPI * glReadBufferProc)(unsigned int src);
 typedef void (GLAPI * glReadPixelsProc)(int x, int y, int width, int height, unsigned int format, unsigned int type, void * pixels);
@@ -287,6 +288,7 @@ struct GLMethods {
     glDepthMaskProc DepthMask;
     glDisableProc Disable;
     glEnableProc Enable;
+    glFlushProc Flush;
     glDepthFuncProc DepthFunc;
     glReadBufferProc ReadBuffer;
     glReadPixelsProc ReadPixels;
@@ -633,6 +635,7 @@ GLMethods load_gl(PyObject * context) {
     load(DepthMask);
     load(Disable);
     load(Enable);
+    load(Flush);
     load(DepthFunc);
     load(ReadBuffer);
     load(ReadPixels);
