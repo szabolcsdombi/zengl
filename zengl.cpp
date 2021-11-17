@@ -1650,6 +1650,9 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
     if (!srgb) {
         gl.Enable(GL_FRAMEBUFFER_SRGB);
     }
+    if (!target) {
+        gl.Flush();
+    }
     Py_RETURN_NONE;
 }
 
