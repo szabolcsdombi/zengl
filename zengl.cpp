@@ -821,6 +821,13 @@ Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * kwargs) 
         samples = self->max_samples;
     }
 
+    ImageFormat format = get_image_format(format_str);
+
+    if (!format.type) {
+        PyErr_Format(PyExc_ValueError, "invalid image format");
+        return NULL;
+    }
+
     Py_buffer view = {};
 
     if (data != Py_None) {
@@ -828,8 +835,6 @@ Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * kwargs) 
             return NULL;
         }
     }
-
-    ImageFormat format = get_image_format(format_str);
 
     int image = 0;
     if (renderbuffer) {
