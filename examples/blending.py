@@ -78,13 +78,8 @@ triangle = ctx.pipeline(
     instance_count=10,
 )
 
-
-@window.render
-def render():
+while window.update():
     image.clear()
     uniform_buffer.write(zengl.pack(0.5, 0.5 * window.aspect, window.time, 0.0))
     triangle.render()
     image.blit()
-
-
-window.run()

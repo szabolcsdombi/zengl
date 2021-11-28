@@ -53,12 +53,7 @@ square = ctx.pipeline(
     vertex_count=6,
 )
 
-
-@window.render
-def render():
+while window.update():
     image.clear()
     square.render()
     image.blit()
-
-
-window.run()

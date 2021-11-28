@@ -137,9 +137,7 @@ camera = zengl.camera((8.0, 6.0, 4.0), (0.0, 0.0, 0.5), aspect=window.aspect, fo
 uniform_buffer.write(camera)
 uniform_buffer.write(zengl.pack(8.0, 6.0, 14.0, 0.0), offset=64)
 
-
-@window.render
-def render():
+while window.update():
     pb.stepSimulation()
 
     z = np.frombuffer(instance_buffer.map(), 'f4').reshape(-1, 8)
@@ -154,6 +152,3 @@ def render():
     depth.clear()
     crate.render()
     image.blit()
-
-
-window.run()

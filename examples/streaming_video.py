@@ -12,11 +12,6 @@ ctx = zengl.context()
 
 image = ctx.image(window.size, 'rgba8unorm')
 
-
-@window.render
-def render():
+while window.update():
     image.write(zengl.rgba(next(it), 'rgb'))
     image.blit()
-
-
-window.run()

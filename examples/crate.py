@@ -95,7 +95,6 @@ crate = ctx.pipeline(
     vertex_count=vertex_buffer.size // zengl.calcsize('3f 3f 2f'),
 )
 
-
 while window.update():
     x, y = math.sin(window.time * 0.5) * 3.0, math.cos(window.time * 0.5) * 3.0
     camera = zengl.camera((x, y, 2.0), (0.0, 0.0, 0.5), aspect=window.aspect, fov=45.0)

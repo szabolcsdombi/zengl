@@ -82,9 +82,7 @@ model = ctx.pipeline(
     vertex_count=index_buffer.size // 4,
 )
 
-
-@window.render
-def render():
+while window.update():
     x, y = math.sin(window.time * 0.5) * 80.0, math.cos(window.time * 0.5) * 80.0
     camera = zengl.camera((12.0 + x, 10.0 + y, 40.0), (12.0, 10.0, 16.0), aspect=window.aspect, fov=45.0)
 
@@ -94,6 +92,3 @@ def render():
     depth.clear()
     model.render()
     image.blit()
-
-
-window.run()

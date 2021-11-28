@@ -159,9 +159,7 @@ uniform_buffer.write(b''.join([
     np.array([3.0, 2.0, 4.0], 'f4').tobytes(),
 ]))
 
-
-@window.render
-def render():
+while window.update():
     image.clear()
     shadow.clear()
     depth1.clear()
@@ -170,6 +168,3 @@ def render():
     monkey.render()
     image.blit()
     shadow.blit()
-
-
-window.run()

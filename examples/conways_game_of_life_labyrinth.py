@@ -76,12 +76,7 @@ image.write(np.array([
     cells * 255,
 ]).T.astype('u1').tobytes())
 
-
-@window.render
-def render():
+while window.update():
     image.blit(temp)
     scene.render()
     temp.blit()
-
-
-window.run()

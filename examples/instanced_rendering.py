@@ -56,12 +56,7 @@ triangle = ctx.pipeline(
     instance_count=32,
 )
 
-
-@window.render
-def render():
+while window.update():
     image.clear()
     triangle.render()
     image.blit()
-
-
-window.run()

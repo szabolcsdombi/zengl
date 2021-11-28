@@ -45,12 +45,7 @@ triangle = ctx.pipeline(
     vertex_count=3,
 )
 
-
-@window.render
-def render():
+while window.update():
     image.clear()
     triangle.render()
     image.blit()
-
-
-window.run()

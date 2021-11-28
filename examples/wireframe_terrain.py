@@ -84,13 +84,8 @@ terrain = ctx.pipeline(
 camera = zengl.camera((3.0, 2.0, 2.0), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
 uniform_buffer.write(camera)
 
-
-@window.render
-def render():
+while window.update():
     image.clear()
     depth.clear()
     terrain.render()
     image.blit()
-
-
-window.run()

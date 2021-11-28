@@ -101,9 +101,7 @@ monkey = ctx.pipeline(
 camera = zengl.camera((3.0, 2.0, 2.0), (0.0, 0.0, 0.5), aspect=window.aspect, fov=45.0)
 uniform_buffer.write(camera)
 
-
-@window.render
-def render():
+while window.update():
     x, y = math.sin(window.time * 0.5) * 5.0, math.cos(window.time * 0.5) * 5.0
     camera = zengl.camera((x, y, 2.0), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
     uniform_buffer.write(camera)
@@ -113,6 +111,3 @@ def render():
     depth.clear()
     monkey.render()
     image.blit()
-
-
-window.run()

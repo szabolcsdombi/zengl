@@ -138,14 +138,9 @@ monkey = ctx.pipeline(
 camera = zengl.camera((3.0, 2.0, 2.0), (0.0, 0.0, 0.5), aspect=window.aspect, fov=45.0)
 uniform_buffer.write(camera)
 
-
-@window.render
-def render():
+while window.update():
     depth_stencil.clear()
     image.clear()
     triangle.render()
     monkey.render()
     image.blit()
-
-
-window.run()

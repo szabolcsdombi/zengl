@@ -113,9 +113,7 @@ camera = zengl.camera((3.0, 2.0, 2.0), (0.0, 0.0, 0.5), aspect=window.aspect, fo
 uniform_buffer.write(camera)
 uniform_buffer.write(zengl.pack(3.0, 2.0, 2.0, 0.0), offset=64)
 
-
-@window.render
-def render():
+while window.update():
     z = np.frombuffer(instance_buffer.map(), 'f4').reshape(-1, 3)
     z[:, 2] += np.random.normal(0.0, 0.01, z.shape[0])
     instance_buffer.unmap()
@@ -124,6 +122,3 @@ def render():
     depth.clear()
     crate.render()
     image.blit()
-
-
-window.run()
