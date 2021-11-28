@@ -9,15 +9,17 @@ class Window(pyglet.window.Window):
         self.size = width, height
         self.aspect = width / height
         self.time = 0.0
+        self.alive = True
         config = pyglet.gl.Config(
             major_version=3,
             minor_version=3,
             forward_compatible=True,
-            double_buffer=True,
+            # double_buffer=True,
+            double_buffer=False,
             depth_size=0,
             samples=0,
         )
-        super().__init__(width=width, height=height, config=config)
+        super().__init__(width=width, height=height, config=config, vsync=True)
 
     def on_resize(self, width, height):
         pass
@@ -25,11 +27,14 @@ class Window(pyglet.window.Window):
     def on_draw(self):
         pass
 
-    def render(self, func):
-        def wrapper(dt):
-            self.time += dt
-            func()
-        pyglet.clock.schedule_interval(wrapper, 1.0 / 60.0)
+    def on_close(self):
+        self.alive = False
+
+    def update(self):
+        self.flip()
+        self.dispatch_events()
+        self.time += 1.0 / 60.0
+        return self.alive
 
     @staticmethod
     def run():
