@@ -121,14 +121,9 @@ edges = ctx.pipeline(
     vertex_count=lines_index_buffer.size // 4,
 )
 
-
-@window.render
-def render():
+while window.update():
     image.clear()
     mesh.render()
     loops.render()
     edges.render()
     image.blit()
-
-
-window.run()

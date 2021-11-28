@@ -49,9 +49,7 @@ triangle = ctx.pipeline(
     vertex_count=3,
 )
 
-
-@window.render
-def render():
+while window.update():
     image.clear()
     triangle.viewport = (0, 0, 640, 360)
     triangle.render()
@@ -62,6 +60,3 @@ def render():
     triangle.viewport = (640, 360, 640, 360)
     triangle.render()
     image.blit()
-
-
-window.run()

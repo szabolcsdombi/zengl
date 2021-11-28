@@ -185,15 +185,10 @@ blur_y = ctx.pipeline(
 camera = zengl.camera((3.0, 2.0, 2.0), (0.0, 0.0, 0.5), aspect=window.aspect, fov=45.0)
 uniform_buffer.write(camera)
 
-
-@window.render
-def render():
+while window.update():
     image.clear()
     depth.clear()
     monkey.render()
     blur_x.render()
     blur_y.render()
     output.blit()
-
-
-window.run()

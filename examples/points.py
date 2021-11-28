@@ -87,14 +87,9 @@ triangle = ctx.pipeline(
     vertex_count=ps.N,
 )
 
-
-@window.render
-def render():
+while window.update():
     image.clear()
     ps.update()
     vertex_buffer.write(ps.get_buffer())
     triangle.render()
     image.blit()
-
-
-window.run()

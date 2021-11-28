@@ -99,9 +99,7 @@ triangle = ctx.pipeline(
     vertex_count=15,
 )
 
-
-@window.render
-def render():
+while window.update():
     x, y = math.sin(window.time * 0.5) * 3.0, math.cos(window.time * 0.5) * 3.0
     camera = zengl.camera((x, y, 2.0), (0.0, 0.0, 0.5), aspect=window.aspect, fov=45.0)
 
@@ -112,6 +110,3 @@ def render():
     depth.clear()
     triangle.render()
     image.blit()
-
-
-window.run()

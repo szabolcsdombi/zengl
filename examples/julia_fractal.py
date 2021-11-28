@@ -60,12 +60,7 @@ scene = ctx.pipeline(
     vertex_count=3,
 )
 
-
-@window.render
-def render():
+while window.update():
     image.clear()
     scene.render()
     image.blit()
-
-
-window.run()
