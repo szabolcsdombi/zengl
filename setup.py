@@ -46,7 +46,7 @@ setup(
             'pygame',
             'pyglet',
             'pygmsh',
-            'skimage',
+            'scikit-image',
         ],
     },
 )
