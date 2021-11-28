@@ -549,7 +549,6 @@ Utils
 - max_combined_uniform_blocks
 - max_combined_texture_image_units
 - max_vertex_attribs
-- max_varying_components
 - max_draw_buffers
 - max_samples
 
