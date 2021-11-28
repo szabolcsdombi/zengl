@@ -5,7 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-# [main](https://github.com/szabolcsdombi/zengl/compare/1.1.0...main)
+# [main](https://github.com/szabolcsdombi/zengl/compare/1.2.0...main)
+
+# [1.2.0](https://github.com/szabolcsdombi/zengl/compare/1.1.0...1.2.0)
 
 - Invalid image format error
 - Removed `max_varying_components` limit
