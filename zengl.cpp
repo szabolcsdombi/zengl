@@ -628,9 +628,6 @@ Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwargs) {
     int max_vertex_attribs = 0;
     gl.GetIntegerv(GL_MAX_VERTEX_ATTRIBS, &max_vertex_attribs);
 
-    int max_varying_components = 0;
-    gl.GetIntegerv(GL_MAX_VARYING_COMPONENTS, &max_varying_components);
-
     int max_draw_buffers = 0;
     gl.GetIntegerv(GL_MAX_DRAW_BUFFERS, &max_draw_buffers);
 
@@ -647,13 +644,12 @@ Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwargs) {
     gl.Enable(GL_FRAMEBUFFER_SRGB);
 
     PyObject * limits = Py_BuildValue(
-        "{sisisisisisisisi}",
+        "{sisisisisisisi}",
         "max_uniform_buffer_bindings", max_uniform_buffer_bindings,
         "max_uniform_block_size", max_uniform_block_size,
         "max_combined_uniform_blocks", max_combined_uniform_blocks,
         "max_combined_texture_image_units", max_combined_texture_image_units,
         "max_vertex_attribs", max_vertex_attribs,
-        "max_varying_components", max_varying_components,
         "max_draw_buffers", max_draw_buffers,
         "max_samples", max_samples
     );
