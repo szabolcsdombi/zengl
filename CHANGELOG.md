@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 # [main](https://github.com/szabolcsdombi/zengl/compare/1.1.0...main)
 
 - Invalid image format error
+- Removed `max_varying_components` limit
+- Fixed blank screen for osx when double buffering is enabled
+- Disabled shadow window configuration for osx
+- Simplified examples main loop
 
 # [1.1.0](https://github.com/szabolcsdombi/zengl/compare/1.0.1...1.1.0)
 
