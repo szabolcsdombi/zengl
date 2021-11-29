@@ -1644,11 +1644,9 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
         target_viewport.x, target_viewport.y, target_viewport.x + target_viewport.width, target_viewport.y + target_viewport.height,
         GL_COLOR_BUFFER_BIT, filter ? GL_LINEAR : GL_NEAREST
     );
-    #ifdef __APPLE__
     if (!target) {
         self->ctx->current_framebuffer = 0;
     }
-    #endif
     gl.BindFramebuffer(GL_FRAMEBUFFER, self->ctx->current_framebuffer);
     if (GlobalSettings * settings = self->ctx->current_global_settings) {
         gl.ColorMaski(0, settings->color_mask & 1, settings->color_mask & 2, settings->color_mask & 4, settings->color_mask & 8);
