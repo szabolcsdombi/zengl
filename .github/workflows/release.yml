@@ -47,8 +47,6 @@ jobs:
 
       - name: wheels
         run: python -m cibuildwheel --output-dir package
-        env:
-          CIBW_ARCHS: auto64
 
       - name: upload
         uses: actions/upload-artifact@v2
