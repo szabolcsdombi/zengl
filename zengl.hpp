@@ -11,6 +11,12 @@ const int MAX_SAMPLER_BINDINGS = 64;
 #define GLAPI
 #endif
 
+#if defined(__x86_64__) || defined(_WIN64)
+typedef long long int sizeiptr;
+#else
+typedef int sizeiptr;
+#endif
+
 // GL_VERSION_1_0
 #define GL_COLOR_BUFFER_BIT 0x00004000
 #define GL_POINTS 0x0000
@@ -203,8 +209,8 @@ typedef void (GLAPI * glBlendFuncSeparateProc)(unsigned int sfactorRGB, unsigned
 typedef void (GLAPI * glBindBufferProc)(unsigned int target, unsigned int buffer);
 typedef void (GLAPI * glDeleteBuffersProc)(int n, const unsigned int * buffers);
 typedef void (GLAPI * glGenBuffersProc)(int n, unsigned int * buffers);
-typedef void (GLAPI * glBufferDataProc)(unsigned int target, ssize_t size, const void * data, unsigned int usage);
-typedef void (GLAPI * glBufferSubDataProc)(unsigned int target, ssize_t offset, ssize_t size, const void * data);
+typedef void (GLAPI * glBufferDataProc)(unsigned int target, sizeiptr size, const void * data, unsigned int usage);
+typedef void (GLAPI * glBufferSubDataProc)(unsigned int target, sizeiptr offset, sizeiptr size, const void * data);
 typedef unsigned char (GLAPI * glUnmapBufferProc)(unsigned int target);
 
 // GL_VERSION_2_0
@@ -237,7 +243,7 @@ typedef void (GLAPI * glVertexAttribPointerProc)(unsigned int index, int size, u
 typedef void (GLAPI * glColorMaskiProc)(unsigned int index, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
 typedef void (GLAPI * glEnableiProc)(unsigned int target, unsigned int index);
 typedef void (GLAPI * glDisableiProc)(unsigned int target, unsigned int index);
-typedef void (GLAPI * glBindBufferRangeProc)(unsigned int target, unsigned int index, unsigned int buffer, ssize_t offset, ssize_t size);
+typedef void (GLAPI * glBindBufferRangeProc)(unsigned int target, unsigned int index, unsigned int buffer, sizeiptr offset, sizeiptr size);
 typedef void (GLAPI * glVertexAttribIPointerProc)(unsigned int index, int size, unsigned int type, int stride, const void * pointer);
 typedef void (GLAPI * glClearBufferivProc)(unsigned int buffer, int drawbuffer, const int * value);
 typedef void (GLAPI * glClearBufferuivProc)(unsigned int buffer, int drawbuffer, const unsigned int * value);
@@ -254,7 +260,7 @@ typedef void (GLAPI * glFramebufferRenderbufferProc)(unsigned int target, unsign
 typedef void (GLAPI * glGenerateMipmapProc)(unsigned int target);
 typedef void (GLAPI * glBlitFramebufferProc)(int srcX0, int srcY0, int srcX1, int srcY1, int dstX0, int dstY0, int dstX1, int dstY1, unsigned int mask, unsigned int filter);
 typedef void (GLAPI * glRenderbufferStorageMultisampleProc)(unsigned int target, int samples, unsigned int internalformat, int width, int height);
-typedef void * (GLAPI * glMapBufferRangeProc)(unsigned int target, ssize_t offset, ssize_t length, unsigned int access);
+typedef void * (GLAPI * glMapBufferRangeProc)(unsigned int target, sizeiptr offset, sizeiptr length, unsigned int access);
 typedef void (GLAPI * glBindVertexArrayProc)(unsigned int array);
 typedef void (GLAPI * glDeleteVertexArraysProc)(int n, const unsigned int * arrays);
 typedef void (GLAPI * glGenVertexArraysProc)(int n, unsigned int * arrays);
@@ -556,7 +562,7 @@ int count_mipmaps(int width, int height) {
 void remove_dict_value(PyObject * dict, PyObject * obj) {
     PyObject * key = NULL;
     PyObject * value = NULL;
-    Py_ssize_t pos = 0;
+    Py_sizeiptr pos = 0;
     while (PyDict_Next(dict, &pos, &key, &value)) {
         if (value == obj) {
             PyDict_DelItem(dict, key);
