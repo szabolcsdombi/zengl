@@ -562,7 +562,7 @@ int count_mipmaps(int width, int height) {
 void remove_dict_value(PyObject * dict, PyObject * obj) {
     PyObject * key = NULL;
     PyObject * value = NULL;
-    Py_sizeiptr pos = 0;
+    Py_ssize_t pos = 0;
     while (PyDict_Next(dict, &pos, &key, &value)) {
         if (value == obj) {
             PyDict_DelItem(dict, key);
