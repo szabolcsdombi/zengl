@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 # [main](https://github.com/szabolcsdombi/zengl/compare/1.2.0...main)
 
+# [1.2.0](https://github.com/szabolcsdombi/zengl/compare/1.2.0...1.2.1)
+
+- Support x86 architecture
+- Support raspberry pi
+
 # [1.2.0](https://github.com/szabolcsdombi/zengl/compare/1.1.0...1.2.0)
 
 - Invalid image format error
