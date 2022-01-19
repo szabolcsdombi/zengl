@@ -2122,9 +2122,9 @@ PyGetSetDef Pipeline_getset[] = {
 };
 
 PyMemberDef Pipeline_members[] = {
-    {"vertex_count", T_OBJECT_EX, offsetof(Pipeline, vertex_count), 0, NULL},
-    {"instance_count", T_OBJECT_EX, offsetof(Pipeline, instance_count), 0, NULL},
-    {"first_vertex", T_OBJECT_EX, offsetof(Pipeline, first_vertex), 0, NULL},
+    {"vertex_count", T_INT, offsetof(Pipeline, vertex_count), 0, NULL},
+    {"instance_count", T_INT, offsetof(Pipeline, instance_count), 0, NULL},
+    {"first_vertex", T_INT, offsetof(Pipeline, first_vertex), 0, NULL},
     {},
 };
 
