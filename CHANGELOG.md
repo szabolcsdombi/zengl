@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 # [1.2.2](https://github.com/szabolcsdombi/zengl/compare/1.2.1...1.2.2)
 
-- Fix broken Pipeline attributes: vertex_count, instance_count and first_vertex
+- Fix broken `Pipeline.vertex_count`, `Pipeline.instance_count` and `Pipeline.first_vertex`
 
 # [1.2.1](https://github.com/szabolcsdombi/zengl/compare/1.2.0...1.2.1)
 
