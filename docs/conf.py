@@ -2,7 +2,7 @@ project = 'zengl'
 copyright = '2021, Szabolcs Dombi'
 author = 'Szabolcs Dombi'
 
-release = '1.2.1'
+release = '1.2.2'
 
 extensions = [
     'sphinx_rtd_theme',
