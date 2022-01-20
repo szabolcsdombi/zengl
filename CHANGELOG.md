@@ -5,9 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-# [main](https://github.com/szabolcsdombi/zengl/compare/1.2.0...main)
+# [main](https://github.com/szabolcsdombi/zengl/compare/1.2.2...main)
 
-# [1.2.0](https://github.com/szabolcsdombi/zengl/compare/1.2.0...1.2.1)
+# [1.2.2](https://github.com/szabolcsdombi/zengl/compare/1.2.1...1.2.2)
+
+- Fix broken Pipeline attributes: vertex_count, instance_count and first_vertex
+
+# [1.2.1](https://github.com/szabolcsdombi/zengl/compare/1.2.0...1.2.1)
 
 - Support x86 architecture
 - Support raspberry pi
