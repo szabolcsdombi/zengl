@@ -585,35 +585,35 @@ PyObject * to_str(const unsigned char * ptr) {
 
 bool is_int_pair(PyObject * obj) {
     return (
-        PyTuple_CheckExact(obj) && PyTuple_Size(obj) == 2 &&
-        PyLong_CheckExact(PyTuple_GetItem(obj, 0)) &&
-        PyLong_CheckExact(PyTuple_GetItem(obj, 1))
+        PySequence_Check(obj) && PySequence_Size(obj) == 2 &&
+        PyLong_CheckExact(PySequence_GetItem(obj, 0)) &&
+        PyLong_CheckExact(PySequence_GetItem(obj, 1))
     );
 }
 
 bool is_viewport(PyObject * obj) {
     return (
-        PyTuple_CheckExact(obj) && PyTuple_Size(obj) == 4 &&
-        PyLong_CheckExact(PyTuple_GetItem(obj, 0)) &&
-        PyLong_CheckExact(PyTuple_GetItem(obj, 1)) &&
-        PyLong_CheckExact(PyTuple_GetItem(obj, 2)) &&
-        PyLong_CheckExact(PyTuple_GetItem(obj, 3))
+        PySequence_Check(obj) && PySequence_Size(obj) == 4 &&
+        PyLong_CheckExact(PySequence_GetItem(obj, 0)) &&
+        PyLong_CheckExact(PySequence_GetItem(obj, 1)) &&
+        PyLong_CheckExact(PySequence_GetItem(obj, 2)) &&
+        PyLong_CheckExact(PySequence_GetItem(obj, 3))
     );
 }
 
 IntPair to_int_pair(PyObject * obj) {
     IntPair res = {};
-    res.x = PyLong_AsLong(PyTuple_GetItem(obj, 0));
-    res.y = PyLong_AsLong(PyTuple_GetItem(obj, 1));
+    res.x = PyLong_AsLong(PySequence_GetItem(obj, 0));
+    res.y = PyLong_AsLong(PySequence_GetItem(obj, 1));
     return res;
 }
 
 Viewport to_viewport(PyObject * obj) {
     Viewport res = {};
-    res.x = (short)PyLong_AsLong(PyTuple_GetItem(obj, 0));
-    res.y = (short)PyLong_AsLong(PyTuple_GetItem(obj, 1));
-    res.width = (short)PyLong_AsLong(PyTuple_GetItem(obj, 2));
-    res.height = (short)PyLong_AsLong(PyTuple_GetItem(obj, 3));
+    res.x = (short)PyLong_AsLong(PySequence_GetItem(obj, 0));
+    res.y = (short)PyLong_AsLong(PySequence_GetItem(obj, 1));
+    res.width = (short)PyLong_AsLong(PySequence_GetItem(obj, 2));
+    res.height = (short)PyLong_AsLong(PySequence_GetItem(obj, 3));
     return res;
 }
 
