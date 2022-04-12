@@ -535,6 +535,33 @@ This method releases the OpenGL resources associated with the parameter.
 OpenGL resources are not released automatically on garbage collection.
 Release Pipelines before the Images and Buffers they use.
 
+Interoperability
+----------------
+
+| Some window implementations expose a framebuffer object for drawing.
+| Detecting this framebuffer is an error-prone and non-reliable solution.
+| The recommended way is to change :py:attr:`Context.screen` to the frambuffer object.
+| Do not change the :py:attr:`Pipeline._framebuffer`. It is for a different purpose.
+
+| Running zengl alongside another renderer is not supported.
+| However, to port existing code to zengl, some interoperability may be necessary.
+| OpenGL objects can be extracted with :py:meth:`zengl.inspect`.
+| It is possible to interact with these objects using the OpenGL API directly.
+
+.. py:method:: zengl.inspect(obj: Buffer | Image | Pipeline)
+
+Returns an object with all of the OpenGL objects.
+
+.. py:attribute:: Context.screen
+
+| An integer representing the default framebuffer object.
+| You may want to change this attribute when using PyQt.
+
+.. py:attribute:: Pipeline._framebuffer
+
+| An integer value of the framebuffer object used by the pipeline.
+| This attribute can be changed.
+
 Utils
 -----
 
