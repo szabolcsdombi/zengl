@@ -1226,6 +1226,44 @@ PyObject * Context_meth_release(Context * self, PyObject * arg) {
     Py_RETURN_NONE;
 }
 
+PyObject * Context_meth_inspect(Context * self, PyObject * arg) {
+    const GLMethods & gl = self->gl;
+    if (Py_TYPE(arg) == self->module_state->Buffer_type) {
+        Buffer * buffer = (Buffer *)arg;
+        return Py_BuildValue("{sssi}", "type", "buffer", "buffer", buffer->buffer);
+    } else if (Py_TYPE(arg) == self->module_state->Image_type) {
+        Image * image = (Image *)arg;
+        const char * gltype = image->renderbuffer ? "renderbuffer" : "texture";
+        int framebuffer = image->framebuffer ? image->framebuffer->obj : -1;
+        return Py_BuildValue("{sssisi}", "type", gltype, gltype, image->image, "framebuffer", framebuffer);
+    } else if (Py_TYPE(arg) == self->module_state->Pipeline_type) {
+        Pipeline * pipeline = (Pipeline *)arg;
+        PyObject * buffers = PyList_New(pipeline->descriptor_set_buffers->buffers);
+        for (int i = 0; i < pipeline->descriptor_set_buffers->buffers; ++i) {
+            int buffer = pipeline->descriptor_set_buffers->binding[i].buffer;
+            PyObject * obj = Py_BuildValue("{sssi}", "type", "buffer", "buffer", buffer);
+            PyList_SetItem(buffers, i, obj);
+        }
+        PyObject * samplers = PyList_New(pipeline->descriptor_set_images->samplers);
+        for (int i = 0; i < pipeline->descriptor_set_images->samplers; ++i) {
+            int sampler = pipeline->descriptor_set_images->binding[i].sampler;
+            int image = pipeline->descriptor_set_images->binding[i].image;
+            PyObject * obj = Py_BuildValue("{sssisi}", "type", "sampler", "sampler", sampler, "texture", image);
+            PyList_SetItem(samplers, i, obj);
+        }
+        return Py_BuildValue(
+            "{sssNsNsisisi}",
+            "type", "pipeline",
+            "buffers", buffers,
+            "samplers", samplers,
+            "framebuffer", pipeline->framebuffer->obj,
+            "vertex_array", pipeline->vertex_array->obj,
+            "program", pipeline->program->obj
+        );
+    }
+    Py_RETURN_NONE;
+}
+
 PyObject * Buffer_meth_write(Buffer * self, PyObject * vargs, PyObject * kwargs) {
     static char * keywords[] = {"data", "offset", NULL};
 
@@ -2070,6 +2108,7 @@ PyMethodDef Context_methods[] = {
     {"pipeline", (PyCFunction)Context_meth_pipeline, METH_VARARGS | METH_KEYWORDS, NULL},
     {"clear_shader_cache", (PyCFunction)Context_meth_clear_shader_cache, METH_NOARGS, NULL},
     {"release", (PyCFunction)Context_meth_release, METH_O, NULL},
+    {"inspect", (PyCFunction)Context_meth_inspect, METH_O, NULL},
     {},
 };
 
