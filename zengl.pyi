@@ -178,6 +178,7 @@ class Context:
     info: Tuple[str, str, str]
     limits: Limits
     includes: Dict[str, str]
+    screen: int
     def buffer(self, data: Bytes | None = None, *, size: int | None = None, dynamic: bool = False) -> Buffer: ...
     def image(
         self, size: Tuple[int, int], format: ImageFormat, data: Bytes | None = None, *,

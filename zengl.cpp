@@ -87,6 +87,7 @@ struct Context {
     int default_texture_unit;
     int max_samples;
     int mapped_buffers;
+    int screen;
     GLMethods gl;
 };
 
@@ -682,6 +683,7 @@ Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwargs) {
     res->default_texture_unit = default_texture_unit;
     res->max_samples = max_samples;
     res->mapped_buffers = 0;
+    res->screen = 0;
     res->gl = gl;
     return res;
 }
@@ -1638,14 +1640,14 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
     }
     gl.ColorMaski(0, 1, 1, 1, 1);
     gl.BindFramebuffer(GL_READ_FRAMEBUFFER, self->framebuffer->obj);
-    gl.BindFramebuffer(GL_DRAW_FRAMEBUFFER, target ? target->framebuffer->obj : 0);
+    gl.BindFramebuffer(GL_DRAW_FRAMEBUFFER, target ? target->framebuffer->obj : self->ctx->screen);
     gl.BlitFramebuffer(
         source_viewport.x, source_viewport.y, source_viewport.x + source_viewport.width, source_viewport.y + source_viewport.height,
         target_viewport.x, target_viewport.y, target_viewport.x + target_viewport.width, target_viewport.y + target_viewport.height,
         GL_COLOR_BUFFER_BIT, filter ? GL_LINEAR : GL_NEAREST
     );
     if (!target) {
-        self->ctx->current_framebuffer = 0;
+        self->ctx->current_framebuffer = self->ctx->screen;
     }
     gl.BindFramebuffer(GL_FRAMEBUFFER, self->ctx->current_framebuffer);
     if (GlobalSettings * settings = self->ctx->current_global_settings) {
@@ -2075,6 +2077,7 @@ PyMemberDef Context_members[] = {
     {"includes", T_OBJECT_EX, offsetof(Context, includes), READONLY, NULL},
     {"limits", T_OBJECT_EX, offsetof(Context, limits), READONLY, NULL},
     {"info", T_OBJECT_EX, offsetof(Context, info), READONLY, NULL},
+    {"screen", T_INT, offsetof(Context, screen), 0, NULL},
     {},
 };
 
