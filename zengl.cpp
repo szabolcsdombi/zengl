@@ -873,7 +873,7 @@ Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * kwargs) 
     res->target = target;
     res->renderbuffer = renderbuffer;
 
-    res->framebuffer = 0;
+    res->framebuffer = NULL;
     if (!cubemap && !array) {
         if (format.color) {
             PyObject * attachments = Py_BuildValue("((O)O)", res, Py_None);
