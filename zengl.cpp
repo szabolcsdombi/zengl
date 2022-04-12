@@ -1825,6 +1825,21 @@ int Pipeline_set_viewport(Pipeline * self, PyObject * viewport) {
     return 0;
 }
 
+PyObject * Pipeline_get_framebuffer(Pipeline * self) {
+    return PyLong_FromLong(self->framebuffer->obj);
+}
+
+int Pipeline_set_framebuffer(Pipeline * self, PyObject * framebuffer) {
+    if (!PyLong_CheckExact(framebuffer)) {
+        PyErr_Format(PyExc_TypeError, "the framebuffer must be an int");
+        return -1;
+    }
+    self->framebuffer = PyObject_New(GLObject, self->ctx->module_state->GLObject_type);
+    self->framebuffer->uses = -1;
+    self->framebuffer->obj = PyLong_AsLong(framebuffer);
+    return 0;
+}
+
 struct vec3 {
     double x, y, z;
 };
@@ -2160,6 +2175,7 @@ PyMethodDef Pipeline_methods[] = {
 
 PyGetSetDef Pipeline_getset[] = {
     {"viewport", (getter)Pipeline_get_viewport, (setter)Pipeline_set_viewport, NULL, NULL},
+    {"_framebuffer", (getter)Pipeline_get_framebuffer, (setter)Pipeline_set_framebuffer, NULL, NULL},
     {},
 };
 
