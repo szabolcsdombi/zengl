@@ -40,8 +40,8 @@ def gen_cone(radius, height, res=32):
     return points * (radius, radius, height)
 
 
-def gen_capsule(radius, height, res=100):
-    sphere = gen_sphere(radius, res)
+def gen_capsule(radius, height, res=16):
+    sphere = gen_uvsphere(radius, res)
     offset = [0.0, 0.0, height * 0.5]
     return np.concatenate([sphere - offset, sphere + offset])
 
@@ -52,6 +52,14 @@ def gen_sphere(radius, res=100):
     x = np.cos(phi * np.arange(res)) * np.sqrt(1.0 - y * y)
     z = np.sin(phi * np.arange(res)) * np.sqrt(1.0 - y * y)
     return np.array([x, y, z]).T * radius
+
+
+def gen_uvsphere(radius, res=16):
+    h = np.repeat(np.linspace(0.0, np.pi * 2.0, res * 2, endpoint=False), res - 1)
+    v = np.tile(np.linspace(0.0, np.pi, res + 1)[1:-1], res * 2)
+    ends = [[0.0, 0.0, -1.0], [0.0, 0.0, 1.0]]
+    points = np.concatenate([np.array([np.cos(h) * np.sin(v), np.sin(h) * np.sin(v), np.cos(v)]).T, ends])
+    return points * radius
 
 
 def gen_multisphere(points, res=100):
@@ -78,9 +86,10 @@ ctx = zengl.context()
 # vertex_buffer = ctx.buffer(make_hull(np.random.uniform(-0.5, 0.5, (100, 3))))
 # vertex_buffer = ctx.buffer(make_hull(gen_box(1.0, 1.0, 1.0)))
 # vertex_buffer = ctx.buffer(make_hull(gen_sphere(1.0)))
-# vertex_buffer = ctx.buffer(make_hull(gen_minkowski(gen_box(0.9, 0.9, 0.9), gen_sphere(0.1))))
+# vertex_buffer = ctx.buffer(make_hull(gen_uvsphere(1.0)))
+# vertex_buffer = ctx.buffer(make_hull(gen_minkowski(gen_box(0.9, 0.9, 0.9), gen_uvsphere(0.1))))
 # vertex_buffer = ctx.buffer(make_hull(gen_cylinder(1.0, 1.0)))
-# vertex_buffer = ctx.buffer(make_hull(gen_minkowski(gen_cylinder(1.0, 1.0), gen_sphere(0.1))))
+# vertex_buffer = ctx.buffer(make_hull(gen_minkowski(gen_cylinder(1.0, 1.0), gen_uvsphere(0.1))))
 # vertex_buffer = ctx.buffer(make_hull(gen_cone(0.5, 1.0)))
 # vertex_buffer = ctx.buffer(make_hull(gen_capsule(0.3, 1.0)))
 vertex_buffer = ctx.buffer(make_hull(gen_multisphere([[0.0, 0.0, 0.0, 0.3], [0.0, 0.0, 1.0, 0.1]])))
