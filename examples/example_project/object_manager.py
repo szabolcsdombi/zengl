@@ -5,15 +5,15 @@ from context import Context
 class Instance:
     def __init__(self, parent, index):
         self.parent = parent
-        self.index = index
+        self.slice = slice(index * 16, index * 16 + 12)
 
     @property
     def position(self):
-        return struct.unpack('fff', self.parent.data[self.index * 16 : self.index * 16 + 12])
+        return struct.unpack('fff', self.parent.data[self.slice])
 
     @position.setter
     def position(self, value):
-        self.parent.data[self.index * 16 : self.index * 16 + 12] = struct.pack('fff', *value)
+        self.parent.data[self.slice] = struct.pack('fff', *value)
 
 
 class ObjectManager:
