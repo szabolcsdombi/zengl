@@ -84,6 +84,7 @@ struct Context {
     int current_framebuffer;
     int current_program;
     int current_vertex_array;
+    int current_clear_mask;
     int default_texture_unit;
     int max_samples;
     int mapped_buffers;
@@ -168,6 +169,7 @@ void bind_global_settings(Context * self, GlobalSettings * settings) {
         return;
     }
     self->current_global_settings = settings;
+    self->current_clear_mask = settings->color_mask & 0xf | settings->depth_write << 8 | settings->stencil_front.write_mask << 16;
     if (settings->primitive_restart) {
         gl.Enable(GL_PRIMITIVE_RESTART);
     } else {
@@ -683,6 +685,7 @@ Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwargs) {
     res->current_framebuffer = 0;
     res->current_program = 0;
     res->current_vertex_array = 0;
+    res->current_clear_mask = 0;
     res->viewport = {};
     res->default_texture_unit = default_texture_unit;
     res->max_samples = max_samples;
@@ -1336,9 +1339,41 @@ PyObject * Buffer_meth_unmap(Buffer * self) {
 PyObject * Image_meth_clear(Image * self) {
     const GLMethods & gl = self->ctx->gl;
     bind_framebuffer(self->ctx, self->framebuffer->obj);
-    gl.ColorMaski(0, 1, 1, 1, 1);
-    gl.DepthMask(1);
-    gl.StencilMaskSeparate(GL_FRONT, 0xff);
+    switch (self->format.buffer) {
+        case GL_COLOR: {
+            if ((self->ctx->current_clear_mask & 0xf) != 0xf) {
+                self->ctx->current_clear_mask |= 0xf;
+                self->ctx->current_global_settings = NULL;
+                gl.ColorMaski(0, 1, 1, 1, 1);
+            }
+            break;
+        }
+        case GL_DEPTH: {
+            if ((self->ctx->current_clear_mask & 0x100) != 0x100) {
+                self->ctx->current_clear_mask |= 0x100;
+                self->ctx->current_global_settings = NULL;
+                gl.DepthMask(1);
+            }
+            break;
+        }
+        case GL_STENCIL: {
+            if ((self->ctx->current_clear_mask & 0xff0000) != 0xff0000) {
+                self->ctx->current_clear_mask |= 0xff0000;
+                self->ctx->current_global_settings = NULL;
+                gl.StencilMaskSeparate(GL_FRONT, 0xff);
+            }
+            break;
+        }
+        case GL_DEPTH_STENCIL: {
+            if ((self->ctx->current_clear_mask & 0xff0100) != 0xff0100) {
+                self->ctx->current_clear_mask |= 0xff0100;
+                self->ctx->current_global_settings = NULL;
+                gl.StencilMaskSeparate(GL_FRONT, 0xff);
+                gl.DepthMask(1);
+            }
+            break;
+        }
+    }
     if (self->format.clear_type == 'f') {
         gl.ClearBufferfv(self->format.buffer, 0, self->clear_value.clear_floats);
     } else if (self->format.clear_type == 'i') {
@@ -1347,11 +1382,6 @@ PyObject * Image_meth_clear(Image * self) {
         gl.ClearBufferuiv(self->format.buffer, 0, self->clear_value.clear_uints);
     } else if (self->format.clear_type == 'x') {
         gl.ClearBufferfi(self->format.buffer, 0, self->clear_value.clear_floats[0], self->clear_value.clear_ints[1]);
-    }
-    if (GlobalSettings * settings = self->ctx->current_global_settings) {
-        gl.ColorMaski(0, settings->color_mask & 1, settings->color_mask & 2, settings->color_mask & 4, settings->color_mask & 8);
-        gl.StencilMaskSeparate(GL_FRONT, settings->stencil_front.write_mask);
-        gl.DepthMask(settings->depth_write);
     }
     Py_RETURN_NONE;
 }
@@ -1642,7 +1672,11 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
     if (!srgb) {
         gl.Disable(GL_FRAMEBUFFER_SRGB);
     }
-    gl.ColorMaski(0, 1, 1, 1, 1);
+    if ((self->ctx->current_clear_mask & 0xf) != 0xf) {
+        self->ctx->current_clear_mask |= 0xf;
+        self->ctx->current_global_settings = NULL;
+        gl.ColorMaski(0, 1, 1, 1, 1);
+    }
     gl.BindFramebuffer(GL_READ_FRAMEBUFFER, self->framebuffer->obj);
     gl.BindFramebuffer(GL_DRAW_FRAMEBUFFER, target ? target->framebuffer->obj : self->ctx->screen);
     gl.BlitFramebuffer(
@@ -1654,9 +1688,6 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
         self->ctx->current_framebuffer = self->ctx->screen;
     }
     gl.BindFramebuffer(GL_FRAMEBUFFER, self->ctx->current_framebuffer);
-    if (GlobalSettings * settings = self->ctx->current_global_settings) {
-        gl.ColorMaski(0, settings->color_mask & 1, settings->color_mask & 2, settings->color_mask & 4, settings->color_mask & 8);
-    }
     if (!srgb) {
         gl.Enable(GL_FRAMEBUFFER_SRGB);
     }
