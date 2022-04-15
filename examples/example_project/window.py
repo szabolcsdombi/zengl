@@ -14,15 +14,6 @@ class Window:
         pg.display.gl_set_attribute(pg.GL_CONTEXT_PROFILE_MASK, pg.GL_CONTEXT_PROFILE_CORE)
         pg.display.set_mode(self.size, pg.OPENGL | pg.DOUBLEBUF)
 
-    def on_resize(self, width, height):
-        pass
-
-    def on_draw(self):
-        pass
-
-    def on_close(self):
-        self.alive = False
-
     def update(self):
         pg.display.flip()
         pg.time.wait(10)
