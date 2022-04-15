@@ -6,7 +6,7 @@ WORKDIR /app
 COPY . .
 RUN python -m pycodestyle --max-line-length=120 .
 RUN python -m pyflakes .
-RUN python -m isort -c -o zengl -p window -p utils .
+RUN python -m isort -c -o zengl -p window -p utils --src=examples/example_project .
 RUN python setup.py sdist
 RUN python setup.py build_sphinx
 RUN find dist/zengl-*.tar.gz | xargs pip install
