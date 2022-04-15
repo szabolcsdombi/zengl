@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 # [1.4.0](https://github.com/szabolcsdombi/zengl/compare/1.3.0...1.4.0)
 
-- Improve interoperability for porting existing code.
+- Improve interoperability for porting existing code
 - Implement `Context.screen`
 - Implement `zengl.inspect`
 
