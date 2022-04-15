@@ -5,7 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-# [main](https://github.com/szabolcsdombi/zengl/compare/1.4.0...main)
+# [main](https://github.com/szabolcsdombi/zengl/compare/1.4.1...main)
+
+# [1.4.1](https://github.com/szabolcsdombi/zengl/compare/1.4.0...1.4.1)
+
+- Optimized binding the same global settings
+- Optimized binding the same viewport
+- Optimized cache for write masks for clear operations
+- Fixed missing default depth function for explicit depth settings
+- Fixed stencil test was on when no stencil buffer was present
 
 # [1.4.0](https://github.com/szabolcsdombi/zengl/compare/1.3.0...1.4.0)
 
