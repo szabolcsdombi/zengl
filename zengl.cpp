@@ -1758,6 +1758,7 @@ PyObject * Pipeline_meth_render(Pipeline * self) {
     const GLMethods & gl = self->ctx->gl;
     if (self->viewport.viewport != self->ctx->viewport.viewport) {
         gl.Viewport(self->viewport.x, self->viewport.y, self->viewport.width, self->viewport.height);
+        self->ctx->viewport.viewport = self->viewport.viewport;
     }
     bind_global_settings(self->ctx, self->global_settings);
     bind_framebuffer(self->ctx, self->framebuffer->obj);
