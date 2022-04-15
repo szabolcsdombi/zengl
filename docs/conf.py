@@ -1,5 +1,5 @@
 project = 'zengl'
-copyright = '2021, Szabolcs Dombi'
+copyright = '2022, Szabolcs Dombi'
 author = 'Szabolcs Dombi'
 
 release = '1.4.0'
