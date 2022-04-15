@@ -164,6 +164,10 @@ void bind_descriptor_set_images(Context * self, DescriptorSetImages * set) {
 
 void bind_global_settings(Context * self, GlobalSettings * settings) {
     const GLMethods & gl = self->gl;
+    if (self->current_global_settings == settings) {
+        return;
+    }
+    self->current_global_settings = settings;
     if (settings->primitive_restart) {
         gl.Enable(GL_PRIMITIVE_RESTART);
     } else {
