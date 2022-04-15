@@ -247,7 +247,7 @@ def settings(
         res.extend([depth, depth, 0x0201])
 
     else:
-        res.extend([bool(depth['test']), bool(depth['write']), COMPARE_FUNC[depth['func']]])
+        res.extend([bool(depth['test']), bool(depth['write']), COMPARE_FUNC[depth.get('func', 'less')]])
 
     if stencil is False:
         res.extend([
