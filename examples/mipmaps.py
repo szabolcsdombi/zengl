@@ -1,5 +1,4 @@
 import zengl
-from objloader import Obj
 from skimage.data import gravel
 
 from window import Window
