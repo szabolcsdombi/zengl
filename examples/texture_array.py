@@ -34,7 +34,7 @@ for i in range(10):
     draw.rectangle((0, 0, 128, 128), tuple(rgb))
     x = 64 - draw.textsize(f'{i + 1}')[0] // 2
     draw.text((x, 25), f'{i + 1}', '#000')
-    texture.write(img.transpose(Image.FLIP_TOP_BOTTOM).tobytes(), layer=i)
+    texture.write(img.transpose(Image.Transpose.FLIP_TOP_BOTTOM).tobytes(), layer=i)
 
 texture.mipmaps()
 
