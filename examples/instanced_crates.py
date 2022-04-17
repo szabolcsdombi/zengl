@@ -108,10 +108,10 @@ crate = ctx.pipeline(
     instance_count=30 * 30,
 )
 
-camera = zengl.camera((3.0, 2.0, 2.0), (0.0, 0.0, 0.5), aspect=window.aspect, fov=45.0)
+camera = zengl.camera((3.0, 2.0, 1.5), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
 
 uniform_buffer.write(camera)
-uniform_buffer.write(zengl.pack(3.0, 2.0, 2.0, 0.0), offset=64)
+uniform_buffer.write(zengl.pack(3.0, 2.0, 1.5, 0.0), offset=64)
 
 while window.update():
     z = np.frombuffer(instance_buffer.map(), 'f4').reshape(-1, 3)

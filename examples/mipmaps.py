@@ -11,9 +11,6 @@ image = ctx.image(window.size, 'rgba8unorm', samples=4)
 depth = ctx.image(window.size, 'depth24plus', samples=4)
 image.clear_value = (1.0, 1.0, 1.0, 1.0)
 
-model = Obj.open('examples/data/box.obj').pack('vx vy vz nx ny nz tx ty')
-vertex_buffer = ctx.buffer(model)
-
 texture = ctx.image((512, 512), 'rgba8unorm', zengl.rgba(gravel().tobytes(), 'lum'))
 texture.mipmaps()
 

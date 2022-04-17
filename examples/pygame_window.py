@@ -112,10 +112,10 @@ while running:
             running = False
 
     x, y = math.sin(frames * 0.02) * 3.0, math.cos(frames * 0.02) * 3.0
-    camera = zengl.camera((x, y, 2.0), (0.0, 0.0, 0.5), aspect=window_aspect, fov=45.0)
+    camera = zengl.camera((x, y, 1.5), (0.0, 0.0, 0.0), aspect=window_aspect, fov=45.0)
 
     uniform_buffer.write(camera)
-    uniform_buffer.write(zengl.pack(x, y, 2.0, 0.0), offset=64)
+    uniform_buffer.write(zengl.pack(x, y, 1.5, 0.0), offset=64)
 
     image.clear()
     depth.clear()

@@ -97,10 +97,10 @@ crate = ctx.pipeline(
 
 while window.update():
     x, y = math.sin(window.time * 0.5) * 3.0, math.cos(window.time * 0.5) * 3.0
-    camera = zengl.camera((x, y, 2.0), (0.0, 0.0, 0.5), aspect=window.aspect, fov=45.0)
+    camera = zengl.camera((x, y, 1.5), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
 
     uniform_buffer.write(camera)
-    uniform_buffer.write(zengl.pack(x, y, 2.0, 0.0), offset=64)
+    uniform_buffer.write(zengl.pack(x, y, 1.5, 0.0), offset=64)
 
     image.clear()
     depth.clear()

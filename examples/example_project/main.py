@@ -26,7 +26,7 @@ box = object_manager.model(box_model)
 while wnd.update():
     Context.update_camera((3.0, 2.0, 2.0), (0.0, 0.0, 0.5), aspect=wnd.aspect, fov=45.0)
 
-    box.position = (0.0, -3.0, 0.0)
+    box.position = (0.0, -3.0, 0.5)
     blob1.position = (-4.0, 0.0, 0.0)
     blob2.position = (-4.0, -1.5, 0.0)
     blob3.position = (-4.0, -3.0, 0.0)
