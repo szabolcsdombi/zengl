@@ -13,7 +13,7 @@ image.clear_value = (0.2, 0.2, 0.2, 1.0)
 model = Obj.open('examples/data/monkey.obj').pack('vx vy vz nx ny nz')
 vertex_buffer = ctx.buffer(model)
 
-uniform_buffer = ctx.buffer(size=80)
+uniform_buffer = ctx.buffer(size=64)
 
 monkey = ctx.pipeline(
     vertex_shader='''
