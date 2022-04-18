@@ -33,7 +33,7 @@ image = ctx.image(window.size, 'rgba8unorm', samples=4)
 image.clear_value = (1.0, 1.0, 1.0, 1.0)
 
 
-ps = ParticleSystem(1000, 10)
+ps = ParticleSystem(10000, 100)
 vertex_buffer = ctx.buffer(size=ps.N * 8)
 
 color_buffer = ctx.buffer(np.array([
@@ -51,7 +51,7 @@ triangle = ctx.pipeline(
         out vec3 v_color;
 
         void main() {
-            gl_PointSize = 7.0;
+            gl_PointSize = 3.0;
             gl_Position = vec4(in_vert, 0.0, 1.0);
             v_color = in_color;
         }
@@ -64,13 +64,7 @@ triangle = ctx.pipeline(
         layout (location = 0) out vec4 out_color;
 
         void main() {
-            vec2 coord = gl_PointCoord * 2.0 - 1.0;
-            float dist = sqrt(dot(coord, coord));
-            if (dist > 1.0) {
-                discard;
-            }
-            float alpha = 1.0 - smoothstep(0.9, 1.0, dist);
-            out_color = vec4(v_color, alpha);
+            out_color = vec4(v_color, 0.7);
         }
     ''',
     blending={
