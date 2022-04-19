@@ -23,7 +23,7 @@ if not os.path.isfile(filename):
 print('converting')
 im = imageio.imread(filename)
 img = np.full((im.shape[0], im.shape[1], 4), 255, 'u1')
-img[:, :, :3] = np.clip(np.power(im, 1.0 / 2.2) * 255.0, 0.0, 255.0).astype('u1')
+img[:, :, :3] = np.clip(np.power(im, 1.0 / 2.2) * 160.0, 0.0, 255.0).astype('u1')
 
 print('converting done')
 
