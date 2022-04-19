@@ -1,6 +1,7 @@
 /.vscode
 /build
 /dist
+/downloads
 __pycache__
 *.egg-info
 *.pyd
