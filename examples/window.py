@@ -10,6 +10,7 @@ class Window(pyglet.window.Window):
         self.aspect = width / height
         self.time = 0.0
         self.alive = True
+        self.mouse = (0, 0)
         config = pyglet.gl.Config(
             major_version=3,
             minor_version=3,
@@ -25,6 +26,9 @@ class Window(pyglet.window.Window):
 
     def on_draw(self):
         pass
+
+    def on_mouse_motion(self, x, y, dx, dy):
+        self.mouse = (x, y)
 
     def on_close(self):
         self.alive = False
