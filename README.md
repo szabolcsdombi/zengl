@@ -43,6 +43,10 @@ pip install zengl[examples]
 
 [![envmap](https://github.com/szabolcsdombi/zengl-example-images/raw/examples/envmap.png)](#envmappy)
 
+#### [normal_mapping.py](https://github.com/szabolcsdombi/zengl/blob/main/examples/normal_mapping.py)
+
+[![normal_mapping](https://github.com/szabolcsdombi/zengl-example-images/raw/examples/normal_mapping.jpg)](#normal_mappingpy)
+
 #### [instanced_crates.py](https://github.com/szabolcsdombi/zengl/blob/main/examples/instanced_crates.py)
 
 [![instanced_crates](https://github.com/szabolcsdombi/zengl-example-images/raw/examples/instanced_crates.png)](#instanced_cratespy)
