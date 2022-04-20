@@ -52,4 +52,4 @@ triangle = ctx.pipeline(
 while window.update():
     image.clear()
     triangle.render()
-    image.blit()
+    image.blit(srgb=True)
