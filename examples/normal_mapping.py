@@ -95,9 +95,6 @@ pipeline = ctx.pipeline(
             float spec = pow(max(dot(normal, halfway_dir), 0.0), shininess) * rought;
             vec3 color = texture(Texture1, v_text).rgb + vec3(1.0, 1.0, 1.0) * spec;
             out_color = vec4(pow(color, vec3(1.0 / 2.2)), 1.0);
-            if (gl_FragCoord.x == 999.0) {
-                out_color.x = v_vert.x + v_text.x + btn[0][0] + btn[1][1] + btn[2][2] + surface_normal.x;
-            }
         }
     ''',
     layout=[
