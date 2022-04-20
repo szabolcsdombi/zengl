@@ -1,11 +1,11 @@
 import struct
+import zipfile
 
 import numpy as np
 import zengl
+from PIL import Image
 
 from window import Window
-from PIL import Image
-import zipfile
 
 window = Window(1280, 720)
 ctx = zengl.context()
