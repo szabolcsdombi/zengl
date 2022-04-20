@@ -160,8 +160,8 @@ normals = ctx.pipeline(
 
         void main() {
             vec3 vert = in_vert_0 + (in_vert_1 - in_vert_0) * in_point.x + (in_vert_2 - in_vert_0) * in_point.y;
-            vec3 norm = normalize(in_norm_0 + (in_norm_1 - in_norm_0) * in_point.x + (in_norm_2 - in_norm_0) * in_point.y);
-            gl_Position = mvp * vec4(vert + norm * in_point.z, 1.0);
+            vec3 norm = in_norm_0 + (in_norm_1 - in_norm_0) * in_point.x + (in_norm_2 - in_norm_0) * in_point.y;
+            gl_Position = mvp * vec4(vert + normalize(norm) * in_point.z, 1.0);
         }
     ''',
     fragment_shader='''
