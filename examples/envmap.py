@@ -21,7 +21,7 @@ vertex_buffer = ctx.buffer(model)
 
 uniform_buffer = ctx.buffer(size=80)
 
-monkey = ctx.pipeline(
+pipeline = ctx.pipeline(
     vertex_shader='''
         #version 330
 
@@ -109,5 +109,5 @@ while window.update():
 
     image.clear()
     depth.clear()
-    monkey.render()
+    pipeline.render()
     image.blit()
