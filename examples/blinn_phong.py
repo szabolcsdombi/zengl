@@ -17,6 +17,7 @@ model = Obj.open('examples/data/blob.obj').pack('vx vy vz nx ny nz')
 vertex_buffer = ctx.buffer(model)
 
 uniform_buffer = ctx.buffer(size=80)
+material_uniform_buffer = ctx.buffer(size=112)
 
 pipeline = ctx.pipeline(
     vertex_shader='''
@@ -47,23 +48,25 @@ pipeline = ctx.pipeline(
             vec4 eye_pos;
         };
 
+        layout (std140) uniform Material {
+            vec4 light_pos;
+            vec4 light_color;
+            float light_power;
+            vec4 ambient_color;
+            vec4 diffuse_color;
+            vec4 spec_color;
+            float shininess;
+        };
+
         in vec3 v_vertex;
         in vec3 v_normal;
 
         layout (location = 0) out vec4 out_color;
 
-        const vec3 light_pos = vec3(2.0, 3.0, 4.0);
-        const vec3 light_color = vec3(1.0, 1.0, 1.0);
-        const float light_power = 40.0;
-        const vec3 ambient_color = vec3(0.0, 0.01, 0.05);
-        const vec3 diffuse_color = vec3(0.0, 0.1, 0.5);
-        const vec3 spec_color = vec3(1.0, 1.0, 1.0);
-        const float shininess = 16.0;
-
         const float screen_gamma = 2.2;
 
         void main() {
-            vec3 light_dir = light_pos - v_vertex;
+            vec3 light_dir = light_pos.xyz - v_vertex;
             float light_distance = length(light_dir);
             light_distance = light_distance * light_distance;
             light_dir = normalize(light_dir);
@@ -78,9 +81,9 @@ pipeline = ctx.pipeline(
                 specular = pow(spec_angle, shininess);
             }
 
-            vec3 color_linear = ambient_color +
-                diffuse_color * lambertian * light_color * light_power / light_distance +
-                spec_color * specular * light_color * light_power / light_distance;
+            vec3 color_linear = ambient_color.rgb +
+                diffuse_color.rgb * lambertian * light_color.rgb * light_power / light_distance +
+                spec_color.rgb * specular * light_color.rgb * light_power / light_distance;
 
             vec3 color_gamma_corrected = pow(color_linear, vec3(1.0 / screen_gamma));
             out_color = vec4(color_gamma_corrected, 1.0);
@@ -91,12 +94,23 @@ pipeline = ctx.pipeline(
             'name': 'Common',
             'binding': 0,
         },
+        {
+            'name': 'Material',
+            'binding': 1,
+        },
     ],
     resources=[
         {
             'type': 'uniform_buffer',
             'binding': 0,
             'buffer': uniform_buffer,
+        },
+        {
+            'type': 'uniform_buffer',
+            'binding': 1,
+            'buffer': material_uniform_buffer,
+            'offset': 0,
+            'size': 112,
         },
     ],
     framebuffer=[image, depth],
@@ -106,10 +120,25 @@ pipeline = ctx.pipeline(
     vertex_count=vertex_buffer.size // zengl.calcsize('3f 3f'),
 )
 
+light_pos = (2.0, 3.0, 4.0)
+light_color = (1.0, 1.0, 1.0)
+light_power = 40.0
+ambient_color = (0.0, 0.01, 0.05)
+diffuse_color = (0.0, 0.1, 0.5)
+spec_color = (1.0, 1.0, 1.0)
+shininess = 16.0
+
+material_uniform_buffer.write(struct.pack(
+    '=3f4x3f4xf12x3f4x3f4x3f4xf12x',
+    *light_pos, *light_color, light_power,
+    *ambient_color, *diffuse_color, *spec_color,
+    shininess,
+))
+
 while window.update():
     x, y = np.cos(window.time * 0.5) * 5.0, np.sin(window.time * 0.5) * 5.0
     camera = zengl.camera((x, y, 2.0), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
-    uniform_buffer.write(camera + struct.pack('fff4x', x, y, 2.0))
+    uniform_buffer.write(camera + struct.pack('=3f4x', x, y, 2.0))
 
     image.clear()
     depth.clear()
