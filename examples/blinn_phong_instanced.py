@@ -110,9 +110,9 @@ pipeline = ctx.pipeline(
                 specular = pow(spec_angle, v_shininess);
             }
 
-            vec3 color_linear = v_ambient_color.rgb +
-                v_diffuse_color.rgb * lambertian * light_color.rgb * light_power / light_distance +
-                v_spec_color.rgb * specular * light_color.rgb * light_power / light_distance;
+            vec3 color_linear = v_ambient_color +
+                v_diffuse_color * lambertian * light_color.rgb * light_power / light_distance +
+                v_spec_color * specular * light_color.rgb * light_power / light_distance;
 
             vec3 color_gamma_corrected = pow(color_linear, vec3(1.0 / screen_gamma));
             out_color = vec4(color_gamma_corrected, 1.0);
