@@ -300,7 +300,7 @@ Generate mipmaps for the image.
 Pipeline
 --------
 
-.. py:method:: Context.pipeline(vertex_shader, fragment_shader, layout, resources, depth, stencil, blending, polygon_offset, color_mask, framebuffer, vertex_buffers, index_buffer, short_index, primitive_restart, front_face, cull_face, topology, vertex_count, instance_count, first_vertex, line_width, viewport) -> Pipeline
+.. py:method:: Context.pipeline(vertex_shader, fragment_shader, layout, resources, depth, stencil, blending, polygon_offset, color_mask, framebuffer, vertex_buffers, index_buffer, short_index, primitive_restart, front_face, cull_face, topology, vertex_count, instance_count, first_vertex, line_width, viewport, skip_validation) -> Pipeline
 
 **vertex_shader**
     | The vertex shader code.
@@ -403,6 +403,9 @@ Pipeline
 **viewport**
     | The render viewport, defined as tuples of four ints in (x, y, width, height) format.
     | The default is the full size of the framebuffer.
+
+**skip_validation**
+    | You know better.
 
 .. py:attribute:: Pipeline.vertex_count
 

@@ -934,6 +934,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         "first_vertex",
         "line_width",
         "viewport",
+        "skip_validation",
         NULL,
     };
 
@@ -959,11 +960,12 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     int first_vertex = 0;
     PyObject * line_width = self->module_state->float_one;
     PyObject * viewport = Py_None;
+    int skip_validation = false;
 
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
-        "|$OOOOOOOOOOOOpOOOsiiiOO",
+        "|$OOOOOOOOOOOOpOOOsiiiOOp",
         keywords,
         &vertex_shader,
         &fragment_shader,
@@ -986,7 +988,8 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         &instance_count,
         &first_vertex,
         &line_width,
-        &viewport
+        &viewport,
+        &skip_validation
     );
 
     if (!args_ok) {
@@ -1048,21 +1051,23 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         PyList_SET_ITEM(program_uniform_buffers, i, Py_BuildValue("{sssi}", "name", name, "size", size));
     }
 
-    PyObject * validate = PyObject_CallMethod(
-        self->module_state->helper,
-        "validate",
-        "NNNOOOO",
-        program_attributes,
-        program_uniforms,
-        program_uniform_buffers,
-        vertex_buffers,
-        layout,
-        resources,
-        self->limits
-    );
+    if (!skip_validation) {
+        PyObject * validate = PyObject_CallMethod(
+            self->module_state->helper,
+            "validate",
+            "NNNOOOO",
+            program_attributes,
+            program_uniforms,
+            program_uniform_buffers,
+            vertex_buffers,
+            layout,
+            resources,
+            self->limits
+        );
 
-    if (!validate) {
-        return NULL;
+        if (!validate) {
+            return NULL;
+        }
     }
 
     bind_program(self, program->obj);
