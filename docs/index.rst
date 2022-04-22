@@ -405,7 +405,7 @@ Pipeline
     | The default is the full size of the framebuffer.
 
 **skip_validation**
-    | You know better.
+    | You know better. You are on your own.
 
 .. py:attribute:: Pipeline.vertex_count
 
