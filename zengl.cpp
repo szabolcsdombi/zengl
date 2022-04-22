@@ -839,6 +839,13 @@ Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * kwargs) 
         if (PyObject_GetBuffer(data, &view, PyBUF_SIMPLE)) {
             return NULL;
         }
+        int padded_row = (width * format.pixel_size + 3) & ~3;
+        int expected_size = padded_row * height * (array ? array : 1) * (cubemap ? 6 : 1);
+        if (view.len != expected_size) {
+            PyBuffer_Release(&view);
+            PyErr_Format(PyExc_ValueError, "invalid data size");
+            return NULL;
+        }
     }
 
     int image = 0;
