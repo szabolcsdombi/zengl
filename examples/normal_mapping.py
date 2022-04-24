@@ -5,15 +5,16 @@ import numpy as np
 import zengl
 from PIL import Image
 
+import assets
 from window import Window
 
 window = Window(1280, 720)
 ctx = zengl.context()
 
-pack = zipfile.ZipFile('downloads/metal_plate_4k.gltf.zip')
-img1 = Image.open(pack.open('textures/metal_plate_diff_4k.jpg')).convert('RGBA')
-img2 = Image.open(pack.open('textures/metal_plate_rough_4k.jpg')).convert('RGBA')
-img3 = Image.open(pack.open('textures/metal_plate_nor_gl_4k.jpg')).convert('RGBA')
+pack = zipfile.ZipFile(assets.get('metal_plate_1k.gltf.zip'))
+img1 = Image.open(pack.open('textures/metal_plate_diff_1k.jpg')).convert('RGBA')
+img2 = Image.open(pack.open('textures/metal_plate_rough_1k.jpg')).convert('RGBA')
+img3 = Image.open(pack.open('textures/metal_plate_nor_gl_1k.jpg')).convert('RGBA')
 texture1 = ctx.image(img1.size, 'rgba8unorm-srgb', img1.tobytes())
 texture2 = ctx.image(img2.size, 'rgba8unorm', img2.tobytes())
 texture3 = ctx.image(img3.size, 'rgba8unorm', img3.tobytes())

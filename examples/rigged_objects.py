@@ -7,6 +7,7 @@ import numpy as np
 import vmath
 import zengl
 
+import assets
 from window import Window
 
 
@@ -92,11 +93,11 @@ class Loader:
 
 loader = Loader()
 
-pack = zipfile.ZipFile('downloads/furniturekit_updated.zip')
+pack = zipfile.ZipFile(assets.get('furniturekit_updated.zip'))
 for name in ['chairCushion', 'tableCloth', 'ceilingFan']:
     loader.load(pack.read(f'Models/GLTF format/{name}.glb'))
 
-pack = zipfile.ZipFile('downloads/foodKit_v1.2.zip')
+pack = zipfile.ZipFile(assets.get('foodKit_v1.2.zip'))
 for name in ['plate', 'utensilFork', 'utensilSpoon', 'utensilKnife']:
     loader.load(pack.read(f'Models/GLTF format/{name}.glb'))
 
