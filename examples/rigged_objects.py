@@ -45,8 +45,8 @@ class Loader:
     def get_chunk(self, accessor, size):
         acc = self.data['accessors'][accessor]
         view = self.data['bufferViews'][acc['bufferView']]
-        chunk = self.buffers[view['buffer']][view['byteOffset'] : view['byteOffset'] + view['byteLength']]
-        return chunk[acc['byteOffset'] : acc['byteOffset'] + acc['count'] * size]
+        chunk = self.buffers[view['buffer']][view['byteOffset']:view['byteOffset'] + view['byteLength']]
+        return chunk[acc['byteOffset']:acc['byteOffset'] + acc['count'] * size]
 
     def get_mesh(self, mesh):
         vertices = []
@@ -56,10 +56,10 @@ class Loader:
             norm = self.get_chunk(primitive['attributes']['NORMAL'], 12)
             idx = self.get_chunk(primitive['indices'], 4)
             for i in range(0, len(idx), 4):
-                k = int.from_bytes(idx[i : i + 4], 'little')
+                k = int.from_bytes(idx[i:i + 4], 'little')
                 vertices.append((
-                    struct.unpack('fff', vert[k * 12 : k * 12 + 12]),
-                    struct.unpack('fff', norm[k * 12 : k * 12 + 12]),
+                    struct.unpack('fff', vert[k * 12:k * 12 + 12]),
+                    struct.unpack('fff', norm[k * 12:k * 12 + 12]),
                     color,
                 ))
         return vertices
