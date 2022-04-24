@@ -2,34 +2,23 @@ import os
 
 import imageio
 import numpy as np
-import requests
 import zengl
 from PIL import Image
+
+import assets
 
 imageio.plugins.freeimage.download()
 
 sphere_resolution = 32
 image_size = (1024, 1024)
-filename = 'downloads/comfy_cafe_8k.hdr'
 
 os.makedirs('downloads/skybox', exist_ok=True)
 
-if not os.path.isfile(filename):
-    print(f'downloading {filename}')
-    res = requests.get('https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/8k/comfy_cafe_8k.hdr')
-    with open(filename, 'wb') as f:
-        f.write(res.content)
-
-print('converting')
-im = imageio.imread(filename)
-img = np.full((im.shape[0], im.shape[1], 4), 255, 'u1')
-img[:, :, :3] = np.clip(np.power(im, 1.0 / 2.2) * 160.0, 0.0, 255.0).astype('u1')
-
-print('converting done')
+img = Image.open(assets.get('comfy_cafe.jpg'))
 
 ctx = zengl.context(zengl.loader(headless=True))
 
-texture = ctx.image((im.shape[1], im.shape[0]), 'rgba8unorm', img)
+texture = ctx.image(img.size, 'rgba8unorm', img.convert('RGBA').tobytes())
 texture.mipmaps()
 
 N, M = sphere_resolution + 1, sphere_resolution + 1
