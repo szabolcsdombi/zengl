@@ -47,9 +47,13 @@ pip install zengl[examples]
 
 [![normal_mapping](https://github.com/szabolcsdombi/zengl-example-images/raw/examples/normal_mapping.jpg)](#normal_mappingpy)
 
+#### [rigged_objects.py](https://github.com/szabolcsdombi/zengl/blob/main/examples/rigged_objects.py)
+
+[![rigged_objects](https://github.com/szabolcsdombi/zengl-example-images/raw/examples/rigged_objects.png)](#rigged_objectspy)
+
 #### [instanced_crates.py](https://github.com/szabolcsdombi/zengl/blob/main/examples/instanced_crates.py)
 
-[![instanced_crates](https://github.com/szabolcsdombi/zengl-example-images/raw/examples/instanced_crates.png)](#instanced_cratespy)
+[![instanced_crates](https://github.com/szabolcsdombi/zengl-example-images/raw/examples/instanced_crates.jpg)](#instanced_cratespy)
 
 #### [julia_fractal.py](https://github.com/szabolcsdombi/zengl/blob/main/examples/julia_fractal.py)
 
