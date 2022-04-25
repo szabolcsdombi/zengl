@@ -215,6 +215,9 @@ bones[147, 3] = 0.5
 bones[149:155, 3] = 0.5
 bones[184:186, 3] = 0.5
 
+for i in range(7, loader.idx):
+    bones[i, 4:8] = vmath.random_rotation()
+
 offset = np.random.uniform(0.0, np.pi * 2.0, 256)
 speed = np.random.uniform(0.5, 0.7, 256)
 radius = np.random.uniform(2.0, 3.0, 256)
