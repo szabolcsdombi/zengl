@@ -30,11 +30,11 @@ color_img[:, :, 2] = gray + shade
 
 
 def create_terrain(N):
-    V = np.zeros((N * N, 2), 'i4')
-    I = np.full((N - 1, N * 2 + 1), -1, 'i4')
-    V[:] = np.array([np.repeat(np.arange(N), N), np.tile(np.arange(N), N)]).T
-    I[:, :-1] = (np.repeat(np.arange(N * N - N), 2) + np.tile([0, N], N * N - N)).reshape(-1, N * 2)
-    return V, I
+    vert = np.zeros((N * N, 2), 'i4')
+    idx = np.full((N - 1, N * 2 + 1), -1, 'i4')
+    vert[:] = np.array([np.repeat(np.arange(N), N), np.tile(np.arange(N), N)]).T
+    idx[:, :-1] = (np.repeat(np.arange(N * N - N), 2) + np.tile([0, N], N * N - N)).reshape(-1, N * 2)
+    return vert, idx
 
 
 window = Window(1280, 720)
