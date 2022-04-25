@@ -4,16 +4,19 @@ import numpy as np
 import zengl
 from skimage import measure
 from skimage.draw import ellipsoid
+from skimage.filters import gaussian
 
 from window import Window
 
-# Generate a level set about zero of two identical ellipsoids in 3D
-ellip_base = ellipsoid(6, 10, 16, levelset=True)
-ellip_double = np.concatenate((ellip_base[:-1, ...],
-                               ellip_base[2:, ...]), axis=0)
+volume = np.full((50, 50, 50), 1.0)
+volume[15:35, 15:35, 15:35] = -1.0
+sphere = ellipsoid(8.0, 8.0, 8.0, levelset=True)
+volume[27:46, 27:46, 27:46] = np.min([volume[27:46, 27:46, 27:46], sphere], axis=0)
+volume[4:23, 4:23, 4:23] = np.min([volume[4:23, 4:23, 4:23], sphere], axis=0)
+volume = gaussian(volume, 1.5)
 
-# Use marching cubes to obtain the surface mesh of these ellipsoids
-verts, faces, normals, values = measure.marching_cubes(ellip_double, 0)
+verts, faces, normals, values = measure.marching_cubes(volume, 0.0)
+verts -= (np.max(verts, axis=0) + np.min(verts, axis=0)) / 2.0
 
 window = Window(1280, 720)
 ctx = zengl.context()
@@ -83,8 +86,8 @@ model = ctx.pipeline(
 )
 
 while window.update():
-    x, y = math.sin(window.time * 0.5) * 80.0, math.cos(window.time * 0.5) * 80.0
-    camera = zengl.camera((12.0 + x, 10.0 + y, 40.0), (12.0, 10.0, 16.0), aspect=window.aspect, fov=45.0)
+    x, y = np.sin(window.time * 0.5) * 80.0, np.cos(window.time * 0.5) * 80.0
+    camera = zengl.camera((x, y, 40.0), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
 
     uniform_buffer.write(camera)
 
