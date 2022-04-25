@@ -5,8 +5,9 @@ import numpy as np
 import zengl
 from objloader import Obj
 
-ctx = zengl.context(zengl.loader(headless=True))
+import assets
 
+ctx = zengl.context(zengl.loader(headless=True))
 
 width, height = 1280, 720
 output = ctx.image((width, height), 'rgba8unorm')
@@ -95,8 +96,8 @@ cube = ctx.pipeline(
     vertex_count=vertex_buffer.size // zengl.calcsize('3f 3f 2f'),
 )
 
-in_filename = 'examples/data/Jellyfish_720_10s_10MB.mp4'
-out_filename = 'examples/data/Jellycube.mp4'
+in_filename = assets.get('jellyfish.mp4')
+out_filename = 'downloads/jellycube.mp4'
 
 process1 = (
     ffmpeg
