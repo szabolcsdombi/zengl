@@ -57,7 +57,7 @@ setup(
     ],
     extras_require={
         'examples': [
-            'ffmpeg',
+            'ffmpeg-python',
             'glcontext',
             'imageio-ffmpeg',
             'imageio',
