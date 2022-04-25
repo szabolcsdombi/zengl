@@ -1644,7 +1644,7 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
         source_viewport.x + source_viewport.width > self->width || source_viewport.y + source_viewport.height > self->height
     );
 
-    const bool invalid_target = invalid_target_type && (target->cubemap || target->array || !target->format.color);
+    const bool invalid_target = target && (target->cubemap || target->array || !target->format.color || target->samples > 1);
     const bool invalid_source = self->cubemap || self->array || !self->format.color;
 
     const bool error = (
@@ -1673,8 +1673,10 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
             PyErr_Format(PyExc_TypeError, "cannot blit to cubemap images");
         } else if (target && target->array) {
             PyErr_Format(PyExc_TypeError, "cannot blit to array images");
-        } else if (!target && target->format.color) {
+        } else if (target && !target->format.color) {
             PyErr_Format(PyExc_TypeError, "cannot blit to depth or stencil images");
+        } else if (target && target->samples > 1) {
+            PyErr_Format(PyExc_TypeError, "cannot blit to multisampled images");
         }
         return NULL;
     }
