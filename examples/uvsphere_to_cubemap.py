@@ -14,7 +14,7 @@ image_size = (1024, 1024)
 
 os.makedirs('downloads/skybox', exist_ok=True)
 
-img = Image.open(assets.get('comfy_cafe.jpg'))
+img = Image.open(assets.get('comfy_cafe.jpg'))  # https://polyhaven.com/a/comfy_cafe
 
 ctx = zengl.context(zengl.loader(headless=True))
 

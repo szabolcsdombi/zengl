@@ -93,11 +93,11 @@ class Loader:
 
 loader = Loader()
 
-pack = zipfile.ZipFile(assets.get('furniturekit_updated.zip'))
+pack = zipfile.ZipFile(assets.get('furniturekit_updated.zip'))  # https://www.kenney.nl/assets/furniture-kit
 for name in ['chairCushion', 'tableCloth', 'ceilingFan']:
     loader.load(pack.read(f'Models/GLTF format/{name}.glb'))
 
-pack = zipfile.ZipFile(assets.get('foodKit_v1.2.zip'))
+pack = zipfile.ZipFile(assets.get('foodKit_v1.2.zip'))  # https://www.kenney.nl/assets/food-kit
 for name in ['plate', 'utensilFork', 'utensilSpoon', 'utensilKnife']:
     loader.load(pack.read(f'Models/GLTF format/{name}.glb'))
 
