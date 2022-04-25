@@ -1,5 +1,3 @@
-import math
-
 import numpy as np
 import zengl
 from skimage import measure
