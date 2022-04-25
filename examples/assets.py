@@ -16,7 +16,8 @@ def get(filename):
         return full_path
     with requests.get(f'https://f003.backblazeb2.com/file/zengl-data/examples/{filename}', stream=True) as request:
         total_size = int(request.headers.get('Content-Length'))
-        bar = Bar(f'Downloading {filename}', fill='-', suffix='%(percent)d%%', max=total_size)
+        print(f'Downloading {filename}')
+        bar = Bar(f'Progress', fill='-', suffix='%(percent)d%%', max=total_size)
         with open(full_path + '.temp', 'wb') as f:
             chunk_size = (total_size + 100 - 1) // 100
             for chunk in request.iter_content(chunk_size=chunk_size):
