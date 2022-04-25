@@ -58,7 +58,7 @@ model = ctx.pipeline(
 
         void main() {
             vec3 light = vec3(4.0, 3.0, 10.0);
-            float lum = dot(normalize(light), normalize(v_norm)) * 0.7 + 0.3;
+            float lum = dot(normalize(light), normalize(v_norm)) * 0.5 + 0.5;
             out_color = vec4(lum, lum, lum, 1.0);
         }
     ''',
