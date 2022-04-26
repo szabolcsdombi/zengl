@@ -10,6 +10,7 @@ texture = ctx.image(img.size, 'rgba8unorm', img.convert('RGBA').tobytes())
 
 image = ctx.image((1024, 1024), 'rgba8unorm')
 
+
 def face_pipeline(face):
     uv_to_dir = [
         'vec3(1.0, uv.x, uv.y)',
@@ -83,6 +84,7 @@ def face_pipeline(face):
         topology='triangles',
         vertex_count=3,
     )
+
 
 pipelines = [(i, face_pipeline(i)) for i in range(6)]
 
