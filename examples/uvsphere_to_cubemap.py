@@ -1,18 +1,15 @@
-import os
-
-import imageio
 import numpy as np
 import zengl
 from PIL import Image
 
 import assets
 
-imageio.plugins.freeimage.download()
+'''
+    A better solution can be found in panorama_to_cubemap
+'''
 
 sphere_resolution = 32
 image_size = (1024, 1024)
-
-os.makedirs('downloads/skybox', exist_ok=True)
 
 img = Image.open(assets.get('comfy_cafe.jpg'))  # https://polyhaven.com/a/comfy_cafe
 
@@ -125,6 +122,7 @@ print('rendering')
 for face, camera in faces:
     uniform_buffer.write(camera)
     sphere.render()
-    Image.frombuffer('RGBA', image.size, image.read(), 'raw', 'RGBA', 0, -1).save(f'downloads/skybox/{face}.png')
+    img = Image.frombuffer('RGBA', image.size, image.read(), 'raw', 'RGBA', 0, -1)
+    img.save(f'downloads/skybox_{face}.png')
 
 print('done')

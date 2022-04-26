@@ -15,18 +15,18 @@ image.clear_value = (0.2, 0.2, 0.2, 1.0)
 
 uniform_buffer = ctx.buffer(size=80)
 
-if not os.path.isfile('downloads/skybox/face_0.png'):
-    raise Exception('run uvsphere_to_cubemap.py first!')
+if not os.path.isfile('downloads/skybox_0.png'):
+    raise Exception('run panorama_to_cubemap.py first!')
 
-size = Image.open('downloads/skybox/face_0.png').size
+size = Image.open('downloads/skybox_0.png').size
 
 faces = b''.join([
-    Image.open('downloads/skybox/face_0.png').convert('RGBA').tobytes('raw', 'RGBA', 0, -1),
-    Image.open('downloads/skybox/face_1.png').convert('RGBA').tobytes('raw', 'RGBA', 0, -1),
-    Image.open('downloads/skybox/face_2.png').convert('RGBA').tobytes('raw', 'RGBA', 0, -1),
-    Image.open('downloads/skybox/face_3.png').convert('RGBA').tobytes('raw', 'RGBA', 0, -1),
-    Image.open('downloads/skybox/face_4.png').convert('RGBA').tobytes('raw', 'RGBA', 0, -1),
-    Image.open('downloads/skybox/face_5.png').convert('RGBA').tobytes('raw', 'RGBA', 0, -1),
+    Image.open('downloads/skybox_0.png').convert('RGBA').tobytes('raw', 'RGBA', 0, -1),
+    Image.open('downloads/skybox_1.png').convert('RGBA').tobytes('raw', 'RGBA', 0, -1),
+    Image.open('downloads/skybox_2.png').convert('RGBA').tobytes('raw', 'RGBA', 0, -1),
+    Image.open('downloads/skybox_3.png').convert('RGBA').tobytes('raw', 'RGBA', 0, -1),
+    Image.open('downloads/skybox_4.png').convert('RGBA').tobytes('raw', 'RGBA', 0, -1),
+    Image.open('downloads/skybox_5.png').convert('RGBA').tobytes('raw', 'RGBA', 0, -1),
 ])
 
 texture = ctx.image(size, 'rgba8unorm', faces, cubemap=True)
