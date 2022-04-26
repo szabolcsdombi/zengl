@@ -1,12 +1,12 @@
-FROM python:3.9.7
+FROM python:3.10.4
 RUN apt-get update && apt-get install -y xvfb libgl1-mesa-dev libx11-dev
 RUN pip install -U pip wheel setuptools &&\
-    pip install glcontext numpy pytest pycodestyle pyflakes isort sphinx sphinx_rtd_theme
+    pip install glcontext numpy pytest pycodestyle flake8 isort sphinx sphinx_rtd_theme
 WORKDIR /app
 COPY . .
 RUN python -m pycodestyle --max-line-length=120 .
-RUN python -m pyflakes .
-RUN python -m isort -c -o zengl -p window -p assets -p utils --src=examples/example_project .
+RUN python -m flake8 --max-line-length=120 .
+RUN python -m isort -c -o zengl -p window -p assets -p utils --src=examples/example_project --gitignore .
 RUN python setup.py sdist
 RUN python setup.py build_sphinx
 RUN find dist/zengl-*.tar.gz | xargs pip install
