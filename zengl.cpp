@@ -1586,24 +1586,26 @@ PyObject * Image_meth_read(Image * self, PyObject * vargs, PyObject * kwargs) {
 }
 
 PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
-    static char * keywords[] = {"target", "target_viewport", "source_viewport", "filter", "srgb", NULL};
+    static char * keywords[] = {"target", "target_viewport", "source_viewport", "filter", "srgb", "flush", NULL};
 
     PyObject * target_arg = Py_None;
     PyObject * target_viewport_arg = Py_None;
     PyObject * source_viewport_arg = Py_None;
     int filter = true;
-    int srgb = false;
+    PyObject * srgb_arg = Py_None;
+    PyObject * flush_arg = Py_None;
 
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
-        "|OO$Opp",
+        "|OO$OpOO",
         keywords,
         &target_arg,
         &target_viewport_arg,
         &source_viewport_arg,
         &filter,
-        &srgb
+        &srgb_arg,
+        &flush_arg
     );
 
     if (!args_ok) {
@@ -1611,6 +1613,8 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
     }
 
     const bool invalid_target_type = target_arg != Py_None && Py_TYPE(target_arg) != self->ctx->module_state->Image_type;
+    const bool invalid_srgb_parameter = srgb_arg != Py_True && srgb_arg != Py_False && srgb_arg != Py_None;
+    const bool invalid_flush_parameter = flush_arg != Py_True && flush_arg != Py_False && flush_arg != Py_None;
 
     Image * target = target_arg != Py_None && !invalid_target_type ? (Image *)target_arg : NULL;
 
@@ -1634,6 +1638,9 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
         source_viewport.height = self->height;
     }
 
+    const bool srgb = (flush_arg == Py_None && self->format.internal_format == GL_SRGB8_ALPHA8) || flush_arg == Py_True;
+    const bool flush = (flush_arg == Py_None && target_arg == Py_None) || flush_arg == Py_True;
+
     const bool invalid_target_viewport = invalid_target_viewport_type || (
         target_viewport.x < 0 || target_viewport.y < 0 || target_viewport.width <= 0 || target_viewport.height <= 0 ||
         (target && (target_viewport.x + target_viewport.width > target->width || target_viewport.y + target_viewport.height > target->height))
@@ -1648,13 +1655,18 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
     const bool invalid_source = self->cubemap || self->array || !self->format.color;
 
     const bool error = (
-        invalid_target_type || invalid_target_viewport_type || invalid_source_viewport_type ||
-        invalid_target_viewport || invalid_source_viewport || invalid_target || invalid_source
+        invalid_target_type || invalid_srgb_parameter || invalid_flush_parameter ||
+        invalid_target_viewport_type || invalid_source_viewport_type || invalid_target_viewport ||
+        invalid_source_viewport || invalid_target || invalid_source
     );
 
     if (error) {
         if (invalid_target_type) {
             PyErr_Format(PyExc_TypeError, "target must be an Image or None");
+        } else if (invalid_srgb_parameter) {
+            PyErr_Format(PyExc_TypeError, "invalid srgb parameter");
+        } else if (invalid_flush_parameter) {
+            PyErr_Format(PyExc_TypeError, "invalid flush parameter");
         } else if (invalid_target_viewport_type) {
             PyErr_Format(PyExc_TypeError, "the target viewport must be a tuple of 4 ints");
         } else if (invalid_source_viewport_type) {
@@ -1705,7 +1717,7 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
     if (!srgb) {
         gl.Enable(GL_FRAMEBUFFER_SRGB);
     }
-    if (!target) {
+    if (flush) {
         gl.Flush();
     }
     Py_RETURN_NONE;

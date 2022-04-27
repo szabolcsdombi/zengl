@@ -232,7 +232,12 @@ Image
       It has no effect if the source and target viewports have the same size.
 
 **srgb**
-    | A boolean to enable linear to srgb conversion. By default it is False.
+    | A boolean to enable linear to srgb conversion.
+    | By default it is None and it means False except for srgb source images.
+
+**flush**
+    | A boolean to enable flush after blitting.
+    | By default it is None and it means False for image targets and True for blitting to the default framebuffer.
 
 .. py:method:: Image.clear()
 

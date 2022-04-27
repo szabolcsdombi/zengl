@@ -56,5 +56,5 @@ while window.update():
     image1.clear()
     image2.clear()
     triangle.render()
-    image1.blit(None, (0, 0, 640, 720))
+    image1.blit(None, (0, 0, 640, 720), flush=False)
     image2.blit(None, (640, 0, 640, 720))

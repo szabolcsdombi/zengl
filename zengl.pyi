@@ -163,7 +163,8 @@ class Image:
     def read(self, size: Tuple[int, int] | None = None, *, offset: Tuple[int, int] | None = None) -> bytes: ...
     def blit(
         self, target: 'Image' | None = None, target_viewport: Viewport | None = None, *,
-        source_viewport: Viewport | None = None, filter: bool = True, srgb: bool = False) -> None: ...
+        source_viewport: Viewport | None = None, filter: bool = True, srgb: bool | None = None,
+        flush: bool | None = None) -> None: ...
 
 
 class Pipeline:
