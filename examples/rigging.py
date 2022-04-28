@@ -13,14 +13,14 @@ image = ctx.image(window.size, 'rgba8unorm', samples=4)
 depth = ctx.image(window.size, 'depth24plus', samples=4)
 image.clear_value = (0.2, 0.2, 0.2, 1.0)
 
-pack = zipfile.ZipFile(assets.get('rig-test.zip'))
+pack = zipfile.ZipFile(assets.get('humanoid.zip'))
 
-rig = pack.open('rig-test.rig')
+rig = pack.open('humanoid.rig')
 bones = struct.unpack('i', rig.read(4))[0]
 
 rig_buffer = ctx.buffer(rig.read(bones * 32))
 pose_buffer = ctx.buffer(rig.read(bones * 32))
-vertex_buffer = ctx.buffer(pack.read('rig-test.mesh'))
+vertex_buffer = ctx.buffer(pack.read('humanoid.mesh'))
 
 uniform_buffer = ctx.buffer(size=64)
 
@@ -141,7 +141,7 @@ monkey = ctx.pipeline(
     vertex_count=vertex_buffer.size // zengl.calcsize('3f 3f 4i 4f'),
 )
 
-camera = zengl.camera((1.0, -6.0, 4.0), (0.0, 0.0, 1.5), aspect=window.aspect, fov=45.0)
+camera = zengl.camera((1.0, -2.0, 1.0), (0.0, 0.0, 0.5), aspect=window.aspect, fov=45.0)
 uniform_buffer.write(camera)
 
 while window.update():
