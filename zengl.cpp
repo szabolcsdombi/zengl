@@ -1,5 +1,9 @@
 #include "zengl.hpp"
 
+const StencilSettings default_stencil_settings = {
+    0x1E00, 0x1E00, 0x1E00, 0x0207, 0xff, 0xff, 0,
+};
+
 struct ModuleState {
     PyObject * helper;
     PyObject * empty_tuple;
@@ -61,6 +65,9 @@ struct GlobalSettings {
     float polygon_offset_factor;
     float polygon_offset_units;
     int attachments;
+    int is_mask_default;
+    int is_stencil_default;
+    int is_blend_default;
 };
 
 struct Context {
@@ -81,6 +88,10 @@ struct Context {
     DescriptorSetImages * current_images;
     GlobalSettings * current_global_settings;
     Viewport viewport;
+    int is_mask_default;
+    int is_stencil_default;
+    int is_blend_default;
+    int current_attachments;
     int current_framebuffer;
     int current_program;
     int current_vertex_array;
@@ -168,8 +179,6 @@ void bind_global_settings(Context * self, GlobalSettings * settings) {
     if (self->current_global_settings == settings) {
         return;
     }
-    self->current_global_settings = settings;
-    self->current_clear_mask = settings->color_mask & 0xf | settings->depth_write << 8 | settings->stencil_front.write_mask << 16;
     if (settings->primitive_restart) {
         gl.Enable(GL_PRIMITIVE_RESTART);
     } else {
@@ -181,45 +190,63 @@ void bind_global_settings(Context * self, GlobalSettings * settings) {
     } else {
         gl.Disable(GL_POLYGON_OFFSET_FILL);
     }
-    if (settings->stencil_test) {
-        gl.Enable(GL_STENCIL_TEST);
-    } else {
-        gl.Disable(GL_STENCIL_TEST);
-    }
-    if (settings->depth_test) {
-        gl.Enable(GL_DEPTH_TEST);
-    } else {
-        gl.Disable(GL_DEPTH_TEST);
-    }
     if (settings->cull_face) {
         gl.Enable(GL_CULL_FACE);
         gl.CullFace(settings->cull_face);
     } else {
         gl.Disable(GL_CULL_FACE);
     }
+    if (settings->depth_test) {
+        gl.Enable(GL_DEPTH_TEST);
+    } else {
+        gl.Disable(GL_DEPTH_TEST);
+    }
     gl.LineWidth(settings->line_width);
     gl.FrontFace(settings->front_face);
-    gl.DepthMask(settings->depth_write);
-    gl.StencilMaskSeparate(GL_FRONT, settings->stencil_front.write_mask);
-    gl.StencilMaskSeparate(GL_BACK, settings->stencil_back.write_mask);
-    gl.StencilFuncSeparate(GL_FRONT, settings->stencil_front.compare_op, settings->stencil_front.reference, settings->stencil_front.compare_mask);
-    gl.StencilFuncSeparate(GL_BACK, settings->stencil_back.compare_op, settings->stencil_back.reference, settings->stencil_back.compare_mask);
-    gl.StencilOpSeparate(GL_FRONT, settings->stencil_front.fail_op, settings->stencil_front.pass_op, settings->stencil_front.depth_fail_op);
-    gl.StencilOpSeparate(GL_BACK, settings->stencil_back.fail_op, settings->stencil_back.pass_op, settings->stencil_back.depth_fail_op);
-    gl.BlendFuncSeparate(settings->blend_src_color, settings->blend_dst_color, settings->blend_src_alpha, settings->blend_dst_alpha);
-    for (int i = 0; i < settings->attachments; ++i) {
-        if (settings->blend_enable >> i & 1) {
-            gl.Enablei(GL_BLEND, i);
+    if (!self->is_stencil_default || !settings->is_stencil_default) {
+        if (settings->stencil_test) {
+            gl.Enable(GL_STENCIL_TEST);
         } else {
-            gl.Disablei(GL_BLEND, i);
+            gl.Disable(GL_STENCIL_TEST);
         }
-        gl.ColorMaski(
-            i,
-            settings->color_mask >> (i * 4 + 0) & 1,
-            settings->color_mask >> (i * 4 + 1) & 1,
-            settings->color_mask >> (i * 4 + 2) & 1,
-            settings->color_mask >> (i * 4 + 3) & 1
-        );
+        gl.StencilMaskSeparate(GL_FRONT, settings->stencil_front.write_mask);
+        gl.StencilMaskSeparate(GL_BACK, settings->stencil_back.write_mask);
+        gl.StencilFuncSeparate(GL_FRONT, settings->stencil_front.compare_op, settings->stencil_front.reference, settings->stencil_front.compare_mask);
+        gl.StencilFuncSeparate(GL_BACK, settings->stencil_back.compare_op, settings->stencil_back.reference, settings->stencil_back.compare_mask);
+        gl.StencilOpSeparate(GL_FRONT, settings->stencil_front.fail_op, settings->stencil_front.pass_op, settings->stencil_front.depth_fail_op);
+        gl.StencilOpSeparate(GL_BACK, settings->stencil_back.fail_op, settings->stencil_back.pass_op, settings->stencil_back.depth_fail_op);
+        self->is_stencil_default = settings->is_stencil_default;
+    }
+    if (!self->is_mask_default || !settings->is_mask_default || self->current_attachments != settings->attachments) {
+        gl.DepthMask(settings->depth_write);
+        for (int i = 0; i < settings->attachments; ++i) {
+            gl.ColorMaski(
+                i,
+                settings->color_mask >> (i * 4 + 0) & 1,
+                settings->color_mask >> (i * 4 + 1) & 1,
+                settings->color_mask >> (i * 4 + 2) & 1,
+                settings->color_mask >> (i * 4 + 3) & 1
+            );
+        }
+        self->is_mask_default = settings->is_mask_default;
+    }
+    if (!self->is_blend_default || !settings->is_blend_default || self->current_attachments != settings->attachments) {
+        gl.BlendFuncSeparate(settings->blend_src_color, settings->blend_dst_color, settings->blend_src_alpha, settings->blend_dst_alpha);
+        for (int i = 0; i < settings->attachments; ++i) {
+            if (settings->blend_enable >> i & 1) {
+                gl.Enablei(GL_BLEND, i);
+            } else {
+                gl.Disablei(GL_BLEND, i);
+            }
+        }
+        self->is_blend_default = settings->is_blend_default;
+    }
+    self->current_global_settings = settings;
+    self->current_attachments = settings->attachments;
+    if (settings->attachments > 0) {
+        self->current_clear_mask = settings->color_mask & 0xf | settings->depth_write << 8 | settings->stencil_front.write_mask << 16;
+    } else {
+        self->current_clear_mask = self->current_clear_mask & 0xf | settings->depth_write << 8 | settings->stencil_front.write_mask << 16;
     }
 }
 
@@ -487,6 +514,19 @@ GlobalSettings * build_global_settings(Context * self, PyObject * settings) {
     res->polygon_offset_units = (float)PyFloat_AsDouble(seq[30]);
     res->attachments = PyLong_AsLong(seq[31]);
 
+    res->is_mask_default = res->color_mask == 0xffffffffffffffffull && res->depth_write;
+    res->is_stencil_default = !res->stencil_test;
+    if (memcmp(&res->stencil_front, &default_stencil_settings, sizeof(StencilSettings))) {
+        res->is_stencil_default = false;
+    }
+    if (memcmp(&res->stencil_back, &default_stencil_settings, sizeof(StencilSettings))) {
+        res->is_stencil_default = false;
+    }
+    res->is_blend_default = !res->blend_enable;
+    if (res->blend_src_color != 1 || res->blend_dst_color != 0 || res->blend_src_alpha != 1 || res->blend_dst_alpha != 0) {
+        res->is_blend_default = false;
+    }
+
     PyDict_SetItem(self->global_settings_cache, settings, (PyObject *)res);
     return res;
 }
@@ -678,6 +718,10 @@ Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwargs) {
     res->current_buffers = NULL;
     res->current_images = NULL;
     res->current_global_settings = NULL;
+    res->is_mask_default = false;
+    res->is_stencil_default = false;
+    res->is_blend_default = false;
+    res->current_attachments = 0;
     res->current_framebuffer = 0;
     res->current_program = 0;
     res->current_vertex_array = 0;
