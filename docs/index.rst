@@ -370,6 +370,7 @@ Pipeline
 **front_face**
     | A string representing the front face. It must be ``'cw'`` or ``'ccw'``
     | The default value is ``'ccw'``
+    | *DEPRECATED*
 
 **cull_face**
     | A string representing the cull face. It must be ``'front'``, ``'back'`` or ``'none'``
@@ -402,6 +403,7 @@ Pipeline
 **line_width**
     | A float defining the rasterized line size in pixels. Beware wide lines are not a core feature.
     | Wondering where the point_size is? ZenGL only supports the more generic gl_PointSize_.
+    | *DEPRECATED*
 
 .. _gl_PointSize: https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/gl_PointSize.xhtml
 
