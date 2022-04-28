@@ -5,7 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-# [main](https://github.com/szabolcsdombi/zengl/compare/1.4.3...main)
+# [main](https://github.com/szabolcsdombi/zengl/compare/1.5.0...main)
+
+# [1.5.0](https://github.com/szabolcsdombi/zengl/compare/1.4.3...1.5.0)
+
+- Implemented flush parameter for blitting
+- Improved default for srgb parameter for blitting
+- Fixed error checking for image blitting
+- Fixed dependency list for examples
+- Support binding uniform and attribute arrays
+- Optimized binding global settings
+- Deprecated line_width and front_face
 
 # [1.4.3](https://github.com/szabolcsdombi/zengl/compare/1.4.2...1.4.3)
 
