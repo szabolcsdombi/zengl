@@ -325,6 +325,20 @@ def program(vertex_shader, fragment_shader, layout, includes):
 
 
 def validate(attributes, uniforms, uniform_buffers, vertex_buffers, layout, resources, limits):
+    attributes = [
+        {
+            'name': obj['name'].replace('[0]', '[%d]' % i),
+            'location': obj['location'],
+        }
+        for obj in attributes for i in range(obj['size'])
+    ]
+    uniforms = [
+        {
+            'name': obj['name'].replace('[0]', '[%d]' % i),
+            'location': obj['location'],
+        }
+        for obj in uniforms for i in range(obj['size'])
+    ]
     bound_attributes = set()
     bound_uniforms = set()
     bound_uniform_buffers = set()

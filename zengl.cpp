@@ -1025,7 +1025,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         char name[256] = {};
         gl.GetActiveAttrib(program->obj, i, 256, &length, &size, (unsigned *)&type, name);
         int location = gl.GetAttribLocation(program->obj, name);
-        PyList_SET_ITEM(program_attributes, i, Py_BuildValue("{sssi}", "name", name, "location", location));
+        PyList_SET_ITEM(program_attributes, i, Py_BuildValue("{sssisi}", "name", name, "location", location, "size", size));
     }
 
     for (int i = 0; i < uniforms; ++i) {
@@ -1035,7 +1035,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         char name[256] = {};
         gl.GetActiveUniform(program->obj, i, 256, &length, &size, (unsigned *)&type, name);
         int location = gl.GetUniformLocation(program->obj, name);
-        PyList_SET_ITEM(program_uniforms, i, Py_BuildValue("{sssi}", "name", name, "location", location));
+        PyList_SET_ITEM(program_uniforms, i, Py_BuildValue("{sssisi}", "name", name, "location", location, "size", size));
     }
 
     for (int i = 0; i < uniform_buffers; ++i) {
