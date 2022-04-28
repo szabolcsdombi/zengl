@@ -47,8 +47,6 @@ struct GlobalSettings {
     int uses;
     unsigned long long color_mask;
     int primitive_restart;
-    float line_width;
-    int front_face;
     int cull_face;
     int depth_test;
     int depth_write;
@@ -201,8 +199,6 @@ void bind_global_settings(Context * self, GlobalSettings * settings) {
     } else {
         gl.Disable(GL_DEPTH_TEST);
     }
-    gl.LineWidth(settings->line_width);
-    gl.FrontFace(settings->front_face);
     if (!self->is_stencil_default || !settings->is_stencil_default) {
         if (settings->stencil_test) {
             gl.Enable(GL_STENCIL_TEST);
@@ -478,41 +474,39 @@ GlobalSettings * build_global_settings(Context * self, PyObject * settings) {
     res->uses = 1;
 
     res->primitive_restart = PyObject_IsTrue(seq[0]);
-    res->line_width = (float)PyFloat_AsDouble(seq[1]);
-    res->front_face = PyLong_AsLong(seq[2]);
-    res->cull_face = PyLong_AsLong(seq[3]);
-    res->color_mask = PyLong_AsUnsignedLongLong(seq[4]);
-    res->depth_test = PyObject_IsTrue(seq[5]);
-    res->depth_write = PyObject_IsTrue(seq[6]);
-    res->depth_func = PyLong_AsLong(seq[7]);
-    res->stencil_test = PyObject_IsTrue(seq[8]);
+    res->cull_face = PyLong_AsLong(seq[1]);
+    res->color_mask = PyLong_AsUnsignedLongLong(seq[2]);
+    res->depth_test = PyObject_IsTrue(seq[3]);
+    res->depth_write = PyObject_IsTrue(seq[4]);
+    res->depth_func = PyLong_AsLong(seq[5]);
+    res->stencil_test = PyObject_IsTrue(seq[6]);
     res->stencil_front = {
+        PyLong_AsLong(seq[7]),
+        PyLong_AsLong(seq[8]),
         PyLong_AsLong(seq[9]),
         PyLong_AsLong(seq[10]),
         PyLong_AsLong(seq[11]),
         PyLong_AsLong(seq[12]),
         PyLong_AsLong(seq[13]),
-        PyLong_AsLong(seq[14]),
-        PyLong_AsLong(seq[15]),
     };
     res->stencil_back = {
+        PyLong_AsLong(seq[14]),
+        PyLong_AsLong(seq[15]),
         PyLong_AsLong(seq[16]),
         PyLong_AsLong(seq[17]),
         PyLong_AsLong(seq[18]),
         PyLong_AsLong(seq[19]),
         PyLong_AsLong(seq[20]),
-        PyLong_AsLong(seq[21]),
-        PyLong_AsLong(seq[22]),
     };
-    res->blend_enable = PyLong_AsLong(seq[23]);
-    res->blend_src_color = PyLong_AsLong(seq[24]);
-    res->blend_dst_color = PyLong_AsLong(seq[25]);
-    res->blend_src_alpha = PyLong_AsLong(seq[26]);
-    res->blend_dst_alpha = PyLong_AsLong(seq[27]);
-    res->polygon_offset = PyObject_IsTrue(seq[28]);
-    res->polygon_offset_factor = (float)PyFloat_AsDouble(seq[29]);
-    res->polygon_offset_units = (float)PyFloat_AsDouble(seq[30]);
-    res->attachments = PyLong_AsLong(seq[31]);
+    res->blend_enable = PyLong_AsLong(seq[21]);
+    res->blend_src_color = PyLong_AsLong(seq[22]);
+    res->blend_dst_color = PyLong_AsLong(seq[23]);
+    res->blend_src_alpha = PyLong_AsLong(seq[24]);
+    res->blend_dst_alpha = PyLong_AsLong(seq[25]);
+    res->polygon_offset = PyObject_IsTrue(seq[26]);
+    res->polygon_offset_factor = (float)PyFloat_AsDouble(seq[27]);
+    res->polygon_offset_units = (float)PyFloat_AsDouble(seq[28]);
+    res->attachments = PyLong_AsLong(seq[29]);
 
     res->is_mask_default = res->color_mask == 0xffffffffffffffffull && res->depth_write;
     res->is_stencil_default = !res->stencil_test;
@@ -966,13 +960,11 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         "index_buffer",
         "short_index",
         "primitive_restart",
-        "front_face",
         "cull_face",
         "topology",
         "vertex_count",
         "instance_count",
         "first_vertex",
-        "line_width",
         "viewport",
         "skip_validation",
         NULL,
@@ -992,20 +984,18 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     PyObject * index_buffer = Py_None;
     int short_index = false;
     PyObject * primitive_restart = Py_True;
-    PyObject * front_face = self->module_state->str_ccw;
     PyObject * cull_face = self->module_state->str_none;
     const char * topology = "triangles";
     int vertex_count = 0;
     int instance_count = 1;
     int first_vertex = 0;
-    PyObject * line_width = self->module_state->float_one;
     PyObject * viewport = Py_None;
     int skip_validation = false;
 
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
-        "|$OOOOOOOOOOOOpOOOsiiiOOp",
+        "|$OOOOOOOOOOOOpOOsiiiOp",
         keywords,
         &vertex_shader,
         &fragment_shader,
@@ -1021,13 +1011,11 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         &index_buffer,
         &short_index,
         &primitive_restart,
-        &front_face,
         &cull_face,
         &topology,
         &vertex_count,
         &instance_count,
         &first_vertex,
-        &line_width,
         &viewport,
         &skip_validation
     );
@@ -1159,10 +1147,8 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     PyObject * settings = PyObject_CallMethod(
         self->module_state->helper,
         "settings",
-        "OOOOOOOOON",
+        "OOOOOOON",
         primitive_restart,
-        line_width,
-        front_face,
         cull_face,
         color_mask,
         depth,

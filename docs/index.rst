@@ -305,7 +305,7 @@ Generate mipmaps for the image.
 Pipeline
 --------
 
-.. py:method:: Context.pipeline(vertex_shader, fragment_shader, layout, resources, depth, stencil, blending, polygon_offset, color_mask, framebuffer, vertex_buffers, index_buffer, short_index, primitive_restart, front_face, cull_face, topology, vertex_count, instance_count, first_vertex, line_width, viewport, skip_validation) -> Pipeline
+.. py:method:: Context.pipeline(vertex_shader, fragment_shader, layout, resources, depth, stencil, blending, polygon_offset, color_mask, framebuffer, vertex_buffers, index_buffer, short_index, primitive_restart, cull_face, topology, vertex_count, instance_count, first_vertex, viewport, skip_validation) -> Pipeline
 
 **vertex_shader**
     | The vertex shader code.
@@ -367,11 +367,6 @@ Pipeline
     | A boolean to enable the primitive restart index. The default primitive restart index is -1.
     | The default value is True.
 
-**front_face**
-    | A string representing the front face. It must be ``'cw'`` or ``'ccw'``
-    | The default value is ``'ccw'``
-    | *DEPRECATED*
-
 **cull_face**
     | A string representing the cull face. It must be ``'front'``, ``'back'`` or ``'none'``
     | The default value is ``'none'``
@@ -399,13 +394,6 @@ Pipeline
 **first_vertex**
     | The first vertex or the first index to start drawing from.
     | The default value is 0. This is a mutable parameter at runtime.
-
-**line_width**
-    | A float defining the rasterized line size in pixels. Beware wide lines are not a core feature.
-    | Wondering where the point_size is? ZenGL only supports the more generic gl_PointSize_.
-    | *DEPRECATED*
-
-.. _gl_PointSize: https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/gl_PointSize.xhtml
 
 **viewport**
     | The render viewport, defined as tuples of four ints in (x, y, width, height) format.

@@ -34,11 +34,6 @@ FORMAT = {
     '4i': ('sint32x4', 16),
 }
 
-FRONT_FACE = {
-    'cw': 0x0900,
-    'ccw': 0x0901,
-}
-
 CULL_FACE = {
     'front': 0x0404,
     'back': 0x0405,
@@ -237,11 +232,8 @@ def framebuffer_attachments(attachments):
     return tuple(attachments), depth_stencil_attachment
 
 
-def settings(
-        primitive_restart, line_width, front_face, cull_face, color_mask,
-        depth, stencil, blending, polygon_offset, attachments):
-
-    res = [bool(primitive_restart), float(line_width), FRONT_FACE[front_face], CULL_FACE[cull_face], color_mask]
+def settings(primitive_restart, cull_face, color_mask, depth, stencil, blending, polygon_offset, attachments):
+    res = [bool(primitive_restart), CULL_FACE[cull_face], color_mask]
 
     if depth is True or depth is False:
         res.extend([depth, depth, 0x0201])

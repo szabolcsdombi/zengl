@@ -1,6 +1,5 @@
 from typing import Any, Dict, Iterable, List, Literal, Tuple, TypedDict
 
-FrontFace = Literal['cw', 'ccw']
 CullFace = Literal['front', 'back', 'front_and_back', 'none']
 Topology = Literal['points', 'lines', 'line_loop', 'line_strip', 'triangles', 'triangle_strip', 'triangle_fan']
 
@@ -200,13 +199,11 @@ class Context:
         index_buffer: Buffer | None = None,
         short_index: bool = False,
         primitive_restart: bool = True,
-        front_face: FrontFace = 'ccw',
         cull_face: CullFace = 'none',
         topology: Topology = 'triangles',
         vertex_count: int = 0,
         instance_count: int = 0,
         first_vertex: int = 0,
-        line_width: float = 1.0,
         viewport: Viewport | None = None,
         skip_validation: bool = False) -> Pipeline: ...
     def clear_shader_cache(self) -> None: ...
