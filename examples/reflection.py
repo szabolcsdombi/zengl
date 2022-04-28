@@ -115,8 +115,7 @@ monkey_reflection = ctx.pipeline(
     ],
     framebuffer=[image, depth],
     topology='triangles',
-    cull_face='back',
-    front_face='cw',
+    cull_face='front',
     vertex_buffers=zengl.bind(vertex_buffer, '3f 3f', 0, 1),
     vertex_count=vertex_buffer.size // zengl.calcsize('3f 3f'),
 )
