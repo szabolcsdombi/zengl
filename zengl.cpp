@@ -177,12 +177,8 @@ void bind_global_settings(Context * self, GlobalSettings * settings) {
     }
     if (settings->polygon_offset) {
         gl.Enable(GL_POLYGON_OFFSET_FILL);
-        gl.Enable(GL_POLYGON_OFFSET_LINE);
-        gl.Enable(GL_POLYGON_OFFSET_POINT);
     } else {
         gl.Disable(GL_POLYGON_OFFSET_FILL);
-        gl.Disable(GL_POLYGON_OFFSET_LINE);
-        gl.Disable(GL_POLYGON_OFFSET_POINT);
     }
     if (settings->stencil_test) {
         gl.Enable(GL_STENCIL_TEST);
