@@ -15,17 +15,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed dependency list for examples
 - Support binding uniform and attribute arrays
 - Optimized binding global settings
-- Deprecated line_width and front_face
+- Deprecated `line_width` and `front_face`
 
 # [1.4.3](https://github.com/szabolcsdombi/zengl/compare/1.4.2...1.4.3)
 
 - Support pipeline creation without validation
-- Improve package info
+- Improved package info
 
 # [1.4.2](https://github.com/szabolcsdombi/zengl/compare/1.4.1...1.4.2)
 
 - Fixed wrong stride used while initializing cubemap images
-- Implement size check for creating images
+- Implemented size check for creating images
 
 # [1.4.1](https://github.com/szabolcsdombi/zengl/compare/1.4.0...1.4.1)
 
@@ -38,8 +38,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 # [1.4.0](https://github.com/szabolcsdombi/zengl/compare/1.3.0...1.4.0)
 
 - Improve interoperability for porting existing code
-- Implement `Context.screen`
-- Implement `zengl.inspect`
+- Implemented `Context.screen` as the default framebuffer
+- Implemented `zengl.inspect` for debugging
 
 # [1.3.0](https://github.com/szabolcsdombi/zengl/compare/1.2.1...1.3.0)
 
@@ -47,7 +47,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 # [1.2.2](https://github.com/szabolcsdombi/zengl/compare/1.2.1...1.2.2)
 
-- Fix broken `Pipeline.vertex_count`, `Pipeline.instance_count` and `Pipeline.first_vertex`
+- Fixed broken `Pipeline.vertex_count`, `Pipeline.instance_count` and `Pipeline.first_vertex`
 
 # [1.2.1](https://github.com/szabolcsdombi/zengl/compare/1.2.0...1.2.1)
 
@@ -56,7 +56,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 # [1.2.0](https://github.com/szabolcsdombi/zengl/compare/1.1.0...1.2.0)
 
-- Invalid image format error
+- Validate image format
 - Removed `max_varying_components` limit
 - Fixed blank screen for osx when double buffering is enabled
 - Disabled shadow window configuration for osx
@@ -64,14 +64,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 # [1.1.0](https://github.com/szabolcsdombi/zengl/compare/1.0.1...1.1.0)
 
-- Implement soft limit for max number of samples
-- Implement `Context.limits`
-- Validate uniform buffer size
+- Implemented soft limit for max number of samples
+- Implemented `Context.limits`
+- Implemented uniform buffer size validation
 - Blit to screen flushes the command buffer
 
 # [1.0.1](https://github.com/szabolcsdombi/zengl/compare/1.0.0...1.0.1)
 
-- Fix compile issues on multiple platforms
+- Fixed compile issues on multiple platforms
 - Build wheels with cibuildwheel
 
 # [1.0.0](https://github.com/szabolcsdombi/zengl/tree/1.0.0)
