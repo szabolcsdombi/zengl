@@ -177,6 +177,7 @@ void bind_global_settings(Context * self, GlobalSettings * settings) {
     }
     if (settings->polygon_offset) {
         gl.Enable(GL_POLYGON_OFFSET_FILL);
+        gl.PolygonOffset(settings->polygon_offset_factor, settings->polygon_offset_units);
     } else {
         gl.Disable(GL_POLYGON_OFFSET_FILL);
     }
@@ -206,7 +207,6 @@ void bind_global_settings(Context * self, GlobalSettings * settings) {
     gl.StencilOpSeparate(GL_FRONT, settings->stencil_front.fail_op, settings->stencil_front.pass_op, settings->stencil_front.depth_fail_op);
     gl.StencilOpSeparate(GL_BACK, settings->stencil_back.fail_op, settings->stencil_back.pass_op, settings->stencil_back.depth_fail_op);
     gl.BlendFuncSeparate(settings->blend_src_color, settings->blend_dst_color, settings->blend_src_alpha, settings->blend_dst_alpha);
-    gl.PolygonOffset(settings->polygon_offset_factor, settings->polygon_offset_units);
     for (int i = 0; i < settings->attachments; ++i) {
         if (settings->blend_enable >> i & 1) {
             gl.Enablei(GL_BLEND, i);
