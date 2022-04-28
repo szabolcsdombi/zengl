@@ -390,11 +390,16 @@ GLObject * build_sampler(Context * self, PyObject * params) {
     gl.SamplerParameteri(sampler, GL_TEXTURE_COMPARE_MODE, PyLong_AsLong(seq[8]));
     gl.SamplerParameteri(sampler, GL_TEXTURE_COMPARE_FUNC, PyLong_AsLong(seq[9]));
 
+    float max_anisotropy = (float)PyFloat_AsDouble(seq[10]);
+    if (max_anisotropy != 1.0f) {
+        gl.SamplerParameterf(sampler, GL_TEXTURE_MAX_ANISOTROPY, max_anisotropy);
+    }
+
     float color[] = {
-        (float)PyFloat_AsDouble(seq[10]),
         (float)PyFloat_AsDouble(seq[11]),
         (float)PyFloat_AsDouble(seq[12]),
         (float)PyFloat_AsDouble(seq[13]),
+        (float)PyFloat_AsDouble(seq[14]),
     };
     gl.SamplerParameterfv(sampler, GL_TEXTURE_BORDER_COLOR, color);
 

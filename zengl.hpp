@@ -170,6 +170,9 @@ typedef int sizeiptr;
 #define GL_PROGRAM_POINT_SIZE 0x8642
 #define GL_TEXTURE_CUBE_MAP_SEAMLESS 0x884F
 
+// EXTENSION
+#define GL_TEXTURE_MAX_ANISOTROPY 0x84FE
+
 // GL_VERSION_1_0
 typedef void (GLAPI * glCullFaceProc)(unsigned int mode);
 typedef void (GLAPI * glFrontFaceProc)(unsigned int mode);

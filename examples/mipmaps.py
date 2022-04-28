@@ -15,7 +15,7 @@ texture.mipmaps()
 
 uniform_buffer = ctx.buffer(size=80)
 
-crate = ctx.pipeline(
+pipeline = ctx.pipeline(
     vertex_shader='''
         #version 330
 
@@ -77,6 +77,7 @@ crate = ctx.pipeline(
             'image': texture,
             'min_filter': 'linear_mipmap_linear',
             'mag_filter': 'linear',
+            'max_anisotropy': 16.0,
             'lod_bias': -1.0,
         },
     ],
@@ -92,5 +93,5 @@ uniform_buffer.write(camera)
 while window.update():
     image.clear()
     depth.clear()
-    crate.render()
+    pipeline.render()
     image.blit()

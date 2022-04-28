@@ -84,6 +84,7 @@ class ImageResourceBinding(TypedDict, total=False):
     wrap_z: TextureWrap
     compare_mode: CompareMode
     compare_func: CompareFunc
+    max_anisotropy: float
     border_color: Tuple[float, float, float, float]
 
 

@@ -205,6 +205,7 @@ def sampler_bindings(resources):
             TEXTURE_WRAP[obj.get('wrap_z', 'repeat')],
             COMPARE_MODE[obj.get('compare_mode', 'none')],
             COMPARE_FUNC[obj.get('compare_func', 'never')],
+            float(obj.get('max_anisotropy', 1.0)),
             float(border_color[0]),
             float(border_color[1]),
             float(border_color[2]),
