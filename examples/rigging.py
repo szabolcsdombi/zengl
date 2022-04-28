@@ -1,8 +1,6 @@
-import io
 import struct
 import zipfile
 
-import vmath
 import zengl
 
 import assets
