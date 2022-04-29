@@ -1,5 +1,6 @@
 import struct
 import zipfile
+from itertools import cycle
 
 import zengl
 
@@ -16,10 +17,10 @@ image.clear_value = (0.2, 0.2, 0.2, 1.0)
 pack = zipfile.ZipFile(assets.get('humanoid.zip'))
 
 rig = pack.open('humanoid.rig')
-bones = struct.unpack('i', rig.read(4))[0]
+bones, frames = struct.unpack('ii', rig.read(8))
+pose_frame = cycle([rig.read(bones * 32) for i in range(frames)])
 
-rig_buffer = ctx.buffer(rig.read(bones * 32))
-pose_buffer = ctx.buffer(rig.read(bones * 32))
+pose_buffer = ctx.buffer(next(pose_frame))
 vertex_buffer = ctx.buffer(pack.read('humanoid.mesh'))
 
 uniform_buffer = ctx.buffer(size=64)
@@ -31,9 +32,6 @@ ctx.includes['common'] = '''
 '''
 
 ctx.includes['bones'] = f'''
-    layout (std140) uniform RigBones {{
-        vec4 rig_bone[{bones}];
-    }};
     layout (std140) uniform PoseBones {{
         vec4 pose_bone[{bones}];
     }};
@@ -42,9 +40,6 @@ ctx.includes['bones'] = f'''
 ctx.includes['qtransform'] = '''
     vec3 qtransform(vec4 q, vec3 v) {
         return v + 2.0 * cross(cross(v, q.xyz) - q.w * v, q.xyz);
-    }
-    vec3 inverse_qtransform(vec4 q, vec3 v) {
-        return v + 2.0 * cross(cross(v, q.xyz) + q.w * v, q.xyz);
     }
 '''
 
@@ -61,16 +56,12 @@ monkey = ctx.pipeline(
         layout (location = 2) in ivec4 in_bone;
         layout (location = 3) in vec4 in_weight;
 
-        vec3 rig_vertex(int bone) {
-            return inverse_qtransform(rig_bone[bone * 2 + 1], in_vert - rig_bone[bone * 2 + 0].xyz);
-        }
-
         vec3 pose_vertex(int bone) {
-            return pose_bone[bone * 2 + 0].xyz + qtransform(pose_bone[bone * 2 + 1], rig_vertex(bone));
+            return pose_bone[bone * 2 + 0].xyz + qtransform(pose_bone[bone * 2 + 1], in_vert);
         }
 
         vec3 pose_normal(int bone) {
-            return qtransform(pose_bone[bone * 2 + 1], inverse_qtransform(rig_bone[bone * 2 + 1], in_norm));
+            return qtransform(pose_bone[bone * 2 + 1], in_norm);
         }
 
         out vec3 v_norm;
@@ -109,12 +100,8 @@ monkey = ctx.pipeline(
             'binding': 0,
         },
         {
-            'name': 'RigBones',
-            'binding': 1,
-        },
-        {
             'name': 'PoseBones',
-            'binding': 2,
+            'binding': 1,
         },
     ],
     resources=[
@@ -126,11 +113,6 @@ monkey = ctx.pipeline(
         {
             'type': 'uniform_buffer',
             'binding': 1,
-            'buffer': rig_buffer,
-        },
-        {
-            'type': 'uniform_buffer',
-            'binding': 2,
             'buffer': pose_buffer,
         },
     ],
@@ -145,6 +127,7 @@ camera = zengl.camera((1.0, -2.0, 1.0), (0.0, 0.0, 0.5), aspect=window.aspect, f
 uniform_buffer.write(camera)
 
 while window.update():
+    pose_buffer.write(next(pose_frame))
     image.clear()
     depth.clear()
     monkey.render()
