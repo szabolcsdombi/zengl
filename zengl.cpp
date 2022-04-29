@@ -891,7 +891,7 @@ Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * kwargs) 
     if (renderbuffer) {
         gl.GenRenderbuffers(1, (unsigned *)&image);
         gl.BindRenderbuffer(GL_RENDERBUFFER, image);
-        gl.RenderbufferStorageMultisample(GL_RENDERBUFFER, samples, format.internal_format, width, height);
+        gl.RenderbufferStorageMultisample(GL_RENDERBUFFER, samples > 1 ? samples : 0, format.internal_format, width, height);
     } else {
         gl.GenTextures(1, (unsigned *)&image);
         gl.ActiveTexture(self->default_texture_unit);
