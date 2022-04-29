@@ -74,7 +74,7 @@ setup(
             'pyopengl',
             'requests',
             'scikit-image',
-            # 'vmath',
+            'vmath',
         ],
     },
 )
