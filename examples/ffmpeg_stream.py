@@ -15,7 +15,7 @@ image = ctx.image((width, height), 'rgba8unorm', samples=4)
 depth = ctx.image((width, height), 'depth24plus', samples=4)
 image.clear_value = (0.2, 0.2, 0.2, 1.0)
 
-model = Obj.open('examples/data/box.obj').pack('vx vy vz nx ny nz tx ty')
+model = Obj.open(assets.get('box.obj')).pack('vx vy vz nx ny nz tx ty')
 vertex_buffer = ctx.buffer(model)
 
 texture = ctx.image((width, height), 'rgba8unorm')

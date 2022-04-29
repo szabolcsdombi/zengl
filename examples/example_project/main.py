@@ -1,3 +1,4 @@
+import assets
 from blur import Blur
 from context import Context
 from object_manager import ObjectManager
@@ -13,9 +14,9 @@ blur = Blur(framebuffer.image)
 
 object_manager = ObjectManager(framebuffer)
 
-monkey_model = SimpleModel('examples/data/monkey.obj')
-blob_model = SimpleModel('examples/data/blob.obj')
-box_model = SimpleModel('examples/data/box.obj')
+monkey_model = SimpleModel(assets.get('monkey.obj'))
+blob_model = SimpleModel(assets.get('blob.obj'))
+box_model = SimpleModel(assets.get('box.obj'))
 
 monkey = object_manager.model(monkey_model)
 blob1 = object_manager.model(blob_model)

@@ -3,6 +3,7 @@ import struct
 import zengl
 from objloader import Obj
 
+import assets
 from window import Window
 
 window = Window(1280, 720)
@@ -199,7 +200,7 @@ def create_render_pipeline(vertex_buffer, uniform_buffer, framebuffer):
     )
 
 
-model = Obj.open('examples/data/monkey.obj').pack('vx vy vz nx ny nz')
+model = Obj.open(assets.get('monkey.obj')).pack('vx vy vz nx ny nz')
 vertex_buffer = ctx.buffer(model)
 uniform_buffer = ctx.buffer(size=368)
 

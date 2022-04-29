@@ -2,6 +2,7 @@ import zengl
 from objloader import Obj
 from OpenGL import GL
 
+import assets
 from window import Window
 
 '''
@@ -27,7 +28,7 @@ image = ctx.image(window.size, 'rgba8unorm', samples=4)
 depth = ctx.image(window.size, 'depth24plus', samples=4)
 image.clear_value = (0.2, 0.2, 0.2, 1.0)
 
-model = Obj.open('examples/data/box.obj').pack('vx vy vz nx ny nz')
+model = Obj.open(assets.get('box.obj')).pack('vx vy vz nx ny nz')
 vertex_buffer = ctx.buffer(model)
 
 pipeline = ctx.pipeline(

@@ -4,6 +4,7 @@ import zengl
 from objloader import Obj
 from PIL import Image
 
+import assets
 from window import Window
 
 window = Window(1280, 720)
@@ -13,10 +14,10 @@ image = ctx.image(window.size, 'rgba8unorm', samples=4)
 depth = ctx.image(window.size, 'depth24plus', samples=4)
 image.clear_value = (1.0, 1.0, 1.0, 1.0)
 
-model = Obj.open('examples/data/box.obj').pack('vx vy vz nx ny nz tx ty')
+model = Obj.open(assets.get('box.obj')).pack('vx vy vz nx ny nz tx ty')
 vertex_buffer = ctx.buffer(model)
 
-img = Image.open('examples/data/crate.png').convert('RGBA')
+img = Image.open(assets.get('crate.png')).convert('RGBA')
 texture = ctx.image(img.size, 'rgba8unorm', img.tobytes())
 
 uniform_buffer = ctx.buffer(size=80)

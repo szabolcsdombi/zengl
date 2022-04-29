@@ -1,10 +1,14 @@
 import math
+import zipfile
 
 import zengl
 from objloader import Obj
 from PIL import Image
 
+import assets
 from window import Window
+
+pack = zipfile.ZipFile(assets.get('forest-panorama.zip'))
 
 window = Window(1280, 720)
 ctx = zengl.context()
@@ -13,10 +17,10 @@ image = ctx.image(window.size, 'rgba8unorm', samples=4)
 depth = ctx.image(window.size, 'depth24plus', samples=4)
 image.clear_value = (0.2, 0.2, 0.2, 1.0)
 
-img = Image.open('examples/data/forest.jpg').convert('RGBA')  # https://polyhaven.com/a/phalzer_forest_01
+img = Image.open(pack.open('forest.jpg')).convert('RGBA')  # https://polyhaven.com/a/phalzer_forest_01
 texture = ctx.image(img.size, 'rgba8unorm', img.tobytes())
 
-model = Obj.open('examples/data/blob.obj').pack('vx vy vz nx ny nz')
+model = Obj.open(assets.get('blob.obj')).pack('vx vy vz nx ny nz')
 vertex_buffer = ctx.buffer(model)
 
 uniform_buffer = ctx.buffer(size=80)
