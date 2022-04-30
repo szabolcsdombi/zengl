@@ -1,9 +1,10 @@
-from colorsys import hls_to_rgb
 import gzip
-import zengl
+from colorsys import hls_to_rgb
+
 import numpy as np
-from objloader import Obj
+import zengl
 from chull import make_hull
+from objloader import Obj
 
 import assets
 from window import Window
