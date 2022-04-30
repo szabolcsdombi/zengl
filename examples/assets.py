@@ -15,6 +15,8 @@ def get(filename):
     if os.path.isfile(full_path):
         return full_path
     with requests.get(f'https://f003.backblazeb2.com/file/zengl-data/examples/{filename}', stream=True) as request:
+        if not request.ok:
+            raise Exception(request.text)
         total_size = int(request.headers.get('Content-Length'))
         print(f'Downloading {filename}')
         bar = Bar('Progress', fill='-', suffix='%(percent)d%%', max=total_size)
