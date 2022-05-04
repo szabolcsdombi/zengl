@@ -116,6 +116,8 @@ typedef int sizeiptr;
 #define GL_RGBA32I 0x8D82
 #define GL_RGBA16I 0x8D88
 #define GL_RGBA8I 0x8D8E
+#define GL_RED_INTEGER 0x8D94
+#define GL_RGBA_INTEGER 0x8D99
 #define GL_DEPTH_COMPONENT32F 0x8CAC
 #define GL_DEPTH_STENCIL_ATTACHMENT 0x821A
 #define GL_DEPTH_STENCIL 0x84F9
@@ -135,6 +137,7 @@ typedef int sizeiptr;
 #define GL_MAP_WRITE_BIT 0x0002
 #define GL_MAP_INVALIDATE_RANGE_BIT 0x0004
 #define GL_RG 0x8227
+#define GL_RG_INTEGER 0x8228
 #define GL_R8 0x8229
 #define GL_RG8 0x822B
 #define GL_R16F 0x822D
@@ -507,24 +510,24 @@ ImageFormat get_image_format(const char * format) {
     if (!strcmp(format, "r8snorm")) return {GL_R8_SNORM, GL_RED, GL_UNSIGNED_BYTE, 1, 1, GL_COLOR, true, 'f'};
     if (!strcmp(format, "rg8snorm")) return {GL_RG8_SNORM, GL_RG, GL_UNSIGNED_BYTE, 2, 2, GL_COLOR, true, 'f'};
     if (!strcmp(format, "rgba8snorm")) return {GL_RGBA8_SNORM, GL_RGBA, GL_UNSIGNED_BYTE, 4, 4, GL_COLOR, true, 'f'};
-    if (!strcmp(format, "r8uint")) return {GL_R8UI, GL_RED, GL_UNSIGNED_BYTE, 1, 1, GL_COLOR, true, 'u'};
-    if (!strcmp(format, "rg8uint")) return {GL_RG8UI, GL_RG, GL_UNSIGNED_BYTE, 2, 2, GL_COLOR, true, 'u'};
-    if (!strcmp(format, "rgba8uint")) return {GL_RGBA8UI, GL_RGBA, GL_UNSIGNED_BYTE, 4, 4, GL_COLOR, true, 'u'};
-    if (!strcmp(format, "r16uint")) return {GL_R16UI, GL_RED, GL_UNSIGNED_SHORT, 1, 2, GL_COLOR, true, 'u'};
-    if (!strcmp(format, "rg16uint")) return {GL_RG16UI, GL_RG, GL_UNSIGNED_SHORT, 2, 4, GL_COLOR, true, 'u'};
-    if (!strcmp(format, "rgba16uint")) return {GL_RGBA16UI, GL_RGBA, GL_UNSIGNED_SHORT, 4, 8, GL_COLOR, true, 'u'};
-    if (!strcmp(format, "r32uint")) return {GL_R32UI, GL_RED, GL_UNSIGNED_INT, 1, 4, GL_COLOR, true, 'u'};
-    if (!strcmp(format, "rg32uint")) return {GL_RG32UI, GL_RG, GL_UNSIGNED_INT, 2, 8, GL_COLOR, true, 'u'};
-    if (!strcmp(format, "rgba32uint")) return {GL_RGBA32UI, GL_RGBA, GL_UNSIGNED_INT, 4, 16, GL_COLOR, true, 'u'};
-    if (!strcmp(format, "r8sint")) return {GL_R8I, GL_RED, GL_BYTE, 1, 1, GL_COLOR, true, 'i'};
-    if (!strcmp(format, "rg8sint")) return {GL_RG8I, GL_RG, GL_BYTE, 2, 2, GL_COLOR, true, 'i'};
-    if (!strcmp(format, "rgba8sint")) return {GL_RGBA8I, GL_RGBA, GL_BYTE, 4, 4, GL_COLOR, true, 'i'};
-    if (!strcmp(format, "r16sint")) return {GL_R16I, GL_RED, GL_SHORT, 1, 2, GL_COLOR, true, 'i'};
-    if (!strcmp(format, "rg16sint")) return {GL_RG16I, GL_RG, GL_SHORT, 2, 4, GL_COLOR, true, 'i'};
-    if (!strcmp(format, "rgba16sint")) return {GL_RGBA16I, GL_RGBA, GL_SHORT, 4, 8, GL_COLOR, true, 'i'};
-    if (!strcmp(format, "r32sint")) return {GL_R32I, GL_RED, GL_INT, 1, 4, GL_COLOR, true, 'i'};
-    if (!strcmp(format, "rg32sint")) return {GL_RG32I, GL_RG, GL_INT, 2, 8, GL_COLOR, true, 'i'};
-    if (!strcmp(format, "rgba32sint")) return {GL_RGBA32I, GL_RGBA, GL_INT, 4, 16, GL_COLOR, true, 'i'};
+    if (!strcmp(format, "r8uint")) return {GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, 1, 1, GL_COLOR, true, 'u'};
+    if (!strcmp(format, "rg8uint")) return {GL_RG8UI, GL_RG_INTEGER, GL_UNSIGNED_BYTE, 2, 2, GL_COLOR, true, 'u'};
+    if (!strcmp(format, "rgba8uint")) return {GL_RGBA8UI, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, 4, 4, GL_COLOR, true, 'u'};
+    if (!strcmp(format, "r16uint")) return {GL_R16UI, GL_RED_INTEGER, GL_UNSIGNED_SHORT, 1, 2, GL_COLOR, true, 'u'};
+    if (!strcmp(format, "rg16uint")) return {GL_RG16UI, GL_RG_INTEGER, GL_UNSIGNED_SHORT, 2, 4, GL_COLOR, true, 'u'};
+    if (!strcmp(format, "rgba16uint")) return {GL_RGBA16UI, GL_RGBA_INTEGER, GL_UNSIGNED_SHORT, 4, 8, GL_COLOR, true, 'u'};
+    if (!strcmp(format, "r32uint")) return {GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, 1, 4, GL_COLOR, true, 'u'};
+    if (!strcmp(format, "rg32uint")) return {GL_RG32UI, GL_RG_INTEGER, GL_UNSIGNED_INT, 2, 8, GL_COLOR, true, 'u'};
+    if (!strcmp(format, "rgba32uint")) return {GL_RGBA32UI, GL_RGBA_INTEGER, GL_UNSIGNED_INT, 4, 16, GL_COLOR, true, 'u'};
+    if (!strcmp(format, "r8sint")) return {GL_R8I, GL_RED_INTEGER, GL_BYTE, 1, 1, GL_COLOR, true, 'i'};
+    if (!strcmp(format, "rg8sint")) return {GL_RG8I, GL_RG_INTEGER, GL_BYTE, 2, 2, GL_COLOR, true, 'i'};
+    if (!strcmp(format, "rgba8sint")) return {GL_RGBA8I, GL_RGBA_INTEGER, GL_BYTE, 4, 4, GL_COLOR, true, 'i'};
+    if (!strcmp(format, "r16sint")) return {GL_R16I, GL_RED_INTEGER, GL_SHORT, 1, 2, GL_COLOR, true, 'i'};
+    if (!strcmp(format, "rg16sint")) return {GL_RG16I, GL_RG_INTEGER, GL_SHORT, 2, 4, GL_COLOR, true, 'i'};
+    if (!strcmp(format, "rgba16sint")) return {GL_RGBA16I, GL_RGBA_INTEGER, GL_SHORT, 4, 8, GL_COLOR, true, 'i'};
+    if (!strcmp(format, "r32sint")) return {GL_R32I, GL_RED_INTEGER, GL_INT, 1, 4, GL_COLOR, true, 'i'};
+    if (!strcmp(format, "rg32sint")) return {GL_RG32I, GL_RG_INTEGER, GL_INT, 2, 8, GL_COLOR, true, 'i'};
+    if (!strcmp(format, "rgba32sint")) return {GL_RGBA32I, GL_RGBA_INTEGER, GL_INT, 4, 16, GL_COLOR, true, 'i'};
     if (!strcmp(format, "r16float")) return {GL_R16F, GL_RED, GL_FLOAT, 1, 2, GL_COLOR, true, 'f'};
     if (!strcmp(format, "rg16float")) return {GL_RG16F, GL_RG, GL_FLOAT, 2, 4, GL_COLOR, true, 'f'};
     if (!strcmp(format, "rgba16float")) return {GL_RGBA16F, GL_RGBA, GL_FLOAT, 4, 8, GL_COLOR, true, 'f'};
