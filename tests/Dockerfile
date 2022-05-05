@@ -1,7 +1,7 @@
 FROM python:3.10.4
 RUN apt-get update && apt-get install -y xvfb libgl1-mesa-dev libx11-dev
 RUN pip install -U pip wheel setuptools &&\
-    pip install glcontext numpy pytest pycodestyle flake8 isort sphinx sphinx_rtd_theme
+    pip install glcontext numpy pytest pycodestyle flake8 isort sphinx sphinx_rtd_theme pyopengl
 WORKDIR /app
 COPY . .
 RUN python -m pycodestyle --max-line-length=120 .
