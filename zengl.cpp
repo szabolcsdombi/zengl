@@ -1451,48 +1451,42 @@ PyObject * Image_meth_clear(Image * self) {
 }
 
 PyObject * Image_meth_write(Image * self, PyObject * vargs, PyObject * kwargs) {
-    static char * keywords[] = {"data", "size", "offset", "layer", NULL};
+    static char * keywords[] = {"data", "size", "offset", "layer", "level", NULL};
 
     Py_buffer view;
     PyObject * size_arg = Py_None;
     PyObject * offset_arg = Py_None;
-    PyObject * layer_arg = Py_None;
+    int layer = 0;
+    int level = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "y*|O$OO", keywords, &view, &size_arg, &offset_arg, &layer_arg)) {
+    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "y*|O$Oii", keywords, &view, &size_arg, &offset_arg, &layer, &level)) {
         return NULL;
     }
 
     IntPair size = {};
     IntPair offset = {};
-    int layer = 0;
 
     const bool invalid_size_type = size_arg != Py_None && !is_int_pair(size_arg);
     const bool invalid_offset_type = offset_arg != Py_None && !is_int_pair(offset_arg);
-    const bool invalid_layer_type = layer_arg != Py_None && !PyLong_CheckExact(layer_arg);
 
     if (size_arg != Py_None && !invalid_size_type) {
         size = to_int_pair(size_arg);
     } else {
-        size.x = self->width;
-        size.y = self->height;
+        size.x = max(self->width >> level, 1);
+        size.y = max(self->height >> level, 1);
     }
 
     if (offset_arg != Py_None && !invalid_offset_type) {
         offset = to_int_pair(offset_arg);
     }
 
-    if (layer_arg != Py_None && !invalid_layer_type) {
-        layer = PyLong_AsLong(layer_arg);
-    }
-
     const bool offset_but_no_size = size_arg == Py_None && offset_arg != Py_None;
     const bool invalid_size = invalid_size_type || size.x <= 0 || size.y <= 0 || size.x > self->width || size.y > self->height;
     const bool invalid_offset = invalid_offset_type || offset.x < 0 || offset.y < 0 || size.x + offset.x > self->width || size.y + offset.y > self->height;
-    const bool invalid_layer = invalid_layer_type || layer < 0 || (self->cubemap && layer >= 6) || (self->array && layer >= self->array);
-    const bool layer_but_simple = !self->cubemap && !self->array && layer;
+    const bool invalid_layer = layer < 0 || layer >= (self->array ? self->array : 1) * (self->cubemap ? 6 : 1);
     const bool invalid_type = !self->format.color || self->samples != 1;
 
-    if (offset_but_no_size || invalid_size || invalid_offset || invalid_layer || layer_but_simple || invalid_type) {
+    if (offset_but_no_size || invalid_size || invalid_offset || invalid_layer || invalid_type) {
         PyBuffer_Release(&view);
         if (offset_but_no_size) {
             PyErr_Format(PyExc_ValueError, "the size is required when the offset is not None");
@@ -1500,21 +1494,26 @@ PyObject * Image_meth_write(Image * self, PyObject * vargs, PyObject * kwargs) {
             PyErr_Format(PyExc_TypeError, "the size must be a tuple of 2 ints");
         } else if (invalid_offset_type) {
             PyErr_Format(PyExc_TypeError, "the offset must be a tuple of 2 ints");
-        } else if (invalid_layer_type) {
-            PyErr_Format(PyExc_TypeError, "the layer must be an int or None");
         } else if (invalid_size) {
             PyErr_Format(PyExc_ValueError, "invalid size");
         } else if (invalid_offset) {
             PyErr_Format(PyExc_ValueError, "invalid offset");
         } else if (invalid_layer) {
             PyErr_Format(PyExc_ValueError, "invalid layer");
-        } else if (layer_but_simple) {
-            PyErr_Format(PyExc_TypeError, "the image is not layered");
         } else if (!self->format.color) {
             PyErr_Format(PyExc_TypeError, "cannot write to depth or stencil images");
         } else if (self->samples != 1) {
             PyErr_Format(PyExc_TypeError, "cannot write to multisampled images");
         }
+        return NULL;
+    }
+
+    int padded_row = (size.x * self->format.pixel_size + 3) & ~3;
+    int expected_size = padded_row * size.y;
+
+    if ((int)view.len != expected_size) {
+        PyBuffer_Release(&view);
+        PyErr_Format(PyExc_ValueError, "invalid data size, expected %d, got %d", expected_size, (int)view.len);
         return NULL;
     }
 
@@ -1524,11 +1523,11 @@ PyObject * Image_meth_write(Image * self, PyObject * vargs, PyObject * kwargs) {
     gl.BindTexture(self->target, self->image);
     if (self->cubemap) {
         int face = GL_TEXTURE_CUBE_MAP_POSITIVE_X + layer;
-        gl.TexSubImage2D(face, 0, offset.x, offset.y, size.x, size.y, self->format.format, self->format.type, view.buf);
+        gl.TexSubImage2D(face, level, offset.x, offset.y, size.x, size.y, self->format.format, self->format.type, view.buf);
     } else if (self->array) {
-        gl.TexSubImage3D(self->target, 0, offset.x, offset.y, layer, size.x, size.y, 1, self->format.format, self->format.type, view.buf);
+        gl.TexSubImage3D(self->target, level, offset.x, offset.y, layer, size.x, size.y, 1, self->format.format, self->format.type, view.buf);
     } else {
-        gl.TexSubImage2D(self->target, 0, offset.x, offset.y, size.x, size.y, self->format.format, self->format.type, view.buf);
+        gl.TexSubImage2D(self->target, level, offset.x, offset.y, size.x, size.y, self->format.format, self->format.type, view.buf);
     }
 
     PyBuffer_Release(&view);

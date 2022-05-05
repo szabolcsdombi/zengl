@@ -623,6 +623,10 @@ Viewport to_viewport(PyObject * obj) {
     return res;
 }
 
+int max(int a, int b) {
+    return a > b ? a : b;
+}
+
 void * load_method(PyObject * context, const char * method) {
     PyObject * res = PyObject_CallMethod(context, "load", "s", method);
     if (!res) {
