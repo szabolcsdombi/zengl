@@ -6,6 +6,7 @@ from skimage.filters import gaussian
 import assets
 from window import Window
 
+imageio.plugins.freeimage.download()
 img = imageio.imread(assets.get('Terrain002.exr'))  # https://ambientcg.com/view?id=Terrain002
 
 normals = np.zeros((512, 512, 3))
