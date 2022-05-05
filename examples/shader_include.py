@@ -8,7 +8,10 @@ ctx = zengl.context()
 image = ctx.image(window.size, 'rgba8unorm', samples=4)
 image.clear_value = (1.0, 1.0, 1.0, 1.0)
 
-ctx.includes['test'] = ''
+ctx.includes['vertex_attributes'] = '''
+    layout (location = 0) in vec2 in_vert;
+    layout (location = 1) in vec3 in_color;
+'''
 
 vertex_buffer = ctx.buffer(np.array([
     0.0, 0.8, 1.0, 0.0, 0.0,
@@ -20,10 +23,7 @@ triangle = ctx.pipeline(
     vertex_shader='''
         #version 330
 
-        #include "test"
-
-        layout (location = 0) in vec2 in_vert;
-        layout (location = 1) in vec3 in_color;
+        #include "vertex_attributes"
 
         out vec3 v_color;
 
