@@ -16,10 +16,10 @@ vertex_buffer = ctx.buffer(model)
 
 ctx.includes['perspective'] = '''
     mat4 perspective(float fovy, float aspect, float znear, float zfar) {
-        float tanHalfFovy = tan(fovy * 0.008726646259971647884618453842);
+        float tan_half_fovy = tan(fovy * 0.008726646259971647884618453842);
         return mat4(
-            1.0 / (aspect * tanHalfFovy), 0.0, 0.0, 0.0,
-            0.0, 1.0 / (tanHalfFovy), 0.0, 0.0,
+            1.0 / (aspect * tan_half_fovy), 0.0, 0.0, 0.0,
+            0.0, 1.0 / (tan_half_fovy), 0.0, 0.0,
             0.0, 0.0, -(zfar + znear) / (zfar - znear), -1.0,
             0.0, 0.0, -(2.0 * zfar * znear) / (zfar - znear), 0.0
         );
