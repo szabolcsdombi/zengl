@@ -720,10 +720,10 @@ Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwargs) {
     res->is_mask_default = false;
     res->is_stencil_default = false;
     res->is_blend_default = false;
-    res->current_attachments = 0;
-    res->current_framebuffer = 0;
-    res->current_program = 0;
-    res->current_vertex_array = 0;
+    res->current_attachments = -1;
+    res->current_framebuffer = -1;
+    res->current_program = -1;
+    res->current_vertex_array = -1;
     res->current_clear_mask = 0;
     res->viewport = {};
     res->default_texture_unit = default_texture_unit;
@@ -1295,6 +1295,22 @@ PyObject * Context_meth_release(Context * self, PyObject * arg) {
         }
         Py_DECREF(pipeline);
     }
+    Py_RETURN_NONE;
+}
+
+PyObject * Context_meth_reset(Context * self) {
+    self->current_buffers = NULL;
+    self->current_images = NULL;
+    self->current_global_settings = NULL;
+    self->viewport.viewport = 0xffffffffffffffffull;
+    self->is_stencil_default = false;
+    self->is_mask_default = false;
+    self->is_blend_default = false;
+    self->current_attachments = -1;
+    self->current_framebuffer = -1;
+    self->current_program = -1;
+    self->current_vertex_array = -1;
+    self->current_clear_mask = 0;
     Py_RETURN_NONE;
 }
 

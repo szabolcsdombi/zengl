@@ -576,6 +576,10 @@ Returns an object with all of the OpenGL objects.
 | An integer value of the framebuffer object used by the pipeline.
 | This attribute can be changed.
 
+.. py:method:: Context.reset()
+
+| Reset assumptions on the current global OpenGL state. Assume a dirty OpenGL context.
+
 Utils
 -----
 
