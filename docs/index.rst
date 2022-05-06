@@ -277,8 +277,9 @@ Generate mipmaps for the image.
 
 **layer**
     | An int representing the layer to be written to.
+    | This value must be None for non-layered textures.
     | For array and cubemap textures, the layer must be specified.
-    | The default value is 0.
+    | The default value is None and it mean all the layers.
 
 **level**
     | An int representing the mipmap level to be written to.
