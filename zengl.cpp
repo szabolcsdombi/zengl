@@ -897,7 +897,8 @@ Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * kwargs) 
         gl.ActiveTexture(self->default_texture_unit);
         gl.BindTexture(target, image);
         if (cubemap) {
-            int stride = width * height * format.pixel_size;
+            int padded_row = (width * format.pixel_size + 3) & ~3;
+            int stride = padded_row * height;
             for (int i = 0; i < 6; ++i) {
                 int face = GL_TEXTURE_CUBE_MAP_POSITIVE_X + i;
                 gl.TexImage2D(face, 0, format.internal_format, width, height, 0, format.format, format.type, (char *)view.buf + stride * i);
