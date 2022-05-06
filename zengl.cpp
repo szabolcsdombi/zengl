@@ -2277,6 +2277,7 @@ PyMethodDef Context_methods[] = {
     {"pipeline", (PyCFunction)Context_meth_pipeline, METH_VARARGS | METH_KEYWORDS, NULL},
     {"clear_shader_cache", (PyCFunction)Context_meth_clear_shader_cache, METH_NOARGS, NULL},
     {"release", (PyCFunction)Context_meth_release, METH_O, NULL},
+    {"reset", (PyCFunction)Context_meth_reset, METH_NOARGS, NULL},
     {},
 };
 
