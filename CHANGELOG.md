@@ -5,7 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-# [main](https://github.com/szabolcsdombi/zengl/compare/1.6.1...main)
+# [main](https://github.com/szabolcsdombi/zengl/compare/1.7.0...main)
+
+# [1.7.0](https://github.com/szabolcsdombi/zengl/compare/1.6.1...1.7.0)
 
 - Implemented `Context.reset` to assume the context is dirty
 - Fixed integer textures used the wrong base format
