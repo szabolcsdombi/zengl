@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 # [main](https://github.com/szabolcsdombi/zengl/compare/1.6.1...main)
 
+- Fixed integer textures used the wrong base format
+- Removed invalid texture format type hints
+- Fixed broken bound object cache after releasing objects
+- Improved invalid size error message for images
+- Implemented write to image layer
+- Fixed image write for all levels
+- Fixed image create and image write stride for small cubemaps
+- Implemented size check for image create and image write
+- Implemented release shader cache
+- Deprecated `clear_shader_cache`
+
 # [1.6.1](https://github.com/szabolcsdombi/zengl/compare/1.6.0...1.6.1)
 
 - Fixed reading single sample renderbuffers
