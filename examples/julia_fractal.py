@@ -11,7 +11,7 @@ ctx.includes['parameters'] = '''
     int Iter = 100;
 '''
 
-image = ctx.image(window.size, 'rgba8unorm', samples=4)
+image = ctx.image(window.size, 'rgba8unorm')
 
 scene = ctx.pipeline(
     vertex_shader='''
