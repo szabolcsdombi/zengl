@@ -1548,6 +1548,10 @@ PyObject * Image_meth_write(Image * self, PyObject * vargs, PyObject * kwargs) {
     int padded_row = (size.x * self->format.pixel_size + 3) & ~3;
     int expected_size = padded_row * size.y;
 
+    if (layer_arg == Py_None) {
+        expected_size *= (self->array ? self->array : 1) * (self->cubemap ? 6 : 1);
+    }
+
     if ((int)view.len != expected_size) {
         PyBuffer_Release(&view);
         PyErr_Format(PyExc_ValueError, "invalid data size, expected %d, got %d", expected_size, (int)view.len);
