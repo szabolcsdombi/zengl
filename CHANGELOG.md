@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 # [main](https://github.com/szabolcsdombi/zengl/compare/1.6.1...main)
 
+- Implemented `Context.reset` to assume the context is dirty
 - Fixed integer textures used the wrong base format
 - Removed invalid texture format type hints
 - Fixed broken bound object cache after releasing objects
