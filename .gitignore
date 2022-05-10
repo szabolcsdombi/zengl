@@ -7,4 +7,5 @@ __pycache__
 *.pyd
 *.so
 *.mp4
-hello.png
+*.png
+*.jpg
