@@ -1001,9 +1001,11 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
-        "|$OOOOOOOOOOOOpOOsiiiOp",
+        "|$O!O!OOOOOOOOOOpOOsiiiOp",
         keywords,
+        &PyUnicode_Type,
         &vertex_shader,
+        &PyUnicode_Type,
         &fragment_shader,
         &layout,
         &resources,
@@ -1027,6 +1029,17 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     );
 
     if (!args_ok) {
+        return NULL;
+    }
+
+    if (!vertex_shader || !fragment_shader || !framebuffer_images) {
+        if (!vertex_shader) {
+            PyErr_Format(PyExc_TypeError, "no vertex_shader was specified");
+        } else if (!fragment_shader) {
+            PyErr_Format(PyExc_TypeError, "no fragment_shader was specified");
+        } else if (!framebuffer_images) {
+            PyErr_Format(PyExc_TypeError, "no framebuffer was specified");
+        }
         return NULL;
     }
 
