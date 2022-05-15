@@ -3,6 +3,9 @@ import zengl
 
 
 def test_invalid_buffer_parameters(ctx: zengl.Context):
+    with pytest.raises(ValueError):
+        ctx.buffer()
+
     with pytest.raises(TypeError):
         ctx.buffer('test')
 
