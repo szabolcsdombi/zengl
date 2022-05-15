@@ -836,8 +836,9 @@ Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * kwargs) 
     const bool invalid_samples = samples < 1 || (samples & (samples - 1)) || samples > 16;
     const bool cubemap_array = cubemap && array;
     const bool cubemap_or_array_renderbuffer = (array || cubemap) && (samples > 1 || texture == Py_False);
+    const bool data_and_renderbuffer = data != Py_None && (samples > 1 || texture == Py_False);
 
-    if (invalid_texture_parameter || samples_but_texture || invalid_samples || cubemap_array || cubemap_or_array_renderbuffer) {
+    if (invalid_texture_parameter || samples_but_texture || invalid_samples || cubemap_array || cubemap_or_array_renderbuffer || data_and_renderbuffer) {
         if (invalid_texture_parameter) {
             PyErr_Format(PyExc_TypeError, "invalid texture parameter");
         } else if (samples_but_texture) {
@@ -854,6 +855,10 @@ Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * kwargs) 
             PyErr_Format(PyExc_TypeError, "for array images texture must be True");
         } else if (cubemap && texture == Py_False) {
             PyErr_Format(PyExc_TypeError, "for cubemap images texture must be True");
+        } else if (data_and_renderbuffer && samples > 1) {
+            PyErr_Format(PyExc_ValueError, "cannot write to multisampled images");
+        } else if (data_and_renderbuffer && texture == Py_False) {
+            PyErr_Format(PyExc_ValueError, "cannot write to renderbuffers");
         }
         return NULL;
     }
