@@ -1348,7 +1348,7 @@ PyObject * Buffer_meth_write(Buffer * self, PyObject * vargs, PyObject * kwargs)
 
     const bool already_mapped = self->mapped;
     const bool invalid_offset = offset < 0 || offset > self->size;
-    const bool invalid_size = (int)view.len > self->size;
+    const bool invalid_size = (int)view.len + offset > self->size;
 
     if (already_mapped || invalid_offset || invalid_size) {
         PyBuffer_Release(&view);
@@ -1364,8 +1364,10 @@ PyObject * Buffer_meth_write(Buffer * self, PyObject * vargs, PyObject * kwargs)
 
     const GLMethods & gl = self->ctx->gl;
 
-    gl.BindBuffer(GL_ARRAY_BUFFER, self->buffer);
-    gl.BufferSubData(GL_ARRAY_BUFFER, offset, (int)view.len, view.buf);
+    if (view.len) {
+        gl.BindBuffer(GL_ARRAY_BUFFER, self->buffer);
+        gl.BufferSubData(GL_ARRAY_BUFFER, offset, (int)view.len, view.buf);
+    }
 
     PyBuffer_Release(&view);
     Py_RETURN_NONE;
