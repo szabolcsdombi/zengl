@@ -834,17 +834,20 @@ Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * kwargs) 
     const bool invalid_texture_parameter = texture != Py_True && texture != Py_False && texture != Py_None;
     const bool samples_but_texture = samples > 1 && texture == Py_True;
     const bool invalid_samples = samples < 1 || (samples & (samples - 1)) || samples > 16;
+    const bool invalid_array = array < 0;
     const bool cubemap_array = cubemap && array;
     const bool cubemap_or_array_renderbuffer = (array || cubemap) && (samples > 1 || texture == Py_False);
     const bool data_and_renderbuffer = data != Py_None && (samples > 1 || texture == Py_False);
 
-    if (invalid_texture_parameter || samples_but_texture || invalid_samples || cubemap_array || cubemap_or_array_renderbuffer || data_and_renderbuffer) {
+    if (invalid_texture_parameter || samples_but_texture || invalid_samples || invalid_array || cubemap_array || cubemap_or_array_renderbuffer || data_and_renderbuffer) {
         if (invalid_texture_parameter) {
             PyErr_Format(PyExc_TypeError, "invalid texture parameter");
         } else if (samples_but_texture) {
             PyErr_Format(PyExc_TypeError, "for multisampled images texture must be False");
         } else if (invalid_samples) {
             PyErr_Format(PyExc_ValueError, "samples must be 1, 2, 4, 8 or 16");
+        } else if (invalid_array) {
+            PyErr_Format(PyExc_ValueError, "array must not be negative");
         } else if (cubemap_array) {
             PyErr_Format(PyExc_TypeError, "cubemap arrays are not supported");
         } else if (array && samples > 1) {
