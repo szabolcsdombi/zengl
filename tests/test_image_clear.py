@@ -1,8 +1,6 @@
-import struct
-
+import numpy as np
 import pytest
 import zengl
-import numpy as np
 
 
 def test_image_clear(ctx: zengl.Context):
