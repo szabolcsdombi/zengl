@@ -930,7 +930,8 @@ Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * kwargs) 
             int stride = padded_row * height;
             for (int i = 0; i < 6; ++i) {
                 int face = GL_TEXTURE_CUBE_MAP_POSITIVE_X + i;
-                gl.TexImage2D(face, 0, format.internal_format, width, height, 0, format.format, format.type, (char *)view.buf + stride * i);
+                char * ptr = view.buf ? (char *)view.buf + stride * i : NULL;
+                gl.TexImage2D(face, 0, format.internal_format, width, height, 0, format.format, format.type, ptr);
             }
         } else if (array) {
             gl.TexImage3D(target, 0, format.internal_format, width, height, array, 0, format.format, format.type, view.buf);
