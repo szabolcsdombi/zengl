@@ -21,6 +21,12 @@ struct ModuleState {
     PyTypeObject * GLObject_type;
 };
 
+struct GCHeader {
+    PyObject_HEAD
+    GCHeader * gc_prev;
+    GCHeader * gc_next;
+};
+
 struct GLObject {
     PyObject_HEAD
     int uses;
@@ -70,6 +76,8 @@ struct GlobalSettings {
 
 struct Context {
     PyObject_HEAD
+    GCHeader * gc_prev;
+    GCHeader * gc_next;
     ModuleState * module_state;
     PyObject * descriptor_set_buffers_cache;
     PyObject * descriptor_set_images_cache;
@@ -103,6 +111,8 @@ struct Context {
 
 struct Buffer {
     PyObject_HEAD
+    GCHeader * gc_prev;
+    GCHeader * gc_next;
     Context * ctx;
     int buffer;
     int size;
@@ -111,6 +121,8 @@ struct Buffer {
 
 struct Image {
     PyObject_HEAD
+    GCHeader * gc_prev;
+    GCHeader * gc_next;
     Context * ctx;
     PyObject * size;
     GLObject * framebuffer;
@@ -129,6 +141,8 @@ struct Image {
 
 struct Pipeline {
     PyObject_HEAD
+    GCHeader * gc_prev;
+    GCHeader * gc_next;
     Context * ctx;
     DescriptorSetBuffers * descriptor_set_buffers;
     DescriptorSetImages * descriptor_set_images;
@@ -703,6 +717,8 @@ Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwargs) {
     PyTuple_SetItem(info, 2, to_str(gl.GetString(GL_VERSION)));
 
     Context * res = PyObject_New(Context, module_state->Context_type);
+    res->gc_prev = (GCHeader *)res;
+    res->gc_next = (GCHeader *)res;
     res->module_state = module_state;
     res->descriptor_set_buffers_cache = PyDict_New();
     res->descriptor_set_images_cache = PyDict_New();
@@ -786,6 +802,10 @@ Buffer * Context_meth_buffer(Context * self, PyObject * vargs, PyObject * kwargs
     gl.BufferData(GL_ARRAY_BUFFER, size, view.buf, dynamic ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
 
     Buffer * res = PyObject_New(Buffer, self->module_state->Buffer_type);
+    res->gc_prev = self->gc_prev;
+    res->gc_next = (GCHeader *)self;
+    res->gc_prev->gc_next = (GCHeader *)res;
+    res->gc_next->gc_prev = (GCHeader *)res;
     res->ctx = (Context *)new_ref(self);
     res->buffer = buffer;
     res->size = size;
@@ -925,6 +945,10 @@ Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * kwargs) 
     }
 
     Image * res = PyObject_New(Image, self->module_state->Image_type);
+    res->gc_prev = self->gc_prev;
+    res->gc_next = (GCHeader *)self;
+    res->gc_prev->gc_next = (GCHeader *)res;
+    res->gc_next->gc_prev = (GCHeader *)res;
     res->ctx = (Context *)new_ref(self);
     res->size = Py_BuildValue("(ii)", width, height);
     res->clear_value = clear_value;
@@ -1208,6 +1232,10 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     }
 
     Pipeline * res = PyObject_New(Pipeline, self->module_state->Pipeline_type);
+    res->gc_prev = self->gc_prev;
+    res->gc_next = (GCHeader *)self;
+    res->gc_prev->gc_next = (GCHeader *)res;
+    res->gc_next->gc_prev = (GCHeader *)res;
     res->ctx = (Context *)new_ref(self);
     res->framebuffer = framebuffer;
     res->vertex_array = vertex_array;
@@ -1243,10 +1271,14 @@ PyObject * Context_meth_release(Context * self, PyObject * arg) {
     const GLMethods & gl = self->gl;
     if (Py_TYPE(arg) == self->module_state->Buffer_type) {
         Buffer * buffer = (Buffer *)arg;
+        buffer->gc_prev->gc_next = buffer->gc_next;
+        buffer->gc_next->gc_prev = buffer->gc_prev;
         gl.DeleteBuffers(1, (unsigned int *)&buffer->buffer);
         Py_DECREF(arg);
     } else if (Py_TYPE(arg) == self->module_state->Image_type) {
         Image * image = (Image *)arg;
+        image->gc_prev->gc_next = image->gc_next;
+        image->gc_next->gc_prev = image->gc_prev;
         image->framebuffer->uses -= 1;
         if (!image->framebuffer->uses) {
             remove_dict_value(self->framebuffer_cache, (PyObject *)image->framebuffer);
@@ -1263,6 +1295,8 @@ PyObject * Context_meth_release(Context * self, PyObject * arg) {
         Py_DECREF(arg);
     } else if (Py_TYPE(arg) == self->module_state->Pipeline_type) {
         Pipeline * pipeline = (Pipeline *)arg;
+        pipeline->gc_prev->gc_next = pipeline->gc_next;
+        pipeline->gc_next->gc_prev = pipeline->gc_prev;
         pipeline->descriptor_set_buffers->uses -= 1;
         if (!pipeline->descriptor_set_buffers->uses) {
             remove_dict_value(self->descriptor_set_buffers_cache, (PyObject *)pipeline->descriptor_set_buffers);
@@ -1326,6 +1360,24 @@ PyObject * Context_meth_release(Context * self, PyObject * arg) {
             gl.DeleteShader(shader->obj);
         }
         PyDict_Clear(self->shader_cache);
+    } else if (PyUnicode_CheckExact(arg) && !PyUnicode_CompareWithASCIIString(arg, "all")) {
+        GCHeader * it = self->gc_next;
+        while (it != (GCHeader *)self) {
+            if (Py_TYPE(it) == self->module_state->Pipeline_type) {
+                Py_DECREF(Context_meth_release(self, (PyObject *)it));
+            }
+            it = it->gc_next;
+        }
+        it = self->gc_next;
+        while (it != (GCHeader *)self) {
+            if (Py_TYPE(it) == self->module_state->Buffer_type) {
+                Py_DECREF(Context_meth_release(self, (PyObject *)it));
+            }
+            if (Py_TYPE(it) == self->module_state->Image_type) {
+                Py_DECREF(Context_meth_release(self, (PyObject *)it));
+            }
+            it = it->gc_next;
+        }
     }
     Py_RETURN_NONE;
 }
