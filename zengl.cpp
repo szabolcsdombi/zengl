@@ -1750,7 +1750,7 @@ PyObject * Image_meth_read(Image * self, PyObject * vargs, PyObject * kwargs) {
     const bool offset_but_no_size = size_arg == Py_None && offset_arg != Py_None;
     const bool invalid_size = invalid_size_type || size.x <= 0 || size.y <= 0 || size.x > self->width || size.y > self->height;
     const bool invalid_offset = invalid_offset_type || offset.x < 0 || offset.y < 0 || size.x + offset.x > self->width || size.y + offset.y > self->height;
-    const bool invalid_type = self->cubemap || self->array || self->samples != 1;
+    const bool invalid_type = self->cubemap || self->array || self->samples != 1 || self->format.format == GL_DEPTH_STENCIL;
 
     if (offset_but_no_size || invalid_size || invalid_offset || invalid_type) {
         if (offset_but_no_size) {
@@ -1769,6 +1769,8 @@ PyObject * Image_meth_read(Image * self, PyObject * vargs, PyObject * kwargs) {
             PyErr_Format(PyExc_TypeError, "cannot read array images");
         } else if (self->samples != 1) {
             PyErr_Format(PyExc_TypeError, "multisampled images must be blit to a non multisampled image before read");
+        } else if (self->format.format == GL_DEPTH_STENCIL) {
+            PyErr_Format(PyExc_TypeError, "cannot read depth stencil images");
         }
         return NULL;
     }
