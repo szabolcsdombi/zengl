@@ -1280,13 +1280,15 @@ PyObject * Context_meth_release(Context * self, PyObject * arg) {
         Image * image = (Image *)arg;
         image->gc_prev->gc_next = image->gc_next;
         image->gc_next->gc_prev = image->gc_prev;
-        image->framebuffer->uses -= 1;
-        if (!image->framebuffer->uses) {
-            remove_dict_value(self->framebuffer_cache, (PyObject *)image->framebuffer);
-            if (self->current_framebuffer == image->framebuffer->obj) {
-                self->current_framebuffer = 0;
+        if (image->framebuffer) {
+            image->framebuffer->uses -= 1;
+            if (!image->framebuffer->uses) {
+                remove_dict_value(self->framebuffer_cache, (PyObject *)image->framebuffer);
+                if (self->current_framebuffer == image->framebuffer->obj) {
+                    self->current_framebuffer = 0;
+                }
+                gl.DeleteFramebuffers(1, (unsigned int *)&image->framebuffer->obj);
             }
-            gl.DeleteFramebuffers(1, (unsigned int *)&image->framebuffer->obj);
         }
         if (image->renderbuffer) {
             gl.DeleteRenderbuffers(1, (unsigned int *)&image->image);
@@ -1506,6 +1508,10 @@ PyObject * Buffer_meth_unmap(Buffer * self) {
 
 PyObject * Image_meth_clear(Image * self) {
     const GLMethods & gl = self->ctx->gl;
+    if (!self->framebuffer) {
+        PyErr_Format(PyExc_TypeError, "cannot clear cubemap or array textures");
+        return NULL;
+    }
     bind_framebuffer(self->ctx, self->framebuffer->obj);
     switch (self->format.buffer) {
         case GL_COLOR: {
