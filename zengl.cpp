@@ -124,6 +124,7 @@ struct Image {
     int cubemap;
     int target;
     int renderbuffer;
+    int max_level;
 };
 
 struct Pipeline {
@@ -936,6 +937,7 @@ Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * kwargs) 
     res->cubemap = cubemap;
     res->target = target;
     res->renderbuffer = renderbuffer;
+    res->max_level = 0;
 
     res->framebuffer = NULL;
     if (!cubemap && !array) {
@@ -1539,10 +1541,11 @@ PyObject * Image_meth_write(Image * self, PyObject * vargs, PyObject * kwargs) {
     const bool invalid_size = invalid_size_type || size.x <= 0 || size.y <= 0 || size.x > self->width || size.y > self->height;
     const bool invalid_offset = invalid_offset_type || offset.x < 0 || offset.y < 0 || size.x + offset.x > self->width || size.y + offset.y > self->height;
     const bool invalid_layer = invalid_layer_type || layer < 0 || layer >= (self->array ? self->array : 1) * (self->cubemap ? 6 : 1);
+    const bool invalid_level = level < 0 || level > self->max_level;
     const bool layer_but_simple = !self->cubemap && !self->array && layer_arg != Py_None;
     const bool invalid_type = !self->format.color || self->samples != 1;
 
-    if (offset_but_no_size || invalid_size || invalid_offset || invalid_layer || layer_but_simple || invalid_type) {
+    if (offset_but_no_size || invalid_size || invalid_offset || invalid_layer || invalid_level || layer_but_simple || invalid_type) {
         PyBuffer_Release(&view);
         if (offset_but_no_size) {
             PyErr_Format(PyExc_ValueError, "the size is required when the offset is not None");
@@ -1558,6 +1561,8 @@ PyObject * Image_meth_write(Image * self, PyObject * vargs, PyObject * kwargs) {
             PyErr_Format(PyExc_ValueError, "invalid offset");
         } else if (invalid_layer) {
             PyErr_Format(PyExc_ValueError, "invalid layer");
+        } else if (invalid_level) {
+            PyErr_Format(PyExc_ValueError, "invalid level");
         } else if (layer_but_simple) {
             PyErr_Format(PyExc_TypeError, "the image is not layered");
         } else if (!self->format.color) {
@@ -1642,6 +1647,10 @@ PyObject * Image_meth_mipmaps(Image * self, PyObject * vargs, PyObject * kwargs)
             PyErr_Format(PyExc_ValueError, "invalid levels");
         }
         return NULL;
+    }
+
+    if (self->max_level < base + levels) {
+        self->max_level = base + levels;
     }
 
     const GLMethods & gl = self->ctx->gl;
