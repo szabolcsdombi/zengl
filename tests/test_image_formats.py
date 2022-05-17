@@ -14,8 +14,6 @@ IMAGE_FORMATS = [
 def test_texture_image_formats(ctx: zengl.Context):
     utils.clear_gl_error()
     for fmt in IMAGE_FORMATS:
-        if fmt == 'depth24plus-stencil8':
-            continue
         img = ctx.image((4, 4), fmt, texture=True)
         utils.assert_gl_error(fmt)
         ctx.release(img)
