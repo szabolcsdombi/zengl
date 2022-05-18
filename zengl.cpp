@@ -2525,10 +2525,10 @@ int module_exec(PyObject * self) {
     state->GlobalSettings_type = (PyTypeObject *)PyType_FromSpec(&GlobalSettings_spec);
     state->GLObject_type = (PyTypeObject *)PyType_FromSpec(&GLObject_spec);
 
-    PyModule_AddObject(self, "Context", (PyObject *)state->Context_type);
-    PyModule_AddObject(self, "Buffer", (PyObject *)state->Buffer_type);
-    PyModule_AddObject(self, "Image", (PyObject *)state->Image_type);
-    PyModule_AddObject(self, "Pipeline", (PyObject *)state->Pipeline_type);
+    PyModule_AddObject(self, "Context", (PyObject *)new_ref(state->Context_type));
+    PyModule_AddObject(self, "Buffer", (PyObject *)new_ref(state->Buffer_type));
+    PyModule_AddObject(self, "Image", (PyObject *)new_ref(state->Image_type));
+    PyModule_AddObject(self, "Pipeline", (PyObject *)new_ref(state->Pipeline_type));
 
     PyModule_AddObject(self, "loader", (PyObject *)new_ref(PyObject_GetAttrString(state->helper, "loader")));
     PyModule_AddObject(self, "calcsize", (PyObject *)new_ref(PyObject_GetAttrString(state->helper, "calcsize")));
