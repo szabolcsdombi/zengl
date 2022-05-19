@@ -1531,13 +1531,8 @@ PyObject * Buffer_meth_unmap(Buffer * self) {
     Py_RETURN_NONE;
 }
 
-PyObject * Image_meth_clear(Image * self) {
+void clear_bound_image(Image * self) {
     const GLMethods & gl = self->ctx->gl;
-    if (!self->framebuffer) {
-        PyErr_Format(PyExc_TypeError, "cannot clear cubemap or array textures");
-        return NULL;
-    }
-    bind_framebuffer(self->ctx, self->framebuffer->obj);
     switch (self->format.buffer) {
         case GL_COLOR: {
             if ((self->ctx->current_clear_mask & 0xf) != 0xf) {
@@ -1582,6 +1577,15 @@ PyObject * Image_meth_clear(Image * self) {
     } else if (self->format.clear_type == 'x') {
         gl.ClearBufferfi(self->format.buffer, 0, self->clear_value.clear_floats[0], self->clear_value.clear_ints[1]);
     }
+}
+
+PyObject * Image_meth_clear(Image * self) {
+    if (!self->framebuffer) {
+        PyErr_Format(PyExc_TypeError, "cannot clear cubemap or array textures");
+        return NULL;
+    }
+    bind_framebuffer(self->ctx, self->framebuffer->obj);
+    clear_bound_image(self);
     Py_RETURN_NONE;
 }
 
@@ -1983,6 +1987,17 @@ ImageFace * Image_meth_face(Image * self, PyObject * vargs, PyObject * kwargs) {
     res->samples = self->samples;
     res->color = self->format.color;
 
+    res->framebuffer = NULL;
+    if (self->format.color) {
+        PyObject * attachments = Py_BuildValue("((ii)(O)O)", width, height, res, Py_None);
+        res->framebuffer = build_framebuffer(self->ctx, attachments);
+        Py_DECREF(attachments);
+    } else {
+        PyObject * attachments = Py_BuildValue("((ii)()O)", width, height, res);
+        res->framebuffer = build_framebuffer(self->ctx, attachments);
+        Py_DECREF(attachments);
+    }
+
     PyDict_SetItem(self->faces, key, (PyObject *)res);
     Py_DECREF(key);
     return res;
@@ -2164,6 +2179,12 @@ PyObject * meth_inspect(PyObject * self, PyObject * arg) {
             "program", pipeline->program->obj
         );
     }
+    Py_RETURN_NONE;
+}
+
+PyObject * ImageFace_meth_clear(ImageFace * self) {
+    bind_framebuffer(self->ctx, self->framebuffer->obj);
+    clear_bound_image(self->image);
     Py_RETURN_NONE;
 }
 
@@ -2617,6 +2638,12 @@ PyMemberDef Pipeline_members[] = {
     {},
 };
 
+PyMethodDef ImageFace_methods[] = {
+    {"clear", (PyCFunction)ImageFace_meth_clear, METH_NOARGS, NULL},
+    {"blit", (PyCFunction)ImageFace_meth_blit, METH_NOARGS, NULL},
+    {},
+};
+
 PyMemberDef ImageFace_members[] = {
     {"image", T_OBJECT_EX, offsetof(ImageFace, image), READONLY, NULL},
     {"size", T_OBJECT_EX, offsetof(ImageFace, size), READONLY, NULL},
@@ -2658,6 +2685,7 @@ PyType_Slot Pipeline_slots[] = {
 };
 
 PyType_Slot ImageFace_slots[] = {
+    {Py_tp_methods, ImageFace_methods},
     {Py_tp_members, ImageFace_members},
     {Py_tp_dealloc, (void *)ImageFace_dealloc},
     {},

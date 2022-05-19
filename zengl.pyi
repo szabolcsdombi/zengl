@@ -141,6 +141,7 @@ class ImageFace:
     size: Tuple[int, int]
     samples: int
     color: bool
+    def clear(self) -> None: ...
     def blit(
         self, target: 'ImageFace', target_viewport: Viewport | None = None, *,
         source_viewport: Viewport | None = None, filter: bool = True, srgb: bool | None = None) -> None: ...
