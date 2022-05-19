@@ -1834,7 +1834,7 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
         source_viewport.height = self->height;
     }
 
-    const bool srgb = (flush_arg == Py_None && self->format.internal_format == GL_SRGB8_ALPHA8) || flush_arg == Py_True;
+    const bool srgb = (srgb_arg == Py_None && self->format.internal_format == GL_SRGB8_ALPHA8) || srgb_arg == Py_True;
     const bool flush = (flush_arg == Py_None && target_arg == Py_None) || flush_arg == Py_True;
 
     const bool invalid_target_viewport = invalid_target_viewport_type || (
