@@ -137,6 +137,7 @@ class Limits(TypedDict):
 
 
 class ImageFace:
+    image: 'Image'
     size: Tuple[int, int]
     samples: int
     color: bool
