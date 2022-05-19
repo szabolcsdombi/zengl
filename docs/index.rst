@@ -547,6 +547,8 @@ Release Pipelines before the Images and Buffers they use.
 When the string ``shader_cache`` is passed to this method,
 it calls glDeleteShader for all the previously created vertex and fragment shader modules.
 
+When the string ``all`` is passed to this method, it releases all the resources allocated from this context.
+
 Interoperability
 ----------------
 
