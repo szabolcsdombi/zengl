@@ -216,6 +216,7 @@ def sampler_bindings(resources):
 
 
 def framebuffer_attachments(attachments):
+    attachments = [x.face() if hasattr(x, 'face') else x for x in attachments]
     size = attachments[0].size
     samples = attachments[0].samples
     for attachment in attachments:
@@ -230,7 +231,7 @@ def framebuffer_attachments(attachments):
     for attachment in attachments:
         if not attachment.color:
             raise ValueError('The depth stencil attachments must be the last item in the framebuffer')
-    return tuple(attachments), depth_stencil_attachment
+    return size, tuple(attachments), depth_stencil_attachment
 
 
 def settings(primitive_restart, cull_face, color_mask, depth, stencil, blending, polygon_offset, attachments):
@@ -290,7 +291,7 @@ def settings(primitive_restart, cull_face, color_mask, depth, stencil, blending,
             float(polygon_offset['units']),
         ])
 
-    res.append(len(attachments[0]))
+    res.append(len(attachments[1]))
     return tuple(res)
 
 
