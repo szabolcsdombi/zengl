@@ -2640,7 +2640,7 @@ PyMemberDef Pipeline_members[] = {
 
 PyMethodDef ImageFace_methods[] = {
     {"clear", (PyCFunction)ImageFace_meth_clear, METH_NOARGS, NULL},
-    {"blit", (PyCFunction)ImageFace_meth_blit, METH_NOARGS, NULL},
+    {"blit", (PyCFunction)ImageFace_meth_blit, METH_VARARGS | METH_KEYWORDS, NULL},
     {},
 };
 
