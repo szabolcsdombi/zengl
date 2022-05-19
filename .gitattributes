@@ -1,4 +1,5 @@
 .github/** linguist-detectable=false
+examples/** linguist-documentation=false
 tests/Dockerfile linguist-detectable=false
 *.vert linguist-detectable=false
 *.frag linguist-detectable=false

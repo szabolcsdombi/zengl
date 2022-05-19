@@ -538,16 +538,6 @@ Cleanup
 
 Clean only if necessary. It is ok not to clean up before the program ends.
 
-.. py:method:: Context.clear_shader_cache()
-
-This method calls glDeleteShader for all the previously created vertex and fragment shader modules.
-The resources released by this method are likely to be insignificant in size.
-
-.. warning::
-
-    | This method is deprecated.
-    | Use :py:meth:`Context.release` instead.
-
 .. py:method:: Context.release(obj: Buffer | Image | Pipeline | str)
 
 This method releases the OpenGL resources associated with the parameter.
@@ -556,6 +546,8 @@ Release Pipelines before the Images and Buffers they use.
 
 When the string ``shader_cache`` is passed to this method,
 it calls glDeleteShader for all the previously created vertex and fragment shader modules.
+
+When the string ``all`` is passed to this method, it releases all the resources allocated from this context.
 
 Interoperability
 ----------------
