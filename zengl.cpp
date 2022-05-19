@@ -1255,19 +1255,6 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     return res;
 }
 
-PyObject * Context_meth_clear_shader_cache(Context * self) {
-    const GLMethods & gl = self->gl;
-    PyObject * key = NULL;
-    PyObject * value = NULL;
-    Py_ssize_t pos = 0;
-    while (PyDict_Next(self->shader_cache, &pos, &key, &value)) {
-        GLObject * shader = (GLObject *)value;
-        gl.DeleteShader(shader->obj);
-    }
-    PyDict_Clear(self->shader_cache);
-    Py_RETURN_NONE;
-}
-
 PyObject * Context_meth_release(Context * self, PyObject * arg) {
     const GLMethods & gl = self->gl;
     if (Py_TYPE(arg) == self->module_state->Buffer_type) {
@@ -2379,7 +2366,6 @@ PyMethodDef Context_methods[] = {
     {"buffer", (PyCFunction)Context_meth_buffer, METH_VARARGS | METH_KEYWORDS, NULL},
     {"image", (PyCFunction)Context_meth_image, METH_VARARGS | METH_KEYWORDS, NULL},
     {"pipeline", (PyCFunction)Context_meth_pipeline, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"clear_shader_cache", (PyCFunction)Context_meth_clear_shader_cache, METH_NOARGS, NULL},
     {"release", (PyCFunction)Context_meth_release, METH_O, NULL},
     {"reset", (PyCFunction)Context_meth_reset, METH_NOARGS, NULL},
     {},
