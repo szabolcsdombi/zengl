@@ -625,7 +625,7 @@ GLObject * compile_program(Context * self, PyObject * vert, PyObject * frag, PyO
         gl.GetProgramiv(program, GL_INFO_LOG_LENGTH, &log_size);
         PyObject * log_text = PyBytes_FromStringAndSize(NULL, log_size);
         gl.GetProgramInfoLog(program, log_size, &log_size, PyBytes_AsString(log_text));
-        Py_XDECREF(PyObject_CallMethod(self->module_state->helper, "linker_error", "(OON)", vert, frag, log_text));
+        Py_XDECREF(PyObject_CallMethod(self->module_state->helper, "linker_error", "(OON)", vert_code, frag_code, log_text));
         return NULL;
     }
 
