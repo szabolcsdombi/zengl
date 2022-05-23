@@ -317,6 +317,15 @@ def program(vertex_shader, fragment_shader, layout, includes):
     return vert, frag, tuple(bindings)
 
 
+def compile_error(shader: str, shader_type: int, log: bytes):
+    name = {0x8b31: 'Vertex Shader', 0x8b30: 'Fragment Shader'}[shader_type]
+    raise ValueError('%s Error\n\n%s' % (name, log.decode()))
+
+
+def linker_error(vertex_shader: str, fragment_shader: str, log: bytes):
+    raise ValueError('Linker Error\n\n%s' % log.decode())
+
+
 def validate(attributes, uniforms, uniform_buffers, vertex_buffers, layout, resources, limits):
     attributes = [
         {
