@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 # [main](https://github.com/szabolcsdombi/zengl/compare/1.7.0...main)
 
+- Fixed pipeline required arguments to raise an excenption
+- Fixed buffer write size check with non zero offset
+- Implemented error for renderbuffer images with initial data
+- Implemented error for negative image array count
+- Implemented range check for writing to already generated mipmap leves
+- Implemented `Context.release('all')`
+- Fixed cubemap images failed to create without initial data
+- Fixed fault when clearing or blitting layered images
+- Fixed reading depth and stencil images
+- Fixed refcount for types when deinitializing the module
+- Fixed `Image.blit` srgb parameter defaulted to the flush parameter
+- Removed deprecated `clear_shader_cache`
+
 # [1.7.0](https://github.com/szabolcsdombi/zengl/compare/1.6.1...1.7.0)
 
 - Implemented `Context.reset` to assume the context is dirty
@@ -18,7 +31,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed image write for all levels
 - Fixed image create and image write stride for small cubemaps
 - Implemented size check for image create and image write
-- Implemented release shader cache
+- Implemented `Context.release('shader_cache')`
 - Deprecated `clear_shader_cache`
 
 # [1.6.1](https://github.com/szabolcsdombi/zengl/compare/1.6.0...1.6.1)
