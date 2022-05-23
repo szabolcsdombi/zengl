@@ -319,11 +319,11 @@ def program(vertex_shader, fragment_shader, layout, includes):
 
 def compile_error(shader: bytes, shader_type: int, log: bytes):
     name = {0x8b31: 'Vertex Shader', 0x8b30: 'Fragment Shader'}[shader_type]
-    raise ValueError('%s Error\n\n%s' % (name, log.decode()))
+    raise ValueError('%s Error\n\n%s' % (name, log.rstrip(b'\x00').decode()))
 
 
 def linker_error(vertex_shader: bytes, fragment_shader: bytes, log: bytes):
-    raise ValueError('Linker Error\n\n%s' % log.decode())
+    raise ValueError('Linker Error\n\n%s' % log.rstrip('b\x00').decode())
 
 
 def validate(attributes, uniforms, uniform_buffers, vertex_buffers, layout, resources, limits):
