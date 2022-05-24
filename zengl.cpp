@@ -211,6 +211,7 @@ void bind_global_settings(Context * self, GlobalSettings * settings) {
     }
     if (settings->depth_test) {
         gl.Enable(GL_DEPTH_TEST);
+        gl.DepthFunc(settings->depth_func);
     } else {
         gl.Disable(GL_DEPTH_TEST);
     }
