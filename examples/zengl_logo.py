@@ -63,15 +63,15 @@ pipeline = ctx.pipeline(
 
         void main() {
             mat4 projection = perspective(45.0, 2.0, 0.1, 1000.0);
-            mat4 view = lookat(vec3(0.0, 4.0, 0.5), vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0));
+            mat4 view = lookat(vec3(0.0, 3.75, 0.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0));
             mat4 mvp = projection * view;
 
             v_vertex = positions[gl_VertexID];
 
-            float r = pi - float(gl_InstanceID) * pi * 2.0 / 8.0;
+            float r = pi - float(gl_InstanceID) * pi * 2.0 / 7.0;
             mat3 rotation = mat3(cos(r), 0.0, sin(r), 0.0, 1.0, 0.0, -sin(r), 0.0, cos(r));
 
-            gl_Position = mvp * vec4(rotation * v_vertex + vec3(-0.025, 0.4, 0.125), 1.0);
+            gl_Position = mvp * vec4(rotation * v_vertex, 1.0);
             v_color = hsv2rgb(vec3(float(gl_InstanceID) / 10.0, 1.0, 0.5));
         }
     ''',
