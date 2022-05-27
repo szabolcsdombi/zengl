@@ -1,6 +1,6 @@
 # ZenGL
 
-ZenGL is a minimalist Python module providing exactly **one** way to render scenes with OpenGL.
+[![ZenGL](https://repository-images.githubusercontent.com/420309094/fd58398b-a8fa-436f-b351-7763809e1f24)](#zengl)
 
 ```
 pip install zengl
@@ -9,17 +9,6 @@ pip install zengl
 - [Documentation](https://zengl.readthedocs.io/)
 - [zengl on Github](https://github.com/szabolcsdombi/zengl/)
 - [zengl on PyPI](https://pypi.org/project/zengl/)
-
-**ZenGL is ...**
-
-- **high-performance**
-- **simple** - *buffers, images, pipelines and there you go*
-- **easy-to-learn** - *it is simply OpenGL with no magic added*
-- **verbose** - *most common mistakes are catched and reported in a clear and understandable way*
-- **robust** - *there is no global state or external trouble-maker affecting the render*
-- **backward-compatible** - *it requires OpenGL 3.3 - it is just enough*
-- **cached** - *most OpenGL objects are reused between renders*
-- **zen** - *there is one way to do it*
 
 ## Concept
 
