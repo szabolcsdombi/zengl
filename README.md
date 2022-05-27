@@ -1,6 +1,6 @@
 # ZenGL
 
-[![ZenGL](https://repository-images.githubusercontent.com/420309094/fd58398b-a8fa-436f-b351-7763809e1f24)](#zengl)
+[![ZenGL](https://repository-images.githubusercontent.com/420309094/f7c17e13-4d5b-4a38-8b52-ab2dfdacd5a0)](#zengl)
 
 ```
 pip install zengl
