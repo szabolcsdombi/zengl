@@ -1758,7 +1758,7 @@ PyObject * Image_meth_read(Image * self, PyObject * vargs, PyObject * kwargs) {
 
     const GLMethods & gl = self->ctx->gl;
 
-    PyObject * res = PyBytes_FromStringAndSize(NULL, size.x * size.y * self->format.pixel_size);
+    PyObject * res = PyBytes_FromStringAndSize(NULL, 1ll * size.x * size.y * self->format.pixel_size);
     bind_framebuffer(self->ctx, self->framebuffer->obj);
     gl.ReadPixels(offset.x, offset.y, size.x, size.y, self->format.format, self->format.type, PyBytes_AS_STRING(res));
     return res;
@@ -2007,7 +2007,7 @@ PyObject * Pipeline_meth_render(Pipeline * self) {
     bind_descriptor_set_buffers(self->ctx, self->descriptor_set_buffers);
     bind_descriptor_set_images(self->ctx, self->descriptor_set_images);
     if (self->index_type) {
-        long long offset = self->first_vertex * self->index_size;
+        long long offset = 1ll * self->first_vertex * self->index_size;
         gl.DrawElementsInstanced(self->topology, self->vertex_count, self->index_type, (void *)offset, self->instance_count);
     } else {
         gl.DrawArraysInstanced(self->topology, self->first_vertex, self->vertex_count, self->instance_count);
