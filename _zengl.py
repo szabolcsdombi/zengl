@@ -330,14 +330,14 @@ def validate(attributes, uniforms, uniform_buffers, vertex_buffers, layout, reso
     attributes = [
         {
             'name': obj['name'].replace('[0]', '[%d]' % i),
-            'location': obj['location'],
+            'location': obj['location'] + i,
         }
         for obj in attributes for i in range(obj['size'])
     ]
     uniforms = [
         {
             'name': obj['name'].replace('[0]', '[%d]' % i),
-            'location': obj['location'],
+            'location': obj['location'] + i,
         }
         for obj in uniforms for i in range(obj['size'])
     ]
