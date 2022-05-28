@@ -323,7 +323,7 @@ def compile_error(shader: bytes, shader_type: int, log: bytes):
 
 
 def linker_error(vertex_shader: bytes, fragment_shader: bytes, log: bytes):
-    raise ValueError('Linker Error\n\n%s' % log.rstrip('b\x00').decode())
+    raise ValueError('Linker Error\n\n%s' % log.rstrip(b'\x00').decode())
 
 
 def validate(attributes, uniforms, uniform_buffers, vertex_buffers, layout, resources, limits):
