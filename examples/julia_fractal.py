@@ -1,4 +1,5 @@
 import struct
+
 import zengl
 
 from window import Window
