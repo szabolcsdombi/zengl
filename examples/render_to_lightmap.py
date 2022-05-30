@@ -1,6 +1,7 @@
 import numpy as np
 import zengl
 from objloader import Obj
+from PIL import Image
 from progress.bar import Bar
 
 import assets
@@ -299,8 +300,6 @@ for i in range(samples):
 
 
 fill_pipeline.render()
-
-from PIL import Image
 
 ao = np.frombuffer(texture.read(), 'f4').reshape(size, size)[::-1]
 Image.fromarray((ao * 255.0).astype('u1'), 'L').save('generated-ao-map.png')
