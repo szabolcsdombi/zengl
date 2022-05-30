@@ -608,10 +608,12 @@ Utils
 
 .. py:method:: zengl.rgba(data: bytes, format: str) -> bytes
 
+| *DEPRECATED*
 | Converts the image stored in data with the given format into rgba.
 
 .. py:method:: zengl.pack(*values: Iterable[float | int]) -> bytes
 
+| *DEPRECATED*
 | Encodes floats and ints into bytes.
 
 .. py:method:: zengl.bind(buffer: Buffer, layout: str, *attributes: Iterable[int]) -> List[VertexBufferBinding]
