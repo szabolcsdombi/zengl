@@ -1022,7 +1022,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     int short_index = false;
     PyObject * primitive_restart = Py_True;
     PyObject * cull_face = self->module_state->str_none;
-    const char * topology = "triangles";
+    int topology = GL_TRIANGLES;
     int vertex_count = 0;
     int instance_count = 1;
     int first_vertex = 0;
@@ -1032,7 +1032,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
-        "|$O!O!OOOOOOOOOOpOOsiiiOp",
+        "|$O!O!OOOOOOOOOOpOOO&iiiOp",
         keywords,
         &PyUnicode_Type,
         &vertex_shader,
@@ -1051,6 +1051,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         &short_index,
         &primitive_restart,
         &cull_face,
+        topology_converter,
         &topology,
         &vertex_count,
         &instance_count,
@@ -1237,7 +1238,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     res->framebuffer = framebuffer;
     res->vertex_array = vertex_array;
     res->program = program;
-    res->topology = get_topology(topology);
+    res->topology = topology;
     res->vertex_count = vertex_count;
     res->instance_count = instance_count;
     res->first_vertex = first_vertex;
