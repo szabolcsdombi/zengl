@@ -1882,17 +1882,15 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
         self->ctx->current_global_settings = NULL;
         gl.ColorMaski(0, 1, 1, 1, 1);
     }
+    int target_framebuffer = target ? target->framebuffer->obj : self->ctx->screen;
+    bind_framebuffer(self->ctx, target_framebuffer);
     gl.BindFramebuffer(GL_READ_FRAMEBUFFER, self->framebuffer->obj);
-    gl.BindFramebuffer(GL_DRAW_FRAMEBUFFER, target ? target->framebuffer->obj : self->ctx->screen);
     gl.BlitFramebuffer(
         source_viewport.x, source_viewport.y, source_viewport.x + source_viewport.width, source_viewport.y + source_viewport.height,
         target_viewport.x, target_viewport.y, target_viewport.x + target_viewport.width, target_viewport.y + target_viewport.height,
         GL_COLOR_BUFFER_BIT, filter ? GL_LINEAR : GL_NEAREST
     );
-    if (!target) {
-        self->ctx->current_framebuffer = self->ctx->screen;
-    }
-    gl.BindFramebuffer(GL_FRAMEBUFFER, self->ctx->current_framebuffer);
+    gl.BindFramebuffer(GL_READ_FRAMEBUFFER, target_framebuffer);
     if (!srgb) {
         gl.Enable(GL_FRAMEBUFFER_SRGB);
     }
