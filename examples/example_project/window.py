@@ -3,8 +3,6 @@ import pygame as pg
 
 class Window:
     def __init__(self, width, height):
-        self.size = width, height
-        self.aspect = width / height
         self.time = 0.0
         self.alive = True
 
@@ -12,7 +10,10 @@ class Window:
         pg.display.gl_set_attribute(pg.GL_CONTEXT_MAJOR_VERSION, 3)
         pg.display.gl_set_attribute(pg.GL_CONTEXT_MINOR_VERSION, 3)
         pg.display.gl_set_attribute(pg.GL_CONTEXT_PROFILE_MASK, pg.GL_CONTEXT_PROFILE_CORE)
-        pg.display.set_mode(self.size, pg.OPENGL | pg.DOUBLEBUF)
+        pg.display.set_mode((width, height), pg.OPENGL | pg.DOUBLEBUF)
+        width, height = pg.display.get_surface().get_size()
+        self.size = width, height
+        self.aspect = width / height
 
     def update(self):
         pg.display.flip()
