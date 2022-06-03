@@ -341,7 +341,7 @@ def validate(attributes, uniforms, uniform_buffers, vertex_buffers, layout, reso
             'location': obj['location'] + i if obj['location'] >= 0 else -1,
         }
         for obj in attributes for i in range(obj['size'])
-        if obj['name'] not in VERTEX_SAHDER_BUILTINS
+        if obj['name'] not in VERTEX_SHADER_BUILTINS
     ]
     uniforms = [
         {
