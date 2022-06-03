@@ -6,8 +6,6 @@ pyglet.options['debug_gl'] = False
 
 class Window(pyglet.window.Window):
     def __init__(self, width, height):
-        self.size = width, height
-        self.aspect = width / height
         self.time = 0.0
         self.alive = True
         self.mouse = (0, 0)
@@ -20,6 +18,9 @@ class Window(pyglet.window.Window):
             samples=0,
         )
         super().__init__(width=width, height=height, config=config, vsync=True)
+        width, height = self.get_framebuffer_size()
+        self.size = (width, height)
+        self.aspect = width / height
 
     def on_resize(self, width, height):
         pass
