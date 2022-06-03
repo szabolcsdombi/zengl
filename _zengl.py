@@ -115,6 +115,14 @@ STEP = {
     'instance': 1,
 }
 
+VERTEX_SAHDER_BUILTINS = {
+    'gl_VertexID',
+    'gl_InstanceID',
+    'gl_DrawID',
+    'gl_BaseVertex',
+    'gl_BaseInstance',
+}
+
 
 def loader(headless=False):
     import glcontext
@@ -333,6 +341,7 @@ def validate(attributes, uniforms, uniform_buffers, vertex_buffers, layout, reso
             'location': obj['location'] + i if obj['location'] >= 0 else -1,
         }
         for obj in attributes for i in range(obj['size'])
+        if obj['name'] not in VERTEX_SAHDER_BUILTINS
     ]
     uniforms = [
         {
