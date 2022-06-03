@@ -5,7 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-# [main](https://github.com/szabolcsdombi/zengl/compare/1.8.3...main)
+# [main](https://github.com/szabolcsdombi/zengl/compare/1.8.4...main)
+
+# [1.8.4](https://github.com/szabolcsdombi/zengl/compare/1.8.3...1.8.4)
+
+- Fixed unbound vertex shader builtin variables error reporting
+- Fixed silent error for invalid topology
+- Fixed redundant framebuffer bind when blitting images
+- Replaced string formatting to f-strings in the `_zengl` helper module
 
 # [1.8.3](https://github.com/szabolcsdombi/zengl/compare/1.8.2...1.8.3)
 
