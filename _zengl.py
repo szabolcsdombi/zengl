@@ -115,7 +115,7 @@ STEP = {
     'instance': 1,
 }
 
-VERTEX_SAHDER_BUILTINS = {
+VERTEX_SHADER_BUILTINS = {
     'gl_VertexID',
     'gl_InstanceID',
     'gl_DrawID',
