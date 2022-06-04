@@ -606,16 +606,6 @@ Utils
 
     mvp = zengl.camera(eye=(4.0, 3.0, 2.0), target=(0.0, 0.0, 0.0), aspect=16.0 / 9.0, fov=45.0)
 
-.. py:method:: zengl.rgba(data: bytes, format: str) -> bytes
-
-| *DEPRECATED*
-| Converts the image stored in data with the given format into rgba.
-
-.. py:method:: zengl.pack(*values: Iterable[float | int]) -> bytes
-
-| *DEPRECATED*
-| Encodes floats and ints into bytes.
-
 .. py:method:: zengl.bind(buffer: Buffer, layout: str, *attributes: Iterable[int]) -> List[VertexBufferBinding]
 
 | Helper function for binding a single buffer to multiple vertex attributes.

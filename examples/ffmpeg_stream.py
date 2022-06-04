@@ -1,4 +1,5 @@
 import math
+import struct
 
 import ffmpeg
 import numpy as np
@@ -119,18 +120,20 @@ process2 = (
 frame = 0
 
 while True:
+    data = np.full((height, width, 4), 255, 'u1')
     in_bytes = process1.stdout.read(width * height * 3)
     if not in_bytes:
         break
 
-    texture.write(zengl.rgba(in_bytes, 'rgb'))
+    data[:, :, :3] = np.frombuffer(in_bytes, 'u1').reshape(height, width, 3)
+    texture.write(data)
 
     frame += 1
     x, y = math.sin(frame * 0.02) * 3.0, math.cos(frame * 0.02) * 3.0
     camera = zengl.camera((x, y, 1.5), (0.0, 0.0, 0.0), aspect=16.0 / 9.0, fov=45.0)
 
     uniform_buffer.write(camera)
-    uniform_buffer.write(zengl.pack(x, y, 1.5, 0.0), offset=64)
+    uniform_buffer.write(struct.pack('3f4x', x, y, 1.5), offset=64)
 
     image.clear()
     depth.clear()

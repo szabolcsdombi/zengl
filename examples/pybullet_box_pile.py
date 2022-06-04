@@ -1,3 +1,5 @@
+import struct
+
 import numpy as np
 import pybullet as pb
 import zengl
@@ -136,7 +138,7 @@ crate = ctx.pipeline(
 camera = zengl.camera((8.0, 6.0, 4.0), (0.0, 0.0, 0.5), aspect=window.aspect, fov=45.0)
 
 uniform_buffer.write(camera)
-uniform_buffer.write(zengl.pack(8.0, 6.0, 14.0, 0.0), offset=64)
+uniform_buffer.write(struct.pack('3f4x', 8.0, 6.0, 14.0), offset=64)
 
 while window.update():
     pb.stepSimulation()

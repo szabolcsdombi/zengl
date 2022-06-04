@@ -1,3 +1,5 @@
+import struct
+
 import numpy as np
 import zengl
 from objloader import Obj
@@ -112,7 +114,7 @@ crate = ctx.pipeline(
 camera = zengl.camera((3.0, 2.0, 1.5), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
 
 uniform_buffer.write(camera)
-uniform_buffer.write(zengl.pack(3.0, 2.0, 1.5, 0.0), offset=64)
+uniform_buffer.write(struct.pack('3f4x', 3.0, 2.0, 1.5), offset=64)
 
 while window.update():
     z = np.frombuffer(instance_buffer.map(), 'f4').reshape(-1, 3)

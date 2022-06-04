@@ -1,4 +1,5 @@
 import math
+import struct
 
 import zengl
 from objloader import Obj
@@ -101,7 +102,7 @@ while window.update():
     camera = zengl.camera((x, y, 1.5), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
 
     uniform_buffer.write(camera)
-    uniform_buffer.write(zengl.pack(x, y, 1.5, 0.0), offset=64)
+    uniform_buffer.write(struct.pack('3f4x', x, y, 1.5), offset=64)
 
     image.clear()
     depth.clear()
