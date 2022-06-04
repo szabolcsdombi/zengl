@@ -350,7 +350,7 @@ Pipeline
     | A list of vertex attribute bindings with the following keys:
 
         | **buffer:** A buffer to be used as the vertex attribute source
-        | **format:** The vertex attribute format. (:ref:`list of vertex format<Vertex Formats>`)
+        | **format:** The vertex attribute format. (:ref:`list of vertex formats<Vertex Formats>`)
         | **location:** The vertex attribute location
         | **offset:** The buffer offset in bytes
         | **stride:** The stride in bytes
@@ -621,85 +621,85 @@ Utils
 Image Formats
 -------------
 
-==================== =================
-format               OpenGL equivalent
-==================== =================
-r8unorm              .
-rg8unorm             .
-rgba8unorm           .
-bgra8unorm           .
-r8snorm              .
-rg8snorm             .
-rgba8snorm           .
-r8uint               .
-rg8uint              .
-rgba8uint            .
-r16uint              .
-rg16uint             .
-rgba16uint           .
-r32uint              .
-rg32uint             .
-rgba32uint           .
-r8sint               .
-rg8sint              .
-rgba8sint            .
-r16sint              .
-rg16sint             .
-rgba16sint           .
-r32sint              .
-rg32sint             .
-rgba32sint           .
-r16float             .
-rg16float            .
-rgba16float          .
-r32float             .
-rg32float            .
-rgba32float          .
-rgba8unorm-srgb      .
-bgra8unorm-srgb      .
-stencil8             .
-depth16unorm         .
-depth24plus          .
-depth24plus-stencil8 .
-depth32float         .
-==================== =================
+==================== ===================== ================== =================
+ZenGL format         internal format       format             type
+==================== ===================== ================== =================
+r8unorm              GL_R8                 GL_RED             GL_UNSIGNED_BYTE
+rg8unorm             GL_RG8                GL_RG              GL_UNSIGNED_BYTE
+rgba8unorm           GL_RGBA8              GL_RGBA            GL_UNSIGNED_BYTE
+bgra8unorm           GL_RGBA8              GL_BGRA            GL_UNSIGNED_BYTE
+r8snorm              GL_R8_SNORM           GL_RED             GL_UNSIGNED_BYTE
+rg8snorm             GL_RG8_SNORM          GL_RG              GL_UNSIGNED_BYTE
+rgba8snorm           GL_RGBA8_SNORM        GL_RGBA            GL_UNSIGNED_BYTE
+r8uint               GL_R8UI               GL_RED_INTEGER     GL_UNSIGNED_BYTE
+rg8uint              GL_RG8UI              GL_RG_INTEGER      GL_UNSIGNED_BYTE
+rgba8uint            GL_RGBA8UI            GL_RGBA_INTEGER    GL_UNSIGNED_BYTE
+r16uint              GL_R16UI              GL_RED_INTEGER     GL_UNSIGNED_SHORT
+rg16uint             GL_RG16UI             GL_RG_INTEGER      GL_UNSIGNED_SHORT
+rgba16uint           GL_RGBA16UI           GL_RGBA_INTEGER    GL_UNSIGNED_SHORT
+r32uint              GL_R32UI              GL_RED_INTEGER     GL_UNSIGNED_INT
+rg32uint             GL_RG32UI             GL_RG_INTEGER      GL_UNSIGNED_INT
+rgba32uint           GL_RGBA32UI           GL_RGBA_INTEGER    GL_UNSIGNED_INT
+r8sint               GL_R8I                GL_RED_INTEGER     GL_BYTE
+rg8sint              GL_RG8I               GL_RG_INTEGER      GL_BYTE
+rgba8sint            GL_RGBA8I             GL_RGBA_INTEGER    GL_BYTE
+r16sint              GL_R16I               GL_RED_INTEGER     GL_SHORT
+rg16sint             GL_RG16I              GL_RG_INTEGER      GL_SHORT
+rgba16sint           GL_RGBA16I            GL_RGBA_INTEGER    GL_SHORT
+r32sint              GL_R32I               GL_RED_INTEGER     GL_INT
+rg32sint             GL_RG32I              GL_RG_INTEGER      GL_INT
+rgba32sint           GL_RGBA32I            GL_RGBA_INTEGER    GL_INT
+r16float             GL_R16F               GL_RED             GL_FLOAT
+rg16float            GL_RG16F              GL_RG              GL_FLOAT
+rgba16float          GL_RGBA16F            GL_RGBA            GL_FLOAT
+r32float             GL_R32F               GL_RED             GL_FLOAT
+rg32float            GL_RG32F              GL_RG              GL_FLOAT
+rgba32float          GL_RGBA32F            GL_RGBA            GL_FLOAT
+rgba8unorm-srgb      GL_RGBA8              GL_RGBA            GL_UNSIGNED_BYTE
+bgra8unorm-srgb      GL_RGBA8              GL_BGRA            GL_UNSIGNED_BYTE
+stencil8             GL_STENCIL_INDEX8     GL_STENCIL_INDEX   GL_UNSIGNED_BYTE
+depth16unorm         GL_DEPTH_COMPONENT16  GL_DEPTH_COMPONENT GL_UNSIGNED_SHORT
+depth24plus          GL_DEPTH_COMPONENT24  GL_DEPTH_COMPONENT GL_UNSIGNED_INT
+depth24plus-stencil8 GL_DEPTH_COMPONENT24  GL_DEPTH_COMPONENT GL_UNSIGNED_INT
+depth32float         GL_DEPTH_COMPONENT32F GL_DEPTH_COMPONENT GL_FLOAT
+==================== ===================== ================== =================
 
 .. _Vertex Formats:
 
 Vertex Formats
 --------------
 
-========= ============= =================
-shorthand vertex format OpenGL equivalent
-========= ============= =================
-1f        float32       .
-2f        float32x2     .
-3f        float32x3     .
-4f        float32x4     .
-1u        uint32        .
-2u        uint32x2      .
-3u        uint32x3      .
-4u        uint32x4      .
-1i        sint32        .
-2i        sint32x2      .
-3i        sint32x3      .
-4i        sint32x4      .
-2u1       uint8x2       .
-4u1       uint8x4       .
-2i1       sint8x2       .
-4i1       sint8x4       .
-2h        float16x2     .
-4h        float16x4     .
-2nu1      unorm8x2      .
-4nu1      unorm8x4      .
-2ni1      snorm8x2      .
-4ni1      snorm8x4      .
-2u2       uint16x2      .
-4u2       uint16x4      .
-2i2       sint16x2      .
-4i2       sint16x4      .
-2nu2      unorm16x2     .
-4nu2      unorm16x4     .
-2ni2      snorm16x2     .
-4ni2      snorm16x4     .
-========= ============= =================
+========== ============= ================== ==== ==========
+ZenGL bind ZenGL format  type               size normalized
+========== ============= ================== ==== ==========
+1f         float32       GL_FLOAT           1    no
+2f         float32x2     GL_FLOAT           2    no
+3f         float32x3     GL_FLOAT           3    no
+4f         float32x4     GL_FLOAT           4    no
+1u         uint32        GL_UNSIGNED_INT    1    no
+2u         uint32x2      GL_UNSIGNED_INT    2    no
+3u         uint32x3      GL_UNSIGNED_INT    3    no
+4u         uint32x4      GL_UNSIGNED_INT    4    no
+1i         sint32        GL_INT             1    no
+2i         sint32x2      GL_INT             2    no
+3i         sint32x3      GL_INT             3    no
+4i         sint32x4      GL_INT             4    no
+2u1        uint8x2       GL_UNSIGNED_BYTE   2    no
+4u1        uint8x4       GL_UNSIGNED_BYTE   4    no
+2i1        sint8x2       GL_BYTE            2    no
+4i1        sint8x4       GL_BYTE            4    no
+2h         float16x2     GL_HALF_FLOAT      2    no
+4h         float16x4     GL_HALF_FLOAT      4    no
+2nu1       unorm8x2      GL_UNSIGNED_BYTE   2    yes
+4nu1       unorm8x4      GL_UNSIGNED_BYTE   4    yes
+2ni1       snorm8x2      GL_BYTE            2    yes
+4ni1       snorm8x4      GL_BYTE            4    yes
+2u2        uint16x2      GL_UNSIGNED_SHORT  2    no
+4u2        uint16x4      GL_UNSIGNED_SHORT  4    no
+2i2        sint16x2      GL_SHORT           2    no
+4i2        sint16x4      GL_SHORT           4    no
+2nu2       unorm16x2     GL_UNSIGNED_SHORT  2    yes
+4nu2       unorm16x4     GL_UNSIGNED_SHORT  4    yes
+2ni2       snorm16x2     GL_SHORT           2    yes
+4ni2       snorm16x4     GL_SHORT           4    yes
+========== ============= ================== ==== ==========
