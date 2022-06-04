@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 # [main](https://github.com/szabolcsdombi/zengl/compare/1.8.4...main)
 
+- Implemented rendering to cubemap faces and array layers
+- Removed `zengl.pack()`
+- Removed `zengl.rgba()`
+
 # [1.8.4](https://github.com/szabolcsdombi/zengl/compare/1.8.3...1.8.4)
 
 - Fixed unbound vertex shader builtin variables error reporting
