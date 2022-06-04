@@ -136,6 +136,17 @@ class Limits(TypedDict):
     max_samples: int
 
 
+class ImageFace:
+    image: 'Image'
+    size: Tuple[int, int]
+    samples: int
+    color: bool
+    def clear(self) -> None: ...
+    def blit(
+        self, target: 'ImageFace', target_viewport: Viewport | None = None, *,
+        source_viewport: Viewport | None = None, filter: bool = True, srgb: bool | None = None) -> None: ...
+
+
 class ContextLoader:
     def load(name: str) -> int: ...
 
@@ -152,6 +163,7 @@ class Image:
     samples: int
     color: bool
     clear_value: Iterable[int | float] | int | float
+    def face(self, layer: int = 0, level: int = 0) -> ImageFace: ...
     def clear(self) -> None: ...
     def write(
         self, data: Bytes, size: Tuple[int, int] | None = None,

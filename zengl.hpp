@@ -267,6 +267,7 @@ typedef void (GLAPI * glFramebufferRenderbufferProc)(unsigned int target, unsign
 typedef void (GLAPI * glGenerateMipmapProc)(unsigned int target);
 typedef void (GLAPI * glBlitFramebufferProc)(int srcX0, int srcY0, int srcX1, int srcY1, int dstX0, int dstY0, int dstX1, int dstY1, unsigned int mask, unsigned int filter);
 typedef void (GLAPI * glRenderbufferStorageMultisampleProc)(unsigned int target, int samples, unsigned int internalformat, int width, int height);
+typedef void (GLAPI * glFramebufferTextureLayerProc)(unsigned int target, unsigned int attachment, unsigned int texture, int level, int layer);
 typedef void * (GLAPI * glMapBufferRangeProc)(unsigned int target, sizeiptr offset, sizeiptr length, unsigned int access);
 typedef void (GLAPI * glBindVertexArrayProc)(unsigned int array);
 typedef void (GLAPI * glDeleteVertexArraysProc)(int n, const unsigned int * arrays);
@@ -381,6 +382,7 @@ struct GLMethods {
     glGenerateMipmapProc GenerateMipmap;
     glBlitFramebufferProc BlitFramebuffer;
     glRenderbufferStorageMultisampleProc RenderbufferStorageMultisample;
+    glFramebufferTextureLayerProc FramebufferTextureLayer;
     glMapBufferRangeProc MapBufferRange;
     glBindVertexArrayProc BindVertexArray;
     glDeleteVertexArraysProc DeleteVertexArrays;
@@ -746,6 +748,7 @@ GLMethods load_gl(PyObject * context) {
     load(GenerateMipmap);
     load(BlitFramebuffer);
     load(RenderbufferStorageMultisample);
+    load(FramebufferTextureLayer);
     load(MapBufferRange);
     load(BindVertexArray);
     load(DeleteVertexArrays);
