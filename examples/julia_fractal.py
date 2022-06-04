@@ -1,3 +1,5 @@
+import struct
+
 import zengl
 
 from window import Window
@@ -5,13 +7,9 @@ from window import Window
 window = Window(1280, 720)
 ctx = zengl.context()
 
-ctx.includes['parameters'] = '''
-    vec2 Size = vec2(1280.0, 720.0);
-    vec2 Center = vec2(0.49, 0.32);
-    int Iter = 100;
-'''
-
 image = ctx.image(window.size, 'rgba8unorm')
+
+uniform_buffer = ctx.buffer(size=32)
 
 scene = ctx.pipeline(
     vertex_shader='''
@@ -30,15 +28,19 @@ scene = ctx.pipeline(
     fragment_shader='''
         #version 330
 
-        #include "parameters"
+        layout (std140) uniform Common {
+            vec2 size;
+            vec2 mouse;
+            int iter;
+        };
 
         layout (location = 0) out vec4 out_color;
 
         void main() {
-            vec2 z = vec2(5.0, 3.0) * (gl_FragCoord.xy / Size - 0.5);
-            vec2 c = Center;
+            vec2 z = vec2(5.0, 3.0) * (gl_FragCoord.xy / size - 0.5);
+            vec2 c = mouse / size * 2.0 - 1.0;
             int i;
-            for(i = 0; i < Iter; i++) {
+            for(i = 0; i < iter; i++) {
                 vec2 v = vec2(
                     (z.x * z.x - z.y * z.y) + c.x,
                     (z.y * z.x + z.x * z.y) + c.y
@@ -46,7 +48,7 @@ scene = ctx.pipeline(
                 if (dot(v, v) > 4.0) break;
                 z = v;
             }
-            float cm = fract((i == Iter ? 0.0 : float(i)) * 10 / Iter);
+            float cm = fract((i == iter ? 0.0 : float(i)) * 10.0 / float(iter));
             out_color = vec4(
                 fract(cm + 0.0 / 3.0),
                 fract(cm + 1.0 / 3.0),
@@ -55,12 +57,26 @@ scene = ctx.pipeline(
             );
         }
     ''',
+    layout=[
+        {
+            'name': 'Common',
+            'binding': 0,
+        },
+    ],
+    resources=[
+        {
+            'type': 'uniform_buffer',
+            'binding': 0,
+            'buffer': uniform_buffer,
+        },
+    ],
     framebuffer=[image],
     topology='triangles',
     vertex_count=3,
 )
 
 while window.update():
+    uniform_buffer.write(struct.pack('=2f2fi', *window.size, *window.mouse, 100))
     image.clear()
     scene.render()
     image.blit()

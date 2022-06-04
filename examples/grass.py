@@ -16,7 +16,7 @@ def grass_mesh():
         verts.append((c[i] * 0.03, b[i] * 0.2, a[i]))
     verts.append((0.0, 0.2, 1.0))
     verts = ','.join('vec3(%.8f, %.8f, %.8f)' % x for x in verts)
-    return 'vec3 grass[15] = vec3[](%s);' % verts
+    return f'vec3 grass[15] = vec3[]({verts});'
 
 
 window = Window(1280, 720)

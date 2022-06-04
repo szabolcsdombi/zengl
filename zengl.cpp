@@ -229,6 +229,7 @@ void bind_global_settings(Context * self, GlobalSettings * settings) {
     }
     if (settings->depth_test) {
         gl.Enable(GL_DEPTH_TEST);
+        gl.DepthFunc(settings->depth_func);
     } else {
         gl.Disable(GL_DEPTH_TEST);
     }
@@ -571,7 +572,7 @@ GlobalSettings * build_global_settings(Context * self, PyObject * settings) {
     return res;
 }
 
-GLObject * compile_shader(Context * self, PyObject * code, int type, const char * name) {
+GLObject * compile_shader(Context * self, PyObject * code, int type) {
     if (GLObject * cache = (GLObject *)PyDict_GetItem(self->shader_cache, code)) {
         cache->uses += 1;
         Py_INCREF(cache);
@@ -591,12 +592,10 @@ GLObject * compile_shader(Context * self, PyObject * code, int type, const char 
     if (!shader_compiled) {
         int log_size = 0;
         gl.GetShaderiv(shader, GL_INFO_LOG_LENGTH, &log_size);
-        char * log_text = (char *)malloc(log_size + 1);
-        gl.GetShaderInfoLog(shader, log_size, &log_size, log_text);
-        log_text[log_size] = 0;
-        PyErr_Format(PyExc_ValueError, "%s Error\n\n%s", name, log_text);
-        free(log_text);
-        return 0;
+        PyObject * log_text = PyBytes_FromStringAndSize(NULL, log_size);
+        gl.GetShaderInfoLog(shader, log_size, &log_size, PyBytes_AsString(log_text));
+        Py_XDECREF(PyObject_CallMethod(self->module_state->helper, "compile_error", "(OiN)", code, type, log_text));
+        return NULL;
     }
 
     GLObject * res = PyObject_New(GLObject, self->module_state->GLObject_type);
@@ -624,7 +623,7 @@ GLObject * compile_program(Context * self, PyObject * vert, PyObject * frag, PyO
     PyObject * vert_code = PyTuple_GetItem(pair, 0);
     PyObject * frag_code = PyTuple_GetItem(pair, 1);
 
-    GLObject * vertex_shader = compile_shader(self, vert_code, GL_VERTEX_SHADER, "Vertex Shader");
+    GLObject * vertex_shader = compile_shader(self, vert_code, GL_VERTEX_SHADER);
     if (!vertex_shader) {
         Py_DECREF(pair);
         return NULL;
@@ -632,7 +631,7 @@ GLObject * compile_program(Context * self, PyObject * vert, PyObject * frag, PyO
     int vertex_shader_obj = vertex_shader->obj;
     Py_DECREF(vertex_shader);
 
-    GLObject * fragment_shader = compile_shader(self, frag_code, GL_FRAGMENT_SHADER, "Fragment Shader");
+    GLObject * fragment_shader = compile_shader(self, frag_code, GL_FRAGMENT_SHADER);
     if (!fragment_shader) {
         Py_DECREF(pair);
         return NULL;
@@ -651,13 +650,10 @@ GLObject * compile_program(Context * self, PyObject * vert, PyObject * frag, PyO
     if (!linked) {
         int log_size = 0;
         gl.GetProgramiv(program, GL_INFO_LOG_LENGTH, &log_size);
-        char * log_text = (char *)malloc(log_size + 1);
-        gl.GetProgramInfoLog(program, log_size, &log_size, log_text);
-        log_text[log_size] = 0;
-        Py_DECREF(pair);
-        PyErr_Format(PyExc_ValueError, "Linker Error\n\n%s", log_text);
-        free(log_text);
-        return 0;
+        PyObject * log_text = PyBytes_FromStringAndSize(NULL, log_size);
+        gl.GetProgramInfoLog(program, log_size, &log_size, PyBytes_AsString(log_text));
+        Py_XDECREF(PyObject_CallMethod(self->module_state->helper, "linker_error", "(OON)", vert_code, frag_code, log_text));
+        return NULL;
     }
 
     GLObject * res = PyObject_New(GLObject, self->module_state->GLObject_type);
@@ -1055,7 +1051,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     int short_index = false;
     PyObject * primitive_restart = Py_True;
     PyObject * cull_face = self->module_state->str_none;
-    const char * topology = "triangles";
+    int topology = GL_TRIANGLES;
     int vertex_count = 0;
     int instance_count = 1;
     int first_vertex = 0;
@@ -1065,7 +1061,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
-        "|$O!O!OOOOOOOOOOpOOsiiiOp",
+        "|$O!O!OOOOOOOOOOpOOO&iiiOp",
         keywords,
         &PyUnicode_Type,
         &vertex_shader,
@@ -1084,6 +1080,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         &short_index,
         &primitive_restart,
         &cull_face,
+        topology_converter,
         &topology,
         &vertex_count,
         &instance_count,
@@ -1266,7 +1263,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     res->framebuffer = framebuffer;
     res->vertex_array = vertex_array;
     res->program = program;
-    res->topology = get_topology(topology);
+    res->topology = topology;
     res->vertex_count = vertex_count;
     res->instance_count = instance_count;
     res->first_vertex = first_vertex;
@@ -1804,7 +1801,7 @@ PyObject * Image_meth_read(Image * self, PyObject * vargs, PyObject * kwargs) {
 
     const GLMethods & gl = self->ctx->gl;
 
-    PyObject * res = PyBytes_FromStringAndSize(NULL, size.x * size.y * self->format.pixel_size);
+    PyObject * res = PyBytes_FromStringAndSize(NULL, 1ll * size.x * size.y * self->format.pixel_size);
     bind_framebuffer(self->ctx, self->framebuffer->obj);
     gl.ReadPixels(offset.x, offset.y, size.x, size.y, self->format.format, self->format.type, PyBytes_AS_STRING(res));
     return res;
@@ -1928,17 +1925,15 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
         self->ctx->current_global_settings = NULL;
         gl.ColorMaski(0, 1, 1, 1, 1);
     }
+    int target_framebuffer = target ? target->framebuffer->obj : self->ctx->screen;
+    bind_framebuffer(self->ctx, target_framebuffer);
     gl.BindFramebuffer(GL_READ_FRAMEBUFFER, self->framebuffer->obj);
-    gl.BindFramebuffer(GL_DRAW_FRAMEBUFFER, target ? target->framebuffer->obj : self->ctx->screen);
     gl.BlitFramebuffer(
         source_viewport.x, source_viewport.y, source_viewport.x + source_viewport.width, source_viewport.y + source_viewport.height,
         target_viewport.x, target_viewport.y, target_viewport.x + target_viewport.width, target_viewport.y + target_viewport.height,
         GL_COLOR_BUFFER_BIT, filter ? GL_LINEAR : GL_NEAREST
     );
-    if (!target) {
-        self->ctx->current_framebuffer = self->ctx->screen;
-    }
-    gl.BindFramebuffer(GL_FRAMEBUFFER, self->ctx->current_framebuffer);
+    gl.BindFramebuffer(GL_READ_FRAMEBUFFER, target_framebuffer);
     if (!srgb) {
         gl.Enable(GL_FRAMEBUFFER_SRGB);
     }
@@ -2108,7 +2103,7 @@ PyObject * Pipeline_meth_render(Pipeline * self) {
     bind_descriptor_set_buffers(self->ctx, self->descriptor_set_buffers);
     bind_descriptor_set_images(self->ctx, self->descriptor_set_images);
     if (self->index_type) {
-        long long offset = self->first_vertex * self->index_size;
+        long long offset = 1ll * self->first_vertex * self->index_size;
         gl.DrawElementsInstanced(self->topology, self->vertex_count, self->index_type, (void *)offset, self->instance_count);
     } else {
         gl.DrawArraysInstanced(self->topology, self->first_vertex, self->vertex_count, self->instance_count);

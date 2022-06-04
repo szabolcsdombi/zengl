@@ -109,7 +109,7 @@ process1 = (
 
 process2 = (
     ffmpeg
-    .input('pipe:', format='rawvideo', pix_fmt='rgb24', s='{}x{}'.format(width, height))
+    .input('pipe:', format='rawvideo', pix_fmt='rgb24', s=f'{width}x{height}')
     .vflip()
     .output(out_filename, pix_fmt='yuv420p')
     .overwrite_output()

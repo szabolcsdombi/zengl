@@ -22,7 +22,7 @@ with open('README.md') as readme:
 
 setup(
     name='zengl',
-    version='1.7.0',
+    version='1.8.4',
     ext_modules=[ext],
     py_modules=['_zengl'],
     data_files=[('.', ['zengl.pyi'])],
@@ -55,6 +55,7 @@ setup(
         'graphics',
         'visualization',
     ],
+    install_requires=['glcontext'],
     extras_require={
         'examples': [
             'chull',

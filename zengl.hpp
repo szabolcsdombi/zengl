@@ -558,6 +558,20 @@ int get_topology(const char * topology) {
     return -1;
 }
 
+int topology_converter(PyObject * arg, int * value) {
+    if (!PyUnicode_CheckExact(arg)) {
+        PyErr_Format(PyExc_TypeError, "topology must be a string");
+        return 0;
+    }
+    int topology = get_topology(PyUnicode_AsUTF8(arg));
+    if (topology == -1) {
+        PyErr_Format(PyExc_ValueError, "invalid topology");
+        return 0;
+    }
+    *value = topology;
+    return 1;
+}
+
 int count_mipmaps(int width, int height) {
     int size = width > height ? width : height;
     for (int i = 0; i < 32; ++i) {
