@@ -990,12 +990,12 @@ Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * kwargs) 
     res->framebuffer = NULL;
     if (!cubemap && !array) {
         if (format.color) {
-            PyObject * face = PyObject_CallMethod((PyObject *)res, "face", "(ii)", 0, 0);
+            PyObject * face = PyObject_CallMethod((PyObject *)res, "face", NULL);
             PyObject * attachments = Py_BuildValue("((ii)(N)O)", width, height, face, Py_None);
             res->framebuffer = build_framebuffer(self, attachments);
             Py_DECREF(attachments);
         } else {
-            PyObject * face = PyObject_CallMethod((PyObject *)res, "face", "(ii)", 0, 0);
+            PyObject * face = PyObject_CallMethod((PyObject *)res, "face", NULL);
             PyObject * attachments = Py_BuildValue("((ii)()N)", width, height, face);
             res->framebuffer = build_framebuffer(self, attachments);
             Py_DECREF(attachments);
