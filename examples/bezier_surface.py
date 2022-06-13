@@ -158,7 +158,10 @@ surface_pipeline = ctx.pipeline(
         layout (location = 0) out vec4 out_color;
 
         void main() {
-            vec3 color = blinn_phong(v_vertex, v_normal, eye_pos.xyz, light_pos.xyz, 16.0, vec3(0.0, 0.01, 0.05), vec3(0.0, 0.1, 0.5), vec3(1.0, 1.0, 1.0), vec3(1.0, 1.0, 1.0), 60.0);
+            vec3 color = blinn_phong(
+                v_vertex, v_normal, eye_pos.xyz, light_pos.xyz, 16.0,
+                vec3(0.0, 0.01, 0.05), vec3(0.0, 0.1, 0.5), vec3(1.0, 1.0, 1.0), vec3(1.0, 1.0, 1.0), 60.0
+            );
             out_color = vec4(color, 1.0);
         }
     ''',
