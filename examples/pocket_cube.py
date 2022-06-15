@@ -1,4 +1,5 @@
 import json
+import re
 import struct
 
 import numpy as np
@@ -6,6 +7,19 @@ import zengl
 
 import assets
 from window import Window
+
+N = 2
+
+
+def quatmul(A, B):
+    ax, ay, az, aw = A.T
+    bx, by, bz, bw = B.T
+    return np.array([
+        ax * bw + ay * bz - az * by + aw * bx,
+        -ax * bz + ay * bw + az * bx + aw * by,
+        ax * by - ay * bx + az * bw + aw * bz,
+        -ax * bx - ay * by - az * bz + aw * bw,
+    ]).T
 
 
 def rgb(r, g, b):
@@ -58,7 +72,19 @@ def make_colors(N):
     return np.array(colors, 'f4')
 
 
-N = 2
+def get_layer(rotations, axis, level, N):
+    i = np.arange(N * N * N)
+    v = np.array([i % N, i // N % N, i // N // N % N]).T - (N - 1) / 2.0
+    v = v + np.cross(np.cross(v, rotations[:, :3]) - v * rotations[:, [3, 3, 3]], rotations[:, :3]) * 2.0
+    v = np.round(v + (N - 1) / 2.0).astype(int)
+    return i[v[:, 'xyz'.index(axis)] == level]
+
+
+def make_rotations(axis, angle, sign, count):
+    quat = [0.0, 0.0, 0.0, np.cos(angle / 2.0)]
+    quat['xyz'.index(axis)] = np.sin(angle / 2.0) * (1.0 if sign == '+' else -1.0)
+    return np.full((count, 4), quat)
+
 
 window = Window(1280, 720)
 ctx = zengl.context()
@@ -176,12 +202,49 @@ cube = ctx.pipeline(
 )
 
 
+class Rotate:
+    def __init__(self, rotations, rotate, steps=30):
+        sign, axis, level = re.match(r'([+-])([xyz])(\d)', rotate).groups()
+        self.idx = get_layer(rotations, axis, int(level), N)
+        self.final = quatmul(make_rotations(axis, np.pi / 2.0, sign, len(self.idx)), rotations[self.idx])
+        self.rotate = make_rotations(axis, np.pi / 2.0 / steps, sign, len(self.idx))
+        self.rotations = rotations
+        self.steps = steps
+
+    def update(self):
+        if self.steps > 0:
+            self.rotations[self.idx] = quatmul(self.rotate, self.rotations[self.idx])
+            self.steps -= 1
+            return False
+        else:
+            self.rotations[self.idx] = self.final
+            return True
+
+
+class Rotateions:
+    def __init__(self, rotations, sequence):
+        self.rotations = rotations
+        self.it = iter(sequence)
+        self.rotate = None
+
+    def update(self):
+        try:
+            if self.rotate is None:
+                self.rotate = Rotate(rotations, next(self.it))
+        except StopIteration:
+            return
+        if self.rotate.update():
+            self.rotate = None
+
+
 camera = zengl.camera((4.0, 3.0, 2.0), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
 uniform_buffer.write(camera)
 
+moves = [f'{sign}{axis}{level}' for sign in '+-' for axis in 'xyz' for level in range(N)]
+animation = Rotateions(rotations, np.random.choice(moves, 1000))
+
 while window.update():
-    rotations[-N * N:] = 0.0, 0.0, np.sin(-window.time * 0.3), np.cos(-window.time * 0.3)
-    rotations[:N * N] = 0.0, 0.0, np.sin(window.time * 0.3), np.cos(window.time * 0.3)
+    animation.update()
     rotation_buffer.write(rotations)
 
     image.clear()
