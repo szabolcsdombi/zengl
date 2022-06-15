@@ -73,13 +73,23 @@ vertex_buffer = ctx.buffer(model)
 uniform_buffer = ctx.buffer(size=64)
 color_buffer = ctx.buffer(make_colors(N))
 
+rotations = np.full((N * N * N, 4), (0.0, 0.0, 0.0, 1.0), 'f4')
+rotation_buffer = ctx.buffer(rotations)
+
 ctx.includes['N'] = f'const int N = {N};'
+
+ctx.includes['qtransform'] = '''
+    vec3 qtransform(vec4 q, vec3 v) {
+        return v + 2.0 * cross(cross(v, q.xyz) - q.w * v, q.xyz);
+    }
+'''
 
 cube = ctx.pipeline(
     vertex_shader='''
         #version 330
 
         #include "N"
+        #include "qtransform"
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -87,6 +97,10 @@ cube = ctx.pipeline(
 
         layout (std140) uniform Colors {
             vec4 colors[N * N * N * 7];
+        };
+
+        layout (std140) uniform Rotations {
+            vec4 rotations[N * N * N];
         };
 
         layout (location = 0) in vec3 in_vertex;
@@ -98,11 +112,11 @@ cube = ctx.pipeline(
         out vec3 v_color;
 
         void main() {
-            float x = float(gl_InstanceID % N - 1);
-            float y = float(gl_InstanceID / N % N - 1);
-            float z = float(gl_InstanceID / N / N % N - 1);
-            v_vertex = (in_vertex + vec3(x, y, z)) / N;
-            v_normal = in_normal;
+            float x = float(gl_InstanceID % N) - float(N - 1) / 2.0;
+            float y = float(gl_InstanceID / N % N) - float(N - 1) / 2.0;
+            float z = float(gl_InstanceID / N / N % N) - float(N - 1) / 2.0;
+            v_vertex = qtransform(rotations[gl_InstanceID], (in_vertex + vec3(x, y, z)) / N);
+            v_normal = qtransform(rotations[gl_InstanceID], in_normal);
             v_color = colors[gl_InstanceID * 7 + int(in_color)].rgb;
             gl_Position = mvp * vec4(v_vertex, 1.0);
         }
@@ -131,6 +145,10 @@ cube = ctx.pipeline(
             'name': 'Colors',
             'binding': 1,
         },
+        {
+            'name': 'Rotations',
+            'binding': 2,
+        },
     ],
     resources=[
         {
@@ -142,6 +160,11 @@ cube = ctx.pipeline(
             'type': 'uniform_buffer',
             'binding': 1,
             'buffer': color_buffer,
+        },
+        {
+            'type': 'uniform_buffer',
+            'binding': 2,
+            'buffer': rotation_buffer,
         },
     ],
     framebuffer=[image, depth],
@@ -157,6 +180,10 @@ camera = zengl.camera((4.0, 3.0, 2.0), (0.0, 0.0, 0.0), aspect=window.aspect, fo
 uniform_buffer.write(camera)
 
 while window.update():
+    rotations[-N * N:] = 0.0, 0.0, np.sin(-window.time * 0.3), np.cos(-window.time * 0.3)
+    rotations[:N * N] = 0.0, 0.0, np.sin(window.time * 0.3), np.cos(window.time * 0.3)
+    rotation_buffer.write(rotations)
+
     image.clear()
     depth.clear()
     cube.render()
