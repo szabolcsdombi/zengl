@@ -1,3 +1,7 @@
+import math
+from colorsys import hls_to_rgb
+
+import numpy as np
 import zengl
 from objloader import Obj
 
@@ -55,13 +59,8 @@ pipeline = ctx.pipeline(
         }
     ''',
     uniforms={
-        'mvp': [
-            [-0.814797, -0.717293, -0.742929, -0.742781],
-            [1.086396, -0.537969, -0.557197, -0.557085],
-            [0.000000, 2.241540, -0.371464, -0.371390],
-            [0.000000, 0.000000, 5.186222, 5.385164],
-        ],
-        'color': [0.0, 0.5, 1.0],
+        'mvp': [0.0] * 16,
+        'color': [0.0, 0.0, 0.0],
     },
     framebuffer=[image, depth],
     topology='triangles',
@@ -71,6 +70,12 @@ pipeline = ctx.pipeline(
 )
 
 while window.update():
+    x, y = math.sin(window.time * 0.5) * 3.0, math.cos(window.time * 0.5) * 3.0
+    camera = zengl.camera((x, y, 1.5), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
+    pipeline.uniforms['mvp'][:] = camera
+    red, green, blue = hls_to_rgb(window.time * 0.1, 0.5, 0.5)
+    np.frombuffer(pipeline.uniforms['color'], 'f4')[:] = red, green, blue
+
     image.clear()
     depth.clear()
     pipeline.render()
