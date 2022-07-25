@@ -149,8 +149,8 @@ struct Pipeline {
     DescriptorSetBuffers * descriptor_set_buffers;
     DescriptorSetImages * descriptor_set_images;
     GlobalSettings * global_settings;
-    PyObject * uniform_bindings;
-    PyObject * uniforms;
+    PyObject * uniforms_data;
+    PyObject * uniforms_map;
     GLObject * framebuffer;
     GLObject * vertex_array;
     GLObject * program;
@@ -1081,7 +1081,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     PyObject * fragment_shader = NULL;
     PyObject * layout = self->module_state->empty_tuple;
     PyObject * resources = self->module_state->empty_tuple;
-    PyObject * uniform_values = Py_None;
+    PyObject * uniforms = Py_None;
     PyObject * depth = Py_True;
     PyObject * stencil = Py_False;
     PyObject * blending = Py_False;
@@ -1111,7 +1111,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         &fragment_shader,
         &layout,
         &resources,
-        &uniform_values,
+        &uniforms,
         &depth,
         &stencil,
         &blending,
@@ -1164,18 +1164,18 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
 
     bind_program(self, program->obj);
 
-    int attribs = 0;
-    int uniforms = 0;
-    int uniform_buffers = 0;
-    gl.GetProgramiv(program->obj, GL_ACTIVE_ATTRIBUTES, &attribs);
-    gl.GetProgramiv(program->obj, GL_ACTIVE_UNIFORMS, &uniforms);
-    gl.GetProgramiv(program->obj, GL_ACTIVE_UNIFORM_BLOCKS, &uniform_buffers);
+    int num_attribs = 0;
+    int num_uniforms = 0;
+    int num_uniform_buffers = 0;
+    gl.GetProgramiv(program->obj, GL_ACTIVE_ATTRIBUTES, &num_attribs);
+    gl.GetProgramiv(program->obj, GL_ACTIVE_UNIFORMS, &num_uniforms);
+    gl.GetProgramiv(program->obj, GL_ACTIVE_UNIFORM_BLOCKS, &num_uniform_buffers);
 
-    PyObject * program_attributes = PyList_New(attribs);
-    PyObject * program_uniforms = PyList_New(uniforms);
-    PyObject * program_uniform_buffers = PyList_New(uniform_buffers);
+    PyObject * program_attributes = PyList_New(num_attribs);
+    PyObject * program_uniforms = PyList_New(num_uniforms);
+    PyObject * program_uniform_buffers = PyList_New(num_uniform_buffers);
 
-    for (int i = 0; i < attribs; ++i) {
+    for (int i = 0; i < num_attribs; ++i) {
         int size = 0;
         int type = 0;
         int length = 0;
@@ -1185,7 +1185,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         PyList_SET_ITEM(program_attributes, i, Py_BuildValue("{sssisisi}", "name", name, "location", location, "type", type, "size", size));
     }
 
-    for (int i = 0; i < uniforms; ++i) {
+    for (int i = 0; i < num_uniforms; ++i) {
         int size = 0;
         int type = 0;
         int length = 0;
@@ -1195,7 +1195,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         PyList_SET_ITEM(program_uniforms, i, Py_BuildValue("{sssisisi}", "name", name, "location", location, "type", type, "size", size));
     }
 
-    for (int i = 0; i < uniform_buffers; ++i) {
+    for (int i = 0; i < num_uniform_buffers; ++i) {
         int size = 0;
         int length = 0;
         char name[256] = {};
@@ -1204,33 +1204,34 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         PyList_SET_ITEM(program_uniform_buffers, i, Py_BuildValue("{sssi}", "name", name, "size", size));
     }
 
-    PyObject * uniform_bindings = NULL;
-    PyObject * uniform_map = NULL;
+    PyObject * uniforms_data = NULL;
+    PyObject * uniforms_map = NULL;
 
-    if (uniform_values != Py_None) {
-        uniform_bindings = PyObject_CallMethod(self->module_state->helper, "uniform_bindings", "OO", program_uniforms, uniform_values);
-        if (!uniform_bindings) {
+    if (uniforms != Py_None) {
+        uniforms_data = PyObject_CallMethod(self->module_state->helper, "uniforms", "OO", program_uniforms, uniforms);
+        if (!uniforms_data) {
             return NULL;
         }
 
-        uniform_map = PyDict_New();
+        PyObject * mapping = PyDict_New();
 
-        char * ptr = PyByteArray_AsString(uniform_bindings);
-        int size = (int)PyByteArray_Size(uniform_bindings);
+        char * ptr = PyByteArray_AsString(uniforms_data);
+        int size = (int)PyByteArray_Size(uniforms_data);
         int offset = 0;
         Py_ssize_t pos = 0;
         while (offset < size) {
             UniformBinding * header = (UniformBinding *)(ptr + offset);
-            PyObject * key;
-            PyObject * value;
-            PyDict_Next(uniform_values, &pos, &key, &value);
+            PyObject * key = NULL;
+            PyObject * value = NULL;
+            PyDict_Next(uniforms, &pos, &key, &value);
             PyObject * mem = PyMemoryView_FromMemory(ptr + offset + 16, header->values * 4, PyBUF_WRITE);
-            PyDict_SetItem(uniform_map, key, mem);
+            PyDict_SetItem(mapping, key, mem);
             Py_DECREF(mem);
             offset += header->values * 4 + 16;
         }
 
-        uniform_map = PyDictProxy_New(uniform_map);
+        uniforms_map = PyDictProxy_New(mapping);
+        Py_DECREF(mapping);
     }
 
     if (!skip_validation) {
@@ -1345,8 +1346,8 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     res->viewport = viewport_value;
     res->descriptor_set_buffers = descriptor_set_buffers;
     res->descriptor_set_images = descriptor_set_images;
-    res->uniform_bindings = uniform_bindings;
-    res->uniforms = uniform_map;
+    res->uniforms_data = uniforms_data;
+    res->uniforms_map = uniforms_map;
     res->global_settings = global_settings;
     Py_INCREF(res);
     return res;
@@ -1450,8 +1451,8 @@ PyObject * Context_meth_release(Context * self, PyObject * arg) {
             }
             gl.DeleteVertexArrays(1, (unsigned int *)&pipeline->vertex_array->obj);
         }
-        Py_XDECREF(pipeline->uniform_bindings);
-        Py_XDECREF(pipeline->uniforms);
+        Py_XDECREF(pipeline->uniforms_data);
+        Py_XDECREF(pipeline->uniforms_map);
         Py_DECREF(pipeline);
     } else if (PyUnicode_CheckExact(arg) && !PyUnicode_CompareWithASCIIString(arg, "shader_cache")) {
         PyObject * key = NULL;
@@ -2179,8 +2180,8 @@ PyObject * Pipeline_meth_render(Pipeline * self) {
     bind_vertex_array(self->ctx, self->vertex_array->obj);
     bind_descriptor_set_buffers(self->ctx, self->descriptor_set_buffers);
     bind_descriptor_set_images(self->ctx, self->descriptor_set_images);
-    if (self->uniform_bindings) {
-        bind_uniforms(self->ctx, self->uniform_bindings);
+    if (self->uniforms_data) {
+        bind_uniforms(self->ctx, self->uniforms_data);
     }
     if (self->index_type) {
         long long offset = 1ll * self->first_vertex * self->index_size;
@@ -2583,7 +2584,7 @@ PyMemberDef Pipeline_members[] = {
     {"vertex_count", T_INT, offsetof(Pipeline, vertex_count), 0, NULL},
     {"instance_count", T_INT, offsetof(Pipeline, instance_count), 0, NULL},
     {"first_vertex", T_INT, offsetof(Pipeline, first_vertex), 0, NULL},
-    {"uniforms", T_OBJECT_EX, offsetof(Pipeline, uniforms), 0, NULL},
+    {"uniforms", T_OBJECT_EX, offsetof(Pipeline, uniforms_map), 0, NULL},
     {},
 };
 

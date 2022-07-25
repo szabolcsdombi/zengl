@@ -374,7 +374,7 @@ def flatten(iterable):
         yield iterable
 
 
-def uniform_bindings(uniforms, values):
+def uniforms(uniforms, values):
     res = bytearray()
     uniform_map = {obj['name']: obj for obj in uniforms}
 
@@ -385,8 +385,10 @@ def uniform_bindings(uniforms, values):
         gltype = uniform_map[key]['type']
         items, format = UNIFORM_PACKER[gltype]
         count = len(value) // items
-        if len(value) % items or count > size:
-            raise ValueError()
+        if len(value) > size * items:
+            raise ValueError(f'Uniform "{key}" must be {size * items} long at most')
+        if len(value) % items:
+            raise ValueError(f'Uniform "{key}" must have a length divisible by {items}')
         res.extend(struct.pack('4i', len(value), location, count, gltype))
         for value in flatten(value):
             res.extend(struct.pack(format, value))
