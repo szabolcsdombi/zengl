@@ -323,6 +323,9 @@ Pipeline
 **resources**
     | The list of uniform buffers and samplers to be bound.
 
+**uniforms**
+    | The default values for uniforms.
+
 **depth**
     | The depth settings
 
@@ -421,6 +424,10 @@ Pipeline
 .. py:attribute:: Pipeline.viewport
 
     | The render viewport, defined as tuples of four ints in (x, y, width, height) format.
+
+.. py:attribute:: Pipeline.uniforms
+
+    | The uniform values as memoryviews.
 
 .. py:method:: Pipeline.render()
 
