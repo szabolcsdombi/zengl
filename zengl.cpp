@@ -1450,6 +1450,8 @@ PyObject * Context_meth_release(Context * self, PyObject * arg) {
             }
             gl.DeleteVertexArrays(1, (unsigned int *)&pipeline->vertex_array->obj);
         }
+        Py_XDECREF(pipeline->uniform_bindings);
+        Py_XDECREF(pipeline->uniforms);
         Py_DECREF(pipeline);
     } else if (PyUnicode_CheckExact(arg) && !PyUnicode_CompareWithASCIIString(arg, "shader_cache")) {
         PyObject * key = NULL;
