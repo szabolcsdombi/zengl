@@ -378,17 +378,21 @@ def uniforms(uniforms, values):
     res = bytearray()
     uniform_map = {obj['name']: obj for obj in uniforms}
 
-    for key, value in values.items():
+    for name, value in values.items():
+        if name not in uniform_map:
+            raise KeyError(f'Uniform "{name}" does not exist')
         value = tuple(flatten(value))
-        location = uniform_map[key]['location']
-        size = uniform_map[key]['size']
-        gltype = uniform_map[key]['type']
+        location = uniform_map[name]['location']
+        size = uniform_map[name]['size']
+        gltype = uniform_map[name]['type']
+        if gltype not in UNIFORM_PACKER:
+            raise ValueError(f'Uniform "{name}" has an unknown type')
         items, format = UNIFORM_PACKER[gltype]
         count = len(value) // items
         if len(value) > size * items:
-            raise ValueError(f'Uniform "{key}" must be {size * items} long at most')
+            raise ValueError(f'Uniform "{name}" must be {size * items} long at most')
         if len(value) % items:
-            raise ValueError(f'Uniform "{key}" must have a length divisible by {items}')
+            raise ValueError(f'Uniform "{name}" must have a length divisible by {items}')
         res.extend(struct.pack('4i', len(value), location, count, gltype))
         for value in flatten(value):
             res.extend(struct.pack(format, value))
