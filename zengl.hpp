@@ -4,6 +4,7 @@
 const int MAX_ATTACHMENTS = 16;
 const int MAX_UNIFORM_BUFFER_BINDINGS = 16;
 const int MAX_SAMPLER_BINDINGS = 64;
+const int MAX_UNIFORM_BINDINGS = 64;
 
 #if defined(_WIN32) || defined(_WIN64)
 #define GLAPI __stdcall
@@ -244,6 +245,23 @@ typedef void (GLAPI * glLinkProgramProc)(unsigned int program);
 typedef void (GLAPI * glShaderSourceProc)(unsigned int shader, int count, const char * const * string, const int * length);
 typedef void (GLAPI * glUseProgramProc)(unsigned int program);
 typedef void (GLAPI * glUniform1iProc)(int location, int v0);
+typedef void (GLAPI * glUniform1ivProc)(int location, int count, int * value);
+typedef void (GLAPI * glUniform2ivProc)(int location, int count, int * value);
+typedef void (GLAPI * glUniform3ivProc)(int location, int count, int * value);
+typedef void (GLAPI * glUniform4ivProc)(int location, int count, int * value);
+typedef void (GLAPI * glUniform1fvProc)(int location, int count, float * value);
+typedef void (GLAPI * glUniform2fvProc)(int location, int count, float * value);
+typedef void (GLAPI * glUniform3fvProc)(int location, int count, float * value);
+typedef void (GLAPI * glUniform4fvProc)(int location, int count, float * value);
+typedef void (GLAPI * glUniformMatrix2fvProc)(int location, int count, unsigned char transpose, float * value);
+typedef void (GLAPI * glUniformMatrix2x3fvProc)(int location, int count, unsigned char transpose, float * value);
+typedef void (GLAPI * glUniformMatrix2x4fvProc)(int location, int count, unsigned char transpose, float * value);
+typedef void (GLAPI * glUniformMatrix3x2fvProc)(int location, int count, unsigned char transpose, float * value);
+typedef void (GLAPI * glUniformMatrix3fvProc)(int location, int count, unsigned char transpose, float * value);
+typedef void (GLAPI * glUniformMatrix3x4fvProc)(int location, int count, unsigned char transpose, float * value);
+typedef void (GLAPI * glUniformMatrix4x2fvProc)(int location, int count, unsigned char transpose, float * value);
+typedef void (GLAPI * glUniformMatrix4x3fvProc)(int location, int count, unsigned char transpose, float * value);
+typedef void (GLAPI * glUniformMatrix4fvProc)(int location, int count, unsigned char transpose, float * value);
 typedef void (GLAPI * glVertexAttribPointerProc)(unsigned int index, int size, unsigned int type, unsigned char normalized, int stride, const void * pointer);
 
 // GL_VERSION_3_0
@@ -252,6 +270,10 @@ typedef void (GLAPI * glEnableiProc)(unsigned int target, unsigned int index);
 typedef void (GLAPI * glDisableiProc)(unsigned int target, unsigned int index);
 typedef void (GLAPI * glBindBufferRangeProc)(unsigned int target, unsigned int index, unsigned int buffer, sizeiptr offset, sizeiptr size);
 typedef void (GLAPI * glVertexAttribIPointerProc)(unsigned int index, int size, unsigned int type, int stride, const void * pointer);
+typedef void (GLAPI * glUniform1uivProc)(int location, int count, unsigned int * value);
+typedef void (GLAPI * glUniform2uivProc)(int location, int count, unsigned int * value);
+typedef void (GLAPI * glUniform3uivProc)(int location, int count, unsigned int * value);
+typedef void (GLAPI * glUniform4uivProc)(int location, int count, unsigned int * value);
 typedef void (GLAPI * glClearBufferivProc)(unsigned int buffer, int drawbuffer, const int * value);
 typedef void (GLAPI * glClearBufferuivProc)(unsigned int buffer, int drawbuffer, const unsigned int * value);
 typedef void (GLAPI * glClearBufferfvProc)(unsigned int buffer, int drawbuffer, const float * value);
@@ -359,6 +381,23 @@ struct GLMethods {
     glShaderSourceProc ShaderSource;
     glUseProgramProc UseProgram;
     glUniform1iProc Uniform1i;
+    glUniform1ivProc Uniform1iv;
+    glUniform2ivProc Uniform2iv;
+    glUniform3ivProc Uniform3iv;
+    glUniform4ivProc Uniform4iv;
+    glUniform1fvProc Uniform1fv;
+    glUniform2fvProc Uniform2fv;
+    glUniform3fvProc Uniform3fv;
+    glUniform4fvProc Uniform4fv;
+    glUniformMatrix2fvProc UniformMatrix2fv;
+    glUniformMatrix2x3fvProc UniformMatrix2x3fv;
+    glUniformMatrix2x4fvProc UniformMatrix2x4fv;
+    glUniformMatrix3x2fvProc UniformMatrix3x2fv;
+    glUniformMatrix3fvProc UniformMatrix3fv;
+    glUniformMatrix3x4fvProc UniformMatrix3x4fv;
+    glUniformMatrix4x2fvProc UniformMatrix4x2fv;
+    glUniformMatrix4x3fvProc UniformMatrix4x3fv;
+    glUniformMatrix4fvProc UniformMatrix4fv;
     glVertexAttribPointerProc VertexAttribPointer;
 
     // GL_VERSION_3_0
@@ -367,6 +406,10 @@ struct GLMethods {
     glDisableiProc Disablei;
     glBindBufferRangeProc BindBufferRange;
     glVertexAttribIPointerProc VertexAttribIPointer;
+    glUniform1uivProc Uniform1uiv;
+    glUniform2uivProc Uniform2uiv;
+    glUniform3uivProc Uniform3uiv;
+    glUniform4uivProc Uniform4uiv;
     glClearBufferivProc ClearBufferiv;
     glClearBufferuivProc ClearBufferuiv;
     glClearBufferfvProc ClearBufferfv;
@@ -435,6 +478,18 @@ struct SamplerBinding {
     int sampler;
     int target;
     int image;
+};
+
+struct UniformBinding {
+    int values;
+    int location;
+    int count;
+    int type;
+    union {
+        int int_values[1];
+        unsigned uint_values[1];
+        float float_values[1];
+    };
 };
 
 struct StencilSettings {
@@ -725,6 +780,23 @@ GLMethods load_gl(PyObject * context) {
     load(ShaderSource);
     load(UseProgram);
     load(Uniform1i);
+    load(Uniform1iv);
+    load(Uniform2iv);
+    load(Uniform3iv);
+    load(Uniform4iv);
+    load(Uniform1fv);
+    load(Uniform2fv);
+    load(Uniform3fv);
+    load(Uniform4fv);
+    load(UniformMatrix2fv);
+    load(UniformMatrix2x3fv);
+    load(UniformMatrix2x4fv);
+    load(UniformMatrix3x2fv);
+    load(UniformMatrix3fv);
+    load(UniformMatrix3x4fv);
+    load(UniformMatrix4x2fv);
+    load(UniformMatrix4x3fv);
+    load(UniformMatrix4fv);
     load(VertexAttribPointer);
 
     // GL_VERSION_3_0
@@ -733,6 +805,10 @@ GLMethods load_gl(PyObject * context) {
     load(Disablei);
     load(BindBufferRange);
     load(VertexAttribIPointer);
+    load(Uniform1uiv);
+    load(Uniform2uiv);
+    load(Uniform3uiv);
+    load(Uniform4uiv);
     load(ClearBufferiv);
     load(ClearBufferuiv);
     load(ClearBufferfv);

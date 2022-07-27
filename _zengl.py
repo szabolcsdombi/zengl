@@ -1,4 +1,5 @@
 import re
+import struct
 import textwrap
 
 FORMAT = {
@@ -121,6 +122,34 @@ VERTEX_SHADER_BUILTINS = {
     'gl_DrawID',
     'gl_BaseVertex',
     'gl_BaseInstance',
+}
+
+UNIFORM_PACKER = {
+    0x1404: (1, 'i'),
+    0x8B53: (2, 'i'),
+    0x8B54: (3, 'i'),
+    0x8B55: (4, 'i'),
+    0x8B56: (1, 'i'),
+    0x8B57: (2, 'i'),
+    0x8B58: (3, 'i'),
+    0x8B59: (4, 'i'),
+    0x1405: (1, 'I'),
+    0x8DC6: (2, 'I'),
+    0x8DC7: (3, 'I'),
+    0x8DC8: (4, 'I'),
+    0x1406: (1, 'f'),
+    0x8B50: (2, 'f'),
+    0x8B51: (3, 'f'),
+    0x8B52: (4, 'f'),
+    0x8B5A: (4, 'f'),
+    0x8B65: (6, 'f'),
+    0x8B66: (8, 'f'),
+    0x8B67: (6, 'f'),
+    0x8B5B: (9, 'f'),
+    0x8B68: (12, 'f'),
+    0x8B69: (8, 'f'),
+    0x8B6A: (12, 'f'),
+    0x8B5C: (16, 'f'),
 }
 
 
@@ -337,6 +366,54 @@ def linker_error(vertex_shader: bytes, fragment_shader: bytes, log: bytes):
     raise ValueError(f'Linker Error\n\n{log}')
 
 
+def flatten(iterable):
+    try:
+        for x in iterable:
+            yield from flatten(x)
+    except TypeError:
+        yield iterable
+
+
+def uniforms(uniforms, values):
+    data = bytearray()
+    uniform_map = {obj['name']: obj for obj in uniforms}
+
+    if values == 'all':
+        names = []
+        for obj in uniforms:
+            location = obj['location']
+            size = obj['size']
+            gltype = obj['type']
+            if gltype not in UNIFORM_PACKER:
+                continue
+            names.append(obj['name'])
+            items, format = UNIFORM_PACKER[gltype]
+            data.extend(struct.pack('4i', size * items, location, size, gltype))
+            data.extend(bytearray(size * items * 4))
+        return names, data
+
+    for name, value in values.items():
+        if name not in uniform_map:
+            raise KeyError(f'Uniform "{name}" does not exist')
+        value = tuple(flatten(value))
+        location = uniform_map[name]['location']
+        size = uniform_map[name]['size']
+        gltype = uniform_map[name]['type']
+        if gltype not in UNIFORM_PACKER:
+            raise ValueError(f'Uniform "{name}" has an unknown type')
+        items, format = UNIFORM_PACKER[gltype]
+        count = len(value) // items
+        if len(value) > size * items:
+            raise ValueError(f'Uniform "{name}" must be {size * items} long at most')
+        if len(value) % items:
+            raise ValueError(f'Uniform "{name}" must have a length divisible by {items}')
+        data.extend(struct.pack('4i', len(value), location, count, gltype))
+        for value in flatten(value):
+            data.extend(struct.pack(format, value))
+
+    return list(values), data
+
+
 def validate(attributes, uniforms, uniform_buffers, vertex_buffers, layout, resources, limits):
     attributes = [
         {
@@ -352,6 +429,7 @@ def validate(attributes, uniforms, uniform_buffers, vertex_buffers, layout, reso
             'location': obj['location'] + i if obj['location'] >= 0 else -1,
         }
         for obj in uniforms for i in range(obj['size'])
+        if obj['type'] not in UNIFORM_PACKER
     ]
     bound_attributes = set()
     bound_uniforms = set()

@@ -151,6 +151,9 @@ struct Pipeline {
     GLObject * framebuffer;
     GLObject * vertex_array;
     GLObject * program;
+    PyObject * uniform_map;
+    char * uniform_data;
+    int uniform_count;
     int topology;
     int vertex_count;
     int instance_count;
@@ -358,6 +361,42 @@ GLObject * build_framebuffer(Context * self, PyObject * attachments) {
 
     PyDict_SetItem(self->framebuffer_cache, attachments, (PyObject *)res);
     return res;
+}
+
+void bind_uniforms(Context * self, char * data, int count) {
+    const GLMethods & gl = self->gl;
+    int offset = 0;
+    for (int i = 0; i < count; ++i) {
+        UniformBinding * header = (UniformBinding *)(data + offset);
+        switch (header->type) {
+            case 0x1404: gl.Uniform1iv(header->location, header->count, header->int_values); break;
+            case 0x8B53: gl.Uniform2iv(header->location, header->count, header->int_values); break;
+            case 0x8B54: gl.Uniform3iv(header->location, header->count, header->int_values); break;
+            case 0x8B55: gl.Uniform4iv(header->location, header->count, header->int_values); break;
+            case 0x8B56: gl.Uniform1iv(header->location, header->count, header->int_values); break;
+            case 0x8B57: gl.Uniform2iv(header->location, header->count, header->int_values); break;
+            case 0x8B58: gl.Uniform3iv(header->location, header->count, header->int_values); break;
+            case 0x8B59: gl.Uniform4iv(header->location, header->count, header->int_values); break;
+            case 0x1405: gl.Uniform1uiv(header->location, header->count, header->uint_values); break;
+            case 0x8DC6: gl.Uniform2uiv(header->location, header->count, header->uint_values); break;
+            case 0x8DC7: gl.Uniform3uiv(header->location, header->count, header->uint_values); break;
+            case 0x8DC8: gl.Uniform4uiv(header->location, header->count, header->uint_values); break;
+            case 0x1406: gl.Uniform1fv(header->location, header->count, header->float_values); break;
+            case 0x8B50: gl.Uniform2fv(header->location, header->count, header->float_values); break;
+            case 0x8B51: gl.Uniform3fv(header->location, header->count, header->float_values); break;
+            case 0x8B52: gl.Uniform4fv(header->location, header->count, header->float_values); break;
+            case 0x8B5A: gl.UniformMatrix2fv(header->location, header->count, false, header->float_values); break;
+            case 0x8B65: gl.UniformMatrix2x3fv(header->location, header->count, false, header->float_values); break;
+            case 0x8B66: gl.UniformMatrix2x4fv(header->location, header->count, false, header->float_values); break;
+            case 0x8B67: gl.UniformMatrix3x2fv(header->location, header->count, false, header->float_values); break;
+            case 0x8B5B: gl.UniformMatrix3fv(header->location, header->count, false, header->float_values); break;
+            case 0x8B68: gl.UniformMatrix3x4fv(header->location, header->count, false, header->float_values); break;
+            case 0x8B69: gl.UniformMatrix4x2fv(header->location, header->count, false, header->float_values); break;
+            case 0x8B6A: gl.UniformMatrix4x3fv(header->location, header->count, false, header->float_values); break;
+            case 0x8B5C: gl.UniformMatrix4fv(header->location, header->count, false, header->float_values); break;
+        }
+        offset += header->values * 4 + 16;
+    }
 }
 
 GLObject * build_vertex_array(Context * self, PyObject * bindings) {
@@ -1015,6 +1054,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         "fragment_shader",
         "layout",
         "resources",
+        "uniforms",
         "depth",
         "stencil",
         "blending",
@@ -1039,6 +1079,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     PyObject * fragment_shader = NULL;
     PyObject * layout = self->module_state->empty_tuple;
     PyObject * resources = self->module_state->empty_tuple;
+    PyObject * uniforms = Py_None;
     PyObject * depth = Py_True;
     PyObject * stencil = Py_False;
     PyObject * blending = Py_False;
@@ -1060,7 +1101,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
-        "|$O!O!OOOOOOOOOOpOOO&iiiOp",
+        "|$O!O!OOOOOOOOOOOpOOO&iiiOp",
         keywords,
         &PyUnicode_Type,
         &vertex_shader,
@@ -1068,6 +1109,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         &fragment_shader,
         &layout,
         &resources,
+        &uniforms,
         &depth,
         &stencil,
         &blending,
@@ -1118,44 +1160,79 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         return NULL;
     }
 
-    int attribs = 0;
-    int uniforms = 0;
-    int uniform_buffers = 0;
-    gl.GetProgramiv(program->obj, GL_ACTIVE_ATTRIBUTES, &attribs);
-    gl.GetProgramiv(program->obj, GL_ACTIVE_UNIFORMS, &uniforms);
-    gl.GetProgramiv(program->obj, GL_ACTIVE_UNIFORM_BLOCKS, &uniform_buffers);
+    bind_program(self, program->obj);
 
-    PyObject * program_attributes = PyList_New(attribs);
-    PyObject * program_uniforms = PyList_New(uniforms);
-    PyObject * program_uniform_buffers = PyList_New(uniform_buffers);
+    int num_attribs = 0;
+    int num_uniforms = 0;
+    int num_uniform_buffers = 0;
+    gl.GetProgramiv(program->obj, GL_ACTIVE_ATTRIBUTES, &num_attribs);
+    gl.GetProgramiv(program->obj, GL_ACTIVE_UNIFORMS, &num_uniforms);
+    gl.GetProgramiv(program->obj, GL_ACTIVE_UNIFORM_BLOCKS, &num_uniform_buffers);
 
-    for (int i = 0; i < attribs; ++i) {
+    PyObject * program_attributes = PyList_New(num_attribs);
+    PyObject * program_uniforms = PyList_New(num_uniforms);
+    PyObject * program_uniform_buffers = PyList_New(num_uniform_buffers);
+
+    for (int i = 0; i < num_attribs; ++i) {
         int size = 0;
         int type = 0;
         int length = 0;
         char name[256] = {};
         gl.GetActiveAttrib(program->obj, i, 256, &length, &size, (unsigned *)&type, name);
         int location = gl.GetAttribLocation(program->obj, name);
-        PyList_SET_ITEM(program_attributes, i, Py_BuildValue("{sssisi}", "name", name, "location", location, "size", size));
+        PyList_SET_ITEM(program_attributes, i, Py_BuildValue("{sssisisi}", "name", name, "location", location, "type", type, "size", size));
     }
 
-    for (int i = 0; i < uniforms; ++i) {
+    for (int i = 0; i < num_uniforms; ++i) {
         int size = 0;
         int type = 0;
         int length = 0;
         char name[256] = {};
         gl.GetActiveUniform(program->obj, i, 256, &length, &size, (unsigned *)&type, name);
         int location = gl.GetUniformLocation(program->obj, name);
-        PyList_SET_ITEM(program_uniforms, i, Py_BuildValue("{sssisi}", "name", name, "location", location, "size", size));
+        PyList_SET_ITEM(program_uniforms, i, Py_BuildValue("{sssisisi}", "name", name, "location", location, "type", type, "size", size));
     }
 
-    for (int i = 0; i < uniform_buffers; ++i) {
+    for (int i = 0; i < num_uniform_buffers; ++i) {
         int size = 0;
         int length = 0;
         char name[256] = {};
         gl.GetActiveUniformBlockiv(program->obj, i, GL_UNIFORM_BLOCK_DATA_SIZE, &size);
         gl.GetActiveUniformBlockName(program->obj, i, 256, &length, name);
         PyList_SET_ITEM(program_uniform_buffers, i, Py_BuildValue("{sssi}", "name", name, "size", size));
+    }
+
+    PyObject * uniform_map = NULL;
+    char * uniform_data = NULL;
+    int uniform_count = 0;
+
+    if (uniforms != Py_None) {
+        PyObject * tuple = PyObject_CallMethod(self->module_state->helper, "uniforms", "OO", program_uniforms, uniforms);
+        if (!tuple) {
+            return NULL;
+        }
+
+        PyObject * names = PyTuple_GetItem(tuple, 0);
+        PyObject * data = PyTuple_GetItem(tuple, 1);
+        PyObject * mapping = PyDict_New();
+
+        uniform_data = (char *)PyMem_Malloc(PyByteArray_Size(data));
+        memcpy(uniform_data, PyByteArray_AsString(data), PyByteArray_Size(data));
+        uniform_count = (int)PyList_Size(names);
+        int offset = 0;
+
+        for (int i = 0; i < uniform_count; ++i) {
+            UniformBinding * header = (UniformBinding *)(uniform_data + offset);
+            PyObject * name = PyList_GetItem(names, i);
+            PyObject * mem = PyMemoryView_FromMemory(uniform_data + offset + 16, header->values * 4, PyBUF_WRITE);
+            PyDict_SetItem(mapping, name, mem);
+            Py_DECREF(mem);
+            offset += header->values * 4 + 16;
+        }
+
+        uniform_map = PyDictProxy_New(mapping);
+        Py_DECREF(mapping);
+        Py_DECREF(tuple);
     }
 
     if (!skip_validation) {
@@ -1177,7 +1254,6 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         }
     }
 
-    bind_program(self, program->obj);
     int layout_count = layout != Py_None ? (int)PyList_Size(layout) : 0;
     for (int i = 0; i < layout_count; ++i) {
         PyObject * obj = PyList_GetItem(layout, i);
@@ -1262,6 +1338,9 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     res->framebuffer = framebuffer;
     res->vertex_array = vertex_array;
     res->program = program;
+    res->uniform_map = uniform_map;
+    res->uniform_data = uniform_data;
+    res->uniform_count = uniform_count;
     res->topology = topology;
     res->vertex_count = vertex_count;
     res->instance_count = instance_count;
@@ -1373,6 +1452,10 @@ PyObject * Context_meth_release(Context * self, PyObject * arg) {
                 self->current_vertex_array = 0;
             }
             gl.DeleteVertexArrays(1, (unsigned int *)&pipeline->vertex_array->obj);
+        }
+        if (pipeline->uniform_count) {
+            PyMem_Free(pipeline->uniform_data);
+            Py_DECREF(pipeline->uniform_map);
         }
         Py_DECREF(pipeline);
     } else if (PyUnicode_CheckExact(arg) && !PyUnicode_CompareWithASCIIString(arg, "shader_cache")) {
@@ -2101,6 +2184,9 @@ PyObject * Pipeline_meth_render(Pipeline * self) {
     bind_vertex_array(self->ctx, self->vertex_array->obj);
     bind_descriptor_set_buffers(self->ctx, self->descriptor_set_buffers);
     bind_descriptor_set_images(self->ctx, self->descriptor_set_images);
+    if (self->uniform_data) {
+        bind_uniforms(self->ctx, self->uniform_data, self->uniform_count);
+    }
     if (self->index_type) {
         long long offset = 1ll * self->first_vertex * self->index_size;
         gl.DrawElementsInstanced(self->topology, self->vertex_count, self->index_type, (void *)offset, self->instance_count);
@@ -2502,6 +2588,7 @@ PyMemberDef Pipeline_members[] = {
     {"vertex_count", T_INT, offsetof(Pipeline, vertex_count), 0, NULL},
     {"instance_count", T_INT, offsetof(Pipeline, instance_count), 0, NULL},
     {"first_vertex", T_INT, offsetof(Pipeline, first_vertex), 0, NULL},
+    {"uniforms", T_OBJECT_EX, offsetof(Pipeline, uniform_map), 0, NULL},
     {},
 };
 

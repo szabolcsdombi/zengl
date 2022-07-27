@@ -181,6 +181,7 @@ class Pipeline:
     instance_count: int
     first_vertex: int
     viewport: Viewport
+    uniforms: Dict[str, memoryview] | None
     def render(self) -> None: ...
 
 
@@ -199,6 +200,7 @@ class Context:
         fragment_shader: str = ...,
         layout: Iterable[LayoutBinding] = (),
         resources: Iterable[BufferResourceBinding | ImageResourceBinding] = (),
+        uniforms: Dict[str, Any] | Literal['all'] | None = None,
         depth: DepthSettings | bool | None = None,
         stencil: StencilSettings | bool = False,
         blending: BlendingSettings | bool = False,

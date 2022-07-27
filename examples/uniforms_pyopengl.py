@@ -1,5 +1,9 @@
+import math
+from colorsys import hls_to_rgb
+
 import zengl
 from objloader import Obj
+from OpenGL import GL
 
 import assets
 from window import Window
@@ -11,6 +15,12 @@ from window import Window
     TODO: add reference to examples using:
         - per object bound chunk of uniform buffer from a single large uniform buffer
         - per object bound per instance vertex attributes from a single larger vertex buffer
+
+    Getting simple uniforms working:
+
+    - Extract the OpenGL Program Object with zengl.inspect(pipeline)['program']
+    - Use glGetUniformLocation and glUniform* as usual
+    - Beware of multiple pipelines may have the same program object
 '''
 
 window = Window()
@@ -54,15 +64,6 @@ pipeline = ctx.pipeline(
             out_color = vec4(color * lum, 1.0);
         }
     ''',
-    uniforms={
-        'mvp': [
-            [-0.814797, -0.717293, -0.742929, -0.742781],
-            [1.086396, -0.537969, -0.557197, -0.557085],
-            [0.000000, 2.241540, -0.371464, -0.371390],
-            [0.000000, 0.000000, 5.186222, 5.385164],
-        ],
-        'color': [0.0, 0.5, 1.0],
-    },
     framebuffer=[image, depth],
     topology='triangles',
     cull_face='back',
@@ -70,7 +71,17 @@ pipeline = ctx.pipeline(
     vertex_count=vertex_buffer.size // zengl.calcsize('3f 3f'),
 )
 
+program = zengl.inspect(pipeline)['program']
+mvp = GL.glGetUniformLocation(program, 'mvp')
+color = GL.glGetUniformLocation(program, 'color')
+
 while window.update():
+    x, y = math.sin(window.time * 0.5) * 3.0, math.cos(window.time * 0.5) * 3.0
+    camera = zengl.camera((x, y, 1.5), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
+    GL.glProgramUniformMatrix4fv(program, mvp, 1, False, camera)
+    red, green, blue = hls_to_rgb(window.time * 0.1, 0.5, 0.5)
+    GL.glProgramUniform3f(program, color, red, green, blue)
+
     image.clear()
     depth.clear()
     pipeline.render()
