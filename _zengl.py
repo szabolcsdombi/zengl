@@ -376,7 +376,7 @@ def flatten(iterable):
 
 def uniforms(uniforms, values):
     data = bytearray()
-    uniform_map = {obj['name']: obj for obj in uniforms}
+    uniform_map = {obj['name'].replace('[0]', ''): obj for obj in uniforms}
 
     if values == 'all':
         names = []
