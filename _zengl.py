@@ -375,8 +375,22 @@ def flatten(iterable):
 
 
 def uniforms(uniforms, values):
-    res = bytearray()
+    data = bytearray()
     uniform_map = {obj['name']: obj for obj in uniforms}
+
+    if values == 'all':
+        names = []
+        for obj in uniforms:
+            location = obj['location']
+            size = obj['size']
+            gltype = obj['type']
+            if gltype not in UNIFORM_PACKER:
+                continue
+            names.append(obj['name'])
+            items, format = UNIFORM_PACKER[gltype]
+            data.extend(struct.pack('4i', size * items, location, size, gltype))
+            data.extend(bytearray(size * items * 4))
+        return names, data
 
     for name, value in values.items():
         if name not in uniform_map:
@@ -393,11 +407,11 @@ def uniforms(uniforms, values):
             raise ValueError(f'Uniform "{name}" must be {size * items} long at most')
         if len(value) % items:
             raise ValueError(f'Uniform "{name}" must have a length divisible by {items}')
-        res.extend(struct.pack('4i', len(value), location, count, gltype))
+        data.extend(struct.pack('4i', len(value), location, count, gltype))
         for value in flatten(value):
-            res.extend(struct.pack(format, value))
+            data.extend(struct.pack(format, value))
 
-    return res
+    return list(values), data
 
 
 def validate(attributes, uniforms, uniform_buffers, vertex_buffers, layout, resources, limits):

@@ -200,7 +200,7 @@ class Context:
         fragment_shader: str = ...,
         layout: Iterable[LayoutBinding] = (),
         resources: Iterable[BufferResourceBinding | ImageResourceBinding] = (),
-        uniforms: Dict[str, Any] | None = None,
+        uniforms: Dict[str, Any] | Literal['all'] | None = None,
         depth: DepthSettings | bool | None = None,
         stencil: StencilSettings | bool = False,
         blending: BlendingSettings | bool = False,
