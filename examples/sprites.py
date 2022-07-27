@@ -13,7 +13,7 @@ pixels = b''.join(Image.open(pack.open(fn)).convert('RGBA').tobytes() for fn in 
 
 count = 100
 
-window = Window(1280, 720)
+window = Window()
 ctx = zengl.context()
 
 texture = ctx.image((64, 64), 'rgba8unorm', pixels, array=48)
@@ -23,15 +23,16 @@ image.clear_value = (0.1, 0.1, 0.1, 1.0)
 instance_buffer = ctx.buffer(size=count * 16)
 
 instance_data = np.array([
-    np.random.uniform(0.0, window.width, count),
-    np.random.uniform(0.0, window.height, count),
+    np.random.uniform(0.0, window.size[0], count),
+    np.random.uniform(0.0, window.size[1], count),
     np.random.uniform(0.0, np.pi, count),
     np.random.uniform(2, 48, count),
 ], 'f4').T.copy()
 
 instance_buffer.write(instance_data)
 
-ctx.includes['screen_size'] = f'const vec2 screen_size = vec2({window.width}, {window.height});'
+width, height = window.size
+ctx.includes['screen_size'] = f'const vec2 screen_size = vec2({width}, {height});'
 
 triangle = ctx.pipeline(
     vertex_shader='''
@@ -106,8 +107,8 @@ triangle = ctx.pipeline(
 turn = np.random.uniform(-0.002, 0.002, count)
 
 while window.update():
-    instance_data[:, 0] = (instance_data[:, 0] - np.sin(instance_data[:, 2]) * 0.2) % window.width
-    instance_data[:, 1] = (instance_data[:, 1] - np.cos(instance_data[:, 2]) * 0.2) % window.height
+    instance_data[:, 0] = (instance_data[:, 0] - np.sin(instance_data[:, 2]) * 0.2) % window.size[0]
+    instance_data[:, 1] = (instance_data[:, 1] - np.cos(instance_data[:, 2]) * 0.2) % window.size[1]
     instance_data[:, 2] += turn
     instance_buffer.write(instance_data)
     image.clear()

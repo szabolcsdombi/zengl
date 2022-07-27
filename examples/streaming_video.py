@@ -10,7 +10,7 @@ from window import Window
 reader = imageio.get_reader(assets.get('bunny.mp4'))  # https://test-videos.co.uk/bigbuckbunny/mp4-h264
 it = cycle(reader)
 
-window = Window(1280, 720)
+window = Window()
 ctx = zengl.context()
 
 image = ctx.image(window.size, 'rgba8unorm')

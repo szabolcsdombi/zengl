@@ -17,7 +17,7 @@ def kernel(s):
     return f'const int N = {s * 2 + 1};\nfloat coeff[N] = float[]({v});'
 
 
-window = Window(1280, 720)
+window = Window()
 ctx = zengl.context()
 ctx.includes['kernel'] = kernel(19)
 

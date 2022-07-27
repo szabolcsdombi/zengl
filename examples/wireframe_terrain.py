@@ -25,7 +25,7 @@ def create_terrain(size):
 
 vertex_data, index_data = create_terrain(64)
 
-window = Window(1280, 720)
+window = Window()
 ctx = zengl.context()
 
 image = ctx.image(window.size, 'rgba8unorm', samples=4)

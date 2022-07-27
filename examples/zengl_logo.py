@@ -3,7 +3,7 @@ from PIL import Image
 
 from window import Window
 
-window = Window(1280, 640)
+window = Window((1280, 640))
 ctx = zengl.context()
 
 image = ctx.image(window.size, 'rgba8unorm-srgb', samples=16)

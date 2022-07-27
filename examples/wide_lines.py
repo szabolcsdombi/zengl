@@ -16,7 +16,7 @@ def create_helix(points, offset):
     return np.array([np.sin(t) + offset, np.cos(t), t * 0.2 - 6.4]).T.astype('f4').tobytes()
 
 
-window = Window(1280, 720)
+window = Window()
 ctx = zengl.context()
 
 image = ctx.image(window.size, 'rgba8unorm', samples=4)

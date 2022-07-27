@@ -3,7 +3,7 @@ import zengl
 
 from window import Window
 
-window = Window(720, 720)
+window = Window((512, 512))
 ctx = zengl.context()
 
 image = ctx.image(window.size, 'rgba8unorm', samples=4)

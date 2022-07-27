@@ -8,7 +8,7 @@ from PIL import Image
 import assets
 from window import Window
 
-window = Window(1280, 720)
+window = Window()
 ctx = zengl.context()
 
 pack = zipfile.ZipFile(assets.get('metal_plate_1k.gltf.zip'))

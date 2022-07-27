@@ -80,7 +80,7 @@ def transform(frame, mesh):
     return mesh
 
 
-window = Window(1280, 720)
+window = Window()
 ctx = zengl.context()
 
 # vertex_buffer = ctx.buffer(make_hull(np.random.uniform(-0.5, 0.5, (100, 3))))

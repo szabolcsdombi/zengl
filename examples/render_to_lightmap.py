@@ -10,7 +10,7 @@ from window import Window
 samples = 64
 size = 1024
 
-window = Window(1280, 720)
+window = Window()
 ctx = zengl.context()
 
 ctx.includes['samples'] = f'const int samples = {samples};'

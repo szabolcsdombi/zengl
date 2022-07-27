@@ -2,10 +2,8 @@ import zengl
 
 from window import Window
 
-window = Window(1280, 720)
+window = Window()
 ctx = zengl.context()
-
-window.set_caption('Hello World | Vendor: %s | Renderer: %s | Version: %s' % ctx.info)
 
 image = ctx.image(window.size, 'rgba8unorm-srgb', samples=4)
 image.clear_value = (1.0, 1.0, 1.0, 1.0)

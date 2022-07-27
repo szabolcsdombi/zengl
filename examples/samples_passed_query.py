@@ -8,7 +8,7 @@ from progress.bar import Bar
 
 from window import Window
 
-window = Window(1280, 720)
+window = Window()
 ctx = zengl.context()
 
 query = ctypes.c_uint32()

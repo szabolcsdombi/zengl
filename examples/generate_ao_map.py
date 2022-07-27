@@ -8,7 +8,7 @@ from skimage.filters import gaussian
 import assets
 from window import Window
 
-window = Window(720, 720)
+window = Window()
 ctx = zengl.context()
 
 image = ctx.image(window.size, 'rgba8unorm', samples=4)
@@ -178,7 +178,7 @@ render_pipeline = ctx.pipeline(
 
 while window.update():
     x, y = np.cos(window.time * 0.5) * 5.0, np.sin(window.time * 0.5) * 5.0
-    camera = zengl.camera((x, y, 1.0), (0.0, 0.0, 0.0), aspect=1.0, fov=45.0)
+    camera = zengl.camera((x, y, 1.0), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
     uniform_buffer.write(camera)
     image.clear()
     depth.clear()

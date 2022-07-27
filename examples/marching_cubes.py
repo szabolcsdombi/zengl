@@ -16,7 +16,7 @@ volume = gaussian(volume, 1.5)
 verts, faces, normals, values = measure.marching_cubes(volume, 0.0)
 verts -= (np.max(verts, axis=0) + np.min(verts, axis=0)) / 2.0
 
-window = Window(1280, 720)
+window = Window()
 ctx = zengl.context()
 
 image = ctx.image(window.size, 'rgba8unorm', samples=4)

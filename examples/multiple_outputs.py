@@ -2,7 +2,7 @@ import zengl
 
 from window import Window
 
-window = Window(1280, 720)
+window = Window()
 ctx = zengl.context()
 
 image_size = (640, 720)

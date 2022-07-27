@@ -15,7 +15,7 @@ def gen_sphere(radius, res=100):
     return np.array([x, y, z]).T * radius
 
 
-window = Window(1280, 720)
+window = Window()
 ctx = zengl.context()
 
 image = ctx.image(window.size, 'rgba8unorm', samples=4)
