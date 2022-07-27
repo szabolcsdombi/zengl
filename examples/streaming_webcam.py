@@ -9,7 +9,7 @@ it = iter(reader)
 height, width = next(it).shape[:2]
 frame = np.zeros((height, width, 4), 'u1')
 
-window = Window(width, height)
+window = Window((width, height))
 ctx = zengl.context()
 
 image = ctx.image(window.size, 'rgba8unorm')

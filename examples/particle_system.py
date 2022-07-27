@@ -5,7 +5,7 @@ from window import Window
 
 N = 128
 
-window = Window(720, 720)
+window = Window((512, 512))
 ctx = zengl.context()
 
 image = ctx.image(window.size, 'rgba8unorm-srgb', samples=4)
@@ -162,8 +162,8 @@ render_pipeline = ctx.pipeline(
 cx, cy = 0.0, 0.0
 
 while window.update():
-    cx = cx * 0.95 + (window.mouse[0] / window.width * 2.0 - 1.0) * 0.05
-    cy = cy * 0.95 + (window.mouse[1] / window.height * 2.0 - 1.0) * 0.05
+    cx = cx * 0.95 + (window.mouse[0] / window.size[0] * 2.0 - 1.0) * 0.05
+    cy = cy * 0.95 + (window.mouse[1] / window.size[1] * 2.0 - 1.0) * 0.05
     uniform_buffer.write(np.array([cx, cy, 0.0, 0.0], 'f4'))
     image.clear()
     simulate_pipeline.render()

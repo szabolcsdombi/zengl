@@ -20,7 +20,7 @@ def grass_mesh():
     return f'vec3 grass[15] = vec3[]({verts});'
 
 
-window = Window(1280, 720)
+window = Window()
 ctx = zengl.context()
 image = ctx.image(window.size, 'rgba8unorm', samples=4)
 depth = ctx.image(window.size, 'depth24plus', samples=4)

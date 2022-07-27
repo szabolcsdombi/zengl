@@ -24,7 +24,7 @@ def quad(x, y, width, height, layer, level):
     ], 'f4')
 
 
-window = Window(1280, 720)
+window = Window()
 ctx = zengl.context()
 image = ctx.image(window.size, 'rgba8unorm', samples=4)
 image.clear_value = (0.2, 0.2, 0.2, 1.0)
@@ -65,7 +65,8 @@ vertex_buffer = ctx.buffer(np.concatenate([
     quad(820.0, 590.0, 200.0, 200.0, 3.0, 2.0),
 ]))
 
-ctx.includes['screen_size'] = f'const vec2 screen_size = vec2({window.width}, {window.height});'
+width, height = window.size
+ctx.includes['screen_size'] = f'const vec2 screen_size = vec2({width}, {height});'
 
 pipeline = ctx.pipeline(
     vertex_shader='''

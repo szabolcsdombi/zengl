@@ -13,7 +13,7 @@ img_diff = Image.open(pack.open('wine_barrel_01_diff_2k.jpg'))
 img_arm = Image.open(pack.open('wine_barrel_01_arm_2k.jpg'))
 img_norm = Image.open(pack.open('wine_barrel_01_nor_gl_2k.jpg'))
 
-window = Window(1280, 720)
+window = Window()
 ctx = zengl.context()
 
 image = ctx.image(window.size, 'rgba8unorm-srgb', samples=4)

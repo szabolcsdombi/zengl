@@ -105,7 +105,7 @@ names = [x for x in pack.namelist() if x.startswith('Models/GLTF format') and x.
 for name in names:
     loader.load(pack.read(name))
 
-window = Window(1280, 720)
+window = Window()
 ctx = zengl.context()
 
 image = ctx.image(window.size, 'rgba8unorm', samples=4)

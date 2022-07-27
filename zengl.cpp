@@ -8,7 +8,6 @@ struct ModuleState {
     PyObject * helper;
     PyObject * empty_tuple;
     PyObject * str_none;
-    PyObject * str_ccw;
     PyObject * float_one;
     PyObject * default_color_mask;
     PyTypeObject * Context_type;
@@ -2686,7 +2685,6 @@ int module_exec(PyObject * self) {
 
     state->empty_tuple = PyTuple_New(0);
     state->str_none = PyUnicode_FromString("none");
-    state->str_ccw = PyUnicode_FromString("ccw");
     state->float_one = PyFloat_FromDouble(1.0);
     state->default_color_mask = PyLong_FromUnsignedLongLong(0xffffffffffffffffull);
     state->Context_type = (PyTypeObject *)PyType_FromSpec(&Context_spec);
@@ -2730,7 +2728,6 @@ void module_free(PyObject * self) {
     }
     Py_DECREF(state->empty_tuple);
     Py_DECREF(state->str_none);
-    Py_DECREF(state->str_ccw);
     Py_DECREF(state->float_one);
     Py_DECREF(state->default_color_mask);
     Py_DECREF(state->Context_type);

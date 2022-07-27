@@ -4,7 +4,7 @@ from skimage.data import gravel
 
 from window import Window
 
-window = Window(1280, 720)
+window = Window()
 ctx = zengl.context()
 
 image = ctx.image(window.size, 'rgba8unorm', samples=4)

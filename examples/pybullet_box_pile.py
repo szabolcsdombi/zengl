@@ -27,7 +27,7 @@ for i in range(crates):
     obj = pb.createMultiBody(baseMass=1.0, basePosition=(x, y, i * 1.2 + 1), baseCollisionShapeIndex=box_shape)
     bullet_crates.append(obj)
 
-window = Window(1280, 720)
+window = Window()
 ctx = zengl.context()
 
 image = ctx.image(window.size, 'rgba8unorm', samples=4)

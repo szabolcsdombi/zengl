@@ -86,7 +86,7 @@ def make_rotations(axis, angle, sign, count):
     return np.full((count, 4), quat)
 
 
-window = Window(1280, 720)
+window = Window()
 ctx = zengl.context()
 
 image = ctx.image(window.size, 'rgba8unorm-srgb', samples=4)

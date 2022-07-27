@@ -26,7 +26,7 @@ tmp = points.reshape(-1, 3, 3)
 normals = np.repeat(np.cross(tmp[:, 1] - tmp[:, 0], tmp[:, 2] - tmp[:, 0]), 3, axis=0)
 radius = np.max(np.sqrt(np.sum(points * points, axis=1)))
 
-window = Window(1280, 720)
+window = Window()
 ctx = zengl.context()
 
 image = ctx.image(window.size, 'rgba8unorm', samples=4)

@@ -4,7 +4,7 @@ import zengl
 
 from window import Window
 
-window = Window(1280, 720)
+window = Window()
 ctx = zengl.context()
 
 image = ctx.image(window.size, 'rgba8unorm')
@@ -97,7 +97,7 @@ frame = 0
 while window.update():
     image.clear()
     uniform_buffer.write(ubo.pack(
-        window.width, window.height, 0.0,
+        window.size[0], window.size[1], 0.0,
         window.time,
         window.time - last_time,
         frame,

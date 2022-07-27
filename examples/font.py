@@ -16,7 +16,7 @@ def line(x, y, text):
     return res
 
 
-window = Window(1280, 720)
+window = Window()
 ctx = zengl.context()
 
 image = ctx.image(window.size, 'rgba8unorm')
@@ -50,7 +50,8 @@ instance_buffer = ctx.buffer(size=count * 32)
 
 instance_buffer.write(instance_data)
 
-ctx.includes['screen_size'] = f'const vec2 screen_size = vec2({window.width}, {window.height});'
+width, height = window.size
+ctx.includes['screen_size'] = f'const vec2 screen_size = vec2({width}, {height});'
 ctx.includes['font_size'] = 'const vec2 font_size = vec2(32.0, 32.0);'
 
 pipeline = ctx.pipeline(

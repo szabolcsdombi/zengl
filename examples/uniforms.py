@@ -13,7 +13,7 @@ from window import Window
         - per object bound per instance vertex attributes from a single larger vertex buffer
 '''
 
-window = Window(1280, 720)
+window = Window()
 ctx = zengl.context()
 
 image = ctx.image(window.size, 'rgba8unorm', samples=4)
