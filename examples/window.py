@@ -99,11 +99,18 @@ class PygletWindow(pyglet.window.Window):
     def on_mouse_motion(self, x, y, dx, dy):
         self.mouse = (x, y)
 
+    def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
+        self.mouse = (x, y)
+
+    def on_mouse_scroll(self, x, y, scroll_x, scroll_y):
+        self.wheel += scroll_y
+
     def on_close(self):
         self.alive = False
 
     def update(self):
-        self.keys = set(), self.keys[0]
+        self.wheel = 0.0
+        self.keys = self.keys[0], self.keys[0].copy()
         self.flip()
         self.dispatch_events()
         return self.alive
@@ -120,6 +127,10 @@ class Window:
     @property
     def mouse(self):
         return self._wnd.mouse
+
+    @property
+    def wheel(self):
+        return self._wnd.wheel
 
     def key_pressed(self, key):
         return key in self._wnd.keys[0] and key not in self._wnd.keys[1]
