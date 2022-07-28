@@ -374,9 +374,16 @@ def flatten(iterable):
         yield iterable
 
 
+def clean_uniform_name(uniform):
+    name = uniform['name']
+    if name.endswith('[0]') and uniform['size'] > 1:
+        return name[:-3]
+    return name
+
+
 def uniforms(uniforms, values):
     data = bytearray()
-    uniform_map = {obj['name'].replace('[0]', ''): obj for obj in uniforms}
+    uniform_map = {clean_uniform_name(obj): obj for obj in uniforms}
 
     if values == 'all':
         names = []
@@ -386,7 +393,7 @@ def uniforms(uniforms, values):
             gltype = obj['type']
             if gltype not in UNIFORM_PACKER:
                 continue
-            names.append(obj['name'])
+            names.append(clean_uniform_name(obj))
             items, format = UNIFORM_PACKER[gltype]
             data.extend(struct.pack('4i', size * items, location, size, gltype))
             data.extend(bytearray(size * items * 4))
