@@ -68,6 +68,7 @@ class PygletWindow(pyglet.window.Window):
         self.alive = True
         self.mouse = (0, 0)
         self.keys = set(), set()
+        self.wheel = 0.0
         config = pyglet.gl.Config(
             major_version=3,
             minor_version=3,
