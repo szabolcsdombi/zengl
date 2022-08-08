@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 # [main](https://github.com/szabolcsdombi/zengl/compare/1.9.1...main)
 
+- Implemented blending equations
+
 # [1.9.1](https://github.com/szabolcsdombi/zengl/compare/1.9.0...1.9.1)
 
 - Fixed uniform struct array naming

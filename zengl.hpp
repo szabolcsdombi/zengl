@@ -222,6 +222,7 @@ typedef void (GLAPI * glBufferSubDataProc)(unsigned int target, sizeiptr offset,
 typedef unsigned char (GLAPI * glUnmapBufferProc)(unsigned int target);
 
 // GL_VERSION_2_0
+typedef void (GLAPI * glBlendEquationSeparateProc)(unsigned int modeRGB, unsigned int modeAlpha);
 typedef void (GLAPI * glDrawBuffersProc)(int n, const unsigned int * bufs);
 typedef void (GLAPI * glStencilOpSeparateProc)(unsigned int face, unsigned int sfail, unsigned int dpfail, unsigned int dppass);
 typedef void (GLAPI * glStencilFuncSeparateProc)(unsigned int face, unsigned int func, int ref, unsigned int mask);
@@ -358,6 +359,7 @@ struct GLMethods {
     glUnmapBufferProc UnmapBuffer;
 
     // GL_VERSION_2_0
+    glBlendEquationSeparateProc BlendEquationSeparate;
     glDrawBuffersProc DrawBuffers;
     glStencilOpSeparateProc StencilOpSeparate;
     glStencilFuncSeparateProc StencilFuncSeparate;
@@ -757,6 +759,7 @@ GLMethods load_gl(PyObject * context) {
     load(UnmapBuffer);
 
     // GL_VERSION_2_0
+    load(BlendEquationSeparate);
     load(DrawBuffers);
     load(StencilOpSeparate);
     load(StencilFuncSeparate);
