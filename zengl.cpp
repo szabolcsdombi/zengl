@@ -61,6 +61,8 @@ struct GlobalSettings {
     StencilSettings stencil_front;
     StencilSettings stencil_back;
     int blend_enable;
+    int blend_op_color;
+    int blend_op_alpha;
     int blend_src_color;
     int blend_dst_color;
     int blend_src_alpha;
@@ -263,6 +265,7 @@ void bind_global_settings(Context * self, GlobalSettings * settings) {
         self->is_mask_default = settings->is_mask_default;
     }
     if (!self->is_blend_default || !settings->is_blend_default || self->current_attachments != settings->attachments) {
+        gl.BlendEquationSeparate(settings->blend_op_color, settings->blend_op_alpha);
         gl.BlendFuncSeparate(settings->blend_src_color, settings->blend_dst_color, settings->blend_src_alpha, settings->blend_dst_alpha);
         for (int i = 0; i < settings->attachments; ++i) {
             if (settings->blend_enable >> i & 1) {
@@ -584,14 +587,16 @@ GlobalSettings * build_global_settings(Context * self, PyObject * settings) {
         PyLong_AsLong(seq[20]),
     };
     res->blend_enable = PyLong_AsLong(seq[21]);
-    res->blend_src_color = PyLong_AsLong(seq[22]);
-    res->blend_dst_color = PyLong_AsLong(seq[23]);
-    res->blend_src_alpha = PyLong_AsLong(seq[24]);
-    res->blend_dst_alpha = PyLong_AsLong(seq[25]);
-    res->polygon_offset = PyObject_IsTrue(seq[26]);
-    res->polygon_offset_factor = (float)PyFloat_AsDouble(seq[27]);
-    res->polygon_offset_units = (float)PyFloat_AsDouble(seq[28]);
-    res->attachments = PyLong_AsLong(seq[29]);
+    res->blend_op_color = PyLong_AsLong(seq[22]);
+    res->blend_op_alpha = PyLong_AsLong(seq[23]);
+    res->blend_src_color = PyLong_AsLong(seq[24]);
+    res->blend_dst_color = PyLong_AsLong(seq[25]);
+    res->blend_src_alpha = PyLong_AsLong(seq[26]);
+    res->blend_dst_alpha = PyLong_AsLong(seq[27]);
+    res->polygon_offset = PyObject_IsTrue(seq[28]);
+    res->polygon_offset_factor = (float)PyFloat_AsDouble(seq[29]);
+    res->polygon_offset_units = (float)PyFloat_AsDouble(seq[30]);
+    res->attachments = PyLong_AsLong(seq[31]);
 
     res->is_mask_default = res->color_mask == 0xffffffffffffffffull && res->depth_write;
     res->is_stencil_default = !res->stencil_test;
@@ -602,7 +607,7 @@ GlobalSettings * build_global_settings(Context * self, PyObject * settings) {
         res->is_stencil_default = false;
     }
     res->is_blend_default = !res->blend_enable;
-    if (res->blend_src_color != 1 || res->blend_dst_color != 0 || res->blend_src_alpha != 1 || res->blend_dst_alpha != 0) {
+    if (res->blend_op_color != 0x8006 || res->blend_op_alpha != 0x8006 || res->blend_src_color != 1 || res->blend_dst_color != 0 || res->blend_src_alpha != 1 || res->blend_dst_alpha != 0) {
         res->is_blend_default = false;
     }
 

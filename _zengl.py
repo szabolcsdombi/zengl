@@ -78,6 +78,14 @@ COMPARE_FUNC = {
     'always': 0x0207,
 }
 
+BLEND_FUNC = {
+    'add': 0x8006,
+    'subtract': 0x800A,
+    'reverse_subtract': 0x800B,
+    'min': 0x8007,
+    'max': 0x8008,
+}
+
 BLEND_CONSTANT = {
     'zero': 0,
     'one': 1,
@@ -307,11 +315,13 @@ def settings(primitive_restart, cull_face, color_mask, depth, stencil, blending,
         ])
 
     if blending is False:
-        res.extend([0, 1, 0, 1, 0])
+        res.extend([0, 0x8006, 0x8006, 1, 0, 1, 0])
 
     else:
         res.extend([
             int(blending['enable']),
+            BLEND_FUNC[blending.get('op_color', 'add')],
+            BLEND_FUNC[blending.get('op_alpha', 'add')],
             BLEND_CONSTANT[blending.get('src_color', 'one')],
             BLEND_CONSTANT[blending.get('dst_color', 'zero')],
             BLEND_CONSTANT[blending.get('src_alpha', 'one')],
