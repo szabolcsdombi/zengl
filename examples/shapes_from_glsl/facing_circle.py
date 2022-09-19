@@ -21,7 +21,7 @@ pipeline = ctx.pipeline(
 
         #include "defaults"
 
-        vec2 vertices[17] = vec2[](
+        vec2 vertices[16] = vec2[](
             vec2(1.0000, 0.0000),
             vec2(0.9239, 0.3827),
             vec2(0.7071, 0.7071),
@@ -37,8 +37,7 @@ pipeline = ctx.pipeline(
             vec2(0.0000, -1.0000),
             vec2(0.3827, -0.9239),
             vec2(0.7071, -0.7071),
-            vec2(0.9239, -0.3827),
-            vec2(1.0000, 0.0000)
+            vec2(0.9239, -0.3827)
         );
 
         vec3 position = vec3(0.0, 0.0, 0.0);
@@ -74,7 +73,7 @@ pipeline = ctx.pipeline(
     framebuffer=[image, depth],
     topology='triangle_fan',
     cull_face='back',
-    vertex_count=18,
+    vertex_count=16,
 )
 
 while window.update():
