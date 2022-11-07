@@ -4,3 +4,5 @@ tests/Dockerfile linguist-detectable=false
 *.vert linguist-detectable=false
 *.frag linguist-detectable=false
 *.glsl linguist-detectable=false
+*.vs linguist-detectable=false
+*.fs linguist-detectable=false
