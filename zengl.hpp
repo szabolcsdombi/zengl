@@ -701,19 +701,28 @@ int max(int a, int b) {
     return a > b ? a : b;
 }
 
-void * load_method(PyObject * context, const char * method) {
-    PyObject * res = PyObject_CallMethod(context, "load", "s", method);
+void * load_opengl_function(PyObject * loader, const char * method) {
+    if (PyObject_HasAttrString(loader, "load_opengl_function")) {
+        PyObject * res = PyObject_CallMethod(loader, "load_opengl_function", "s", method);
+        if (!res) {
+            return NULL;
+        }
+        return PyLong_AsVoidPtr(res);
+    }
+
+    // deprecated path for backward compatibility
+    PyObject * res = PyObject_CallMethod(loader, "load", "s", method);
     if (!res) {
         return NULL;
     }
     return PyLong_AsVoidPtr(res);
 }
 
-GLMethods load_gl(PyObject * context) {
+GLMethods load_gl(PyObject * loader) {
     GLMethods res = {};
 
     #define check(name) if (!res.name) return {}
-    #define load(name) res.name = (gl ## name ## Proc)load_method(context, "gl" # name); check(name)
+    #define load(name) res.name = (gl ## name ## Proc)load_opengl_function(loader, "gl" # name); check(name)
 
     // GL_VERSION_1_0
     load(CullFace);
