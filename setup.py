@@ -22,7 +22,7 @@ with open('README.md') as readme:
 
 setup(
     name='zengl',
-    version='1.9.2',
+    version='1.9.3',
     ext_modules=[ext],
     py_modules=['_zengl'],
     packages=['zengl-stubs'],

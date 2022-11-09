@@ -5,7 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-# [main](https://github.com/szabolcsdombi/zengl/compare/1.9.2...main)
+# [main](https://github.com/szabolcsdombi/zengl/compare/1.9.3...main)
+
+# [1.9.3](https://github.com/szabolcsdombi/zengl/compare/1.9.2...1.9.3)
+
+- Moved zengl.pyi to zengl-stubs
+- Fixed missing type hinting
 
 # [1.9.2](https://github.com/szabolcsdombi/zengl/compare/1.9.1...1.9.2)
 

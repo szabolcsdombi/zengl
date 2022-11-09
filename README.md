@@ -196,17 +196,3 @@ Image.frombuffer('RGBA', size, image.read(), 'raw', 'RGBA', 0, -1).save('hello.p
 [![linting_06](https://github.com/szabolcsdombi/zengl-example-images/raw/examples/linting/linting_06.png)](#typehints)
 
 [![linting_07](https://github.com/szabolcsdombi/zengl-example-images/raw/examples/linting/linting_07.png)](#typehints)
-
-**Not Working?**
-
-It is a known issue that at the moment on linux with venv the pyi file is not distributed properly.
-
-To fix this issue please download the [zengl.pyi](https://github.com/szabolcsdombi/zengl/raw/main/zengl.pyi) file
-and place it either in you project's root or next to the zengl binary.
-To locate the installation just inspect `zengl.__file__`.
-
-```py
->>> import zengl
->>> zengl.__file__
-'...'
-```
