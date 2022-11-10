@@ -23,7 +23,7 @@ img = Image.open(assets.get('crate.png')).convert('RGBA')
 gl_texture = GL.glGenTextures(1)
 GL.glActiveTexture(GL.GL_TEXTURE0)
 GL.glBindTexture(GL.GL_TEXTURE_2D, gl_texture)
-GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA8, img.size[0], img.size[1], 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, img.tobytes())
+GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA8, *img.size, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, img.tobytes())
 
 texture = ctx.image(img.size, 'rgba8unorm', external=gl_texture)
 
