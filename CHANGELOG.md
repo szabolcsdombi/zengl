@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Implemented external buffers and textures
 - Changed `zengl.context()` to prefer the `load_opengl_function()` over the `load()` method
 - Deprecated `ContextLoader.load()` in favor of `ContextLoader.load_opengl_function()`
+- Fixed vertex array caching
 
 # [1.9.3](https://github.com/szabolcsdombi/zengl/compare/1.9.2...1.9.3)
 

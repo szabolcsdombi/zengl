@@ -403,7 +403,7 @@ void bind_uniforms(Context * self, char * data, int count) {
 }
 
 GLObject * build_vertex_array(Context * self, PyObject * bindings) {
-    if (GLObject * cache = (GLObject *)PyDict_GetItem(self->framebuffer_cache, bindings)) {
+    if (GLObject * cache = (GLObject *)PyDict_GetItem(self->vertex_array_cache, bindings)) {
         cache->uses += 1;
         Py_INCREF(cache);
         return cache;
