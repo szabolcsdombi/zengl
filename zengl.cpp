@@ -329,7 +329,7 @@ GLObject * build_framebuffer(Context * self, PyObject * attachments) {
         } else if (face->image->cubemap) {
             gl.FramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_CUBE_MAP_POSITIVE_X + face->layer, face->image->image, face->level);
         } else if (face->image->array) {
-            gl.FramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i,face->image->image, face->level, face->layer);
+            gl.FramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, face->image->image, face->level, face->layer);
         } else {
             gl.FramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, face->image->image, face->level);
         }
@@ -344,7 +344,7 @@ GLObject * build_framebuffer(Context * self, PyObject * attachments) {
         } else if (face->image->cubemap) {
             gl.FramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_CUBE_MAP_POSITIVE_X + face->layer, face->image->image, face->level);
         } else if (face->image->array) {
-            gl.FramebufferTextureLayer(GL_FRAMEBUFFER, attachment,face->image->image, face->level, face->layer);
+            gl.FramebufferTextureLayer(GL_FRAMEBUFFER, attachment, face->image->image, face->level, face->layer);
         } else {
             gl.FramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, face->image->image, face->level);
         }
@@ -626,7 +626,7 @@ GLObject * compile_shader(Context * self, PyObject * code, int type) {
 
     int shader = gl.CreateShader(type);
     const char * src = PyBytes_AsString(code);
-    gl.ShaderSource(shader, 1, &src, 0);
+    gl.ShaderSource(shader, 1, &src, NULL);
     gl.CompileShader(shader);
 
     int shader_compiled = false;
@@ -1897,7 +1897,7 @@ PyObject * Image_meth_read(Image * self, PyObject * vargs, PyObject * kwargs) {
 
     const GLMethods & gl = self->ctx->gl;
 
-    PyObject * res = PyBytes_FromStringAndSize(NULL, 1ll * size.x * size.y * self->format.pixel_size);
+    PyObject * res = PyBytes_FromStringAndSize(NULL, (long long)size.x * size.y * self->format.pixel_size);
     bind_framebuffer(self->ctx, self->framebuffer->obj);
     gl.ReadPixels(offset.x, offset.y, size.x, size.y, self->format.format, self->format.type, PyBytes_AS_STRING(res));
     return res;
@@ -2202,7 +2202,7 @@ PyObject * Pipeline_meth_render(Pipeline * self) {
         bind_uniforms(self->ctx, self->uniform_data, self->uniform_count);
     }
     if (self->index_type) {
-        long long offset = 1ll * self->first_vertex * self->index_size;
+        long long offset = (long long)self->first_vertex * self->index_size;
         gl.DrawElementsInstanced(self->topology, self->vertex_count, self->index_type, (void *)offset, self->instance_count);
     } else {
         gl.DrawArraysInstanced(self->topology, self->first_vertex, self->vertex_count, self->instance_count);
