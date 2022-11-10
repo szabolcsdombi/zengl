@@ -148,6 +148,7 @@ class ImageFace:
 
 
 class ContextLoader:
+    def load_opengl_function(name: str) -> int: ...
     def load(name: str) -> int: ...
 
 
