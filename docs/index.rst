@@ -118,7 +118,7 @@ Buffer
 
     vertex_buffer = ctx.buffer(size=1024)
 
-.. py:method:: Context.buffer(data, size, dynamic) -> Buffer
+.. py:method:: Context.buffer(data, size, dynamic, external) -> Buffer
 
 **data**
     | The buffer content, represented as ``bytes`` or a buffer for example a numpy array.
@@ -133,6 +133,10 @@ Buffer
     | A boolean to enable ``GL_DYNAMIC_DRAW`` on buffer creation.
     | When this flag is False the ``GL_STATIC_DRAW`` is used.
     | The default value is True.
+
+**external**
+    | An OpenGL Buffer Object returned by glGenBuffers.
+    | The default value is 0.
 
 .. py:method:: Buffer.write(data, offset)
 
@@ -188,7 +192,7 @@ Image
     img = Image.open('example.png').convert('RGBA')
     texture = ctx.image(img.size, 'rgba8unorm', img.tobytes())
 
-.. py:method:: Context.image(size, format, data, samples, array, texture, cubemap) -> Image
+.. py:method:: Context.image(size, format, data, samples, array, texture, cubemap, external) -> Image
 
 **size**
     | The image size as a tuple of two ints.
@@ -218,6 +222,10 @@ Image
 
 **cubemap**
     | A boolean representing the image to be a cubemap texture. The default value is False.
+
+**external**
+    | An OpenGL Texture Object returned by glGenTextures.
+    | The default value is 0.
 
 .. py:method:: Image.blit(target, target_viewport, source_viewport, filter, srgb)
 
