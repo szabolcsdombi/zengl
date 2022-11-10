@@ -190,7 +190,9 @@ class Context:
     limits: Limits
     includes: Dict[str, str]
     screen: int
-    def buffer(self, data: Bytes | None = None, *, size: int | None = None, dynamic: bool = False) -> Buffer: ...
+    def buffer(
+        self, data: Bytes | None = None, *, size: int | None = None, dynamic: bool = False,
+        external: int = 0) -> Buffer: ...
     def image(
         self, size: Tuple[int, int], format: ImageFormat, data: Bytes | None = None, *,
         samples: int = 1, array: int = 0, texture: bool | None = None, cubemap: bool = False,

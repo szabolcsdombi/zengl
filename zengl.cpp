@@ -817,13 +817,14 @@ Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwargs) {
 }
 
 Buffer * Context_meth_buffer(Context * self, PyObject * vargs, PyObject * kwargs) {
-    static char * keywords[] = {"data", "size", "dynamic", NULL};
+    static char * keywords[] = {"data", "size", "dynamic", "external", NULL};
 
     PyObject * data = Py_None;
     PyObject * size_arg = Py_None;
     int dynamic = true;
+    int external = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "|O$Op", keywords, &data, &size_arg, &dynamic)) {
+    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "|O$Opi", keywords, &data, &size_arg, &dynamic, &external)) {
         return NULL;
     }
 
@@ -862,9 +863,13 @@ Buffer * Context_meth_buffer(Context * self, PyObject * vargs, PyObject * kwargs
     }
 
     int buffer = 0;
-    gl.GenBuffers(1, (unsigned *)&buffer);
-    gl.BindBuffer(GL_ARRAY_BUFFER, buffer);
-    gl.BufferData(GL_ARRAY_BUFFER, size, view.buf, dynamic ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
+    if (external) {
+        buffer = external;
+    } else {
+        gl.GenBuffers(1, (unsigned *)&buffer);
+        gl.BindBuffer(GL_ARRAY_BUFFER, buffer);
+        gl.BufferData(GL_ARRAY_BUFFER, size, view.buf, dynamic ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
+    }
 
     Buffer * res = PyObject_New(Buffer, self->module_state->Buffer_type);
     res->gc_prev = self->gc_prev;
