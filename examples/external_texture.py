@@ -1,13 +1,13 @@
 import math
 import struct
 
-import assets
+import zengl
 from objloader import Obj
 from OpenGL import GL
 from PIL import Image
-from window import Window
 
-import zengl
+import assets
+from window import Window
 
 window = Window()
 ctx = zengl.context()
