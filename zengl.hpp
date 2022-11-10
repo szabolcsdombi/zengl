@@ -520,12 +520,9 @@ union ClearValue {
     unsigned int clear_uints[4];
 };
 
-union IntPair {
-    unsigned long long pair;
-    struct {
-        int x;
-        int y;
-    };
+struct IntPair {
+    int x;
+    int y;
 };
 
 VertexFormat get_vertex_format(const char * format) {
