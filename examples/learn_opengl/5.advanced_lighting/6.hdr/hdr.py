@@ -4,7 +4,7 @@ import zengl
 from PIL import Image
 
 from utils import (
-    Camera, Window, download, read_file, read_vertices, set_uniform_float, set_uniform_glm, set_uniform_int
+    Camera, Window, download, read_file, read_vertices, set_uniform_float, set_uniform_glm, set_uniform_int,
 )
 
 window = Window()
