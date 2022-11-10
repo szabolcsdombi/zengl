@@ -356,7 +356,7 @@ GLObject * build_framebuffer(Context * self, PyObject * attachments) {
     }
 
     gl.DrawBuffers(color_attachment_count, draw_buffers);
-    gl.ReadBuffer(GL_COLOR_ATTACHMENT0);
+    gl.ReadBuffer(color_attachment_count ? GL_COLOR_ATTACHMENT0 : 0);
 
     GLObject * res = PyObject_New(GLObject, self->module_state->GLObject_type);
     res->obj = framebuffer;
