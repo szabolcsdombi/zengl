@@ -193,7 +193,8 @@ class Context:
     def buffer(self, data: Bytes | None = None, *, size: int | None = None, dynamic: bool = False) -> Buffer: ...
     def image(
         self, size: Tuple[int, int], format: ImageFormat, data: Bytes | None = None, *,
-        samples: int = 1, array: int = 0, texture: bool | None = None, cubemap: bool = False) -> Image: ...
+        samples: int = 1, array: int = 0, texture: bool | None = None, cubemap: bool = False,
+        external: int = 0) -> Image: ...
     def pipeline(
         self, *,
         vertex_shader: str = ...,

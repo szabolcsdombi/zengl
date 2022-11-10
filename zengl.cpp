@@ -885,7 +885,7 @@ Buffer * Context_meth_buffer(Context * self, PyObject * vargs, PyObject * kwargs
 }
 
 Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * kwargs) {
-    static char * keywords[] = {"size", "format", "data", "samples", "array", "texture", "cubemap", NULL};
+    static char * keywords[] = {"size", "format", "data", "samples", "array", "texture", "cubemap", "external", NULL};
 
     int width;
     int height;
@@ -895,11 +895,12 @@ Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * kwargs) 
     int array = 0;
     PyObject * texture = Py_None;
     int cubemap = false;
+    int external = 0;
 
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
-        "(ii)s|O$iiOp",
+        "(ii)s|O$iiOpi",
         keywords,
         &width,
         &height,
@@ -908,7 +909,8 @@ Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * kwargs) 
         &samples,
         &array,
         &texture,
-        &cubemap
+        &cubemap,
+        &external
     );
 
     if (!args_ok) {
@@ -982,7 +984,9 @@ Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * kwargs) 
     }
 
     int image = 0;
-    if (renderbuffer) {
+    if (external) {
+        image = external;
+    } else if (renderbuffer) {
         gl.GenRenderbuffers(1, (unsigned *)&image);
         gl.BindRenderbuffer(GL_RENDERBUFFER, image);
         gl.RenderbufferStorageMultisample(GL_RENDERBUFFER, samples > 1 ? samples : 0, format.internal_format, width, height);
