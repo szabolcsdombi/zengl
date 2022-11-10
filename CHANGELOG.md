@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 # [main](https://github.com/szabolcsdombi/zengl/compare/1.9.3...main)
 
+- Implemented external buffers and textures
+- Changed `zengl.context()` to prefer the `load_opengl_function()` over the `load()` method
+- Deprecated `ContextLoader.load()` in favor of `ContextLoader.load_opengl_function()`
+
 # [1.9.3](https://github.com/szabolcsdombi/zengl/compare/1.9.2...1.9.3)
 
 - Moved zengl.pyi to zengl-stubs
