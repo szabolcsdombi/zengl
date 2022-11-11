@@ -362,7 +362,7 @@ def program(vertex_shader, fragment_shader, layout, includes):
     for obj in sorted(layout, key=lambda x: x['name']):
         bindings.extend((obj['name'], obj['binding']))
 
-    return vert, frag, tuple(bindings)
+    return (vert, 0x8b31), (frag, 0x8b30), tuple(bindings)
 
 
 def compile_error(shader: bytes, shader_type: int, log: bytes):

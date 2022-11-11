@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Deprecated `ContextLoader.load()` in favor of `ContextLoader.load_opengl_function()`
 - Fixed vertex array caching
 - Fixed read buffer for depth only framebuffers
+- Fixed empty vertex and fragment shader cache collision
 
 # [1.9.3](https://github.com/szabolcsdombi/zengl/compare/1.9.2...1.9.3)
 

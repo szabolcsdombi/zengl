@@ -615,8 +615,8 @@ GlobalSettings * build_global_settings(Context * self, PyObject * settings) {
     return res;
 }
 
-GLObject * compile_shader(Context * self, PyObject * code, int type) {
-    if (GLObject * cache = (GLObject *)PyDict_GetItem(self->shader_cache, code)) {
+GLObject * compile_shader(Context * self, PyObject * pair) {
+    if (GLObject * cache = (GLObject *)PyDict_GetItem(self->shader_cache, pair)) {
         cache->uses += 1;
         Py_INCREF(cache);
         return cache;
@@ -624,8 +624,10 @@ GLObject * compile_shader(Context * self, PyObject * code, int type) {
 
     const GLMethods & gl = self->gl;
 
-    int shader = gl.CreateShader(type);
+    PyObject * code = PyTuple_GetItem(pair, 0);
     const char * src = PyBytes_AsString(code);
+    int type = PyLong_AsLong(PyTuple_GetItem(pair, 1));
+    int shader = gl.CreateShader(type);
     gl.ShaderSource(shader, 1, &src, NULL);
     gl.CompileShader(shader);
 
@@ -645,7 +647,7 @@ GLObject * compile_shader(Context * self, PyObject * code, int type) {
     res->obj = shader;
     res->uses = 1;
 
-    PyDict_SetItem(self->shader_cache, code, (PyObject *)res);
+    PyDict_SetItem(self->shader_cache, pair, (PyObject *)res);
     return res;
 }
 
@@ -663,10 +665,10 @@ GLObject * compile_program(Context * self, PyObject * vert, PyObject * frag, PyO
         return cache;
     }
 
-    PyObject * vert_code = PyTuple_GetItem(pair, 0);
-    PyObject * frag_code = PyTuple_GetItem(pair, 1);
+    PyObject * vert_pair = PyTuple_GetItem(pair, 0);
+    PyObject * frag_pair = PyTuple_GetItem(pair, 1);
 
-    GLObject * vertex_shader = compile_shader(self, vert_code, GL_VERTEX_SHADER);
+    GLObject * vertex_shader = compile_shader(self, vert_pair);
     if (!vertex_shader) {
         Py_DECREF(pair);
         return NULL;
@@ -674,7 +676,7 @@ GLObject * compile_program(Context * self, PyObject * vert, PyObject * frag, PyO
     int vertex_shader_obj = vertex_shader->obj;
     Py_DECREF(vertex_shader);
 
-    GLObject * fragment_shader = compile_shader(self, frag_code, GL_FRAGMENT_SHADER);
+    GLObject * fragment_shader = compile_shader(self, frag_pair);
     if (!fragment_shader) {
         Py_DECREF(pair);
         return NULL;
@@ -695,6 +697,8 @@ GLObject * compile_program(Context * self, PyObject * vert, PyObject * frag, PyO
         gl.GetProgramiv(program, GL_INFO_LOG_LENGTH, &log_size);
         PyObject * log_text = PyBytes_FromStringAndSize(NULL, log_size);
         gl.GetProgramInfoLog(program, log_size, &log_size, PyBytes_AsString(log_text));
+        PyObject * vert_code = PyTuple_GetItem(vert_pair, 0);
+        PyObject * frag_code = PyTuple_GetItem(frag_pair, 1);
         Py_XDECREF(PyObject_CallMethod(self->module_state->helper, "linker_error", "(OON)", vert_code, frag_code, log_text));
         return NULL;
     }
