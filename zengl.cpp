@@ -118,6 +118,7 @@ struct Buffer {
     Context * ctx;
     int buffer;
     int size;
+    int dynamic;
     int mapped;
 };
 
@@ -883,6 +884,7 @@ Buffer * Context_meth_buffer(Context * self, PyObject * vargs, PyObject * kwargs
     res->ctx = (Context *)new_ref(self);
     res->buffer = buffer;
     res->size = size;
+    res->dynamic = dynamic;
     res->mapped = false;
 
     if (data != Py_None) {
