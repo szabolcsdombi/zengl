@@ -5,7 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-# [main](https://github.com/szabolcsdombi/zengl/compare/1.9.3...main)
+# [main](https://github.com/szabolcsdombi/zengl/compare/1.10.0...main)
+
+# [1.10.0](https://github.com/szabolcsdombi/zengl/compare/1.9.3...1.10.0)
 
 - Implemented external buffers and textures
 - Changed `zengl.context()` to prefer the `load_opengl_function()` over the `load()` method
