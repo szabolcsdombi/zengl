@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed vertex array caching
 - Fixed read buffer for depth only framebuffers
 - Fixed empty vertex and fragment shader cache collision
+- Fixed use after free in `Context.release()`
 
 # [1.9.3](https://github.com/szabolcsdombi/zengl/compare/1.9.2...1.9.3)
 

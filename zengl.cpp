@@ -1490,20 +1490,21 @@ PyObject * Context_meth_release(Context * self, PyObject * arg) {
     } else if (PyUnicode_CheckExact(arg) && !PyUnicode_CompareWithASCIIString(arg, "all")) {
         GCHeader * it = self->gc_next;
         while (it != (GCHeader *)self) {
+            GCHeader * next = it->gc_next;
             if (Py_TYPE(it) == self->module_state->Pipeline_type) {
                 Py_DECREF(Context_meth_release(self, (PyObject *)it));
             }
-            it = it->gc_next;
+            it = next;
         }
         it = self->gc_next;
         while (it != (GCHeader *)self) {
+            GCHeader * next = it->gc_next;
             if (Py_TYPE(it) == self->module_state->Buffer_type) {
                 Py_DECREF(Context_meth_release(self, (PyObject *)it));
-            }
-            if (Py_TYPE(it) == self->module_state->Image_type) {
+            } else if (Py_TYPE(it) == self->module_state->Image_type) {
                 Py_DECREF(Context_meth_release(self, (PyObject *)it));
             }
-            it = it->gc_next;
+            it = next;
         }
     }
     Py_RETURN_NONE;
