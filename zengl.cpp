@@ -1005,6 +1005,8 @@ Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * kwargs) 
         gl.GenTextures(1, (unsigned *)&image);
         gl.ActiveTexture(self->default_texture_unit);
         gl.BindTexture(target, image);
+        gl.TexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        gl.TexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         if (cubemap) {
             int padded_row = (width * format.pixel_size + 3) & ~3;
             int stride = padded_row * height;
