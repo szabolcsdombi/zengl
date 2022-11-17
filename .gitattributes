@@ -1,6 +1,7 @@
 .github/** linguist-detectable=false
 examples/** linguist-documentation=false
 tests/Dockerfile linguist-detectable=false
+*.html linguist-detectable=false
 *.vert linguist-detectable=false
 *.frag linguist-detectable=false
 *.glsl linguist-detectable=false
