@@ -28,42 +28,53 @@ image.clear_value = (0.0, 0.0, 0.0, 1.0)
 
 uniform_buffer = ctx.buffer(size=80)
 
-N = 1000
+N = 200
 
-instances = np.array([
-    np.random.uniform(-1.0, 1.0, N),
-    np.random.uniform(-1.0, 1.0, N),
-    np.random.uniform(-np.pi, np.pi, N),
-    np.random.uniform(0.0, 1.0, N),
-]).T
-
-instance_buffer = ctx.buffer(instances.astype('f4').tobytes())
-
+ctx.includes['N'] = f'const int N = {N};'
 ctx.includes['grass'] = grass_mesh()
 
 triangle = ctx.pipeline(
     vertex_shader='''
         #version 330
 
+        #include "N"
         #include "grass"
+
+        vec4 hash41(float p) {
+            vec4 p4 = fract(vec4(p) * vec4(0.1031, 0.1030, 0.0973, 0.1099));
+            p4 += dot(p4, p4.wzxy + 33.33);
+            return fract((p4.xxyz + p4.yzzw) * p4.zywx);
+        }
+
+        float hash11(float p) {
+            p = fract(p * 0.1031);
+            p *= p + 33.33;
+            p *= p + p;
+            return fract(p);
+        }
 
         layout (std140) uniform Common {
             mat4 mvp;
         };
 
-        layout (location = 0) in vec4 in_data;
-
         out vec2 v_data;
 
         void main() {
             vec3 v = grass[gl_VertexID];
+            vec4 data = hash41(float(gl_InstanceID));
+            vec2 cell = vec2(gl_InstanceID % N, gl_InstanceID / N);
+            float height = (sin(cell.x * 0.1) + cos(cell.y * 0.1)) * 0.2;
+            float scale = 0.9 + hash11(gl_InstanceID) * 0.2;
+            data.xy = (data.xy + cell - N / 2) * 0.1;
+            data.z *= 6.283184;
             vec3 vert = vec3(
-                in_data.x + cos(in_data.z) * v.x + sin(in_data.z) * v.y,
-                in_data.y + cos(in_data.z) * v.y - sin(in_data.z) * v.x,
-                v.z
+                data.x + cos(data.z) * v.x + sin(data.z) * v.y,
+                data.y + cos(data.z) * v.y - sin(data.z) * v.x,
+                height + v.z
             );
+            vert *= scale;
             gl_Position = mvp * vec4(vert, 1.0);
-            v_data = vec2(in_data.w, v.z);
+            v_data = vec2(data.w, v.z);
         }
     ''',
     fragment_shader='''
@@ -95,14 +106,13 @@ triangle = ctx.pipeline(
     framebuffer=[image, depth],
     topology='triangle_strip',
     cull_face='back',
-    vertex_buffers=zengl.bind(instance_buffer, '4f /i', 0),
-    instance_count=N,
+    instance_count=N * N,
     vertex_count=15,
 )
 
 while window.update():
-    x, y = math.sin(window.time * 0.5) * 3.0, math.cos(window.time * 0.5) * 3.0
-    camera = zengl.camera((x, y, 2.0), (0.0, 0.0, 0.5), aspect=window.aspect, fov=45.0)
+    x, y = math.sin(window.time * 0.2) * 12.0, math.cos(window.time * 0.2) * 12.0
+    camera = zengl.camera((x, y, 4.0), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
 
     uniform_buffer.write(camera)
     uniform_buffer.write(struct.pack('3f4x', x, y, 2.0), offset=64)
