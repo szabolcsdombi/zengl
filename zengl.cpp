@@ -2465,7 +2465,7 @@ PyObject * meth_camera(PyObject * self, PyObject * args, PyObject * kwargs) {
             (float)(s.x / r2), (float)(u.x / r1), (float)(r3 * f.x), 0.0f,
             (float)(s.y / r2), (float)(u.y / r1), (float)(r3 * f.y), 0.0f,
             (float)(s.z / r2), (float)(u.z / r1), (float)(r3 * f.z), 0.0f,
-            0.0f, 0.0f, (float)(r3 * t.z - r4), 1.0f,
+            (float)(t.x / r2), (float)(t.y / r1), (float)(r3 * t.z - r4), 1.0f,
         };
 
         return PyBytes_FromStringAndSize((char *)res, 64);
