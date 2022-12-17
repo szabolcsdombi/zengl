@@ -280,9 +280,9 @@ void bind_global_settings(Context * self, GlobalSettings * settings) {
     self->current_global_settings = settings;
     self->current_attachments = settings->attachments;
     if (settings->attachments > 0) {
-        self->current_clear_mask = settings->color_mask & 0xf | settings->depth_write << 8 | settings->stencil_front.write_mask << 16;
+        self->current_clear_mask = (settings->color_mask & 0xf) | settings->depth_write << 8 | settings->stencil_front.write_mask << 16;
     } else {
-        self->current_clear_mask = self->current_clear_mask & 0xf | settings->depth_write << 8 | settings->stencil_front.write_mask << 16;
+        self->current_clear_mask = (self->current_clear_mask & 0xf) | settings->depth_write << 8 | settings->stencil_front.write_mask << 16;
     }
 }
 
