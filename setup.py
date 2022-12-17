@@ -10,11 +10,14 @@ if sys.platform.startswith('linux'):
 if sys.platform.startswith('darwin'):
     extra_compile_args = ['-std=c++11', '-Wno-writable-strings', '-Wno-c++11-narrowing']
 
+extra_compile_args += ['-O0', '--coverage']
+
 ext = Extension(
     name='zengl',
     sources=['zengl.cpp'],
     depends=['zengl.hpp'],
     extra_compile_args=extra_compile_args,
+    extra_link_args=['--coverage'],
 )
 
 with open('README.md') as readme:
