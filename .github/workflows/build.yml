@@ -47,3 +47,16 @@ jobs:
 
       - name: test
         run: docker run --rm -t tests
+
+  coverage:
+    name: coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: build
+        run: docker build . -f tests/coverage/Dockerfile -t coverage
+
+      - name: coverage
+        run: docker run --rm -t coverage
