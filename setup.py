@@ -1,8 +1,10 @@
+import os
 import sys
 
 from setuptools import Extension, setup
 
 extra_compile_args = []
+extra_link_args = []
 
 if sys.platform.startswith('linux'):
     extra_compile_args = ['-fpermissive', '-Wno-write-strings', '-Wno-narrowing']
@@ -10,14 +12,16 @@ if sys.platform.startswith('linux'):
 if sys.platform.startswith('darwin'):
     extra_compile_args = ['-std=c++11', '-Wno-writable-strings', '-Wno-c++11-narrowing']
 
-extra_compile_args += ['-O0', '--coverage']
+if os.getenv('ZENGL_COVERAGE'):
+    extra_compile_args += ['-O0', '--coverage']
+    extra_link_args += ['-O0', '--coverage']
 
 ext = Extension(
     name='zengl',
     sources=['zengl.cpp'],
     depends=['zengl.hpp'],
     extra_compile_args=extra_compile_args,
-    extra_link_args=['--coverage'],
+    extra_link_args=extra_link_args,
 )
 
 with open('README.md') as readme:

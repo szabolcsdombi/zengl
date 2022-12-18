@@ -4,5 +4,6 @@ RUN pip install -U pip wheel setuptools &&\
     pip install glcontext pytest numpy pyopengl
 WORKDIR /app
 COPY . .
+ENV ZENGL_COVERAGE=yes
 RUN python setup.py build_ext --inplace && cp build/temp.*/zengl.gcno .
 CMD xvfb-run python -m pytest tests && gcovr
