@@ -18,7 +18,6 @@ typedef long long int sizeiptr;
 typedef int sizeiptr;
 #endif
 
-// GL_VERSION_1_0
 #define GL_COLOR_BUFFER_BIT 0x00004000
 #define GL_POINTS 0x0000
 #define GL_LINES 0x0001
@@ -58,40 +57,28 @@ typedef int sizeiptr;
 #define GL_TEXTURE_MIN_FILTER 0x2801
 #define GL_TEXTURE_WRAP_S 0x2802
 #define GL_TEXTURE_WRAP_T 0x2803
-
-// GL_VERSION_1_1
 #define GL_POLYGON_OFFSET_POINT 0x2A01
 #define GL_POLYGON_OFFSET_LINE 0x2A02
 #define GL_POLYGON_OFFSET_FILL 0x8037
 #define GL_RGBA8 0x8058
-
-// GL_VERSION_1_2
 #define GL_TEXTURE_WRAP_R 0x8072
 #define GL_BGRA 0x80E1
 #define GL_TEXTURE_MIN_LOD 0x813A
 #define GL_TEXTURE_MAX_LOD 0x813B
 #define GL_TEXTURE_BASE_LEVEL 0x813C
 #define GL_TEXTURE_MAX_LEVEL 0x813D
-
-// GL_VERSION_1_3
 #define GL_TEXTURE0 0x84C0
 #define GL_TEXTURE_CUBE_MAP 0x8513
 #define GL_TEXTURE_CUBE_MAP_POSITIVE_X 0x8515
-
-// GL_VERSION_1_4
 #define GL_DEPTH_COMPONENT16 0x81A5
 #define GL_DEPTH_COMPONENT24 0x81A6
 #define GL_TEXTURE_LOD_BIAS 0x8501
 #define GL_TEXTURE_COMPARE_MODE 0x884C
 #define GL_TEXTURE_COMPARE_FUNC 0x884D
-
-// GL_VERSION_1_5
 #define GL_ARRAY_BUFFER 0x8892
 #define GL_ELEMENT_ARRAY_BUFFER 0x8893
 #define GL_STATIC_DRAW 0x88E4
 #define GL_DYNAMIC_DRAW 0x88E8
-
-// GL_VERSION_2_0
 #define GL_MAX_DRAW_BUFFERS 0x8824
 #define GL_MAX_VERTEX_ATTRIBS 0x8869
 #define GL_MAX_TEXTURE_IMAGE_UNITS 0x8872
@@ -103,11 +90,7 @@ typedef int sizeiptr;
 #define GL_INFO_LOG_LENGTH 0x8B84
 #define GL_ACTIVE_UNIFORMS 0x8B86
 #define GL_ACTIVE_ATTRIBUTES 0x8B89
-
-// GL_VERSION_2_1
 #define GL_SRGB8_ALPHA8 0x8C43
-
-// GL_VERSION_3_0
 #define GL_RGBA32F 0x8814
 #define GL_RGBA16F 0x881A
 #define GL_TEXTURE_2D_ARRAY 0x8C1A
@@ -158,8 +141,6 @@ typedef int sizeiptr;
 #define GL_RG16UI 0x823A
 #define GL_RG32I 0x823B
 #define GL_RG32UI 0x823C
-
-// GL_VERSION_3_1
 #define GL_R8_SNORM 0x8F94
 #define GL_RG8_SNORM 0x8F95
 #define GL_RGBA8_SNORM 0x8F97
@@ -170,152 +151,128 @@ typedef int sizeiptr;
 #define GL_MAX_UNIFORM_BLOCK_SIZE 0x8A30
 #define GL_ACTIVE_UNIFORM_BLOCKS 0x8A36
 #define GL_UNIFORM_BLOCK_DATA_SIZE 0x8A40
-
-// GL_VERSION_3_2
 #define GL_PROGRAM_POINT_SIZE 0x8642
 #define GL_TEXTURE_CUBE_MAP_SEAMLESS 0x884F
-
-// EXTENSION
 #define GL_TEXTURE_MAX_ANISOTROPY 0x84FE
 
-// GL_VERSION_1_0
-typedef void (GLAPI * glCullFaceProc)(unsigned int mode);
-typedef void (GLAPI * glFrontFaceProc)(unsigned int mode);
+typedef void (GLAPI * glCullFaceProc)(unsigned mode);
+typedef void (GLAPI * glFrontFaceProc)(unsigned mode);
 typedef void (GLAPI * glLineWidthProc)(float width);
-typedef void (GLAPI * glTexParameteriProc)(unsigned int target, unsigned int pname, int param);
-typedef void (GLAPI * glTexImage2DProc)(unsigned int target, int level, int internalformat, int width, int height, int border, unsigned int format, unsigned int type, const void * pixels);
+typedef void (GLAPI * glTexParameteriProc)(unsigned target, unsigned pname, int param);
+typedef void (GLAPI * glTexImage2DProc)(unsigned target, int level, int internalformat, int width, int height, int border, unsigned format, unsigned type, const void * pixels);
 typedef void (GLAPI * glDepthMaskProc)(unsigned char flag);
-typedef void (GLAPI * glDisableProc)(unsigned int cap);
-typedef void (GLAPI * glEnableProc)(unsigned int cap);
-typedef void (GLAPI * glFlushProc)();
-typedef void (GLAPI * glDepthFuncProc)(unsigned int func);
-typedef void (GLAPI * glReadBufferProc)(unsigned int src);
-typedef void (GLAPI * glReadPixelsProc)(int x, int y, int width, int height, unsigned int format, unsigned int type, void * pixels);
-typedef unsigned int (GLAPI * glGetErrorProc)();
-typedef void (GLAPI * glGetIntegervProc)(unsigned int pname, int * data);
-typedef const unsigned char * (GLAPI * glGetStringProc)(unsigned int name);
+typedef void (GLAPI * glDisableProc)(unsigned cap);
+typedef void (GLAPI * glEnableProc)(unsigned cap);
+typedef void (GLAPI * glFlushProc)(void);
+typedef void (GLAPI * glDepthFuncProc)(unsigned func);
+typedef void (GLAPI * glReadBufferProc)(unsigned src);
+typedef void (GLAPI * glReadPixelsProc)(int x, int y, int width, int height, unsigned format, unsigned type, void * pixels);
+typedef unsigned (GLAPI * glGetErrorProc)(void);
+typedef void (GLAPI * glGetIntegervProc)(unsigned pname, int * data);
+typedef const unsigned char *(GLAPI * glGetStringProc)(unsigned name);
 typedef void (GLAPI * glViewportProc)(int x, int y, int width, int height);
-
-// GL_VERSION_1_1
 typedef void (GLAPI * glPolygonOffsetProc)(float factor, float units);
-typedef void (GLAPI * glTexSubImage2DProc)(unsigned int target, int level, int xoffset, int yoffset, int width, int height, unsigned int format, unsigned int type, const void * pixels);
-typedef void (GLAPI * glBindTextureProc)(unsigned int target, unsigned int texture);
-typedef void (GLAPI * glDeleteTexturesProc)(int n, const unsigned int * textures);
-typedef void (GLAPI * glGenTexturesProc)(int n, unsigned int * textures);
-
-// GL_VERSION_1_2
-typedef void (GLAPI * glTexImage3DProc)(unsigned int target, int level, int internalformat, int width, int height, int depth, int border, unsigned int format, unsigned int type, const void * pixels);
-typedef void (GLAPI * glTexSubImage3DProc)(unsigned int target, int level, int xoffset, int yoffset, int zoffset, int width, int height, int depth, unsigned int format, unsigned int type, const void * pixels);
-
-// GL_VERSION_1_3
-typedef void (GLAPI * glActiveTextureProc)(unsigned int texture);
-
-// GL_VERSION_1_4
-typedef void (GLAPI * glBlendFuncSeparateProc)(unsigned int sfactorRGB, unsigned int dfactorRGB, unsigned int sfactorAlpha, unsigned int dfactorAlpha);
-
-// GL_VERSION_1_5
-typedef void (GLAPI * glBindBufferProc)(unsigned int target, unsigned int buffer);
-typedef void (GLAPI * glDeleteBuffersProc)(int n, const unsigned int * buffers);
-typedef void (GLAPI * glGenBuffersProc)(int n, unsigned int * buffers);
-typedef void (GLAPI * glBufferDataProc)(unsigned int target, sizeiptr size, const void * data, unsigned int usage);
-typedef void (GLAPI * glBufferSubDataProc)(unsigned int target, sizeiptr offset, sizeiptr size, const void * data);
-typedef unsigned char (GLAPI * glUnmapBufferProc)(unsigned int target);
-
-// GL_VERSION_2_0
-typedef void (GLAPI * glBlendEquationSeparateProc)(unsigned int modeRGB, unsigned int modeAlpha);
-typedef void (GLAPI * glDrawBuffersProc)(int n, const unsigned int * bufs);
-typedef void (GLAPI * glStencilOpSeparateProc)(unsigned int face, unsigned int sfail, unsigned int dpfail, unsigned int dppass);
-typedef void (GLAPI * glStencilFuncSeparateProc)(unsigned int face, unsigned int func, int ref, unsigned int mask);
-typedef void (GLAPI * glStencilMaskSeparateProc)(unsigned int face, unsigned int mask);
-typedef void (GLAPI * glAttachShaderProc)(unsigned int program, unsigned int shader);
-typedef void (GLAPI * glCompileShaderProc)(unsigned int shader);
-typedef unsigned int (GLAPI * glCreateProgramProc)();
-typedef unsigned int (GLAPI * glCreateShaderProc)(unsigned int type);
-typedef void (GLAPI * glDeleteProgramProc)(unsigned int program);
-typedef void (GLAPI * glDeleteShaderProc)(unsigned int shader);
-typedef void (GLAPI * glEnableVertexAttribArrayProc)(unsigned int index);
-typedef void (GLAPI * glGetActiveAttribProc)(unsigned int program, unsigned int index, int bufSize, int * length, int * size, unsigned int * type, char * name);
-typedef void (GLAPI * glGetActiveUniformProc)(unsigned int program, unsigned int index, int bufSize, int * length, int * size, unsigned int * type, char * name);
-typedef int (GLAPI * glGetAttribLocationProc)(unsigned int program, const char * name);
-typedef void (GLAPI * glGetProgramivProc)(unsigned int program, unsigned int pname, int * params);
-typedef void (GLAPI * glGetProgramInfoLogProc)(unsigned int program, int bufSize, int * length, char * infoLog);
-typedef void (GLAPI * glGetShaderivProc)(unsigned int shader, unsigned int pname, int * params);
-typedef void (GLAPI * glGetShaderInfoLogProc)(unsigned int shader, int bufSize, int * length, char * infoLog);
-typedef int (GLAPI * glGetUniformLocationProc)(unsigned int program, const char * name);
-typedef void (GLAPI * glLinkProgramProc)(unsigned int program);
-typedef void (GLAPI * glShaderSourceProc)(unsigned int shader, int count, const char * const * string, const int * length);
-typedef void (GLAPI * glUseProgramProc)(unsigned int program);
+typedef void (GLAPI * glTexSubImage2DProc)(unsigned target, int level, int xoffset, int yoffset, int width, int height, unsigned format, unsigned type, const void * pixels);
+typedef void (GLAPI * glBindTextureProc)(unsigned target, unsigned texture);
+typedef void (GLAPI * glDeleteTexturesProc)(int n, const unsigned * textures);
+typedef void (GLAPI * glGenTexturesProc)(int n, unsigned * textures);
+typedef void (GLAPI * glTexImage3DProc)(unsigned target, int level, int internalformat, int width, int height, int depth, int border, unsigned format, unsigned type, const void * pixels);
+typedef void (GLAPI * glTexSubImage3DProc)(unsigned target, int level, int xoffset, int yoffset, int zoffset, int width, int height, int depth, unsigned format, unsigned type, const void * pixels);
+typedef void (GLAPI * glActiveTextureProc)(unsigned texture);
+typedef void (GLAPI * glBlendFuncSeparateProc)(unsigned sfactorRGB, unsigned dfactorRGB, unsigned sfactorAlpha, unsigned dfactorAlpha);
+typedef void (GLAPI * glBindBufferProc)(unsigned target, unsigned buffer);
+typedef void (GLAPI * glDeleteBuffersProc)(int n, const unsigned * buffers);
+typedef void (GLAPI * glGenBuffersProc)(int n, unsigned * buffers);
+typedef void (GLAPI * glBufferDataProc)(unsigned target, sizeiptr size, const void * data, unsigned usage);
+typedef void (GLAPI * glBufferSubDataProc)(unsigned target, sizeiptr offset, sizeiptr size, const void * data);
+typedef unsigned char (GLAPI * glUnmapBufferProc)(unsigned target);
+typedef void (GLAPI * glBlendEquationSeparateProc)(unsigned modeRGB, unsigned modeAlpha);
+typedef void (GLAPI * glDrawBuffersProc)(int n, const unsigned * bufs);
+typedef void (GLAPI * glStencilOpSeparateProc)(unsigned face, unsigned sfail, unsigned dpfail, unsigned dppass);
+typedef void (GLAPI * glStencilFuncSeparateProc)(unsigned face, unsigned func, int ref, unsigned mask);
+typedef void (GLAPI * glStencilMaskSeparateProc)(unsigned face, unsigned mask);
+typedef void (GLAPI * glAttachShaderProc)(unsigned program, unsigned shader);
+typedef void (GLAPI * glCompileShaderProc)(unsigned shader);
+typedef unsigned (GLAPI * glCreateProgramProc)(void);
+typedef unsigned (GLAPI * glCreateShaderProc)(unsigned type);
+typedef void (GLAPI * glDeleteProgramProc)(unsigned program);
+typedef void (GLAPI * glDeleteShaderProc)(unsigned shader);
+typedef void (GLAPI * glEnableVertexAttribArrayProc)(unsigned index);
+typedef void (GLAPI * glGetActiveAttribProc)(unsigned program, unsigned index, int bufSize, int * length, int * size, unsigned * type, char * name);
+typedef void (GLAPI * glGetActiveUniformProc)(unsigned program, unsigned index, int bufSize, int * length, int * size, unsigned * type, char * name);
+typedef int (GLAPI * glGetAttribLocationProc)(unsigned program, const char * name);
+typedef void (GLAPI * glGetProgramivProc)(unsigned program, unsigned pname, int * params);
+typedef void (GLAPI * glGetProgramInfoLogProc)(unsigned program, int bufSize, int * length, char * infoLog);
+typedef void (GLAPI * glGetShaderivProc)(unsigned shader, unsigned pname, int * params);
+typedef void (GLAPI * glGetShaderInfoLogProc)(unsigned shader, int bufSize, int * length, char * infoLog);
+typedef int (GLAPI * glGetUniformLocationProc)(unsigned program, const char * name);
+typedef void (GLAPI * glLinkProgramProc)(unsigned program);
+typedef void (GLAPI * glShaderSourceProc)(unsigned shader, int count, const char * const * string, const int * length);
+typedef void (GLAPI * glUseProgramProc)(unsigned program);
 typedef void (GLAPI * glUniform1iProc)(int location, int v0);
-typedef void (GLAPI * glUniform1ivProc)(int location, int count, int * value);
-typedef void (GLAPI * glUniform2ivProc)(int location, int count, int * value);
-typedef void (GLAPI * glUniform3ivProc)(int location, int count, int * value);
-typedef void (GLAPI * glUniform4ivProc)(int location, int count, int * value);
-typedef void (GLAPI * glUniform1fvProc)(int location, int count, float * value);
-typedef void (GLAPI * glUniform2fvProc)(int location, int count, float * value);
-typedef void (GLAPI * glUniform3fvProc)(int location, int count, float * value);
-typedef void (GLAPI * glUniform4fvProc)(int location, int count, float * value);
-typedef void (GLAPI * glUniformMatrix2fvProc)(int location, int count, unsigned char transpose, float * value);
-typedef void (GLAPI * glUniformMatrix2x3fvProc)(int location, int count, unsigned char transpose, float * value);
-typedef void (GLAPI * glUniformMatrix2x4fvProc)(int location, int count, unsigned char transpose, float * value);
-typedef void (GLAPI * glUniformMatrix3x2fvProc)(int location, int count, unsigned char transpose, float * value);
-typedef void (GLAPI * glUniformMatrix3fvProc)(int location, int count, unsigned char transpose, float * value);
-typedef void (GLAPI * glUniformMatrix3x4fvProc)(int location, int count, unsigned char transpose, float * value);
-typedef void (GLAPI * glUniformMatrix4x2fvProc)(int location, int count, unsigned char transpose, float * value);
-typedef void (GLAPI * glUniformMatrix4x3fvProc)(int location, int count, unsigned char transpose, float * value);
-typedef void (GLAPI * glUniformMatrix4fvProc)(int location, int count, unsigned char transpose, float * value);
-typedef void (GLAPI * glVertexAttribPointerProc)(unsigned int index, int size, unsigned int type, unsigned char normalized, int stride, const void * pointer);
-
-// GL_VERSION_3_0
-typedef void (GLAPI * glColorMaskiProc)(unsigned int index, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
-typedef void (GLAPI * glEnableiProc)(unsigned int target, unsigned int index);
-typedef void (GLAPI * glDisableiProc)(unsigned int target, unsigned int index);
-typedef void (GLAPI * glBindBufferRangeProc)(unsigned int target, unsigned int index, unsigned int buffer, sizeiptr offset, sizeiptr size);
-typedef void (GLAPI * glVertexAttribIPointerProc)(unsigned int index, int size, unsigned int type, int stride, const void * pointer);
-typedef void (GLAPI * glUniform1uivProc)(int location, int count, unsigned int * value);
-typedef void (GLAPI * glUniform2uivProc)(int location, int count, unsigned int * value);
-typedef void (GLAPI * glUniform3uivProc)(int location, int count, unsigned int * value);
-typedef void (GLAPI * glUniform4uivProc)(int location, int count, unsigned int * value);
-typedef void (GLAPI * glClearBufferivProc)(unsigned int buffer, int drawbuffer, const int * value);
-typedef void (GLAPI * glClearBufferuivProc)(unsigned int buffer, int drawbuffer, const unsigned int * value);
-typedef void (GLAPI * glClearBufferfvProc)(unsigned int buffer, int drawbuffer, const float * value);
-typedef void (GLAPI * glClearBufferfiProc)(unsigned int buffer, int drawbuffer, float depth, int stencil);
-typedef void (GLAPI * glBindRenderbufferProc)(unsigned int target, unsigned int renderbuffer);
-typedef void (GLAPI * glDeleteRenderbuffersProc)(int n, const unsigned int * renderbuffers);
-typedef void (GLAPI * glGenRenderbuffersProc)(int n, unsigned int * renderbuffers);
-typedef void (GLAPI * glBindFramebufferProc)(unsigned int target, unsigned int framebuffer);
-typedef void (GLAPI * glDeleteFramebuffersProc)(int n, const unsigned int * framebuffers);
-typedef void (GLAPI * glGenFramebuffersProc)(int n, unsigned int * framebuffers);
-typedef void (GLAPI * glFramebufferTexture2DProc)(unsigned int target, unsigned int attachment, unsigned int textarget, unsigned int texture, int level);
-typedef void (GLAPI * glFramebufferRenderbufferProc)(unsigned int target, unsigned int attachment, unsigned int renderbuffertarget, unsigned int renderbuffer);
-typedef void (GLAPI * glGenerateMipmapProc)(unsigned int target);
-typedef void (GLAPI * glBlitFramebufferProc)(int srcX0, int srcY0, int srcX1, int srcY1, int dstX0, int dstY0, int dstX1, int dstY1, unsigned int mask, unsigned int filter);
-typedef void (GLAPI * glRenderbufferStorageMultisampleProc)(unsigned int target, int samples, unsigned int internalformat, int width, int height);
-typedef void (GLAPI * glFramebufferTextureLayerProc)(unsigned int target, unsigned int attachment, unsigned int texture, int level, int layer);
-typedef void * (GLAPI * glMapBufferRangeProc)(unsigned int target, sizeiptr offset, sizeiptr length, unsigned int access);
-typedef void (GLAPI * glBindVertexArrayProc)(unsigned int array);
-typedef void (GLAPI * glDeleteVertexArraysProc)(int n, const unsigned int * arrays);
-typedef void (GLAPI * glGenVertexArraysProc)(int n, unsigned int * arrays);
-
-// GL_VERSION_3_1
-typedef void (GLAPI * glDrawArraysInstancedProc)(unsigned int mode, int first, int count, int instancecount);
-typedef void (GLAPI * glDrawElementsInstancedProc)(unsigned int mode, int count, unsigned int type, const void * indices, int instancecount);
-typedef void (GLAPI * glPrimitiveRestartIndexProc)(unsigned int index);
-typedef unsigned int (GLAPI * glGetUniformBlockIndexProc)(unsigned int program, const char * uniformBlockName);
-typedef void (GLAPI * glGetActiveUniformBlockivProc)(unsigned int program, unsigned int uniformBlockIndex, unsigned int pname, int * params);
-typedef void (GLAPI * glGetActiveUniformBlockNameProc)(unsigned int program, unsigned int uniformBlockIndex, int bufSize, int * length, char * uniformBlockName);
-typedef void (GLAPI * glUniformBlockBindingProc)(unsigned int program, unsigned int uniformBlockIndex, unsigned int uniformBlockBinding);
-
-// GL_VERSION_3_3
-typedef void (GLAPI * glGenSamplersProc)(int count, unsigned int * samplers);
-typedef void (GLAPI * glDeleteSamplersProc)(int count, const unsigned int * samplers);
-typedef void (GLAPI * glBindSamplerProc)(unsigned int unit, unsigned int sampler);
-typedef void (GLAPI * glSamplerParameteriProc)(unsigned int sampler, unsigned int pname, int param);
-typedef void (GLAPI * glSamplerParameterfProc)(unsigned int sampler, unsigned int pname, float param);
-typedef void (GLAPI * glSamplerParameterfvProc)(unsigned int sampler, unsigned int pname, const float * param);
-typedef void (GLAPI * glVertexAttribDivisorProc)(unsigned int index, unsigned int divisor);
+typedef void (GLAPI * glUniform1fvProc)(int location, int count, const float * value);
+typedef void (GLAPI * glUniform2fvProc)(int location, int count, const float * value);
+typedef void (GLAPI * glUniform3fvProc)(int location, int count, const float * value);
+typedef void (GLAPI * glUniform4fvProc)(int location, int count, const float * value);
+typedef void (GLAPI * glUniform1ivProc)(int location, int count, const int * value);
+typedef void (GLAPI * glUniform2ivProc)(int location, int count, const int * value);
+typedef void (GLAPI * glUniform3ivProc)(int location, int count, const int * value);
+typedef void (GLAPI * glUniform4ivProc)(int location, int count, const int * value);
+typedef void (GLAPI * glUniformMatrix2fvProc)(int location, int count, unsigned char transpose, const float * value);
+typedef void (GLAPI * glUniformMatrix3fvProc)(int location, int count, unsigned char transpose, const float * value);
+typedef void (GLAPI * glUniformMatrix4fvProc)(int location, int count, unsigned char transpose, const float * value);
+typedef void (GLAPI * glVertexAttribPointerProc)(unsigned index, int size, unsigned type, unsigned char normalized, int stride, const void * pointer);
+typedef void (GLAPI * glUniformMatrix2x3fvProc)(int location, int count, unsigned char transpose, const float * value);
+typedef void (GLAPI * glUniformMatrix3x2fvProc)(int location, int count, unsigned char transpose, const float * value);
+typedef void (GLAPI * glUniformMatrix2x4fvProc)(int location, int count, unsigned char transpose, const float * value);
+typedef void (GLAPI * glUniformMatrix4x2fvProc)(int location, int count, unsigned char transpose, const float * value);
+typedef void (GLAPI * glUniformMatrix3x4fvProc)(int location, int count, unsigned char transpose, const float * value);
+typedef void (GLAPI * glUniformMatrix4x3fvProc)(int location, int count, unsigned char transpose, const float * value);
+typedef void (GLAPI * glColorMaskiProc)(unsigned index, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
+typedef void (GLAPI * glEnableiProc)(unsigned target, unsigned index);
+typedef void (GLAPI * glDisableiProc)(unsigned target, unsigned index);
+typedef void (GLAPI * glBindBufferRangeProc)(unsigned target, unsigned index, unsigned buffer, sizeiptr offset, sizeiptr size);
+typedef void (GLAPI * glVertexAttribIPointerProc)(unsigned index, int size, unsigned type, int stride, const void * pointer);
+typedef void (GLAPI * glUniform1uivProc)(int location, int count, const unsigned * value);
+typedef void (GLAPI * glUniform2uivProc)(int location, int count, const unsigned * value);
+typedef void (GLAPI * glUniform3uivProc)(int location, int count, const unsigned * value);
+typedef void (GLAPI * glUniform4uivProc)(int location, int count, const unsigned * value);
+typedef void (GLAPI * glClearBufferivProc)(unsigned buffer, int drawbuffer, const int * value);
+typedef void (GLAPI * glClearBufferuivProc)(unsigned buffer, int drawbuffer, const unsigned * value);
+typedef void (GLAPI * glClearBufferfvProc)(unsigned buffer, int drawbuffer, const float * value);
+typedef void (GLAPI * glClearBufferfiProc)(unsigned buffer, int drawbuffer, float depth, int stencil);
+typedef void (GLAPI * glBindRenderbufferProc)(unsigned target, unsigned renderbuffer);
+typedef void (GLAPI * glDeleteRenderbuffersProc)(int n, const unsigned * renderbuffers);
+typedef void (GLAPI * glGenRenderbuffersProc)(int n, unsigned * renderbuffers);
+typedef void (GLAPI * glBindFramebufferProc)(unsigned target, unsigned framebuffer);
+typedef void (GLAPI * glDeleteFramebuffersProc)(int n, const unsigned * framebuffers);
+typedef void (GLAPI * glGenFramebuffersProc)(int n, unsigned * framebuffers);
+typedef void (GLAPI * glFramebufferTexture2DProc)(unsigned target, unsigned attachment, unsigned textarget, unsigned texture, int level);
+typedef void (GLAPI * glFramebufferRenderbufferProc)(unsigned target, unsigned attachment, unsigned renderbuffertarget, unsigned renderbuffer);
+typedef void (GLAPI * glGenerateMipmapProc)(unsigned target);
+typedef void (GLAPI * glBlitFramebufferProc)(int srcX0, int srcY0, int srcX1, int srcY1, int dstX0, int dstY0, int dstX1, int dstY1, unsigned mask, unsigned filter);
+typedef void (GLAPI * glRenderbufferStorageMultisampleProc)(unsigned target, int samples, unsigned internalformat, int width, int height);
+typedef void (GLAPI * glFramebufferTextureLayerProc)(unsigned target, unsigned attachment, unsigned texture, int level, int layer);
+typedef void *(GLAPI * glMapBufferRangeProc)(unsigned target, sizeiptr offset, sizeiptr length, unsigned access);
+typedef void (GLAPI * glBindVertexArrayProc)(unsigned array);
+typedef void (GLAPI * glDeleteVertexArraysProc)(int n, const unsigned * arrays);
+typedef void (GLAPI * glGenVertexArraysProc)(int n, unsigned * arrays);
+typedef void (GLAPI * glDrawArraysInstancedProc)(unsigned mode, int first, int count, int instancecount);
+typedef void (GLAPI * glDrawElementsInstancedProc)(unsigned mode, int count, unsigned type, const void * indices, int instancecount);
+typedef void (GLAPI * glPrimitiveRestartIndexProc)(unsigned index);
+typedef unsigned (GLAPI * glGetUniformBlockIndexProc)(unsigned program, const char * uniformBlockName);
+typedef void (GLAPI * glGetActiveUniformBlockivProc)(unsigned program, unsigned uniformBlockIndex, unsigned pname, int * params);
+typedef void (GLAPI * glGetActiveUniformBlockNameProc)(unsigned program, unsigned uniformBlockIndex, int bufSize, int * length, char * uniformBlockName);
+typedef void (GLAPI * glUniformBlockBindingProc)(unsigned program, unsigned uniformBlockIndex, unsigned uniformBlockBinding);
+typedef void (GLAPI * glGenSamplersProc)(int count, unsigned * samplers);
+typedef void (GLAPI * glDeleteSamplersProc)(int count, const unsigned * samplers);
+typedef void (GLAPI * glBindSamplerProc)(unsigned unit, unsigned sampler);
+typedef void (GLAPI * glSamplerParameteriProc)(unsigned sampler, unsigned pname, int param);
+typedef void (GLAPI * glSamplerParameterfProc)(unsigned sampler, unsigned pname, float param);
+typedef void (GLAPI * glSamplerParameterfvProc)(unsigned sampler, unsigned pname, const float * param);
+typedef void (GLAPI * glVertexAttribDivisorProc)(unsigned index, unsigned divisor);
 
 struct GLMethods {
-    // GL_VERSION_1_0
     glCullFaceProc CullFace;
     glFrontFaceProc FrontFace;
     glLineWidthProc LineWidth;
@@ -332,33 +289,21 @@ struct GLMethods {
     glGetIntegervProc GetIntegerv;
     glGetStringProc GetString;
     glViewportProc Viewport;
-
-    // GL_VERSION_1_1
     glPolygonOffsetProc PolygonOffset;
     glTexSubImage2DProc TexSubImage2D;
     glBindTextureProc BindTexture;
     glDeleteTexturesProc DeleteTextures;
     glGenTexturesProc GenTextures;
-
-    // GL_VERSION_1_2
     glTexImage3DProc TexImage3D;
     glTexSubImage3DProc TexSubImage3D;
-
-    // GL_VERSION_1_3
     glActiveTextureProc ActiveTexture;
-
-    // GL_VERSION_1_4
     glBlendFuncSeparateProc BlendFuncSeparate;
-
-    // GL_VERSION_1_5
     glBindBufferProc BindBuffer;
     glDeleteBuffersProc DeleteBuffers;
     glGenBuffersProc GenBuffers;
     glBufferDataProc BufferData;
     glBufferSubDataProc BufferSubData;
     glUnmapBufferProc UnmapBuffer;
-
-    // GL_VERSION_2_0
     glBlendEquationSeparateProc BlendEquationSeparate;
     glDrawBuffersProc DrawBuffers;
     glStencilOpSeparateProc StencilOpSeparate;
@@ -383,26 +328,24 @@ struct GLMethods {
     glShaderSourceProc ShaderSource;
     glUseProgramProc UseProgram;
     glUniform1iProc Uniform1i;
-    glUniform1ivProc Uniform1iv;
-    glUniform2ivProc Uniform2iv;
-    glUniform3ivProc Uniform3iv;
-    glUniform4ivProc Uniform4iv;
     glUniform1fvProc Uniform1fv;
     glUniform2fvProc Uniform2fv;
     glUniform3fvProc Uniform3fv;
     glUniform4fvProc Uniform4fv;
+    glUniform1ivProc Uniform1iv;
+    glUniform2ivProc Uniform2iv;
+    glUniform3ivProc Uniform3iv;
+    glUniform4ivProc Uniform4iv;
     glUniformMatrix2fvProc UniformMatrix2fv;
-    glUniformMatrix2x3fvProc UniformMatrix2x3fv;
-    glUniformMatrix2x4fvProc UniformMatrix2x4fv;
-    glUniformMatrix3x2fvProc UniformMatrix3x2fv;
     glUniformMatrix3fvProc UniformMatrix3fv;
-    glUniformMatrix3x4fvProc UniformMatrix3x4fv;
-    glUniformMatrix4x2fvProc UniformMatrix4x2fv;
-    glUniformMatrix4x3fvProc UniformMatrix4x3fv;
     glUniformMatrix4fvProc UniformMatrix4fv;
     glVertexAttribPointerProc VertexAttribPointer;
-
-    // GL_VERSION_3_0
+    glUniformMatrix2x3fvProc UniformMatrix2x3fv;
+    glUniformMatrix3x2fvProc UniformMatrix3x2fv;
+    glUniformMatrix2x4fvProc UniformMatrix2x4fv;
+    glUniformMatrix4x2fvProc UniformMatrix4x2fv;
+    glUniformMatrix3x4fvProc UniformMatrix3x4fv;
+    glUniformMatrix4x3fvProc UniformMatrix4x3fv;
     glColorMaskiProc ColorMaski;
     glEnableiProc Enablei;
     glDisableiProc Disablei;
@@ -432,8 +375,6 @@ struct GLMethods {
     glBindVertexArrayProc BindVertexArray;
     glDeleteVertexArraysProc DeleteVertexArrays;
     glGenVertexArraysProc GenVertexArrays;
-
-    // GL_VERSION_3_1
     glDrawArraysInstancedProc DrawArraysInstanced;
     glDrawElementsInstancedProc DrawElementsInstanced;
     glPrimitiveRestartIndexProc PrimitiveRestartIndex;
@@ -441,8 +382,6 @@ struct GLMethods {
     glGetActiveUniformBlockivProc GetActiveUniformBlockiv;
     glGetActiveUniformBlockNameProc GetActiveUniformBlockName;
     glUniformBlockBindingProc UniformBlockBinding;
-
-    // GL_VERSION_3_3
     glGenSamplersProc GenSamplers;
     glDeleteSamplersProc DeleteSamplers;
     glBindSamplerProc BindSampler;
@@ -721,7 +660,6 @@ GLMethods load_gl(PyObject * loader) {
     #define check(name) if (!res.name) return {}
     #define load(name) res.name = (gl ## name ## Proc)load_opengl_function(loader, "gl" # name); check(name)
 
-    // GL_VERSION_1_0
     load(CullFace);
     load(FrontFace);
     load(LineWidth);
@@ -738,33 +676,21 @@ GLMethods load_gl(PyObject * loader) {
     load(GetIntegerv);
     load(GetString);
     load(Viewport);
-
-    // GL_VERSION_1_1
     load(PolygonOffset);
     load(TexSubImage2D);
     load(BindTexture);
     load(DeleteTextures);
     load(GenTextures);
-
-    // GL_VERSION_1_2
     load(TexImage3D);
     load(TexSubImage3D);
-
-    // GL_VERSION_1_3
     load(ActiveTexture);
-
-    // GL_VERSION_1_4
     load(BlendFuncSeparate);
-
-    // GL_VERSION_1_5
     load(BindBuffer);
     load(DeleteBuffers);
     load(GenBuffers);
     load(BufferData);
     load(BufferSubData);
     load(UnmapBuffer);
-
-    // GL_VERSION_2_0
     load(BlendEquationSeparate);
     load(DrawBuffers);
     load(StencilOpSeparate);
@@ -789,26 +715,24 @@ GLMethods load_gl(PyObject * loader) {
     load(ShaderSource);
     load(UseProgram);
     load(Uniform1i);
-    load(Uniform1iv);
-    load(Uniform2iv);
-    load(Uniform3iv);
-    load(Uniform4iv);
     load(Uniform1fv);
     load(Uniform2fv);
     load(Uniform3fv);
     load(Uniform4fv);
+    load(Uniform1iv);
+    load(Uniform2iv);
+    load(Uniform3iv);
+    load(Uniform4iv);
     load(UniformMatrix2fv);
-    load(UniformMatrix2x3fv);
-    load(UniformMatrix2x4fv);
-    load(UniformMatrix3x2fv);
     load(UniformMatrix3fv);
-    load(UniformMatrix3x4fv);
-    load(UniformMatrix4x2fv);
-    load(UniformMatrix4x3fv);
     load(UniformMatrix4fv);
     load(VertexAttribPointer);
-
-    // GL_VERSION_3_0
+    load(UniformMatrix2x3fv);
+    load(UniformMatrix3x2fv);
+    load(UniformMatrix2x4fv);
+    load(UniformMatrix4x2fv);
+    load(UniformMatrix3x4fv);
+    load(UniformMatrix4x3fv);
     load(ColorMaski);
     load(Enablei);
     load(Disablei);
@@ -838,8 +762,6 @@ GLMethods load_gl(PyObject * loader) {
     load(BindVertexArray);
     load(DeleteVertexArrays);
     load(GenVertexArrays);
-
-    // GL_VERSION_3_1
     load(DrawArraysInstanced);
     load(DrawElementsInstanced);
     load(PrimitiveRestartIndex);
@@ -847,8 +769,6 @@ GLMethods load_gl(PyObject * loader) {
     load(GetActiveUniformBlockiv);
     load(GetActiveUniformBlockName);
     load(UniformBlockBinding);
-
-    // GL_VERSION_3_3
     load(GenSamplers);
     load(DeleteSamplers);
     load(BindSampler);
