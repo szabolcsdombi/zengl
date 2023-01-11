@@ -36,7 +36,7 @@ ctx.includes['screen_size'] = f'const vec2 screen_size = vec2({width}, {height})
 
 triangle = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         #include "screen_size"
 
@@ -62,11 +62,11 @@ triangle = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         in vec3 v_texcoord;
 
-        uniform sampler2DArray Texture;
+        layout (binding = 0) uniform sampler2DArray Texture;
 
         layout (location = 0) out vec4 out_color;
 

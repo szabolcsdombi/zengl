@@ -35,7 +35,7 @@ ctx.includes['grass'] = grass_mesh()
 
 triangle = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         #include "N"
         #include "grass"
@@ -53,7 +53,7 @@ triangle = ctx.pipeline(
             return fract(p);
         }
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
         };
 
@@ -78,7 +78,7 @@ triangle = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         in vec2 v_data;
 

@@ -39,7 +39,7 @@ loops_index_buffer = ctx.buffer(loops_index_data.astype('i4').tobytes())
 
 mesh = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         layout (location = 0) in vec2 in_vert;
 
@@ -50,7 +50,7 @@ mesh = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         layout (location = 0) out vec4 out_color;
 
@@ -67,7 +67,7 @@ mesh = ctx.pipeline(
 
 loops = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         layout (location = 0) in vec2 in_vert;
 
@@ -78,7 +78,7 @@ loops = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         layout (location = 0) out vec4 out_color;
 
@@ -95,7 +95,7 @@ loops = ctx.pipeline(
 
 edges = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         layout (location = 0) in vec2 in_vert;
 
@@ -106,7 +106,7 @@ edges = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         layout (location = 0) out vec4 out_color;
 

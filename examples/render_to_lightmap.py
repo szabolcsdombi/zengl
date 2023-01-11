@@ -31,9 +31,9 @@ uniform_buffer = ctx.buffer(size=64)
 
 depth_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
         };
 
@@ -46,7 +46,7 @@ depth_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         void main() {
         }
@@ -77,7 +77,7 @@ depth_pipeline = ctx.pipeline(
 
 texture_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         layout (location = 0) in vec3 in_vertex;
         layout (location = 1) in vec2 in_texcoord;
@@ -90,15 +90,15 @@ texture_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         #include "samples"
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
         };
 
-        uniform sampler2DShadow DepthTexture;
+        layout (binding = 0) uniform sampler2DShadow DepthTexture;
 
         in vec3 v_vertex;
 
@@ -148,7 +148,7 @@ texture_pipeline = ctx.pipeline(
 
 fill_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         vec2 positions[3] = vec2[](
             vec2(-1.0, -1.0),
@@ -161,9 +161,9 @@ fill_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
-        uniform sampler2D Texture;
+        layout (binding = 0) uniform sampler2D Texture;
 
         layout (location = 0) out float out_color;
 
@@ -217,9 +217,9 @@ fill_pipeline = ctx.pipeline(
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
         };
 
@@ -236,9 +236,9 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
-        uniform sampler2D Texture;
+        layout (binding = 0) uniform sampler2D Texture;
 
         in vec3 v_vertex;
         in vec2 v_texcoord;

@@ -124,15 +124,15 @@ ctx.includes['qtransform'] = '''
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         #include "qtransform"
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
         };
 
-        layout (std140) uniform Bones {
+        layout (std140, binding = 1) uniform Bones {
             vec4 bone[256 * 2];
         };
 
@@ -156,7 +156,7 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         in vec3 v_norm;
         in vec3 v_color;

@@ -56,7 +56,7 @@ ctx.includes['font_size'] = 'const vec2 font_size = vec2(32.0, 32.0);'
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         #include "screen_size"
         #include "font_size"
@@ -81,11 +81,11 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         in vec3 v_texcoord;
 
-        uniform sampler2DArray Texture;
+        layout (binding = 0) uniform sampler2DArray Texture;
 
         layout (location = 0) out vec4 out_color;
 

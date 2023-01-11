@@ -26,13 +26,13 @@ vertex_buffer = ctx.buffer(pack.read('humanoid.mesh'))
 uniform_buffer = ctx.buffer(size=64)
 
 ctx.includes['common'] = '''
-    layout (std140) uniform Common {
+    layout (std140, binding = 0) uniform Common {
         mat4 mvp;
     };
 '''
 
 ctx.includes['bones'] = f'''
-    layout (std140) uniform PoseBones {{
+    layout (std140, binding = 1) uniform PoseBones {{
         vec4 pose_bone[{bones}];
     }};
 '''
@@ -45,7 +45,7 @@ ctx.includes['qtransform'] = '''
 
 monkey = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         #include "common"
         #include "bones"
@@ -82,7 +82,7 @@ monkey = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         in vec3 v_norm;
 

@@ -64,16 +64,16 @@ ctx.includes['terrain_info'] = '''
 
 terrain = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         #include "terrain_info"
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
         };
 
-        uniform sampler2D Heightmap;
-        uniform sampler2D Normalmap;
+        layout (binding = 0) uniform sampler2D Heightmap;
+        layout (binding = 1) uniform sampler2D Normalmap;
 
         layout (location = 0) in ivec2 in_vert;
 
@@ -88,12 +88,12 @@ terrain = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         in vec3 v_normal;
         in vec2 v_texcoord;
 
-        uniform sampler2D Colormap;
+        layout (binding = 2) uniform sampler2D Colormap;
 
         layout (location = 0) out vec4 out_color;
 

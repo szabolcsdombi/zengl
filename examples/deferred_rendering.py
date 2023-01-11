@@ -40,9 +40,9 @@ uniform_buffer = ctx.buffer(size=64)
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
         };
 
@@ -59,7 +59,7 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         in vec3 v_vertex;
         in vec3 v_normal;
@@ -96,9 +96,9 @@ pipeline = ctx.pipeline(
 
 lights = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
         };
 
@@ -119,11 +119,11 @@ lights = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
-        uniform sampler2D Vertex;
-        uniform sampler2D Normal;
-        uniform sampler2D Color;
+        layout (binding = 0) uniform sampler2D Vertex;
+        layout (binding = 1) uniform sampler2D Normal;
+        layout (binding = 2) uniform sampler2D Color;
 
         in vec3 v_position;
         in float v_size;

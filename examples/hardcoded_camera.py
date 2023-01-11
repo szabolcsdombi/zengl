@@ -42,7 +42,7 @@ ctx.includes['lookat'] = '''
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         #include "perspective"
         #include "lookat"
@@ -62,7 +62,7 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         in vec3 v_norm;
 

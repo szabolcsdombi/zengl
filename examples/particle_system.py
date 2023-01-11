@@ -33,7 +33,7 @@ ctx.includes['get_point'] = f'''
 
 simulate_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         vec2 positions[3] = vec2[](
             vec2(-1.0, -1.0),
@@ -46,14 +46,14 @@ simulate_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             vec2 cursor;
         };
 
-        uniform sampler2D PreviousPoints;
-        uniform sampler2D Points;
+        layout (binding = 0) uniform sampler2D PreviousPoints;
+        layout (binding = 1) uniform sampler2D Points;
 
         layout (location = 0) out vec2 out_point;
 
@@ -114,9 +114,9 @@ simulate_pipeline = ctx.pipeline(
 
 render_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
-        uniform sampler2D Points;
+        layout (binding = 0) uniform sampler2D Points;
 
         #include "get_point"
 
@@ -129,7 +129,7 @@ render_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         in vec3 v_color;
 

@@ -112,20 +112,20 @@ ctx.includes['qtransform'] = '''
 
 cube = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         #include "N"
         #include "qtransform"
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
         };
 
-        layout (std140) uniform Colors {
+        layout (std140, binding = 1) uniform Colors {
             vec4 colors[N * N * N * 7];
         };
 
-        layout (std140) uniform Rotations {
+        layout (std140, binding = 2) uniform Rotations {
             vec4 rotations[N * N * N];
         };
 
@@ -148,7 +148,7 @@ cube = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         in vec3 v_vertex;
         in vec3 v_normal;

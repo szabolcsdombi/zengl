@@ -36,7 +36,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 
 ctx.includes['shadertoy'] = shadertoy
 ctx.includes['uniforms'] = '''
-    layout (std140) uniform Uniforms {
+    layout (std140, binding = 0) uniform Uniforms {
         vec3 iResolution;
         float iTime;
         float iTimeDelta;
@@ -48,7 +48,7 @@ ctx.includes['uniforms'] = '''
 
 canvas = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         vec2 positions[3] = vec2[](
             vec2(-1.0, -1.0),
@@ -61,7 +61,7 @@ canvas = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         #include "uniforms"
         #include "shadertoy"

@@ -33,11 +33,11 @@ ctx.includes['qtransform'] = '''
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         #include "qtransform"
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
             vec4 eye_pos;
         };
@@ -71,14 +71,14 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
             vec4 eye_pos;
         };
 
-        layout (std140) uniform Light {
+        layout (std140, binding = 1) uniform Light {
             vec4 light_pos;
             vec4 light_color;
             float light_power;

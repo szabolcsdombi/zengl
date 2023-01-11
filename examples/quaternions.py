@@ -42,11 +42,11 @@ ctx.includes['qtransform'] = '''
 
 shape = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         #include "qtransform"
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
         };
 
@@ -64,7 +64,7 @@ shape = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         in vec3 v_norm;
 

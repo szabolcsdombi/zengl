@@ -33,9 +33,9 @@ texture = ctx.image(size, 'rgba8unorm', faces, cubemap=True)
 
 shape = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
             vec4 eye;
         };
@@ -87,7 +87,7 @@ shape = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         uniform samplerCube Texture;
         in vec3 v_text;

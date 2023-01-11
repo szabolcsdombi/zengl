@@ -25,9 +25,9 @@ vertex_buffer = ctx.buffer(np.array([
 
 triangle = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             vec2 scale;
             float rotation;
         };
@@ -45,7 +45,7 @@ triangle = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         in vec4 v_color;
 

@@ -13,7 +13,7 @@ ctx.includes['size'] = 'ivec2 SIZE = ivec2(512);'
 
 scene = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         vec2 positions[3] = vec2[](
             vec2(-1.0, -1.0),
@@ -26,9 +26,9 @@ scene = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
-        uniform sampler2D Texture;
+        layout (binding = 0) uniform sampler2D Texture;
 
         #include "size"
 

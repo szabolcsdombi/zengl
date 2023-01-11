@@ -54,7 +54,7 @@ image = ctx.image((256, 256), 'rgba8unorm')
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         vec2 positions[3] = vec2[4](
             vec2(0.0, 0.8),
@@ -67,7 +67,7 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         in vec3 v_color;
 

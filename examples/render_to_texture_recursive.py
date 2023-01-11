@@ -34,7 +34,7 @@ uniform_buffer = ctx.buffer(size=80)
 def crate_pipeline(source_image, target_image, target_depth):
     return ctx.pipeline(
         vertex_shader='''
-            #version 330
+            #version 450 core
 
             uniform Common {
                 mat4 mvp;
@@ -57,14 +57,14 @@ def crate_pipeline(source_image, target_image, target_depth):
             }
         ''',
         fragment_shader='''
-            #version 330
+            #version 450 core
 
             uniform Common {
                 mat4 mvp;
                 vec3 light;
             };
 
-            uniform sampler2D Texture;
+            layout (binding = 0) uniform sampler2D Texture;
 
             in vec3 v_vert;
             in vec3 v_norm;

@@ -137,7 +137,7 @@ image = ctx.image(size, 'rgba8unorm', samples=1)
 
 triangle = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         out vec3 v_color;
 
@@ -159,7 +159,7 @@ triangle = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         in vec3 v_color;
 

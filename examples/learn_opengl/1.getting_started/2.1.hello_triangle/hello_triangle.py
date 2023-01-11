@@ -23,7 +23,7 @@ vertex_buffer = ctx.buffer(np.array([
 # The state required for the render is passed as parameters at creation time.
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 450 core
         layout (location = 0) in vec3 aPos;
         void main()
         {
@@ -31,7 +31,7 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 450 core
         out vec4 FragColor;
         void main()
         {

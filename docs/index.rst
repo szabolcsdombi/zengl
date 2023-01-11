@@ -444,8 +444,8 @@ Pipeline
 Shader Code
 -----------
 
-- **do** use ``#version 330`` as the first line in the shader.
-- **do** use ``layout (std140)`` for uniform buffers.
+- **do** use ``#version 450 core`` as the first line in the shader.
+- **do** use ``layout (std140, binding = ...)`` for uniform buffers.
 - **do** use ``layout (location = ...)`` for the vertex shader inputs.
 - **do** use ``layout (location = ...)`` for the fragment shader outputs.
 
@@ -483,7 +483,7 @@ Shader Includes
 
     pipeline = ctx.pipeline(
         vertex_shader='''
-            #version 330
+            #version 450 core
 
             #include "common"
             #include "qtransform"
@@ -501,7 +501,7 @@ Include Patterns
 .. code-block::
 
     ctx.includes['common'] = '''
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
         };
     '''

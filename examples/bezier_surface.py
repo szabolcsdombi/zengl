@@ -35,7 +35,7 @@ uniform_buffer = ctx.buffer(size=96)
 control_points_buffer = ctx.buffer(size=1024)
 
 ctx.includes['common'] = '''
-    layout (std140) uniform Common {
+    layout (std140, binding = 0) uniform Common {
         mat4 mvp;
         vec4 eye_pos;
         vec4 light_pos;
@@ -43,7 +43,7 @@ ctx.includes['common'] = '''
 '''
 
 ctx.includes['surface'] = '''
-    layout (std140) uniform ControlPoints {
+    layout (std140, binding = 1) uniform ControlPoints {
         vec4 control_points[16];
     };
     float c3[3] = float[](1.0, 2.0, 1.0);
@@ -128,7 +128,7 @@ ctx.includes['blinn_phong'] = '''
 
 surface_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         #include "common"
         #include "surface"
@@ -147,7 +147,7 @@ surface_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         #include "common"
         #include "blinn_phong"
@@ -201,7 +201,7 @@ surface_pipeline = ctx.pipeline(
 
 surface_wire_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         #include "common"
         #include "surface"
@@ -216,7 +216,7 @@ surface_wire_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         in vec3 v_vertex;
 
@@ -258,7 +258,7 @@ surface_wire_pipeline = ctx.pipeline(
 
 points_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         #include "common"
         #include "surface"
@@ -332,7 +332,7 @@ points_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         #include "common"
 
@@ -377,7 +377,7 @@ points_pipeline = ctx.pipeline(
 
 lines_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         #include "common"
         #include "surface"
@@ -470,7 +470,7 @@ lines_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         #include "common"
 
@@ -515,7 +515,7 @@ lines_pipeline = ctx.pipeline(
 
 points_pipeline_seethrough = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         #include "common"
         #include "surface"
@@ -589,7 +589,7 @@ points_pipeline_seethrough = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         #include "common"
 
@@ -644,7 +644,7 @@ points_pipeline_seethrough = ctx.pipeline(
 
 lines_pipeline_seethrough = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         #include "common"
         #include "surface"
@@ -737,7 +737,7 @@ lines_pipeline_seethrough = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         #include "common"
 

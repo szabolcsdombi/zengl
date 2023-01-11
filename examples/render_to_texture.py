@@ -25,7 +25,7 @@ uniform_buffer = ctx.buffer(size=80)
 
 triangle = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         out vec3 v_color;
 
@@ -47,7 +47,7 @@ triangle = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         in vec3 v_color;
 
@@ -64,7 +64,7 @@ triangle = ctx.pipeline(
 
 crate = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         uniform Common {
             mat4 mvp;
@@ -87,14 +87,14 @@ crate = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         uniform Common {
             mat4 mvp;
             vec3 light;
         };
 
-        uniform sampler2D Texture;
+        layout (binding = 0) uniform sampler2D Texture;
 
         in vec3 v_vert;
         in vec3 v_norm;

@@ -14,7 +14,7 @@ depth = ctx.image(window.size, 'depth24plus', samples=4)
 image.clear_value = (0.03, 0.03, 0.03, 1.0)
 
 ctx.includes['ubo'] = '''
-    layout (std140) uniform Common {
+    layout (std140, binding = 0) uniform Common {
         mat4 mvp;
         vec4 eye;
         mat4 light_matrix[3];
@@ -35,7 +35,7 @@ def create_shadow_pipeline(light_index, vertex_buffer, uniform_buffer, framebuff
     ctx.includes['light_index'] = f'const int light_index = {light_index};'
     return ctx.pipeline(
         vertex_shader='''
-            #version 330
+            #version 450 core
 
             #include "ubo"
             #include "light_index"
@@ -50,7 +50,7 @@ def create_shadow_pipeline(light_index, vertex_buffer, uniform_buffer, framebuff
             }
         ''',
         fragment_shader='''
-            #version 330
+            #version 450 core
 
             #include "ubo"
             #include "light_index"
@@ -87,7 +87,7 @@ def create_shadow_pipeline(light_index, vertex_buffer, uniform_buffer, framebuff
 def create_render_pipeline(vertex_buffer, uniform_buffer, framebuffer):
     return ctx.pipeline(
         vertex_shader='''
-            #version 330
+            #version 450 core
 
             #include "ubo"
 
@@ -104,11 +104,11 @@ def create_render_pipeline(vertex_buffer, uniform_buffer, framebuffer):
             }
         ''',
         fragment_shader='''
-            #version 330
+            #version 450 core
 
             #include "ubo"
 
-            uniform sampler2D Shadow[3];
+            layout (binding = 0) uniform sampler2D Shadow[3];
 
             in vec3 v_vertex;
             in vec3 v_normal;

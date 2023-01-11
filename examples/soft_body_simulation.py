@@ -70,10 +70,10 @@ ctx.includes['get_point'] = f'''
 
 edges_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
-        uniform sampler2D Points;
-        uniform isampler2D Edges;
+        layout (binding = 0) uniform sampler2D Points;
+        layout (binding = 1) uniform isampler2D Edges;
 
         #include "get_point"
 
@@ -93,7 +93,7 @@ edges_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         in vec3 v_color;
 
@@ -137,9 +137,9 @@ edges_pipeline = ctx.pipeline(
 
 points_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
-        uniform sampler2D Points;
+        layout (binding = 0) uniform sampler2D Points;
 
         #include "get_point"
 
@@ -152,7 +152,7 @@ points_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         in vec3 v_color;
 
@@ -184,7 +184,7 @@ points_pipeline = ctx.pipeline(
 
 move_points_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         vec2 positions[3] = vec2[](
             vec2(-1.0, -1.0),
@@ -197,10 +197,10 @@ move_points_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
-        uniform sampler2D PrevPoints;
-        uniform sampler2D Points;
+        layout (binding = 0) uniform sampler2D PrevPoints;
+        layout (binding = 1) uniform sampler2D Points;
 
         layout (location = 0) out vec2 out_point;
 
@@ -247,7 +247,7 @@ move_points_pipeline = ctx.pipeline(
 
 constraint_edges_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         vec2 positions[3] = vec2[](
             vec2(-1.0, -1.0),
@@ -260,11 +260,11 @@ constraint_edges_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
-        uniform sampler2D Points;
-        uniform isampler2D Edges;
-        uniform sampler2D EdgeLengths;
+        layout (binding = 0) uniform sampler2D Points;
+        layout (binding = 1) uniform isampler2D Edges;
+        layout (binding = 2) uniform sampler2D EdgeLengths;
 
         #include "get_point"
 
