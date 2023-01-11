@@ -72,20 +72,6 @@ simulate_pipeline = ctx.pipeline(
             out_point = point + velocity;
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-        {
-            'name': 'PreviousPoints',
-            'binding': 0,
-        },
-        {
-            'name': 'Points',
-            'binding': 1,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -139,12 +125,6 @@ render_pipeline = ctx.pipeline(
             out_color = vec4(v_color, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Points',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'sampler',

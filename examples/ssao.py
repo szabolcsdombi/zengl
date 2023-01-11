@@ -62,12 +62,6 @@ temp_pass = ctx.pipeline(
             out_normal = vec4(v_norm, 0.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -163,20 +157,6 @@ ssao = ctx.pipeline(
             out_color = vec4(lum, lum, lum, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-        {
-            'name': 'Position',
-            'binding': 0,
-        },
-        {
-            'name': 'Normal',
-            'binding': 1,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',

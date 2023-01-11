@@ -98,24 +98,6 @@ pipeline = ctx.pipeline(
             out_color = vec4(pow(color, vec3(1.0 / 2.2)), 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-        {
-            'name': 'Texture1',
-            'binding': 0,
-        },
-        {
-            'name': 'Texture2',
-            'binding': 1,
-        },
-        {
-            'name': 'Texture3',
-            'binding': 2,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',

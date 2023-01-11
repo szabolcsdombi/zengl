@@ -28,12 +28,6 @@ floor_texture.mipmaps()
 lighting = ctx.pipeline(
     vertex_shader=read_file('6.lighting.vs'),
     fragment_shader=read_file('6.lighting.fs'),
-    layout=[
-        {
-            'name': 'diffuseTexture',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'sampler',
@@ -54,12 +48,6 @@ lighting = ctx.pipeline(
 hdr = ctx.pipeline(
     vertex_shader=read_file('6.hdr.vs'),
     fragment_shader=read_file('6.hdr.fs'),
-    layout=[
-        {
-            'name': 'hdrBuffer',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'sampler',

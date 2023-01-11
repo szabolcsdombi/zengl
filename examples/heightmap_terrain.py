@@ -104,24 +104,6 @@ terrain = ctx.pipeline(
             out_color = vec4(color * lum, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-        {
-            'name': 'Heightmap',
-            'binding': 0,
-        },
-        {
-            'name': 'Normalmap',
-            'binding': 1,
-        },
-        {
-            'name': 'Colormap',
-            'binding': 2,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',

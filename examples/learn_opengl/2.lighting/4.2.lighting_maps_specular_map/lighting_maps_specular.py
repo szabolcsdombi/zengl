@@ -23,16 +23,6 @@ specular_map = ctx.image(img.size, 'rgba8unorm', img.tobytes())
 lighting_shader = ctx.pipeline(
     vertex_shader=read_file('4.2.lighting_maps.vs'),
     fragment_shader=read_file('4.2.lighting_maps.fs'),
-    layout=[
-        {
-            'name': 'material.diffuse',
-            'binding': 0,
-        },
-        {
-            'name': 'material.specular',
-            'binding': 1,
-        },
-    ],
     resources=[
         {
             'type': 'sampler',

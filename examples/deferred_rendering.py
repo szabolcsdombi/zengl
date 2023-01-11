@@ -74,12 +74,6 @@ pipeline = ctx.pipeline(
             out_color = vec3(1.0, 1.0, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -142,24 +136,6 @@ lights = ctx.pipeline(
             out_color = vec4(color * v_color * lum, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-        {
-            'name': 'Vertex',
-            'binding': 0,
-        },
-        {
-            'name': 'Normal',
-            'binding': 1,
-        },
-        {
-            'name': 'Color',
-            'binding': 2,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',

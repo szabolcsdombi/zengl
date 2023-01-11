@@ -95,24 +95,6 @@ crate = ctx.pipeline(
             out_color = vec4(color, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-        {
-            'name': 'Texture1',
-            'binding': 0,
-        },
-        {
-            'name': 'Texture2',
-            'binding': 1,
-        },
-        {
-            'name': 'Texture3',
-            'binding': 2,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',

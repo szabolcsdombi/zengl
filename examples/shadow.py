@@ -63,12 +63,6 @@ def create_shadow_pipeline(light_index, vertex_buffer, uniform_buffer, framebuff
                 out_depth = distance(light_position[light_index].xyz, v_vertex);
             }
         ''',
-        layout=[
-            {
-                'name': 'Common',
-                'binding': 0,
-            },
-        ],
         resources=[
             {
                 'type': 'uniform_buffer',
@@ -152,24 +146,6 @@ def create_render_pipeline(vertex_buffer, uniform_buffer, framebuffer):
                 }
             }
         ''',
-        layout=[
-            {
-                'name': 'Common',
-                'binding': 0,
-            },
-            {
-                'name': 'Shadow[0]',
-                'binding': 0,
-            },
-            {
-                'name': 'Shadow[1]',
-                'binding': 1,
-            },
-            {
-                'name': 'Shadow[2]',
-                'binding': 2,
-            },
-        ],
         resources=[
             {
                 'type': 'uniform_buffer',

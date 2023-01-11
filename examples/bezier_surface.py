@@ -165,16 +165,6 @@ surface_pipeline = ctx.pipeline(
             out_color = vec4(color, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-        {
-            'name': 'ControlPoints',
-            'binding': 1,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -226,16 +216,6 @@ surface_wire_pipeline = ctx.pipeline(
             out_color = vec4(0.0, 0.0, 0.0, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-        {
-            'name': 'ControlPoints',
-            'binding': 1,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -346,16 +326,6 @@ points_pipeline = ctx.pipeline(
             out_color = vec4(color * lum, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-        {
-            'name': 'ControlPoints',
-            'binding': 1,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -484,16 +454,6 @@ lines_pipeline = ctx.pipeline(
             out_color = vec4(color * lum, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-        {
-            'name': 'ControlPoints',
-            'binding': 1,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -603,16 +563,6 @@ points_pipeline_seethrough = ctx.pipeline(
             out_color = vec4(color * lum, 0.05);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-        {
-            'name': 'ControlPoints',
-            'binding': 1,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -751,16 +701,6 @@ lines_pipeline_seethrough = ctx.pipeline(
             out_color = vec4(color * lum, 0.05);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-        {
-            'name': 'ControlPoints',
-            'binding': 1,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',

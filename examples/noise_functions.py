@@ -149,12 +149,6 @@ canvas = ctx.pipeline(
             out_color = vec4(gray, gray, gray, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',

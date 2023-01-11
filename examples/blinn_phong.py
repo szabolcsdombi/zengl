@@ -90,16 +90,6 @@ pipeline = ctx.pipeline(
             out_color = vec4(color_gamma_corrected, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-        {
-            'name': 'Material',
-            'binding': 1,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',

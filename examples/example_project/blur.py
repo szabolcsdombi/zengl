@@ -52,12 +52,6 @@ class Blur:
                     out_color = vec4(color, 1.0);
                 }
             ''',
-            layout=[
-                {
-                    'name': 'Texture',
-                    'binding': 0,
-                },
-            ],
             resources=[
                 {
                     'type': 'sampler',
@@ -101,12 +95,6 @@ class Blur:
                     out_color = vec4(color, 1.0);
                 }
             ''',
-            layout=[
-                {
-                    'name': 'Texture',
-                    'binding': 0,
-                },
-            ],
             resources=[
                 {
                     'type': 'sampler',

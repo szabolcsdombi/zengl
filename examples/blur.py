@@ -65,12 +65,6 @@ monkey = ctx.pipeline(
             out_color = vec4(lum, lum, lum, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -116,12 +110,6 @@ blur_x = ctx.pipeline(
             out_color = vec4(color, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Texture',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'sampler',
@@ -165,12 +153,6 @@ blur_y = ctx.pipeline(
             out_color = vec4(color, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Texture',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'sampler',

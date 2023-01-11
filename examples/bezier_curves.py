@@ -105,12 +105,6 @@ pipeline = ctx.pipeline(
             out_color = vec4(v_color, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',

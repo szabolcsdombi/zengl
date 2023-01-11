@@ -90,12 +90,6 @@ triangle = ctx.pipeline(
             out_color = vec4((yl + (gn - yl) * v_data.x) * v_data.y, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',

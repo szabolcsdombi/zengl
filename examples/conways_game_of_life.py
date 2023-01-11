@@ -50,12 +50,6 @@ scene = ctx.pipeline(
             out_color = vec4(res, res, res, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Texture',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'sampler',

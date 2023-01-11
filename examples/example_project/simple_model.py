@@ -46,16 +46,6 @@ class SimpleModel:
                     out_color = vec4(lum, lum, lum, 1.0);
                 }
             ''',
-            layout=[
-                {
-                    'name': 'MainUniformBuffer',
-                    'binding': 0,
-                },
-                {
-                    'name': 'ObjectState',
-                    'binding': 1,
-                },
-            ],
             resources=[
                 {
                     'type': 'uniform_buffer',

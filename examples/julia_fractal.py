@@ -57,12 +57,6 @@ scene = ctx.pipeline(
             );
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',

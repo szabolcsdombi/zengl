@@ -162,20 +162,6 @@ cube = ctx.pipeline(
             out_color = vec4(v_color * lum, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-        {
-            'name': 'Colors',
-            'binding': 1,
-        },
-        {
-            'name': 'Rotations',
-            'binding': 2,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',

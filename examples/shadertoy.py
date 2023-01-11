@@ -72,12 +72,6 @@ canvas = ctx.pipeline(
             mainImage(shader_color_output, gl_FragCoord.xy);
         }
     ''',
-    layout=[
-        {
-            'name': 'Uniforms',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',

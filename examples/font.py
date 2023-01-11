@@ -93,12 +93,6 @@ pipeline = ctx.pipeline(
             out_color = texture(Texture, v_texcoord);
         }
     ''',
-    layout=[
-        {
-            'name': 'Texture',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'sampler',

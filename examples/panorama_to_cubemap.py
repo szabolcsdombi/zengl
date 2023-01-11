@@ -67,12 +67,6 @@ def face_pipeline(face):
                 out_color = texture(Texture, uv);
             }
         ''',
-        layout=[
-            {
-                'name': 'Texture',
-                'binding': 0,
-            },
-        ],
         resources=[
             {
                 'type': 'sampler',

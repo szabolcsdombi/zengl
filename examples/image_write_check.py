@@ -108,12 +108,6 @@ pipeline = ctx.pipeline(
             out_color = textureLod(Texture, vec3(v_texcoord, v_layer), v_level);
         }
     ''',
-    layout=[
-        {
-            'name': 'Texture',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'sampler',

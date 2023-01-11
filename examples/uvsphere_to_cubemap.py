@@ -75,16 +75,6 @@ sphere = ctx.pipeline(
             out_color = texture(Texture, v_text);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-        {
-            'name': 'Texture',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',

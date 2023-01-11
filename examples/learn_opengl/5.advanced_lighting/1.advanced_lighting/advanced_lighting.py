@@ -21,12 +21,6 @@ floor_texture.mipmaps()
 pipeline = ctx.pipeline(
     vertex_shader=read_file('1.advanced_lighting.vs'),
     fragment_shader=read_file('1.advanced_lighting.fs'),
-    layout=[
-        {
-            'name': 'floorTexture',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'sampler',

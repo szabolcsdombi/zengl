@@ -77,12 +77,6 @@ triangle = ctx.pipeline(
             }
         }
     ''',
-    layout=[
-        {
-            'name': 'Texture',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'sampler',

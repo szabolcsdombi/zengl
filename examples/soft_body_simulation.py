@@ -103,16 +103,6 @@ edges_pipeline = ctx.pipeline(
             out_color = vec4(v_color, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Points',
-            'binding': 0,
-        },
-        {
-            'name': 'Edges',
-            'binding': 1,
-        },
-    ],
     resources=[
         {
             'type': 'sampler',
@@ -162,12 +152,6 @@ points_pipeline = ctx.pipeline(
             out_color = vec4(v_color, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Points',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'sampler',
@@ -214,16 +198,6 @@ move_points_pipeline = ctx.pipeline(
             }
         }
     ''',
-    layout=[
-        {
-            'name': 'PrevPoints',
-            'binding': 0,
-        },
-        {
-            'name': 'Points',
-            'binding': 1,
-        },
-    ],
     resources=[
         {
             'type': 'sampler',
@@ -288,20 +262,6 @@ constraint_edges_pipeline = ctx.pipeline(
             out_point = new_point;
         }
     ''',
-    layout=[
-        {
-            'name': 'Points',
-            'binding': 0,
-        },
-        {
-            'name': 'Edges',
-            'binding': 1,
-        },
-        {
-            'name': 'EdgeLengths',
-            'binding': 2,
-        },
-    ],
     resources=[
         {
             'type': 'sampler',
