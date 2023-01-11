@@ -342,7 +342,7 @@ def settings(primitive_restart, cull_face, color_mask, depth, stencil, blending,
     return tuple(res)
 
 
-def program(vertex_shader, fragment_shader, layout, includes):
+def program(vertex_shader, fragment_shader, includes):
     def include(match):
         name = match.group(1)
         content = includes.get(name)
@@ -358,11 +358,7 @@ def program(vertex_shader, fragment_shader, layout, includes):
     frag = re.sub(r'#include\s+"([^"]+)"', include, frag)
     frag = frag.encode().replace(b'\r', b'')
 
-    bindings = []
-    for obj in sorted(layout, key=lambda x: x['name']):
-        bindings.extend((obj['name'], obj['binding']))
-
-    return (vert, 0x8b31), (frag, 0x8b30), tuple(bindings)
+    return (vert, 0x8b31), (frag, 0x8b30)
 
 
 def compile_error(shader: bytes, shader_type: int, log: bytes):
@@ -461,86 +457,5 @@ def validate(attributes, uniforms, uniform_buffers, vertex_buffers, layout, reso
     sampler_resources = {obj['binding']: obj for obj in resources if obj['type'] == 'sampler'}
     max_uniform_block_size = limits['max_uniform_block_size']
 
-    for obj in uniform_buffers:
-        if obj['size'] > max_uniform_block_size:
-            raise ValueError(
-                f'Uniform buffer "{obj["name"]}" is too large, the maximum supported size is {max_uniform_block_size}'
-            )
-
-    for obj in vertex_buffers:
-        location = obj['location']
-        if location < 0:
-            continue
-        if location not in attribute_map:
-            raise ValueError(f'Invalid vertex attribute location {location}')
-        if location in bound_attributes:
-            name = attribute_map[location]['name']
-            raise ValueError(f'Duplicate vertex attribute binding for "{name}" at location {location}')
-        bound_attributes.add(location)
-
-    for obj in attributes:
-        location = obj['location']
-        if location < 0:
-            continue
-        if location not in bound_attributes:
-            name = obj['name']
-            raise ValueError(f'Unbound vertex attribute "{name}" at location {location}')
-
-    for obj in layout:
-        name = obj['name']
-        binding = obj['binding']
-        if name in uniform_map:
-            uniform_binding_map[binding] = obj
-        elif name in uniform_buffer_map:
-            uniform_buffer_binding_map[binding] = obj
-        else:
-            raise ValueError(f'Cannot set layout binding for "{name}"')
-
-    for obj in uniforms:
-        name = obj['name']
-        location = obj['location']
-        if location < 0:
-            continue
-        if name not in layout_map:
-            raise ValueError(f'Missing layout binding for "{name}"')
-        binding = layout_map[name]['binding']
-        if binding not in sampler_resources:
-            raise ValueError(f'Missing resource for "{name}" with binding {binding}')
-
-    for obj in uniform_buffers:
-        name = obj['name']
-        if name not in layout_map:
-            raise ValueError(f'Missing layout binding for "{name}"')
-        binding = layout_map[name]['binding']
-        if binding not in uniform_buffer_resources:
-            raise ValueError(f'Missing resource for "{name}" with binding {binding}')
-
-    for obj in resources:
-        resource_type = obj['type']
-        binding = obj['binding']
-        if resource_type == 'uniform_buffer':
-            buffer = obj['buffer']
-            if binding not in uniform_buffer_binding_map:
-                raise ValueError(f'Uniform buffer binding {binding} does not exist')
-            name = uniform_buffer_binding_map[binding]['name']
-            if binding in bound_uniform_buffers:
-                raise ValueError(f'Duplicate uniform buffer binding for "{name}" with binding {binding}')
-            size = uniform_buffer_map[name]['size']
-            if buffer.size < size:
-                raise ValueError(
-                    f'Uniform buffer is too small {buffer.size} is less than '
-                    f'{size} for "{name}" with binding {binding}'
-                )
-            bound_uniform_buffers.add(binding)
-        elif resource_type == 'sampler':
-            image = obj['image']
-            if binding not in uniform_binding_map:
-                raise ValueError(f'Sampler binding {binding} does not exist')
-            name = uniform_binding_map[binding]['name']
-            if binding in bound_uniforms:
-                raise ValueError(f'Duplicate sampler binding for "{name}" with binding {binding}')
-            if image.samples != 1:
-                raise ValueError(f'Multisample images cannot be attached to "{name}" with binding {binding}')
-            bound_uniforms.add(binding)
-        else:
-            raise ValueError(f'Invalid resource type "{resource_type}"')
+def validate(attributes, uniforms, uniform_buffers, vertex_buffers, layout, resources, limits):
+    return

@@ -292,7 +292,6 @@ GLObject * build_framebuffer(Context * self, PyObject * attachments) {
 
     int framebuffer = 0;
     gl.CreateFramebuffers(1, (unsigned *)&framebuffer);
-    bind_framebuffer(self, framebuffer);
     int color_attachment_count = (int)PyTuple_Size(color_attachments);
     for (int i = 0; i < color_attachment_count; ++i) {
         ImageFace * face = (ImageFace *)PyTuple_GetItem(color_attachments, i);
@@ -338,37 +337,37 @@ GLObject * build_framebuffer(Context * self, PyObject * attachments) {
     return res;
 }
 
-void bind_uniforms(Context * self, char * data, int count) {
+void bind_uniforms(Context * self, int program, char * data, int count) {
     const GLMethods & gl = self->gl;
     int offset = 0;
     for (int i = 0; i < count; ++i) {
         UniformBinding * header = (UniformBinding *)(data + offset);
         switch (header->type) {
-            case 0x1404: gl.Uniform1iv(header->location, header->count, header->int_values); break;
-            case 0x8B53: gl.Uniform2iv(header->location, header->count, header->int_values); break;
-            case 0x8B54: gl.Uniform3iv(header->location, header->count, header->int_values); break;
-            case 0x8B55: gl.Uniform4iv(header->location, header->count, header->int_values); break;
-            case 0x8B56: gl.Uniform1iv(header->location, header->count, header->int_values); break;
-            case 0x8B57: gl.Uniform2iv(header->location, header->count, header->int_values); break;
-            case 0x8B58: gl.Uniform3iv(header->location, header->count, header->int_values); break;
-            case 0x8B59: gl.Uniform4iv(header->location, header->count, header->int_values); break;
-            case 0x1405: gl.Uniform1uiv(header->location, header->count, header->uint_values); break;
-            case 0x8DC6: gl.Uniform2uiv(header->location, header->count, header->uint_values); break;
-            case 0x8DC7: gl.Uniform3uiv(header->location, header->count, header->uint_values); break;
-            case 0x8DC8: gl.Uniform4uiv(header->location, header->count, header->uint_values); break;
-            case 0x1406: gl.Uniform1fv(header->location, header->count, header->float_values); break;
-            case 0x8B50: gl.Uniform2fv(header->location, header->count, header->float_values); break;
-            case 0x8B51: gl.Uniform3fv(header->location, header->count, header->float_values); break;
-            case 0x8B52: gl.Uniform4fv(header->location, header->count, header->float_values); break;
-            case 0x8B5A: gl.UniformMatrix2fv(header->location, header->count, false, header->float_values); break;
-            case 0x8B65: gl.UniformMatrix2x3fv(header->location, header->count, false, header->float_values); break;
-            case 0x8B66: gl.UniformMatrix2x4fv(header->location, header->count, false, header->float_values); break;
-            case 0x8B67: gl.UniformMatrix3x2fv(header->location, header->count, false, header->float_values); break;
-            case 0x8B5B: gl.UniformMatrix3fv(header->location, header->count, false, header->float_values); break;
-            case 0x8B68: gl.UniformMatrix3x4fv(header->location, header->count, false, header->float_values); break;
-            case 0x8B69: gl.UniformMatrix4x2fv(header->location, header->count, false, header->float_values); break;
-            case 0x8B6A: gl.UniformMatrix4x3fv(header->location, header->count, false, header->float_values); break;
-            case 0x8B5C: gl.UniformMatrix4fv(header->location, header->count, false, header->float_values); break;
+            case 0x1404: gl.ProgramUniform1iv(program, header->location, header->count, header->int_values); break;
+            case 0x8B53: gl.ProgramUniform2iv(program, header->location, header->count, header->int_values); break;
+            case 0x8B54: gl.ProgramUniform3iv(program, header->location, header->count, header->int_values); break;
+            case 0x8B55: gl.ProgramUniform4iv(program, header->location, header->count, header->int_values); break;
+            case 0x8B56: gl.ProgramUniform1iv(program, header->location, header->count, header->int_values); break;
+            case 0x8B57: gl.ProgramUniform2iv(program, header->location, header->count, header->int_values); break;
+            case 0x8B58: gl.ProgramUniform3iv(program, header->location, header->count, header->int_values); break;
+            case 0x8B59: gl.ProgramUniform4iv(program, header->location, header->count, header->int_values); break;
+            case 0x1405: gl.ProgramUniform1uiv(program, header->location, header->count, header->uint_values); break;
+            case 0x8DC6: gl.ProgramUniform2uiv(program, header->location, header->count, header->uint_values); break;
+            case 0x8DC7: gl.ProgramUniform3uiv(program, header->location, header->count, header->uint_values); break;
+            case 0x8DC8: gl.ProgramUniform4uiv(program, header->location, header->count, header->uint_values); break;
+            case 0x1406: gl.ProgramUniform1fv(program, header->location, header->count, header->float_values); break;
+            case 0x8B50: gl.ProgramUniform2fv(program, header->location, header->count, header->float_values); break;
+            case 0x8B51: gl.ProgramUniform3fv(program, header->location, header->count, header->float_values); break;
+            case 0x8B52: gl.ProgramUniform4fv(program, header->location, header->count, header->float_values); break;
+            case 0x8B5A: gl.ProgramUniformMatrix2fv(program, header->location, header->count, false, header->float_values); break;
+            case 0x8B65: gl.ProgramUniformMatrix2x3fv(program, header->location, header->count, false, header->float_values); break;
+            case 0x8B66: gl.ProgramUniformMatrix2x4fv(program, header->location, header->count, false, header->float_values); break;
+            case 0x8B67: gl.ProgramUniformMatrix3x2fv(program, header->location, header->count, false, header->float_values); break;
+            case 0x8B5B: gl.ProgramUniformMatrix3fv(program, header->location, header->count, false, header->float_values); break;
+            case 0x8B68: gl.ProgramUniformMatrix3x4fv(program, header->location, header->count, false, header->float_values); break;
+            case 0x8B69: gl.ProgramUniformMatrix4x2fv(program, header->location, header->count, false, header->float_values); break;
+            case 0x8B6A: gl.ProgramUniformMatrix4x3fv(program, header->location, header->count, false, header->float_values); break;
+            case 0x8B5C: gl.ProgramUniformMatrix4fv(program, header->location, header->count, false, header->float_values); break;
         }
         offset += header->values * 4 + 16;
     }
@@ -389,7 +388,6 @@ GLObject * build_vertex_array(Context * self, PyObject * bindings) {
 
     int vertex_array = 0;
     gl.CreateVertexArrays(1, (unsigned *)&vertex_array);
-    bind_vertex_array(self, vertex_array);
 
     for (int i = 1; i < length; i += 6) {
         Buffer * buffer = (Buffer *)seq[i + 0];
@@ -629,10 +627,10 @@ GLObject * compile_shader(Context * self, PyObject * pair) {
     return res;
 }
 
-GLObject * compile_program(Context * self, PyObject * vert, PyObject * frag, PyObject * layout) {
+GLObject * compile_program(Context * self, PyObject * vert, PyObject * frag) {
     const GLMethods & gl = self->gl;
 
-    PyObject * pair = PyObject_CallMethod(self->module_state->helper, "program", "OOOO", vert, frag, layout, self->includes);
+    PyObject * pair = PyObject_CallMethod(self->module_state->helper, "program", "OOO", vert, frag, self->includes);
     if (!pair) {
         return NULL;
     }
@@ -738,7 +736,7 @@ Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwargs) {
     int max_samples = 0;
     gl.GetIntegerv(GL_MAX_SAMPLES, &max_samples);
 
-    gl.Enable(GL_PRIMITIVE_RESTART_FIXED_INDEX); // TODO: check
+    gl.Enable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
     gl.Enable(GL_PROGRAM_POINT_SIZE);
     gl.Enable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
     gl.Enable(GL_FRAMEBUFFER_SRGB);
@@ -1049,7 +1047,6 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     static char * keywords[] = {
         "vertex_shader",
         "fragment_shader",
-        "layout",
         "resources",
         "uniforms",
         "depth",
@@ -1074,7 +1071,6 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
 
     PyObject * vertex_shader = NULL;
     PyObject * fragment_shader = NULL;
-    PyObject * layout = self->module_state->empty_tuple;
     PyObject * resources = self->module_state->empty_tuple;
     PyObject * uniforms = Py_None;
     PyObject * depth = Py_True;
@@ -1098,13 +1094,12 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
-        "|$O!O!OOOOOOOOOOOpOOO&iiiOp",
+        "|$O!O!OOOOOOOOOOpOOO&iiiOp",
         keywords,
         &PyUnicode_Type,
         &vertex_shader,
         &PyUnicode_Type,
         &fragment_shader,
-        &layout,
         &resources,
         &uniforms,
         &depth,
@@ -1152,7 +1147,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     int index_size = short_index ? 2 : 4;
     int index_type = index_buffer != Py_None ? (short_index ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT) : 0;
 
-    GLObject * program = compile_program(self, vertex_shader, fragment_shader, layout);
+    GLObject * program = compile_program(self, vertex_shader, fragment_shader);
     if (!program) {
         return NULL;
     }
@@ -1241,27 +1236,13 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
             program_uniforms,
             program_uniform_buffers,
             vertex_buffers,
-            layout,
+            Py_None,
             resources,
             self->limits
         );
 
         if (!validate) {
             return NULL;
-        }
-    }
-
-    int layout_count = layout != Py_None ? (int)PyList_Size(layout) : 0;
-    for (int i = 0; i < layout_count; ++i) {
-        PyObject * obj = PyList_GetItem(layout, i);
-        PyObject * name = PyDict_GetItemString(obj, "name");
-        int binding = PyLong_AsLong(PyDict_GetItemString(obj, "binding"));
-        int location = gl.GetUniformLocation(program->obj, PyUnicode_AsUTF8(name));
-        if (location >= 0) {
-            // gl.Uniform1i(location, binding);
-        } else {
-            int index = gl.GetUniformBlockIndex(program->obj, PyUnicode_AsUTF8(name));
-            // gl.UniformBlockBinding(program->obj, index, binding); // TODO: fix
         }
     }
 
@@ -1992,15 +1973,16 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
         gl.ColorMaski(0, 1, 1, 1, 1);
     }
     int target_framebuffer = target ? target->framebuffer->obj : self->ctx->screen;
-    bind_framebuffer(self->ctx, target_framebuffer);
-    gl.BindFramebuffer(GL_READ_FRAMEBUFFER, self->framebuffer->obj);
     gl.BlitNamedFramebuffer(
         self->framebuffer->obj, target_framebuffer,
         source_viewport.x, source_viewport.y, source_viewport.x + source_viewport.width, source_viewport.y + source_viewport.height,
         target_viewport.x, target_viewport.y, target_viewport.x + target_viewport.width, target_viewport.y + target_viewport.height,
         GL_COLOR_BUFFER_BIT, filter ? GL_LINEAR : GL_NEAREST
     );
-    gl.BindFramebuffer(GL_READ_FRAMEBUFFER, target_framebuffer);
+    if (!target) {
+        self->ctx->current_framebuffer = self->ctx->screen;
+        gl.BindFramebuffer(GL_FRAMEBUFFER, self->ctx->screen);
+    }
     if (!srgb) {
         gl.Enable(GL_FRAMEBUFFER_SRGB);
     }
@@ -2178,7 +2160,7 @@ PyObject * Pipeline_meth_render(Pipeline * self) {
         gl.BindSamplers(0, self->descriptor_set_images->sampler_count, self->descriptor_set_images->samplers);
     }
     if (self->uniform_data) {
-        bind_uniforms(self->ctx, self->uniform_data, self->uniform_count);
+        bind_uniforms(self->ctx, self->program->obj, self->uniform_data, self->uniform_count);
     }
     if (self->index_type) {
         long long offset = (long long)self->first_vertex * self->index_size;
@@ -2343,8 +2325,6 @@ PyObject * ImageFace_meth_blit(ImageFace * self, PyObject * vargs, PyObject * kw
         self->ctx->current_global_settings = NULL;
         gl.ColorMaski(0, 1, 1, 1, 1);
     }
-    gl.BindFramebuffer(GL_READ_FRAMEBUFFER, self->framebuffer->obj);
-    gl.BindFramebuffer(GL_DRAW_FRAMEBUFFER, target ? target->framebuffer->obj : self->ctx->screen);
     gl.BlitNamedFramebuffer(
         self->framebuffer->obj, target ? target->framebuffer->obj : self->ctx->screen,
         source_viewport.x, source_viewport.y, source_viewport.x + source_viewport.width, source_viewport.y + source_viewport.height,
@@ -2353,8 +2333,8 @@ PyObject * ImageFace_meth_blit(ImageFace * self, PyObject * vargs, PyObject * kw
     );
     if (!target) {
         self->ctx->current_framebuffer = self->ctx->screen;
+        gl.BindFramebuffer(GL_FRAMEBUFFER, self->ctx->screen);
     }
-    gl.BindFramebuffer(GL_FRAMEBUFFER, self->ctx->current_framebuffer);
     if (!srgb) {
         gl.Enable(GL_FRAMEBUFFER_SRGB);
     }
