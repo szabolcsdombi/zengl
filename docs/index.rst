@@ -317,16 +317,13 @@ Generate mipmaps for the image.
 Pipeline
 --------
 
-.. py:method:: Context.pipeline(vertex_shader, fragment_shader, layout, resources, depth, stencil, blending, polygon_offset, color_mask, framebuffer, vertex_buffers, index_buffer, short_index, primitive_restart, cull_face, topology, vertex_count, instance_count, first_vertex, viewport, skip_validation) -> Pipeline
+.. py:method:: Context.pipeline(vertex_shader, fragment_shader, resources, depth, stencil, blending, polygon_offset, color_mask, framebuffer, vertex_buffers, index_buffer, short_index, cull_face, topology, vertex_count, instance_count, first_vertex, viewport, skip_validation) -> Pipeline
 
 **vertex_shader**
     | The vertex shader code.
 
 **fragment_shader**
     | The fragment shader code.
-
-**layout**
-    | Layout binding definition for the uniform buffers and samplers.
 
 **resources**
     | The list of uniform buffers and samplers to be bound.
@@ -377,10 +374,6 @@ Pipeline
     | A boolean to enable ``GL_UNSIGNED_SHORT`` as the index type.
     | When this flag is False the ``GL_UNSIGNED_INT`` is used.
     | The default value is False.
-
-**primitive_restart**
-    | A boolean to enable the primitive restart index. The default primitive restart index is -1.
-    | The default value is True.
 
 **cull_face**
     | A string representing the cull face. It must be ``'front'``, ``'back'`` or ``'none'``

@@ -127,7 +127,6 @@ terrain = ctx.pipeline(
         },
     ],
     framebuffer=[image, depth],
-    primitive_restart=True,
     topology='triangle_strip',
     cull_face='back',
     vertex_buffers=zengl.bind(vertex_buffer, '2i', 0),

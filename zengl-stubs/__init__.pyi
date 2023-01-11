@@ -214,7 +214,6 @@ class Context:
         vertex_buffers: Iterable[VertexBufferBinding] = (),
         index_buffer: Buffer | None = None,
         short_index: bool = False,
-        primitive_restart: bool = True,
         cull_face: CullFace = 'none',
         topology: Topology = 'triangles',
         vertex_count: int = 0,

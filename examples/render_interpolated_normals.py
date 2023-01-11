@@ -123,7 +123,6 @@ wireframe = ctx.pipeline(
         },
     ],
     framebuffer=[image, depth],
-    primitive_restart=True,
     topology='line_loop',
     vertex_buffers=zengl.bind(vertex_buffer, '3f 3f', 0, -1),
     index_buffer=index_buffer,
