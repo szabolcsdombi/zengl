@@ -154,7 +154,7 @@ struct Pipeline {
     GLObject * program;
     PyObject * uniform_map;
     char * uniform_data;
-    int uniform_count;
+    int uniform_bindings;
     int topology;
     int vertex_count;
     int instance_count;
@@ -1142,51 +1142,85 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         return NULL;
     }
 
-    bind_program(self, program->obj);
+    int uniform_count = 0;
+    int uniform_block_count = 0;
+    int shader_storage_block_count = 0;
+    int program_input_count = 0;
+    int program_output_count = 0;
 
-    int num_attribs = 0;
-    int num_uniforms = 0;
-    int num_uniform_buffers = 0;
-    gl.GetProgramiv(program->obj, GL_ACTIVE_ATTRIBUTES, &num_attribs);
-    gl.GetProgramiv(program->obj, GL_ACTIVE_UNIFORMS, &num_uniforms);
-    gl.GetProgramiv(program->obj, GL_ACTIVE_UNIFORM_BLOCKS, &num_uniform_buffers);
+    gl.GetProgramInterfaceiv(program->obj, GL_UNIFORM, GL_ACTIVE_RESOURCES, &uniform_count);
+    gl.GetProgramInterfaceiv(program->obj, GL_UNIFORM_BLOCK, GL_ACTIVE_RESOURCES, &uniform_block_count);
+    gl.GetProgramInterfaceiv(program->obj, GL_SHADER_STORAGE_BLOCK, GL_ACTIVE_RESOURCES, &shader_storage_block_count);
+    gl.GetProgramInterfaceiv(program->obj, GL_PROGRAM_INPUT, GL_ACTIVE_RESOURCES, &program_input_count);
+    gl.GetProgramInterfaceiv(program->obj, GL_PROGRAM_OUTPUT, GL_ACTIVE_RESOURCES, &program_output_count);
 
-    PyObject * program_attributes = PyList_New(num_attribs);
-    PyObject * program_uniforms = PyList_New(num_uniforms);
-    PyObject * program_uniform_buffers = PyList_New(num_uniform_buffers);
+    PyObject * interface = PyList_New(0);
 
-    for (int i = 0; i < num_attribs; ++i) {
-        int size = 0;
-        int type = 0;
-        int length = 0;
-        char name[256] = {};
-        gl.GetActiveAttrib(program->obj, i, 256, &length, &size, (unsigned *)&type, name);
-        int location = gl.GetAttribLocation(program->obj, name);
-        PyList_SET_ITEM(program_attributes, i, Py_BuildValue("{sssisisi}", "name", name, "location", location, "type", type, "size", size));
+    PyObject * program_attributes = PyList_New(0);
+    PyObject * program_uniforms = PyList_New(0);
+    PyObject * program_uniform_buffers = PyList_New(0);
+
+    for (int i = 0; i < uniform_count; ++i) {
+        char name[256];
+        unsigned query[3] = {GL_TYPE, GL_ARRAY_SIZE, GL_LOCATION};
+        int props[3] = {};
+        gl.GetProgramResourceName(program->obj, GL_UNIFORM, i, 255, NULL, name);
+        gl.GetProgramResourceiv(program->obj, GL_UNIFORM, i, 3, query, sizeof(props), NULL, props);
+        if (props[2] < 0) {
+            continue;
+        }
+        PyList_Append(program_uniforms, Py_BuildValue("{sssisisi}", "name", name, "location", props[2], "type", props[0], "size", props[1]));
     }
 
-    for (int i = 0; i < num_uniforms; ++i) {
-        int size = 0;
-        int type = 0;
-        int length = 0;
-        char name[256] = {};
-        gl.GetActiveUniform(program->obj, i, 256, &length, &size, (unsigned *)&type, name);
-        int location = gl.GetUniformLocation(program->obj, name);
-        PyList_SET_ITEM(program_uniforms, i, Py_BuildValue("{sssisisi}", "name", name, "location", location, "type", type, "size", size));
+    for (int i = 0; i < uniform_block_count; ++i) {
+        char name[256];
+        unsigned query[2] = {GL_BUFFER_BINDING, GL_BUFFER_DATA_SIZE};
+        int props[2] = {};
+        gl.GetProgramResourceName(program->obj, GL_UNIFORM_BLOCK, i, 255, NULL, name);
+        gl.GetProgramResourceiv(program->obj, GL_UNIFORM_BLOCK, i, 2, query, sizeof(props), NULL, props);
+        PyList_Append(program_uniform_buffers, Py_BuildValue("{sssi}", "name", name, "size", props[1]));
+        PyObject * obj = Py_BuildValue("{sssssisi}", "type", "uniform_block", "name", name, "binding", props[0], "size", props[1]);
+        PyList_Append(interface, obj);
+        Py_DECREF(obj);
     }
 
-    for (int i = 0; i < num_uniform_buffers; ++i) {
-        int size = 0;
-        int length = 0;
-        char name[256] = {};
-        gl.GetActiveUniformBlockiv(program->obj, i, GL_UNIFORM_BLOCK_DATA_SIZE, &size);
-        gl.GetActiveUniformBlockName(program->obj, i, 256, &length, name);
-        PyList_SET_ITEM(program_uniform_buffers, i, Py_BuildValue("{sssi}", "name", name, "size", size));
+    for (int i = 0; i < shader_storage_block_count; ++i) {
+        char name[256];
+        unsigned query[2] = {GL_BUFFER_BINDING, GL_BUFFER_DATA_SIZE};
+        int props[2] = {};
+        gl.GetProgramResourceName(program->obj, GL_SHADER_STORAGE_BLOCK, i, 255, NULL, name);
+        gl.GetProgramResourceiv(program->obj, GL_SHADER_STORAGE_BLOCK, i, 2, query, sizeof(props), NULL, props);
+        PyObject * obj = Py_BuildValue("{sssssisi}", "type", "storage_block", "name", name, "binding", props[0], "size", props[1]);
+        PyList_Append(interface, obj);
+        Py_DECREF(obj);
+    }
+
+    for (int i = 0; i < program_input_count; ++i) {
+        char name[256];
+        unsigned query[3] = {GL_TYPE, GL_ARRAY_SIZE, GL_LOCATION};
+        int props[3] = {};
+        gl.GetProgramResourceName(program->obj, GL_PROGRAM_INPUT, i, 255, NULL, name);
+        gl.GetProgramResourceiv(program->obj, GL_PROGRAM_INPUT, i, 3, query, sizeof(props), NULL, props);
+        PyList_Append(program_attributes, Py_BuildValue("{sssisisi}", "name", name, "location", props[2], "type", props[0], "size", props[1]));
+        PyObject * obj = Py_BuildValue("{sssssi}", "type", "input", "name", name, "location", props[2]);
+        PyList_Append(interface, obj);
+        Py_DECREF(obj);
+    }
+
+    for (int i = 0; i < program_output_count; ++i) {
+        char name[256];
+        unsigned query[3] = {GL_TYPE, GL_ARRAY_SIZE, GL_LOCATION};
+        int props[3] = {};
+        gl.GetProgramResourceName(program->obj, GL_PROGRAM_OUTPUT, i, 255, NULL, name);
+        gl.GetProgramResourceiv(program->obj, GL_PROGRAM_OUTPUT, i, 3, query, sizeof(props), NULL, props);
+        PyObject * obj = Py_BuildValue("{sssssi}", "type", "output", "name", name, "location", props[2]);
+        PyList_Append(interface, obj);
+        Py_DECREF(obj);
     }
 
     PyObject * uniform_map = NULL;
     char * uniform_data = NULL;
-    int uniform_count = 0;
+    int uniform_bindings = 0;
 
     if (uniforms != Py_None) {
         PyObject * tuple = PyObject_CallMethod(self->module_state->helper, "uniforms", "OO", program_uniforms, uniforms);
@@ -1200,10 +1234,10 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
 
         uniform_data = (char *)PyMem_Malloc(PyByteArray_Size(data));
         memcpy(uniform_data, PyByteArray_AsString(data), PyByteArray_Size(data));
-        uniform_count = (int)PyList_Size(names);
+        uniform_bindings = (int)PyList_Size(names);
         int offset = 0;
 
-        for (int i = 0; i < uniform_count; ++i) {
+        for (int i = 0; i < uniform_bindings; ++i) {
             UniformBinding * header = (UniformBinding *)(uniform_data + offset);
             PyObject * name = PyList_GetItem(names, i);
             PyObject * mem = PyMemoryView_FromMemory(uniform_data + offset + 16, header->values * 4, PyBUF_WRITE);
@@ -1307,7 +1341,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     res->program = program;
     res->uniform_map = uniform_map;
     res->uniform_data = uniform_data;
-    res->uniform_count = uniform_count;
+    res->uniform_bindings = uniform_bindings;
     res->topology = topology;
     res->vertex_count = vertex_count;
     res->instance_count = instance_count;
@@ -1420,7 +1454,7 @@ PyObject * Context_meth_release(Context * self, PyObject * arg) {
             }
             gl.DeleteVertexArrays(1, (unsigned int *)&pipeline->vertex_array->obj);
         }
-        if (pipeline->uniform_count) {
+        if (pipeline->uniform_bindings) {
             PyMem_Free(pipeline->uniform_data);
             Py_DECREF(pipeline->uniform_map);
         }
@@ -2149,7 +2183,7 @@ PyObject * Pipeline_meth_render(Pipeline * self) {
         gl.BindSamplers(0, self->descriptor_set_images->sampler_count, self->descriptor_set_images->samplers);
     }
     if (self->uniform_data) {
-        bind_uniforms(self->ctx, self->program->obj, self->uniform_data, self->uniform_count);
+        bind_uniforms(self->ctx, self->program->obj, self->uniform_data, self->uniform_bindings);
     }
     if (self->index_type) {
         long long offset = (long long)self->first_vertex * self->index_size;
