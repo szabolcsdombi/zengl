@@ -26,6 +26,7 @@ struct GLObject {
     PyObject_HEAD
     int uses;
     int obj;
+    PyObject * extra;
 };
 
 struct DescriptorSetBuffers {
@@ -297,6 +298,7 @@ GLObject * build_framebuffer(Context * self, PyObject * attachments) {
     GLObject * res = PyObject_New(GLObject, self->module_state->GLObject_type);
     res->obj = framebuffer;
     res->uses = 1;
+    res->extra = NULL;
 
     PyDict_SetItem(self->framebuffer_cache, attachments, (PyObject *)res);
     return res;
@@ -379,6 +381,7 @@ GLObject * build_vertex_array(Context * self, PyObject * bindings) {
     GLObject * res = PyObject_New(GLObject, self->module_state->GLObject_type);
     res->obj = vertex_array;
     res->uses = 1;
+    res->extra = NULL;
 
     PyDict_SetItem(self->vertex_array_cache, bindings, (PyObject *)res);
     return res;
@@ -424,6 +427,7 @@ GLObject * build_sampler(Context * self, PyObject * params) {
     GLObject * res = PyObject_New(GLObject, self->module_state->GLObject_type);
     res->obj = sampler;
     res->uses = 1;
+    res->extra = NULL;
 
     PyDict_SetItem(self->sampler_cache, params, (PyObject *)res);
     return res;
@@ -579,8 +583,87 @@ GLObject * compile_shader(Context * self, PyObject * pair) {
     GLObject * res = PyObject_New(GLObject, self->module_state->GLObject_type);
     res->obj = shader;
     res->uses = 1;
+    res->extra = NULL;
 
     PyDict_SetItem(self->shader_cache, pair, (PyObject *)res);
+    return res;
+}
+
+PyObject * program_interface(Context * self, int program) {
+    const GLMethods & gl = self->gl;
+
+    int uniform_count = 0;
+    int uniform_block_count = 0;
+    int shader_storage_block_count = 0;
+    int program_input_count = 0;
+    int program_output_count = 0;
+
+    gl.GetProgramInterfaceiv(program, GL_UNIFORM, GL_ACTIVE_RESOURCES, &uniform_count);
+    gl.GetProgramInterfaceiv(program, GL_UNIFORM_BLOCK, GL_ACTIVE_RESOURCES, &uniform_block_count);
+    gl.GetProgramInterfaceiv(program, GL_SHADER_STORAGE_BLOCK, GL_ACTIVE_RESOURCES, &shader_storage_block_count);
+    gl.GetProgramInterfaceiv(program, GL_PROGRAM_INPUT, GL_ACTIVE_RESOURCES, &program_input_count);
+    gl.GetProgramInterfaceiv(program, GL_PROGRAM_OUTPUT, GL_ACTIVE_RESOURCES, &program_output_count);
+
+    PyObject * res = PyList_New(0);
+
+    for (int i = 0; i < uniform_count; ++i) {
+        char name[256];
+        unsigned query[3] = {GL_TYPE, GL_ARRAY_SIZE, GL_LOCATION};
+        int props[3] = {};
+        gl.GetProgramResourceName(program, GL_UNIFORM, i, 255, NULL, name);
+        gl.GetProgramResourceiv(program, GL_UNIFORM, i, 3, query, sizeof(props), NULL, props);
+        if (props[2] < 0) {
+            continue;
+        }
+        PyObject * obj = Py_BuildValue("{sssssisisi}", "type", "uniform", "name", name, "location", props[2], "gltype", props[0], "size", props[1]);
+        PyList_Append(res, obj);
+        Py_DECREF(obj);
+    }
+
+    for (int i = 0; i < uniform_block_count; ++i) {
+        char name[256];
+        unsigned query[2] = {GL_BUFFER_BINDING, GL_BUFFER_DATA_SIZE};
+        int props[2] = {};
+        gl.GetProgramResourceName(program, GL_UNIFORM_BLOCK, i, 255, NULL, name);
+        gl.GetProgramResourceiv(program, GL_UNIFORM_BLOCK, i, 2, query, sizeof(props), NULL, props);
+        PyObject * obj = Py_BuildValue("{sssssisi}", "type", "uniform_block", "name", name, "binding", props[0], "size", props[1]);
+        PyList_Append(res, obj);
+        Py_DECREF(obj);
+    }
+
+    for (int i = 0; i < shader_storage_block_count; ++i) {
+        char name[256];
+        unsigned query[2] = {GL_BUFFER_BINDING, GL_BUFFER_DATA_SIZE};
+        int props[2] = {};
+        gl.GetProgramResourceName(program, GL_SHADER_STORAGE_BLOCK, i, 255, NULL, name);
+        gl.GetProgramResourceiv(program, GL_SHADER_STORAGE_BLOCK, i, 2, query, sizeof(props), NULL, props);
+        PyObject * obj = Py_BuildValue("{sssssisi}", "type", "storage_block", "name", name, "binding", props[0], "size", props[1]);
+        PyList_Append(res, obj);
+        Py_DECREF(obj);
+    }
+
+    for (int i = 0; i < program_input_count; ++i) {
+        char name[256];
+        unsigned query[3] = {GL_TYPE, GL_ARRAY_SIZE, GL_LOCATION};
+        int props[3] = {};
+        gl.GetProgramResourceName(program, GL_PROGRAM_INPUT, i, 255, NULL, name);
+        gl.GetProgramResourceiv(program, GL_PROGRAM_INPUT, i, 3, query, sizeof(props), NULL, props);
+        PyObject * obj = Py_BuildValue("{sssssi}", "type", "input", "name", name, "location", props[2]);
+        PyList_Append(res, obj);
+        Py_DECREF(obj);
+    }
+
+    for (int i = 0; i < program_output_count; ++i) {
+        char name[256];
+        unsigned query[3] = {GL_TYPE, GL_ARRAY_SIZE, GL_LOCATION};
+        int props[3] = {};
+        gl.GetProgramResourceName(program, GL_PROGRAM_OUTPUT, i, 255, NULL, name);
+        gl.GetProgramResourceiv(program, GL_PROGRAM_OUTPUT, i, 3, query, sizeof(props), NULL, props);
+        PyObject * obj = Py_BuildValue("{sssssi}", "type", "output", "name", name, "location", props[2]);
+        PyList_Append(res, obj);
+        Py_DECREF(obj);
+    }
+
     return res;
 }
 
@@ -639,6 +722,7 @@ GLObject * compile_program(Context * self, PyObject * vert, PyObject * frag) {
     GLObject * res = PyObject_New(GLObject, self->module_state->GLObject_type);
     res->obj = program;
     res->uses = 1;
+    res->extra = program_interface(self, program);
 
     PyDict_SetItem(self->program_cache, pair, (PyObject *)res);
     Py_DECREF(pair);
@@ -1100,88 +1184,12 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         return NULL;
     }
 
-    int uniform_count = 0;
-    int uniform_block_count = 0;
-    int shader_storage_block_count = 0;
-    int program_input_count = 0;
-    int program_output_count = 0;
-
-    gl.GetProgramInterfaceiv(program->obj, GL_UNIFORM, GL_ACTIVE_RESOURCES, &uniform_count);
-    gl.GetProgramInterfaceiv(program->obj, GL_UNIFORM_BLOCK, GL_ACTIVE_RESOURCES, &uniform_block_count);
-    gl.GetProgramInterfaceiv(program->obj, GL_SHADER_STORAGE_BLOCK, GL_ACTIVE_RESOURCES, &shader_storage_block_count);
-    gl.GetProgramInterfaceiv(program->obj, GL_PROGRAM_INPUT, GL_ACTIVE_RESOURCES, &program_input_count);
-    gl.GetProgramInterfaceiv(program->obj, GL_PROGRAM_OUTPUT, GL_ACTIVE_RESOURCES, &program_output_count);
-
-    PyObject * interface = PyList_New(0);
-
-    PyObject * program_attributes = PyList_New(0);
-    PyObject * program_uniforms = PyList_New(0);
-    PyObject * program_uniform_buffers = PyList_New(0);
-
-    for (int i = 0; i < uniform_count; ++i) {
-        char name[256];
-        unsigned query[3] = {GL_TYPE, GL_ARRAY_SIZE, GL_LOCATION};
-        int props[3] = {};
-        gl.GetProgramResourceName(program->obj, GL_UNIFORM, i, 255, NULL, name);
-        gl.GetProgramResourceiv(program->obj, GL_UNIFORM, i, 3, query, sizeof(props), NULL, props);
-        if (props[2] < 0) {
-            continue;
-        }
-        PyList_Append(program_uniforms, Py_BuildValue("{sssisisi}", "name", name, "location", props[2], "type", props[0], "size", props[1]));
-    }
-
-    for (int i = 0; i < uniform_block_count; ++i) {
-        char name[256];
-        unsigned query[2] = {GL_BUFFER_BINDING, GL_BUFFER_DATA_SIZE};
-        int props[2] = {};
-        gl.GetProgramResourceName(program->obj, GL_UNIFORM_BLOCK, i, 255, NULL, name);
-        gl.GetProgramResourceiv(program->obj, GL_UNIFORM_BLOCK, i, 2, query, sizeof(props), NULL, props);
-        PyList_Append(program_uniform_buffers, Py_BuildValue("{sssi}", "name", name, "size", props[1]));
-        PyObject * obj = Py_BuildValue("{sssssisi}", "type", "uniform_block", "name", name, "binding", props[0], "size", props[1]);
-        PyList_Append(interface, obj);
-        Py_DECREF(obj);
-    }
-
-    for (int i = 0; i < shader_storage_block_count; ++i) {
-        char name[256];
-        unsigned query[2] = {GL_BUFFER_BINDING, GL_BUFFER_DATA_SIZE};
-        int props[2] = {};
-        gl.GetProgramResourceName(program->obj, GL_SHADER_STORAGE_BLOCK, i, 255, NULL, name);
-        gl.GetProgramResourceiv(program->obj, GL_SHADER_STORAGE_BLOCK, i, 2, query, sizeof(props), NULL, props);
-        PyObject * obj = Py_BuildValue("{sssssisi}", "type", "storage_block", "name", name, "binding", props[0], "size", props[1]);
-        PyList_Append(interface, obj);
-        Py_DECREF(obj);
-    }
-
-    for (int i = 0; i < program_input_count; ++i) {
-        char name[256];
-        unsigned query[3] = {GL_TYPE, GL_ARRAY_SIZE, GL_LOCATION};
-        int props[3] = {};
-        gl.GetProgramResourceName(program->obj, GL_PROGRAM_INPUT, i, 255, NULL, name);
-        gl.GetProgramResourceiv(program->obj, GL_PROGRAM_INPUT, i, 3, query, sizeof(props), NULL, props);
-        PyList_Append(program_attributes, Py_BuildValue("{sssisisi}", "name", name, "location", props[2], "type", props[0], "size", props[1]));
-        PyObject * obj = Py_BuildValue("{sssssi}", "type", "input", "name", name, "location", props[2]);
-        PyList_Append(interface, obj);
-        Py_DECREF(obj);
-    }
-
-    for (int i = 0; i < program_output_count; ++i) {
-        char name[256];
-        unsigned query[3] = {GL_TYPE, GL_ARRAY_SIZE, GL_LOCATION};
-        int props[3] = {};
-        gl.GetProgramResourceName(program->obj, GL_PROGRAM_OUTPUT, i, 255, NULL, name);
-        gl.GetProgramResourceiv(program->obj, GL_PROGRAM_OUTPUT, i, 3, query, sizeof(props), NULL, props);
-        PyObject * obj = Py_BuildValue("{sssssi}", "type", "output", "name", name, "location", props[2]);
-        PyList_Append(interface, obj);
-        Py_DECREF(obj);
-    }
-
     PyObject * uniform_map = NULL;
     char * uniform_data = NULL;
     int uniform_bindings = 0;
 
     if (uniforms != Py_None) {
-        PyObject * tuple = PyObject_CallMethod(self->module_state->helper, "uniforms", "OO", program_uniforms, uniforms);
+        PyObject * tuple = PyObject_CallMethod(self->module_state->helper, "uniforms", "OO", program->extra, uniforms);
         if (!tuple) {
             return NULL;
         }
@@ -1213,12 +1221,9 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         PyObject * validate = PyObject_CallMethod(
             self->module_state->helper,
             "validate",
-            "NNNOOOO",
-            program_attributes,
-            program_uniforms,
-            program_uniform_buffers,
+            "NOOO",
+            program->extra,
             vertex_buffers,
-            Py_None,
             resources,
             self->limits
         );

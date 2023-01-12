@@ -382,16 +382,16 @@ def clean_uniform_name(uniform):
     return name
 
 
-def uniforms(uniforms, values):
+def uniforms(interface, values):
     data = bytearray()
-    uniform_map = {clean_uniform_name(obj): obj for obj in uniforms}
+    uniform_map = {clean_uniform_name(obj): obj for obj in interface if obj['type'] == 'uniform'}
 
     if values == 'all':
         names = []
-        for obj in uniforms:
+        for obj in interface:
             location = obj['location']
             size = obj['size']
-            gltype = obj['type']
+            gltype = obj['gltype']
             if gltype not in UNIFORM_PACKER:
                 continue
             names.append(clean_uniform_name(obj))
@@ -406,7 +406,7 @@ def uniforms(uniforms, values):
         value = tuple(flatten(value))
         location = uniform_map[name]['location']
         size = uniform_map[name]['size']
-        gltype = uniform_map[name]['type']
+        gltype = uniform_map[name]['gltype']
         if gltype not in UNIFORM_PACKER:
             raise ValueError(f'Uniform "{name}" has an unknown type')
         items, format = UNIFORM_PACKER[gltype]
@@ -422,35 +422,5 @@ def uniforms(uniforms, values):
     return list(values), data
 
 
-def validate(attributes, uniforms, uniform_buffers, vertex_buffers, layout, resources, limits):
-    attributes = [
-        {
-            'name': obj['name'].replace('[0]', f'[{i:d}]'),
-            'location': obj['location'] + i if obj['location'] >= 0 else -1,
-        }
-        for obj in attributes for i in range(obj['size'])
-        if obj['name'] not in VERTEX_SHADER_BUILTINS
-    ]
-    uniforms = [
-        {
-            'name': obj['name'].replace('[0]', f'[{i}]'),
-            'location': obj['location'] + i if obj['location'] >= 0 else -1,
-        }
-        for obj in uniforms for i in range(obj['size'])
-        if obj['type'] not in UNIFORM_PACKER
-    ]
-    bound_attributes = set()
-    bound_uniforms = set()
-    bound_uniform_buffers = set()
-    uniform_binding_map = {}
-    uniform_buffer_binding_map = {}
-    attribute_map = {obj['location']: obj for obj in attributes}
-    uniform_map = {obj['name']: obj for obj in uniforms}
-    uniform_buffer_map = {obj['name']: obj for obj in uniform_buffers}
-    layout_map = {obj['name']: obj for obj in layout}
-    uniform_buffer_resources = {obj['binding']: obj for obj in resources if obj['type'] == 'uniform_buffer'}
-    sampler_resources = {obj['binding']: obj for obj in resources if obj['type'] == 'sampler'}
-    max_uniform_block_size = limits['max_uniform_block_size']
-
-def validate(attributes, uniforms, uniform_buffers, vertex_buffers, layout, resources, limits):
+def validate(interface, vertex_buffers,resources, limits):
     return
