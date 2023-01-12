@@ -422,5 +422,5 @@ def uniforms(interface, values):
     return list(values), data
 
 
-def validate(interface, vertex_buffers,resources, limits):
+def validate(interface, vertex_buffers, resources, limits):
     return
