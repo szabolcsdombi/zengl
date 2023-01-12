@@ -270,34 +270,35 @@ def framebuffer_attachments(attachments):
         if attachment.samples != samples:
             raise ValueError('Attachments must be images with the same number of samples')
     depth_stencil_attachment = None
-    if not attachments[-1].color:
+    if not attachments[-1].flags & 1:
         depth_stencil_attachment = attachments[-1]
         attachments = attachments[:-1]
     for attachment in attachments:
-        if not attachment.color:
+        if not attachment.flags & 1:
             raise ValueError('The depth stencil attachments must be the last item in the framebuffer')
     return size, tuple(attachments), depth_stencil_attachment
 
 
-def settings(cull_face, color_mask, depth, stencil, blending, polygon_offset, attachments):
-    res = [CULL_FACE[cull_face], color_mask]
+def settings(cull_face, depth, stencil, blend, attachments):
+    res = [len(attachments[1]), CULL_FACE[cull_face]]
 
-    if depth is True or depth is False:
-        res.extend([depth, depth, 0x0201])
+    if depth is None:
+        depth = {}
 
-    else:
-        res.extend([bool(depth['test']), bool(depth['write']), COMPARE_FUNC[depth.get('func', 'less')]])
-
-    if stencil is False:
-        res.extend([
-            False, 0x1E00, 0x1E00, 0x1E00, 0x0207, 0xff, 0xff, 0, 0x1E00, 0x1E00, 0x1E00, 0x0207, 0xff, 0xff, 0,
-        ])
+    if attachments[2] is not None and attachments[2].flags & 2:
+        res.extend([True, COMPARE_FUNC[depth.get('func', 'less')], bool(depth.get('write', True))])
 
     else:
+        res.append(False)
+
+    if stencil is None:
+        stencil = {}
+
+    if attachments[2] is not None and attachments[2].flags & 4:
         front = stencil.get('front', stencil.get('both', {}))
         back = stencil.get('back', stencil.get('both', {}))
         res.extend([
-            bool(stencil['test']),
+            True,
             STENCIL_OP[front.get('fail_op', 'keep')],
             STENCIL_OP[front.get('pass_op', 'keep')],
             STENCIL_OP[front.get('depth_fail_op', 'keep')],
@@ -314,31 +315,25 @@ def settings(cull_face, color_mask, depth, stencil, blending, polygon_offset, at
             int(back.get('reference', 0)),
         ])
 
-    if blending is False:
-        res.extend([0, 0x8006, 0x8006, 1, 0, 1, 0])
+    else:
+        res.append(False)
+
+    if blend is not None:
+        res.append(True)
+        for obj in blend:
+            res.extend([
+                int(obj.get('enable', True)),
+                BLEND_FUNC[obj.get('op_color', 'add')],
+                BLEND_FUNC[obj.get('op_alpha', 'add')],
+                BLEND_CONSTANT[obj.get('src_color', 'one')],
+                BLEND_CONSTANT[obj.get('dst_color', 'zero')],
+                BLEND_CONSTANT[obj.get('src_alpha', 'one')],
+                BLEND_CONSTANT[obj.get('dst_alpha', 'zero')],
+            ])
 
     else:
-        res.extend([
-            int(blending['enable']),
-            BLEND_FUNC[blending.get('op_color', 'add')],
-            BLEND_FUNC[blending.get('op_alpha', 'add')],
-            BLEND_CONSTANT[blending.get('src_color', 'one')],
-            BLEND_CONSTANT[blending.get('dst_color', 'zero')],
-            BLEND_CONSTANT[blending.get('src_alpha', 'one')],
-            BLEND_CONSTANT[blending.get('dst_alpha', 'zero')],
-        ])
+        res.append(False)
 
-    if polygon_offset is False:
-        res.extend([False, 0.0, 0.0])
-
-    else:
-        res.extend([
-            True,
-            float(polygon_offset['factor']),
-            float(polygon_offset['units']),
-        ])
-
-    res.append(len(attachments[1]))
     return tuple(res)
 
 
