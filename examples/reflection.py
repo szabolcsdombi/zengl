@@ -130,6 +130,7 @@ monkey_shadow = ctx.pipeline(
         layout (location = 0) out vec4 out_color;
 
         void main() {
+            gl_FragDepth = gl_FragCoord.z - 1e-4;
             out_color = vec4(0.0, 0.0, 0.0, 0.3);
         }
     ''',
@@ -140,13 +141,15 @@ monkey_shadow = ctx.pipeline(
             'buffer': uniform_buffer,
         },
     ],
-    blending={
-        'enable': True,
-        'src_color': 'src_alpha',
-        'dst_color': 'one_minus_src_alpha',
-        'src_alpha': 'one',
-        'dst_alpha': 'zero',
-    },
+    blend=[
+        {
+            'enable': True,
+            'src_color': 'src_alpha',
+            'dst_color': 'one_minus_src_alpha',
+            'src_alpha': 'one',
+            'dst_alpha': 'zero',
+        },
+    ],
     stencil={
         'test': True,
         'both': {
@@ -201,17 +204,15 @@ plane = ctx.pipeline(
             'buffer': uniform_buffer,
         },
     ],
-    polygon_offset={
-        'factor': 1.0,
-        'units': 0.0,
-    },
-    blending={
-        'enable': True,
-        'src_color': 'src_alpha',
-        'dst_color': 'one_minus_src_alpha',
-        'src_alpha': 'one',
-        'dst_alpha': 'zero',
-    },
+    blend=[
+        {
+            'enable': True,
+            'src_color': 'src_alpha',
+            'dst_color': 'one_minus_src_alpha',
+            'src_alpha': 'one',
+            'dst_alpha': 'zero',
+        },
+    ],
     framebuffer=[image, depth],
     topology='triangle_strip',
     vertex_count=4,

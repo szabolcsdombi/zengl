@@ -62,11 +62,13 @@ triangle = ctx.pipeline(
             'buffer': uniform_buffer,
         },
     ],
-    blending={
-        'enable': True,
-        'src_color': 'src_alpha',
-        'dst_color': 'one_minus_src_alpha',
-    },
+    blend=[
+        {
+            'enable': True,
+            'src_color': 'src_alpha',
+            'dst_color': 'one_minus_src_alpha',
+        },
+    ],
     framebuffer=[image],
     topology='triangles',
     vertex_buffers=zengl.bind(vertex_buffer, '2f 4f', 0, 1),

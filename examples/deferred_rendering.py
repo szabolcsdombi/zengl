@@ -165,11 +165,13 @@ lights = ctx.pipeline(
         *zengl.bind(light_vertex_buffer, '3f', 0),
         *zengl.bind(light_instance_buffer, '3f 1f 3f /i', 1, 2, 3),
     ],
-    blending={
-        'enable': 1,
-        'src_color': 'one',
-        'dst_color': 'one',
-    },
+    blend=[
+        {
+            'enable': 1,
+            'src_color': 'one',
+            'dst_color': 'one',
+        },
+    ],
     vertex_count=light_vertex_buffer.size // zengl.calcsize('3f'),
 )
 

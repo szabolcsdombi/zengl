@@ -58,7 +58,10 @@ triangle = ctx.pipeline(
             'reference': 1,
         },
     },
-    depth=False,
+    depth={
+        'func': 'never',
+        'write': False,
+    },
     framebuffer=[depth_stencil],
     topology='triangles',
     vertex_count=3,
