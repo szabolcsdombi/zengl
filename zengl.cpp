@@ -1221,7 +1221,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         PyObject * validate = PyObject_CallMethod(
             self->module_state->helper,
             "validate",
-            "NOOO",
+            "OOOO",
             program->extra,
             vertex_buffers,
             resources,
