@@ -329,8 +329,6 @@ GLObject * build_framebuffer(Context * self, PyObject * attachments) {
         gl.NamedFramebufferParameteri(framebuffer, GL_FRAMEBUFFER_DEFAULT_HEIGHT, PyLong_AsLong(PyTuple_GetItem(size, 1)));
     }
 
-    // int status = gl.CheckNamedFramebufferStatus(framebuffer, GL_DRAW_FRAMEBUFFER);
-
     GLObject * res = PyObject_New(GLObject, self->module_state->GLObject_type);
     res->obj = framebuffer;
     res->uses = 1;

@@ -293,7 +293,6 @@ typedef void (GLAPI * glNamedFramebufferTextureLayerProc)(unsigned framebuffer, 
 typedef void (GLAPI * glNamedFramebufferDrawBuffersProc)(unsigned framebuffer, int n, const unsigned * bufs);
 typedef void (GLAPI * glNamedFramebufferReadBufferProc)(unsigned framebuffer, unsigned src);
 typedef void (GLAPI * glBlitNamedFramebufferProc)(unsigned readFramebuffer, unsigned drawFramebuffer, int srcX0, int srcY0, int srcX1, int srcY1, int dstX0, int dstY0, int dstX1, int dstY1, unsigned mask, unsigned filter);
-typedef unsigned (GLAPI * glCheckNamedFramebufferStatusProc)(unsigned framebuffer, unsigned target);
 typedef void (GLAPI * glCreateRenderbuffersProc)(int n, unsigned * renderbuffers);
 typedef void (GLAPI * glNamedRenderbufferStorageMultisampleProc)(unsigned renderbuffer, int samples, unsigned internalformat, int width, int height);
 typedef void (GLAPI * glCreateTexturesProc)(unsigned target, int n, unsigned * textures);
@@ -434,7 +433,6 @@ struct GLMethods {
     glNamedFramebufferDrawBuffersProc NamedFramebufferDrawBuffers;
     glNamedFramebufferReadBufferProc NamedFramebufferReadBuffer;
     glBlitNamedFramebufferProc BlitNamedFramebuffer;
-    glCheckNamedFramebufferStatusProc CheckNamedFramebufferStatus;
     glCreateRenderbuffersProc CreateRenderbuffers;
     glNamedRenderbufferStorageMultisampleProc NamedRenderbufferStorageMultisample;
     glCreateTexturesProc CreateTextures;
@@ -842,7 +840,6 @@ GLMethods load_gl(PyObject * loader) {
     load(NamedFramebufferDrawBuffers);
     load(NamedFramebufferReadBuffer);
     load(BlitNamedFramebuffer);
-    load(CheckNamedFramebufferStatus);
     load(CreateRenderbuffers);
     load(NamedRenderbufferStorageMultisample);
     load(CreateTextures);
