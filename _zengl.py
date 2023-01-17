@@ -224,7 +224,7 @@ def vertex_array_bindings(vertex_buffers, index_buffer):
     return tuple(res)
 
 
-def buffer_bindings(resources):
+def resource_bindings(resources):
     uniform_buffers = []
     for obj in sorted((x for x in resources if x['type'] == 'uniform_buffer'), key=lambda x: x['binding']):
         binding = obj['binding']
@@ -232,6 +232,7 @@ def buffer_bindings(resources):
         offset = obj.get('offset', 0)
         size = obj.get('size', buffer.size - offset)
         uniform_buffers.extend([binding, buffer, offset, size])
+
     storage_buffers = []
     for obj in sorted((x for x in resources if x['type'] == 'storage_buffer'), key=lambda x: x['binding']):
         binding = obj['binding']
@@ -239,11 +240,8 @@ def buffer_bindings(resources):
         offset = obj.get('offset', 0)
         size = obj.get('size', buffer.size - offset)
         storage_buffers.extend([binding, buffer, offset, size])
-    return tuple(uniform_buffers), tuple(storage_buffers)
 
-
-def sampler_bindings(resources):
-    res = []
+    samplers = []
     for obj in sorted((x for x in resources if x['type'] == 'sampler'), key=lambda x: x['binding']):
         border_color = obj.get('border_color', (0.0, 0.0, 0.0, 0.0))
         params = (
@@ -263,8 +261,13 @@ def sampler_bindings(resources):
             float(border_color[2]),
             float(border_color[3]),
         )
-        res.extend([obj['binding'], obj['image'], params])
-    return tuple(res)
+        samplers.extend([obj['binding'], obj['image'], params])
+
+    images = []
+    for obj in sorted((x for x in resources if x['type'] == 'image'), key=lambda x: x['binding']):
+        images.extend([obj['binding'], obj['image']])
+
+    return tuple(uniform_buffers), tuple(storage_buffers), tuple(samplers), tuple(images)
 
 
 def framebuffer_attachments(attachments):

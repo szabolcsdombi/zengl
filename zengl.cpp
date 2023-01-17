@@ -10,8 +10,7 @@ struct ModuleState {
     PyTypeObject * Image_type;
     PyTypeObject * Pipeline_type;
     PyTypeObject * ImageFace_type;
-    PyTypeObject * DescriptorSetBuffers_type;
-    PyTypeObject * DescriptorSetImages_type;
+    PyTypeObject * DescriptorSet_type;
     PyTypeObject * GlobalSettings_type;
     PyTypeObject * GLObject_type;
 };
@@ -29,25 +28,31 @@ struct GLObject {
     PyObject * extra;
 };
 
-struct DescriptorSetBuffers {
-    PyObject_HEAD
-    int uses;
-    int uniform_buffer_count;
-    unsigned uniform_buffers[MAX_UNIFORM_BUFFER_BINDINGS];
-    sizeiptr uniform_buffer_offsets[MAX_UNIFORM_BUFFER_BINDINGS];
-    sizeiptr uniform_buffer_sizes[MAX_UNIFORM_BUFFER_BINDINGS];
-    int storage_buffer_count;
-    unsigned storage_buffers[MAX_UNIFORM_BUFFER_BINDINGS];
-    sizeiptr storage_buffer_offsets[MAX_UNIFORM_BUFFER_BINDINGS];
-    sizeiptr storage_buffer_sizes[MAX_UNIFORM_BUFFER_BINDINGS];
+struct DescriptorSetBuffers1 {
+    int buffer_count;
+    unsigned buffers[MAX_UNIFORM_BUFFER_BINDINGS];
+    sizeiptr buffer_offsets[MAX_UNIFORM_BUFFER_BINDINGS];
+    sizeiptr buffer_sizes[MAX_UNIFORM_BUFFER_BINDINGS];
 };
 
-struct DescriptorSetImages {
-    PyObject_HEAD
-    int uses;
+struct DescriptorSetSamplers1 {
     int sampler_count;
     unsigned samplers[MAX_SAMPLER_BINDINGS];
     unsigned textures[MAX_SAMPLER_BINDINGS];
+};
+
+struct DescriptorSetImages1 {
+    int image_count;
+    unsigned images[MAX_SAMPLER_BINDINGS];
+};
+
+struct DescriptorSet {
+    PyObject_HEAD
+    int uses;
+    DescriptorSetBuffers1 uniform_buffers;
+    DescriptorSetBuffers1 storage_buffers;
+    DescriptorSetSamplers1 samplers;
+    DescriptorSetImages1 images;
 };
 
 struct BlendState {
@@ -80,8 +85,7 @@ struct Context {
     GCHeader * gc_prev;
     GCHeader * gc_next;
     ModuleState * module_state;
-    PyObject * descriptor_set_buffers_cache;
-    PyObject * descriptor_set_images_cache;
+    PyObject * descriptor_set_cache;
     PyObject * global_settings_cache;
     PyObject * sampler_cache;
     PyObject * vertex_array_cache;
@@ -91,8 +95,7 @@ struct Context {
     PyObject * includes;
     PyObject * limits;
     PyObject * info;
-    DescriptorSetBuffers * current_buffers;
-    DescriptorSetImages * current_images;
+    DescriptorSet * current_descriptor_set;
     GlobalSettings * current_global_settings;
     Viewport viewport;
     int is_mask_default;
@@ -146,8 +149,7 @@ struct Pipeline {
     GCHeader * gc_prev;
     GCHeader * gc_next;
     Context * ctx;
-    DescriptorSetBuffers * descriptor_set_buffers;
-    DescriptorSetImages * descriptor_set_images;
+    DescriptorSet * descriptor_set;
     GlobalSettings * global_settings;
     GLObject * framebuffer;
     GLObject * vertex_array;
@@ -439,82 +441,72 @@ GLObject * build_sampler(Context * self, PyObject * params) {
     return res;
 }
 
-DescriptorSetBuffers * build_descriptor_set_buffers(Context * self, PyObject * bindings) {
-    if (DescriptorSetBuffers * cache = (DescriptorSetBuffers *)PyDict_GetItem(self->descriptor_set_buffers_cache, bindings)) {
-        cache->uses += 1;
-        Py_INCREF(cache);
-        return cache;
-    }
-
-    int length = (int)PyTuple_Size(PyTuple_GetItem(bindings, 0));
-    PyObject ** seq = PySequence_Fast_ITEMS(PyTuple_GetItem(bindings, 0));
-
-    DescriptorSetBuffers * res = PyObject_New(DescriptorSetBuffers, self->module_state->DescriptorSetBuffers_type);
-    memset(res->uniform_buffers, 0, sizeof(res->uniform_buffers));
-    memset(res->uniform_buffer_offsets, 0, sizeof(res->uniform_buffer_offsets));
-    memset(res->uniform_buffer_sizes, 0, sizeof(res->uniform_buffer_sizes));
-    memset(res->storage_buffers, 0, sizeof(res->storage_buffers));
-    memset(res->storage_buffer_offsets, 0, sizeof(res->storage_buffer_offsets));
-    memset(res->storage_buffer_sizes, 0, sizeof(res->storage_buffer_sizes));
-
-    res->uniform_buffer_count = 0;
-    res->storage_buffer_count = 0;
-    res->uses = 1;
-
-    for (int i = 0; i < length; i += 4) {
-        int binding = PyLong_AsLong(seq[i + 0]);
-        Buffer * buffer = (Buffer *)seq[i + 1];
-        int offset = PyLong_AsLong(seq[i + 2]);
-        int size = PyLong_AsLong(seq[i + 3]);
-        res->uniform_buffers[binding] = buffer->buffer;
-        res->uniform_buffer_offsets[binding] = offset;
-        res->uniform_buffer_sizes[binding] = size;
-        res->uniform_buffer_count = res->uniform_buffer_count > (binding + 1) ? res->uniform_buffer_count : (binding + 1);
-    }
-
-    length = (int)PyTuple_Size(PyTuple_GetItem(bindings, 1));
-    seq = PySequence_Fast_ITEMS(PyTuple_GetItem(bindings, 1));
-
-    for (int i = 0; i < length; i += 4) {
-        int binding = PyLong_AsLong(seq[i + 0]);
-        Buffer * buffer = (Buffer *)seq[i + 1];
-        int offset = PyLong_AsLong(seq[i + 2]);
-        int size = PyLong_AsLong(seq[i + 3]);
-        res->storage_buffers[binding] = buffer->buffer;
-        res->storage_buffer_offsets[binding] = offset;
-        res->storage_buffer_sizes[binding] = size;
-        res->storage_buffer_count = res->storage_buffer_count > (binding + 1) ? res->storage_buffer_count : (binding + 1);
-    }
-
-    PyDict_SetItem(self->descriptor_set_buffers_cache, bindings, (PyObject *)res);
-    return res;
-}
-
-DescriptorSetImages * build_descriptor_set_images(Context * self, PyObject * bindings) {
-    if (DescriptorSetImages * cache = (DescriptorSetImages *)PyDict_GetItem(self->descriptor_set_images_cache, bindings)) {
-        cache->uses += 1;
-        Py_INCREF(cache);
-        return cache;
-    }
+DescriptorSetBuffers1 build_descriptor_set_buffers(Context * self, PyObject * bindings) {
+    DescriptorSetBuffers1 res = {};
 
     int length = (int)PyTuple_Size(bindings);
     PyObject ** seq = PySequence_Fast_ITEMS(bindings);
 
-    DescriptorSetImages * res = PyObject_New(DescriptorSetImages, self->module_state->DescriptorSetImages_type);
-    memset(res->samplers, 0, sizeof(res->samplers));
-    memset(res->textures, 0, sizeof(res->textures));
-    res->sampler_count = 0;
-    res->uses = 1;
+    for (int i = 0; i < length; i += 4) {
+        int binding = PyLong_AsLong(seq[i + 0]);
+        Buffer * buffer = (Buffer *)seq[i + 1];
+        int offset = PyLong_AsLong(seq[i + 2]);
+        int size = PyLong_AsLong(seq[i + 3]);
+        res.buffers[binding] = buffer->buffer;
+        res.buffer_offsets[binding] = offset;
+        res.buffer_sizes[binding] = size;
+        res.buffer_count = res.buffer_count > (binding + 1) ? res.buffer_count : (binding + 1);
+    }
+
+    return res;
+}
+
+DescriptorSetSamplers1 build_descriptor_set_samplers(Context * self, PyObject * bindings) {
+    DescriptorSetSamplers1 res = {};
+
+    int length = (int)PyTuple_Size(bindings);
+    PyObject ** seq = PySequence_Fast_ITEMS(bindings);
 
     for (int i = 0; i < length; i += 3) {
         int binding = PyLong_AsLong(seq[i + 0]);
         Image * image = (Image *)seq[i + 1];
-        res->samplers[binding] = build_sampler(self, seq[i + 2])->obj; // TODO: keep ref
-        res->textures[binding] = image->image;
-        res->sampler_count = res->sampler_count > (binding + 1) ? res->sampler_count : (binding + 1);
+        res.samplers[binding] = build_sampler(self, seq[i + 2])->obj; // TODO: keep ref
+        res.textures[binding] = image->image;
+        res.sampler_count = res.sampler_count > (binding + 1) ? res.sampler_count : (binding + 1);
     }
 
-    PyDict_SetItem(self->descriptor_set_images_cache, bindings, (PyObject *)res);
+    return res;
+}
+
+DescriptorSetImages1 build_descriptor_set_images(Context * self, PyObject * bindings) {
+    DescriptorSetImages1 res = {};
+
+    int length = (int)PyTuple_Size(bindings);
+    PyObject ** seq = PySequence_Fast_ITEMS(bindings);
+
+    for (int i = 0; i < length; i += 2) {
+        int binding = PyLong_AsLong(seq[i + 0]);
+        Image * image = (Image *)seq[i + 1];
+        res.images[binding] = image->image;
+        res.image_count = res.image_count > (binding + 1) ? res.image_count : (binding + 1);
+    }
+
+    return res;
+}
+
+DescriptorSet * build_descriptor_set(Context * self, PyObject * bindings) {
+    if (DescriptorSet * cache = (DescriptorSet *)PyDict_GetItem(self->descriptor_set_cache, bindings)) {
+        cache->uses += 1;
+        Py_INCREF(cache);
+        return cache;
+    }
+
+    DescriptorSet * res = PyObject_New(DescriptorSet, self->module_state->DescriptorSet_type);
+    res->uniform_buffers = build_descriptor_set_buffers(self, PyTuple_GetItem(bindings, 0));
+    res->storage_buffers = build_descriptor_set_buffers(self, PyTuple_GetItem(bindings, 1));
+    res->samplers = build_descriptor_set_samplers(self, PyTuple_GetItem(bindings, 2));
+    res->images = build_descriptor_set_images(self, PyTuple_GetItem(bindings, 3));
+    res->uses = 1;
     return res;
 }
 
@@ -840,8 +832,7 @@ Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwargs) {
     res->gc_prev = (GCHeader *)res;
     res->gc_next = (GCHeader *)res;
     res->module_state = module_state;
-    res->descriptor_set_buffers_cache = PyDict_New();
-    res->descriptor_set_images_cache = PyDict_New();
+    res->descriptor_set_cache = PyDict_New();
     res->global_settings_cache = PyDict_New();
     res->sampler_cache = PyDict_New();
     res->vertex_array_cache = PyDict_New();
@@ -851,8 +842,7 @@ Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwargs) {
     res->includes = PyDict_New();
     res->limits = limits;
     res->info = info;
-    res->current_buffers = NULL;
-    res->current_images = NULL;
+    res->current_descriptor_set = NULL;
     res->current_global_settings = NULL;
     res->is_mask_default = false;
     res->is_stencil_default = false;
@@ -1306,21 +1296,13 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     GLObject * vertex_array = build_vertex_array(self, bindings);
     Py_DECREF(bindings);
 
-    PyObject * buffer_bindings = PyObject_CallMethod(self->module_state->helper, "buffer_bindings", "(O)", resources);
-    if (!buffer_bindings) {
+    PyObject * resource_bindings = PyObject_CallMethod(self->module_state->helper, "resource_bindings", "(O)", resources);
+    if (!resource_bindings) {
         return NULL;
     }
 
-    DescriptorSetBuffers * descriptor_set_buffers = build_descriptor_set_buffers(self, buffer_bindings);
-    Py_DECREF(buffer_bindings);
-
-    PyObject * sampler_bindings = PyObject_CallMethod(self->module_state->helper, "sampler_bindings", "(O)", resources);
-    if (!sampler_bindings) {
-        return NULL;
-    }
-
-    DescriptorSetImages * descriptor_set_images = build_descriptor_set_images(self, sampler_bindings);
-    Py_DECREF(sampler_bindings);
+    DescriptorSet * descriptor_set = build_descriptor_set(self, resource_bindings);
+    Py_DECREF(resource_bindings);
 
     PyObject * settings = PyObject_CallMethod(
         self->module_state->helper,
@@ -1363,8 +1345,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     res->index_type = index_type;
     res->index_size = index_size;
     res->viewport = viewport_value;
-    res->descriptor_set_buffers = descriptor_set_buffers;
-    res->descriptor_set_images = descriptor_set_images;
+    res->descriptor_set = descriptor_set;
     res->global_settings = global_settings;
     Py_INCREF(res);
     return res;
@@ -1415,28 +1396,28 @@ PyObject * Context_meth_release(Context * self, PyObject * arg) {
         Pipeline * pipeline = (Pipeline *)arg;
         pipeline->gc_prev->gc_next = pipeline->gc_next;
         pipeline->gc_next->gc_prev = pipeline->gc_prev;
-        pipeline->descriptor_set_buffers->uses -= 1;
-        if (!pipeline->descriptor_set_buffers->uses) {
-            remove_dict_value(self->descriptor_set_buffers_cache, (PyObject *)pipeline->descriptor_set_buffers);
-            if (self->current_buffers == pipeline->descriptor_set_buffers) {
-                self->current_buffers = NULL;
-            }
-        }
-        pipeline->descriptor_set_images->uses -= 1;
-        if (!pipeline->descriptor_set_images->uses) {
-            // for (int i = 0; i < pipeline->descriptor_set_images->samplers; ++i) {
-            //     GLObject * sampler = pipeline->descriptor_set_images->sampler[i];
-            //     sampler->uses -= 1;
-            //     if (!sampler->uses) {
-            //         remove_dict_value(self->sampler_cache, (PyObject *)sampler);
-            //         gl.DeleteSamplers(1, (unsigned int *)&sampler->obj);
-            //     }
-            // } // TODO: fix
-            remove_dict_value(self->descriptor_set_images_cache, (PyObject *)pipeline->descriptor_set_images);
-            if (self->current_images == pipeline->descriptor_set_images) {
-                self->current_images = NULL;
-            }
-        }
+        // pipeline->descriptor_set_buffers->uses -= 1;
+        // if (!pipeline->descriptor_set_buffers->uses) {
+        //     remove_dict_value(self->descriptor_set_buffers_cache, (PyObject *)pipeline->descriptor_set_buffers);
+        //     if (self->current_buffers == pipeline->descriptor_set_buffers) {
+        //         self->current_buffers = NULL;
+        //     }
+        // }
+        // pipeline->descriptor_set_images->uses -= 1;
+        // if (!pipeline->descriptor_set_images->uses) {
+        //     // for (int i = 0; i < pipeline->descriptor_set_images->samplers; ++i) {
+        //     //     GLObject * sampler = pipeline->descriptor_set_images->sampler[i];
+        //     //     sampler->uses -= 1;
+        //     //     if (!sampler->uses) {
+        //     //         remove_dict_value(self->sampler_cache, (PyObject *)sampler);
+        //     //         gl.DeleteSamplers(1, (unsigned int *)&sampler->obj);
+        //     //     }
+        //     // } // TODO: fix
+        //     remove_dict_value(self->descriptor_set_images_cache, (PyObject *)pipeline->descriptor_set_images);
+        //     if (self->current_images == pipeline->descriptor_set_images) {
+        //         self->current_images = NULL;
+        //     }
+        // }
         pipeline->global_settings->uses -= 1;
         if (!pipeline->global_settings->uses) {
             remove_dict_value(self->global_settings_cache, (PyObject *)pipeline->global_settings);
@@ -1506,8 +1487,7 @@ PyObject * Context_meth_release(Context * self, PyObject * arg) {
 }
 
 PyObject * Context_meth_reset(Context * self) {
-    self->current_buffers = NULL;
-    self->current_images = NULL;
+    self->current_descriptor_set = NULL;
     self->current_global_settings = NULL;
     self->viewport.viewport = 0xffffffffffffffffull;
     self->is_stencil_default = false;
@@ -2155,29 +2135,32 @@ PyObject * Pipeline_meth_render(Pipeline * self) {
     bind_framebuffer(self->ctx, self->framebuffer->obj);
     bind_program(self->ctx, self->program->obj);
     bind_vertex_array(self->ctx, self->vertex_array->obj);
-    if (self->descriptor_set_buffers->uniform_buffer_count) {
+    if (self->descriptor_set->uniform_buffers.buffer_count) {
         gl.BindBuffersRange(
             GL_UNIFORM_BUFFER,
             0,
-            self->descriptor_set_buffers->uniform_buffer_count,
-            self->descriptor_set_buffers->uniform_buffers,
-            self->descriptor_set_buffers->uniform_buffer_offsets,
-            self->descriptor_set_buffers->uniform_buffer_sizes
+            self->descriptor_set->uniform_buffers.buffer_count,
+            self->descriptor_set->uniform_buffers.buffers,
+            self->descriptor_set->uniform_buffers.buffer_offsets,
+            self->descriptor_set->uniform_buffers.buffer_sizes
         );
     }
-    if (self->descriptor_set_buffers->storage_buffer_count) {
+    if (self->descriptor_set->storage_buffers.buffer_count) {
         gl.BindBuffersRange(
             GL_SHADER_STORAGE_BUFFER,
             0,
-            self->descriptor_set_buffers->storage_buffer_count,
-            self->descriptor_set_buffers->storage_buffers,
-            self->descriptor_set_buffers->storage_buffer_offsets,
-            self->descriptor_set_buffers->storage_buffer_sizes
+            self->descriptor_set->storage_buffers.buffer_count,
+            self->descriptor_set->storage_buffers.buffers,
+            self->descriptor_set->storage_buffers.buffer_offsets,
+            self->descriptor_set->storage_buffers.buffer_sizes
         );
     }
-    if (self->descriptor_set_images->sampler_count) {
-        gl.BindTextures(0, self->descriptor_set_images->sampler_count, self->descriptor_set_images->textures);
-        gl.BindSamplers(0, self->descriptor_set_images->sampler_count, self->descriptor_set_images->samplers);
+    if (self->descriptor_set->samplers.sampler_count) {
+        gl.BindTextures(0, self->descriptor_set->samplers.sampler_count, self->descriptor_set->samplers.textures);
+        gl.BindSamplers(0, self->descriptor_set->samplers.sampler_count, self->descriptor_set->samplers.samplers);
+    }
+    if (self->descriptor_set->images.image_count) {
+        gl.BindImageTextures(0, self->descriptor_set->images.image_count, self->descriptor_set->images.images);
     }
     if (self->uniform_data) {
         bind_uniforms(self->ctx, self->program->obj, self->uniform_data, self->uniform_bindings);
@@ -2189,7 +2172,6 @@ PyObject * Pipeline_meth_render(Pipeline * self) {
             gl.MultiDrawElementsIndirect(self->topology, self->index_type, NULL, self->indirect_count, 20);
         } else {
             gl.MultiDrawArraysIndirect(self->topology, NULL, self->indirect_count, 16);
-            printf("%d\n", self->indirect_count);
         }
     } else {
         if (self->index_type) {
@@ -2464,8 +2446,7 @@ PyObject * meth_camera(PyObject * self, PyObject * args, PyObject * kwargs) {
 }
 
 void Context_dealloc(Context * self) {
-    Py_DECREF(self->descriptor_set_buffers_cache);
-    Py_DECREF(self->descriptor_set_images_cache);
+    Py_DECREF(self->descriptor_set_cache);
     Py_DECREF(self->global_settings_cache);
     Py_DECREF(self->sampler_cache);
     Py_DECREF(self->vertex_array_cache);
@@ -2493,8 +2474,7 @@ void Image_dealloc(Image * self) {
 
 void Pipeline_dealloc(Pipeline * self) {
     Py_DECREF(self->ctx);
-    Py_DECREF(self->descriptor_set_buffers);
-    Py_DECREF(self->descriptor_set_images);
+    Py_DECREF(self->descriptor_set);
     Py_DECREF(self->global_settings);
     Py_DECREF(self->framebuffer);
     Py_DECREF(self->program);
@@ -2506,11 +2486,7 @@ void ImageFace_dealloc(ImageFace * self) {
     Py_TYPE(self)->tp_free(self);
 }
 
-void DescriptorSetBuffers_dealloc(DescriptorSetBuffers * self) {
-    Py_TYPE(self)->tp_free(self);
-}
-
-void DescriptorSetImages_dealloc(DescriptorSetImages * self) {
+void DescriptorSet_dealloc(DescriptorSet * self) {
     Py_TYPE(self)->tp_free(self);
 }
 
@@ -2646,13 +2622,8 @@ PyType_Slot ImageFace_slots[] = {
     {},
 };
 
-PyType_Slot DescriptorSetBuffers_slots[] = {
-    {Py_tp_dealloc, (void *)DescriptorSetBuffers_dealloc},
-    {},
-};
-
-PyType_Slot DescriptorSetImages_slots[] = {
-    {Py_tp_dealloc, (void *)DescriptorSetImages_dealloc},
+PyType_Slot DescriptorSet_slots[] = {
+    {Py_tp_dealloc, (void *)DescriptorSet_dealloc},
     {},
 };
 
@@ -2671,8 +2642,7 @@ PyType_Spec Buffer_spec = {"zengl.Buffer", sizeof(Buffer), 0, Py_TPFLAGS_DEFAULT
 PyType_Spec Image_spec = {"zengl.Image", sizeof(Image), 0, Py_TPFLAGS_DEFAULT, Image_slots};
 PyType_Spec Pipeline_spec = {"zengl.Pipeline", sizeof(Pipeline), 0, Py_TPFLAGS_DEFAULT, Pipeline_slots};
 PyType_Spec ImageFace_spec = {"zengl.ImageFace", sizeof(ImageFace), 0, Py_TPFLAGS_DEFAULT, ImageFace_slots};
-PyType_Spec DescriptorSetBuffers_spec = {"zengl.DescriptorSetBuffers", sizeof(DescriptorSetBuffers), 0, Py_TPFLAGS_DEFAULT, DescriptorSetBuffers_slots};
-PyType_Spec DescriptorSetImages_spec = {"zengl.DescriptorSetImages", sizeof(DescriptorSetImages), 0, Py_TPFLAGS_DEFAULT, DescriptorSetImages_slots};
+PyType_Spec DescriptorSet_spec = {"zengl.DescriptorSet", sizeof(DescriptorSet), 0, Py_TPFLAGS_DEFAULT, DescriptorSet_slots};
 PyType_Spec GlobalSettings_spec = {"zengl.GlobalSettings", sizeof(GlobalSettings), 0, Py_TPFLAGS_DEFAULT, GlobalSettings_slots};
 PyType_Spec GLObject_spec = {"zengl.GLObject", sizeof(GLObject), 0, Py_TPFLAGS_DEFAULT, GLObject_slots};
 
@@ -2692,8 +2662,7 @@ int module_exec(PyObject * self) {
     state->Image_type = (PyTypeObject *)PyType_FromSpec(&Image_spec);
     state->Pipeline_type = (PyTypeObject *)PyType_FromSpec(&Pipeline_spec);
     state->ImageFace_type = (PyTypeObject *)PyType_FromSpec(&ImageFace_spec);
-    state->DescriptorSetBuffers_type = (PyTypeObject *)PyType_FromSpec(&DescriptorSetBuffers_spec);
-    state->DescriptorSetImages_type = (PyTypeObject *)PyType_FromSpec(&DescriptorSetImages_spec);
+    state->DescriptorSet_type = (PyTypeObject *)PyType_FromSpec(&DescriptorSet_spec);
     state->GlobalSettings_type = (PyTypeObject *)PyType_FromSpec(&GlobalSettings_spec);
     state->GLObject_type = (PyTypeObject *)PyType_FromSpec(&GLObject_spec);
 
@@ -2734,8 +2703,7 @@ void module_free(PyObject * self) {
     Py_DECREF(state->Image_type);
     Py_DECREF(state->Pipeline_type);
     Py_DECREF(state->ImageFace_type);
-    Py_DECREF(state->DescriptorSetBuffers_type);
-    Py_DECREF(state->DescriptorSetImages_type);
+    Py_DECREF(state->DescriptorSet_type);
     Py_DECREF(state->GlobalSettings_type);
     Py_DECREF(state->GLObject_type);
 }
