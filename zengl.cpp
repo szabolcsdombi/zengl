@@ -157,7 +157,6 @@ struct Pipeline {
     Buffer * indirect_buffer;
     PyObject * uniform_map;
     char * uniform_data;
-    int uniform_bindings;
     int topology;
     int vertex_count;
     int instance_count;
@@ -312,11 +311,14 @@ GLObject * build_framebuffer(Context * self, PyObject * attachments) {
     return res;
 }
 
-void bind_uniforms(Context * self, int program, char * data, int count) {
+void bind_uniforms(Context * self, int program, char * data) {
     const GLMethods & gl = self->gl;
     int offset = 0;
-    for (int i = 0; i < count; ++i) {
+    while (true) {
         UniformBinding * header = (UniformBinding *)(data + offset);
+        if (header->type == 0) {
+            break;
+        }
         switch (header->type) {
             case 0x1404: gl.ProgramUniform1iv(program, header->location, header->count, header->int_values); break;
             case 0x8B53: gl.ProgramUniform2iv(program, header->location, header->count, header->int_values); break;
@@ -1217,7 +1219,6 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
 
     PyObject * uniform_map = NULL;
     char * uniform_data = NULL;
-    int uniform_bindings = 0;
 
     if (uniforms != Py_None) {
         PyObject * tuple = PyObject_CallMethod(self->module_state->helper, "uniforms", "OO", program->extra, uniforms);
@@ -1231,12 +1232,15 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
 
         uniform_data = (char *)PyMem_Malloc(PyByteArray_Size(data));
         memcpy(uniform_data, PyByteArray_AsString(data), PyByteArray_Size(data));
-        uniform_bindings = (int)PyList_Size(names);
         int offset = 0;
+        int idx = 0;
 
-        for (int i = 0; i < uniform_bindings; ++i) {
+        while (true) {
             UniformBinding * header = (UniformBinding *)(uniform_data + offset);
-            PyObject * name = PyList_GetItem(names, i);
+            if (header->type == 0) {
+                break;
+            }
+            PyObject * name = PyList_GetItem(names, idx++);
             PyObject * mem = PyMemoryView_FromMemory(uniform_data + offset + 16, header->values * 4, PyBUF_WRITE);
             PyDict_SetItem(mapping, name, mem);
             Py_DECREF(mem);
@@ -1328,7 +1332,6 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     res->indirect_buffer = indirect_buffer_obj;
     res->uniform_map = uniform_map;
     res->uniform_data = uniform_data;
-    res->uniform_bindings = uniform_bindings;
     res->topology = topology;
     res->vertex_count = vertex_count;
     res->instance_count = instance_count;
@@ -1441,7 +1444,7 @@ PyObject * Context_meth_release(Context * self, PyObject * arg) {
             }
             gl.DeleteVertexArrays(1, (unsigned int *)&pipeline->vertex_array->obj);
         }
-        if (pipeline->uniform_bindings) {
+        if (pipeline->uniform_data) {
             PyMem_Free(pipeline->uniform_data);
             Py_DECREF(pipeline->uniform_map);
         }
@@ -2155,7 +2158,7 @@ PyObject * Pipeline_meth_render(Pipeline * self) {
         gl.BindImageTextures(0, self->descriptor_set->images.image_count, self->descriptor_set->images.images);
     }
     if (self->uniform_data) {
-        bind_uniforms(self->ctx, self->program->obj, self->uniform_data, self->uniform_bindings);
+        bind_uniforms(self->ctx, self->program->obj, self->uniform_data);
     }
     if (self->indirect_buffer) {
         gl.BindBuffer(GL_DRAW_INDIRECT_BUFFER, self->indirect_buffer->buffer);

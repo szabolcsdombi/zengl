@@ -409,7 +409,7 @@ def uniforms(interface, values):
         data.extend(struct.pack('4i', len(value), location, count, gltype))
         for value in flatten(value):
             data.extend(struct.pack(format, value))
-
+    data.extend(struct.pack('4i', 0, 0, 0, 0))
     return list(values), data
 
 
