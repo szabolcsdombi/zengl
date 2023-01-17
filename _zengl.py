@@ -391,20 +391,6 @@ def uniforms(interface, values):
     data = bytearray()
     uniform_map = {clean_uniform_name(obj): obj for obj in interface if obj['type'] == 'uniform'}
 
-    if values == 'all':
-        names = []
-        for obj in interface:
-            location = obj['location']
-            size = obj['size']
-            gltype = obj['gltype']
-            if gltype not in UNIFORM_PACKER:
-                continue
-            names.append(clean_uniform_name(obj))
-            items, format = UNIFORM_PACKER[gltype]
-            data.extend(struct.pack('4i', size * items, location, size, gltype))
-            data.extend(bytearray(size * items * 4))
-        return names, data
-
     for name, value in values.items():
         if name not in uniform_map:
             raise KeyError(f'Uniform "{name}" does not exist')
