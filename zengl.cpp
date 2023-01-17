@@ -34,17 +34,21 @@ struct DescriptorSetBuffers {
     unsigned buffers[MAX_UNIFORM_BUFFER_BINDINGS];
     sizeiptr buffer_offsets[MAX_UNIFORM_BUFFER_BINDINGS];
     sizeiptr buffer_sizes[MAX_UNIFORM_BUFFER_BINDINGS];
+    PyObject * buffer_refs[MAX_UNIFORM_BUFFER_BINDINGS];
 };
 
 struct DescriptorSetSamplers {
     int sampler_count;
     unsigned samplers[MAX_SAMPLER_BINDINGS];
     unsigned textures[MAX_SAMPLER_BINDINGS];
+    PyObject * sampler_refs[MAX_SAMPLER_BINDINGS];
+    PyObject * texture_refs[MAX_SAMPLER_BINDINGS];
 };
 
 struct DescriptorSetImages {
     int image_count;
     unsigned images[MAX_SAMPLER_BINDINGS];
+    PyObject * image_refs[MAX_SAMPLER_BINDINGS];
 };
 
 struct DescriptorSet {
@@ -474,6 +478,7 @@ DescriptorSetBuffers build_descriptor_set_buffers(Context * self, PyObject * bin
         res.buffers[binding] = buffer->buffer;
         res.buffer_offsets[binding] = offset;
         res.buffer_sizes[binding] = size;
+        res.buffer_refs[binding] = (PyObject *)new_ref(buffer);
         res.buffer_count = res.buffer_count > (binding + 1) ? res.buffer_count : (binding + 1);
     }
 
@@ -489,8 +494,11 @@ DescriptorSetSamplers build_descriptor_set_samplers(Context * self, PyObject * b
     for (int i = 0; i < length; i += 3) {
         int binding = PyLong_AsLong(seq[i + 0]);
         Image * image = (Image *)seq[i + 1];
-        res.samplers[binding] = build_sampler(self, seq[i + 2])->obj; // TODO: keep ref
+        GLObject * sampler = build_sampler(self, seq[i + 2]);
+        res.samplers[binding] = sampler->obj;
         res.textures[binding] = image->image;
+        res.sampler_refs[binding] = (PyObject *)sampler;
+        res.texture_refs[binding] = (PyObject *)new_ref(image);
         res.sampler_count = res.sampler_count > (binding + 1) ? res.sampler_count : (binding + 1);
     }
 
@@ -507,6 +515,7 @@ DescriptorSetImages build_descriptor_set_images(Context * self, PyObject * bindi
         int binding = PyLong_AsLong(seq[i + 0]);
         Image * image = (Image *)seq[i + 1];
         res.images[binding] = image->image;
+        res.image_refs[binding] = (PyObject *)new_ref(image);
         res.image_count = res.image_count > (binding + 1) ? res.image_count : (binding + 1);
     }
 
