@@ -243,7 +243,6 @@ def resource_bindings(resources):
 
     samplers = []
     for obj in sorted((x for x in resources if x['type'] == 'sampler'), key=lambda x: x['binding']):
-        border_color = obj.get('border_color', (0.0, 0.0, 0.0, 0.0))
         params = (
             MIN_FILTER[obj.get('min_filter', 'linear')],
             MAG_FILTER[obj.get('mag_filter', 'linear')],
@@ -256,10 +255,6 @@ def resource_bindings(resources):
             COMPARE_MODE[obj.get('compare_mode', 'none')],
             COMPARE_FUNC[obj.get('compare_func', 'never')],
             float(obj.get('max_anisotropy', 1.0)),
-            float(border_color[0]),
-            float(border_color[1]),
-            float(border_color[2]),
-            float(border_color[3]),
         )
         samplers.extend([obj['binding'], obj['image'], params])
 

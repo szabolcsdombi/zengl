@@ -424,14 +424,6 @@ GLObject * build_sampler(Context * self, PyObject * params) {
         gl.SamplerParameterf(sampler, GL_TEXTURE_MAX_ANISOTROPY, max_anisotropy);
     }
 
-    float color[] = {
-        (float)PyFloat_AsDouble(seq[11]),
-        (float)PyFloat_AsDouble(seq[12]),
-        (float)PyFloat_AsDouble(seq[13]),
-        (float)PyFloat_AsDouble(seq[14]),
-    };
-    gl.SamplerParameterfv(sampler, GL_TEXTURE_BORDER_COLOR, color);
-
     GLObject * res = PyObject_New(GLObject, self->module_state->GLObject_type);
     res->obj = sampler;
     res->uses = 1;
