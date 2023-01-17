@@ -716,10 +716,10 @@ PyObject * program_interface(Context * self, int program) {
     return res;
 }
 
-GLObject * compile_compute_program(Context * self, PyObject * code) {
+GLObject * compile_compute_program(Context * self, PyObject * includes, PyObject * code) {
     const GLMethods & gl = self->gl;
 
-    PyObject * tup = PyObject_CallMethod(self->module_state->helper, "program", "O(Oi)", self->includes, code, GL_COMPUTE_SHADER);
+    PyObject * tup = PyObject_CallMethod(self->module_state->helper, "program", "O(Oi)", includes, code, GL_COMPUTE_SHADER);
     if (!tup) {
         return NULL;
     }
@@ -770,10 +770,10 @@ GLObject * compile_compute_program(Context * self, PyObject * code) {
     return res;
 }
 
-GLObject * compile_program(Context * self, PyObject * vert, PyObject * frag) {
+GLObject * compile_program(Context * self, PyObject * includes, PyObject * vert, PyObject * frag) {
     const GLMethods & gl = self->gl;
 
-    PyObject * tup = PyObject_CallMethod(self->module_state->helper, "program", "O(Oi)(Oi)", self->includes, vert, GL_VERTEX_SHADER, frag, GL_FRAGMENT_SHADER);
+    PyObject * tup = PyObject_CallMethod(self->module_state->helper, "program", "O(Oi)(Oi)", includes, vert, GL_VERTEX_SHADER, frag, GL_FRAGMENT_SHADER);
     if (!tup) {
         return NULL;
     }
@@ -1210,6 +1210,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         "first_vertex",
         "first_index",
         "viewport",
+        "includes",
         NULL,
     };
 
@@ -1234,11 +1235,12 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     int first_vertex = 0;
     int first_index = 0;
     PyObject * viewport = Py_None;
+    PyObject * includes = Py_None;
 
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
-        "|$O!O!OOOOOOOOOOpOO&iiiiiO",
+        "|$O!O!OOOOOOOOOOpOO&iiiiiOO",
         keywords,
         &PyUnicode_Type,
         &vertex_shader,
@@ -1263,7 +1265,8 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         &indirect_count,
         &first_vertex,
         &first_index,
-        &viewport
+        &viewport,
+        &includes
     );
 
     if (!args_ok) {
@@ -1296,7 +1299,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     int index_size = short_index ? 2 : 4;
     int index_type = index_buffer != Py_None ? (short_index ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT) : 0;
 
-    GLObject * program = compile_program(self, vertex_shader, fragment_shader);
+    GLObject * program = compile_program(self, includes != Py_None ? includes : self->includes, vertex_shader, fragment_shader);
     if (!program) {
         return NULL;
     }
@@ -1436,6 +1439,7 @@ Compute * Context_meth_compute(Context * self, PyObject * vargs, PyObject * kwar
         "uniforms",
         "indirect_buffer",
         "group_count",
+        "includes",
         NULL,
     };
 
@@ -1444,11 +1448,12 @@ Compute * Context_meth_compute(Context * self, PyObject * vargs, PyObject * kwar
     PyObject * uniforms = Py_None;
     PyObject * indirect_buffer = Py_None;
     int group_count[3] = {};
+    PyObject * includes = Py_None;
 
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
-        "|$O!OOO(iii)",
+        "|$O!OOO(iii)O",
         keywords,
         &PyUnicode_Type,
         &compute_shader,
@@ -1457,7 +1462,8 @@ Compute * Context_meth_compute(Context * self, PyObject * vargs, PyObject * kwar
         &indirect_buffer,
         &group_count[0],
         &group_count[1],
-        &group_count[2]
+        &group_count[2],
+        &includes
     );
 
     if (!args_ok) {
@@ -1471,7 +1477,7 @@ Compute * Context_meth_compute(Context * self, PyObject * vargs, PyObject * kwar
 
     const GLMethods & gl = self->gl;
 
-    GLObject * program = compile_compute_program(self, compute_shader);
+    GLObject * program = compile_compute_program(self, includes != Py_None ? includes : self->includes, compute_shader);
     if (!program) {
         return NULL;
     }

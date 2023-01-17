@@ -20,6 +20,12 @@ vertex_buffer = ctx.buffer(np.array([
 ], 'f4'))
 
 triangle = ctx.pipeline(
+    # includes={
+    #     'vertex_attributes': '''
+    #         layout (location = 0) in vec2 in_vert;
+    #         layout (location = 1) in vec3 in_color;
+    #     ''',
+    # },
     vertex_shader='''
         #version 450 core
 
