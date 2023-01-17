@@ -2807,6 +2807,7 @@ PyMemberDef Image_members[] = {
     {"size", T_OBJECT_EX, offsetof(Image, size), READONLY},
     {"format", T_OBJECT_EX, offsetof(Image, format), READONLY},
     {"samples", T_INT, offsetof(Image, samples), READONLY},
+    {"array", T_INT, offsetof(Image, array), READONLY},
     {"flags", T_INT, offsetof(Image, fmt.flags), READONLY},
     {},
 };
