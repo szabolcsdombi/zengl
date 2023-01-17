@@ -1199,7 +1199,6 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         "first_vertex",
         "first_index",
         "viewport",
-        "skip_validation",
         NULL,
     };
 
@@ -1223,12 +1222,11 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     int first_vertex = 0;
     int first_index = 0;
     PyObject * viewport = Py_None;
-    int skip_validation = false;
 
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
-        "|$O!O!OOOOOOOOOpOO&iiiiiOp",
+        "|$O!O!OOOOOOOOOpOO&iiiiiO",
         keywords,
         &PyUnicode_Type,
         &vertex_shader,
@@ -1252,8 +1250,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         &indirect_count,
         &first_vertex,
         &first_index,
-        &viewport,
-        &skip_validation
+        &viewport
     );
 
     if (!args_ok) {
@@ -1326,20 +1323,18 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         Py_DECREF(tuple);
     }
 
-    if (!skip_validation) {
-        PyObject * validate = PyObject_CallMethod(
-            self->module_state->helper,
-            "validate",
-            "OOOO",
-            program->extra,
-            vertex_buffers,
-            resources,
-            self->limits
-        );
+    PyObject * validate = PyObject_CallMethod(
+        self->module_state->helper,
+        "validate",
+        "OOOO",
+        program->extra,
+        vertex_buffers,
+        resources,
+        self->limits
+    );
 
-        if (!validate) {
-            return NULL;
-        }
+    if (!validate) {
+        return NULL;
     }
 
     PyObject * attachments = PyObject_CallMethod(self->module_state->helper, "framebuffer_attachments", "(O)", framebuffer_images);
