@@ -1,11 +1,10 @@
 import struct
 
+import numpy as np
 import zengl
 
-from window import Window
 import assets
-
-import numpy as np
+from window import Window
 
 window = Window()
 ctx = zengl.context()
