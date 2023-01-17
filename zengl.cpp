@@ -2518,48 +2518,56 @@ int Compute_set_group_count(Compute * self, PyObject * value) {
 PyObject * inspect_descriptor_set(DescriptorSet * set) {
     PyObject * res = PyList_New(0);
     for (int i = 0; i < set->uniform_buffers.buffer_count; ++i) {
-        PyObject * obj = Py_BuildValue(
-            "{sssisisisi}",
-            "type", "uniform_buffer",
-            "binding", i,
-            "buffer", set->uniform_buffers.buffers[i],
-            "offset", set->uniform_buffers.buffer_offsets[i],
-            "size", set->uniform_buffers.buffer_sizes[i]
-        );
-        PyList_Append(res, obj);
-        Py_DECREF(obj);
+        if (set->uniform_buffers.buffer_refs[i]) {
+            PyObject * obj = Py_BuildValue(
+                "{sssisisisi}",
+                "type", "uniform_buffer",
+                "binding", i,
+                "buffer", set->uniform_buffers.buffers[i],
+                "offset", set->uniform_buffers.buffer_offsets[i],
+                "size", set->uniform_buffers.buffer_sizes[i]
+            );
+            PyList_Append(res, obj);
+            Py_DECREF(obj);
+        }
     }
     for (int i = 0; i < set->storage_buffers.buffer_count; ++i) {
-        PyObject * obj = Py_BuildValue(
-            "{sssisisisi}",
-            "type", "storage_buffer",
-            "buffer", set->storage_buffers.buffers[i],
-            "offset", set->storage_buffers.buffer_offsets[i],
-            "size", set->storage_buffers.buffer_sizes[i]
-        );
-        PyList_Append(res, obj);
-        Py_DECREF(obj);
+        if (set->storage_buffers.buffer_refs[i]) {
+            PyObject * obj = Py_BuildValue(
+                "{sssisisisi}",
+                "type", "storage_buffer",
+                "buffer", set->storage_buffers.buffers[i],
+                "offset", set->storage_buffers.buffer_offsets[i],
+                "size", set->storage_buffers.buffer_sizes[i]
+            );
+            PyList_Append(res, obj);
+            Py_DECREF(obj);
+        }
     }
     for (int i = 0; i < set->samplers.sampler_count; ++i) {
-        PyObject * obj = Py_BuildValue(
-            "{sssisisi}",
-            "type", "sampler",
-            "binding", i,
-            "sampler", set->samplers.samplers[i],
-            "texture", set->samplers.textures[i]
-        );
-        PyList_Append(res, obj);
-        Py_DECREF(obj);
+        if (set->samplers.sampler_refs[i]) {
+            PyObject * obj = Py_BuildValue(
+                "{sssisisi}",
+                "type", "sampler",
+                "binding", i,
+                "sampler", set->samplers.samplers[i],
+                "texture", set->samplers.textures[i]
+            );
+            PyList_Append(res, obj);
+            Py_DECREF(obj);
+        }
     }
     for (int i = 0; i < set->images.image_count; ++i) {
-        PyObject * obj = Py_BuildValue(
-            "{sssisisi}",
-            "type", "image",
-            "binding", i,
-            "image", set->images.images[i]
-        );
-        PyList_Append(res, obj);
-        Py_DECREF(obj);
+        if (set->images.image_refs[i]) {
+            PyObject * obj = Py_BuildValue(
+                "{sssisisi}",
+                "type", "image",
+                "binding", i,
+                "image", set->images.images[i]
+            );
+            PyList_Append(res, obj);
+            Py_DECREF(obj);
+        }
     }
     return res;
 }
