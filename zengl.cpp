@@ -2465,6 +2465,45 @@ PyObject * Compute_meth_render(Compute * self) {
     Py_RETURN_NONE;
 }
 
+PyObject * Compute_get_group_count(Compute * self) {
+    return Py_BuildValue("(iii)", self->group_count[0], self->group_count[1], self->group_count[2]);
+}
+
+int Compute_set_group_count(Compute * self, PyObject * value) {
+    PyObject * values = PySequence_Fast(value, "");
+    if (!values) {
+        PyErr_Clear();
+        PyErr_Format(PyExc_TypeError, "the group count must be a tuple");
+        return -1;
+    }
+
+    int size = (int)PySequence_Fast_GET_SIZE(values);
+    PyObject ** seq = PySequence_Fast_ITEMS(values);
+
+    if (size != 3) {
+        Py_DECREF(values);
+        PyErr_Format(PyExc_ValueError, "invalid group count size");
+        return -1;
+    }
+
+    int group_count[3] = {
+        PyLong_AsLong(seq[0]),
+        PyLong_AsLong(seq[1]),
+        PyLong_AsLong(seq[2]),
+    };
+
+    if (PyErr_Occurred()) {
+        Py_DECREF(values);
+        return -1;
+    }
+
+    self->group_count[0] = group_count[0];
+    self->group_count[1] = group_count[1];
+    self->group_count[2] = group_count[2];
+    Py_DECREF(values);
+    return 0;
+}
+
 PyObject * meth_inspect(PyObject * self, PyObject * arg) {
     ModuleState * module_state = (ModuleState *)PyModule_GetState(self);
     if (Py_TYPE(arg) == module_state->Buffer_type) {
@@ -2838,7 +2877,7 @@ PyMethodDef Compute_methods[] = {
 };
 
 PyGetSetDef Compute_getset[] = {
-    // {"group_count", (getter)Compute_get_group_count, (setter)Compute_set_group_count},
+    {"group_count", (getter)Compute_get_group_count, (setter)Compute_set_group_count},
     {},
 };
 
