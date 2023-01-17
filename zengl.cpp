@@ -162,6 +162,7 @@ struct Pipeline {
     int instance_count;
     int indirect_count;
     int first_vertex;
+    int first_index;
     int index_type;
     int index_size;
     Viewport viewport;
@@ -1126,6 +1127,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         "instance_count",
         "indirect_count",
         "first_vertex",
+        "first_index",
         "viewport",
         "skip_validation",
         NULL,
@@ -1149,13 +1151,14 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     int instance_count = 1;
     int indirect_count = 0;
     int first_vertex = 0;
+    int first_index = 0;
     PyObject * viewport = Py_None;
     int skip_validation = false;
 
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
-        "|$O!O!OOOOOOOOOpOO&iiiiOp",
+        "|$O!O!OOOOOOOOOpOO&iiiiiOp",
         keywords,
         &PyUnicode_Type,
         &vertex_shader,
@@ -1178,6 +1181,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         &instance_count,
         &indirect_count,
         &first_vertex,
+        &first_index,
         &viewport,
         &skip_validation
     );
@@ -1337,6 +1341,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     res->instance_count = instance_count;
     res->indirect_count = indirect_count;
     res->first_vertex = first_vertex;
+    res->first_index = first_index;
     res->index_type = index_type;
     res->index_size = index_size;
     res->viewport = viewport_value;
@@ -2163,14 +2168,13 @@ PyObject * Pipeline_meth_render(Pipeline * self) {
     if (self->indirect_buffer) {
         gl.BindBuffer(GL_DRAW_INDIRECT_BUFFER, self->indirect_buffer->buffer);
         if (self->index_type) {
-            long long offset = (long long)self->first_vertex * self->index_size;
             gl.MultiDrawElementsIndirect(self->topology, self->index_type, NULL, self->indirect_count, 20);
         } else {
             gl.MultiDrawArraysIndirect(self->topology, NULL, self->indirect_count, 16);
         }
     } else {
         if (self->index_type) {
-            long long offset = (long long)self->first_vertex * self->index_size;
+            long long offset = (long long)self->first_index * self->index_size;
             gl.DrawElementsInstanced(self->topology, self->vertex_count, self->index_type, (void *)offset, self->instance_count);
         } else {
             gl.DrawArraysInstanced(self->topology, self->first_vertex, self->vertex_count, self->instance_count);
