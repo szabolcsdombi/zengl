@@ -31,24 +31,24 @@ struct GLObject {
 
 struct DescriptorSetBuffers {
     int buffer_count;
-    unsigned buffers[MAX_UNIFORM_BUFFER_BINDINGS];
-    sizeiptr buffer_offsets[MAX_UNIFORM_BUFFER_BINDINGS];
-    sizeiptr buffer_sizes[MAX_UNIFORM_BUFFER_BINDINGS];
-    PyObject * buffer_refs[MAX_UNIFORM_BUFFER_BINDINGS];
+    unsigned buffers[MAX_BUFFER_BINDINGS];
+    sizeiptr buffer_offsets[MAX_BUFFER_BINDINGS];
+    sizeiptr buffer_sizes[MAX_BUFFER_BINDINGS];
+    PyObject * buffer_refs[MAX_BUFFER_BINDINGS];
 };
 
 struct DescriptorSetSamplers {
     int sampler_count;
-    unsigned samplers[MAX_SAMPLER_BINDINGS];
-    unsigned textures[MAX_SAMPLER_BINDINGS];
-    PyObject * sampler_refs[MAX_SAMPLER_BINDINGS];
-    PyObject * texture_refs[MAX_SAMPLER_BINDINGS];
+    unsigned samplers[MAX_IMAGE_BINDINGS];
+    unsigned textures[MAX_IMAGE_BINDINGS];
+    PyObject * sampler_refs[MAX_IMAGE_BINDINGS];
+    PyObject * texture_refs[MAX_IMAGE_BINDINGS];
 };
 
 struct DescriptorSetImages {
     int image_count;
-    unsigned images[MAX_SAMPLER_BINDINGS];
-    PyObject * image_refs[MAX_SAMPLER_BINDINGS];
+    unsigned images[MAX_IMAGE_BINDINGS];
+    PyObject * image_refs[MAX_IMAGE_BINDINGS];
 };
 
 struct DescriptorSet {

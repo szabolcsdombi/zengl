@@ -2,9 +2,8 @@
 #include <structmember.h>
 
 const int MAX_ATTACHMENTS = 16;
-const int MAX_UNIFORM_BUFFER_BINDINGS = 16;
-const int MAX_SAMPLER_BINDINGS = 64;
-const int MAX_UNIFORM_BINDINGS = 64;
+const int MAX_BUFFER_BINDINGS = 16;
+const int MAX_IMAGE_BINDINGS = 64;
 
 #if defined(_WIN32) || defined(_WIN64)
 #define GLAPI __stdcall
