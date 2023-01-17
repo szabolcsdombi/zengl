@@ -9,9 +9,10 @@ ctx = zengl.context()
 image = ctx.image(window.size, 'rgba8unorm')
 temp = ctx.image(window.size, 'rgba8unorm')
 
-ctx.includes['size'] = 'ivec2 SIZE = ivec2(512);'
-
 scene = ctx.pipeline(
+    includes={
+        'size': 'ivec2 SIZE = ivec2(512);',
+    },
     vertex_shader='''
         #version 450 core
 
@@ -62,13 +63,7 @@ scene = ctx.pipeline(
     vertex_count=3,
 )
 
-cells = np.random.randint(0, 2, 512 * 512)
-image.write(np.array([
-    cells * 255,
-    cells * 255,
-    cells * 255,
-    cells * 255,
-]).T.astype('u1').tobytes())
+image.write((np.random.randint(0, 2, 512 * 512, 'u1') * 255).repeat(4))
 
 while window.update():
     image.blit(temp)
