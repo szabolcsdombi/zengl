@@ -275,6 +275,7 @@ GLObject * build_framebuffer(Context * self, PyObject * attachments) {
         return cache;
     }
 
+    PyObject * size = PyTuple_GetItem(attachments, 0);
     PyObject * color_attachments = PyTuple_GetItem(attachments, 1);
     PyObject * depth_stencil_attachment = PyTuple_GetItem(attachments, 2);
 
@@ -318,6 +319,13 @@ GLObject * build_framebuffer(Context * self, PyObject * attachments) {
 
     gl.NamedFramebufferDrawBuffers(framebuffer, color_attachment_count, draw_buffers);
     gl.NamedFramebufferReadBuffer(framebuffer, color_attachment_count ? GL_COLOR_ATTACHMENT0 : 0);
+
+    if (!color_attachment_count) {
+        gl.NamedFramebufferParameteri(framebuffer, GL_FRAMEBUFFER_DEFAULT_WIDTH, PyLong_AsLong(PyTuple_GetItem(size, 0)));
+        gl.NamedFramebufferParameteri(framebuffer, GL_FRAMEBUFFER_DEFAULT_HEIGHT, PyLong_AsLong(PyTuple_GetItem(size, 1)));
+    }
+
+    // int status = gl.CheckNamedFramebufferStatus(framebuffer, GL_DRAW_FRAMEBUFFER);
 
     GLObject * res = PyObject_New(GLObject, self->module_state->GLObject_type);
     res->obj = framebuffer;
@@ -1187,6 +1195,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         "stencil",
         "blend",
         "framebuffer",
+        "framebuffer_size",
         "vertex_buffers",
         "index_buffer",
         "indirect_buffer",
@@ -1209,7 +1218,8 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     PyObject * depth = Py_None;
     PyObject * stencil = Py_None;
     PyObject * blend = Py_None;
-    PyObject * framebuffer_images = NULL;
+    PyObject * framebuffer_images = self->module_state->empty_tuple;
+    PyObject * framebuffer_size = Py_None;
     PyObject * vertex_buffers = self->module_state->empty_tuple;
     PyObject * index_buffer = Py_None;
     PyObject * indirect_buffer = Py_None;
@@ -1226,7 +1236,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
-        "|$O!O!OOOOOOOOOpOO&iiiiiO",
+        "|$O!O!OOOOOOOOOOpOO&iiiiiO",
         keywords,
         &PyUnicode_Type,
         &vertex_shader,
@@ -1238,6 +1248,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         &stencil,
         &blend,
         &framebuffer_images,
+        &framebuffer_size,
         &vertex_buffers,
         &index_buffer,
         &indirect_buffer,
@@ -1262,7 +1273,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         return NULL;
     }
 
-    if (!vertex_shader || !fragment_shader || !framebuffer_images) {
+    if (!vertex_shader || !fragment_shader || !framebuffer_images) { // framebuffer_images = ()
         if (!vertex_shader) {
             PyErr_Format(PyExc_TypeError, "no vertex_shader was specified");
         } else if (!fragment_shader) {
@@ -1337,7 +1348,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         return NULL;
     }
 
-    PyObject * attachments = PyObject_CallMethod(self->module_state->helper, "framebuffer_attachments", "(O)", framebuffer_images);
+    PyObject * attachments = PyObject_CallMethod(self->module_state->helper, "framebuffer_attachments", "(OO)", framebuffer_size, framebuffer_images);
     if (!attachments) {
         return NULL;
     }

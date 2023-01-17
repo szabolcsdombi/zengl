@@ -265,7 +265,9 @@ def resource_bindings(resources):
     return tuple(uniform_buffers), tuple(storage_buffers), tuple(samplers), tuple(images)
 
 
-def framebuffer_attachments(attachments):
+def framebuffer_attachments(size, attachments):
+    if not attachments:
+        return size, (), None
     attachments = [x.face() if hasattr(x, 'face') else x for x in attachments]
     size = attachments[0].size
     samples = attachments[0].samples

@@ -159,6 +159,8 @@ typedef int sizeiptr;
 #define GL_PRIMITIVE_RESTART_FIXED_INDEX 0x8D69
 #define GL_COMPUTE_SHADER 0x91B9
 #define GL_DISPATCH_INDIRECT_BUFFER 0x90EE
+#define GL_FRAMEBUFFER_DEFAULT_WIDTH 0x9310
+#define GL_FRAMEBUFFER_DEFAULT_HEIGHT 0x9311
 #define GL_UNIFORM 0x92E1
 #define GL_UNIFORM_BLOCK 0x92E2
 #define GL_PROGRAM_INPUT 0x92E3
@@ -291,6 +293,7 @@ typedef void (GLAPI * glNamedFramebufferTextureLayerProc)(unsigned framebuffer, 
 typedef void (GLAPI * glNamedFramebufferDrawBuffersProc)(unsigned framebuffer, int n, const unsigned * bufs);
 typedef void (GLAPI * glNamedFramebufferReadBufferProc)(unsigned framebuffer, unsigned src);
 typedef void (GLAPI * glBlitNamedFramebufferProc)(unsigned readFramebuffer, unsigned drawFramebuffer, int srcX0, int srcY0, int srcX1, int srcY1, int dstX0, int dstY0, int dstX1, int dstY1, unsigned mask, unsigned filter);
+typedef unsigned (GLAPI * glCheckNamedFramebufferStatusProc)(unsigned framebuffer, unsigned target);
 typedef void (GLAPI * glCreateRenderbuffersProc)(int n, unsigned * renderbuffers);
 typedef void (GLAPI * glNamedRenderbufferStorageMultisampleProc)(unsigned renderbuffer, int samples, unsigned internalformat, int width, int height);
 typedef void (GLAPI * glCreateTexturesProc)(unsigned target, int n, unsigned * textures);
@@ -431,6 +434,7 @@ struct GLMethods {
     glNamedFramebufferDrawBuffersProc NamedFramebufferDrawBuffers;
     glNamedFramebufferReadBufferProc NamedFramebufferReadBuffer;
     glBlitNamedFramebufferProc BlitNamedFramebuffer;
+    glCheckNamedFramebufferStatusProc CheckNamedFramebufferStatus;
     glCreateRenderbuffersProc CreateRenderbuffers;
     glNamedRenderbufferStorageMultisampleProc NamedRenderbufferStorageMultisample;
     glCreateTexturesProc CreateTextures;
@@ -838,6 +842,7 @@ GLMethods load_gl(PyObject * loader) {
     load(NamedFramebufferDrawBuffers);
     load(NamedFramebufferReadBuffer);
     load(BlitNamedFramebuffer);
+    load(CheckNamedFramebufferStatus);
     load(CreateRenderbuffers);
     load(NamedRenderbufferStorageMultisample);
     load(CreateTextures);
