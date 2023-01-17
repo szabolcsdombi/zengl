@@ -153,7 +153,9 @@ typedef int sizeiptr;
 #define GL_UNIFORM_BLOCK_DATA_SIZE 0x8A40
 #define GL_PROGRAM_POINT_SIZE 0x8642
 #define GL_TEXTURE_CUBE_MAP_SEAMLESS 0x884F
+#define GL_DRAW_INDIRECT_BUFFER 0x8F3F
 #define GL_PRIMITIVE_RESTART_FIXED_INDEX 0x8D69
+#define GL_DISPATCH_INDIRECT_BUFFER 0x90EE
 #define GL_UNIFORM 0x92E1
 #define GL_UNIFORM_BLOCK 0x92E2
 #define GL_PROGRAM_INPUT 0x92E3
@@ -165,6 +167,7 @@ typedef int sizeiptr;
 #define GL_BUFFER_BINDING 0x9302
 #define GL_BUFFER_DATA_SIZE 0x9303
 #define GL_LOCATION 0x930E
+#define GL_SHADER_STORAGE_BUFFER 0x90D2
 #define GL_DYNAMIC_STORAGE_BIT 0x0100
 #define GL_TEXTURE_MAX_ANISOTROPY 0x84FE
 
@@ -183,6 +186,7 @@ typedef const unsigned char *(GLAPI * glGetStringProc)(unsigned name);
 typedef void (GLAPI * glViewportProc)(int x, int y, int width, int height);
 typedef void (GLAPI * glPolygonOffsetProc)(float factor, float units);
 typedef void (GLAPI * glDeleteTexturesProc)(int n, const unsigned * textures);
+typedef void (GLAPI * glBindBufferProc)(unsigned target, unsigned buffer);
 typedef void (GLAPI * glDeleteBuffersProc)(int n, const unsigned * buffers);
 typedef void (GLAPI * glDrawBuffersProc)(int n, const unsigned * bufs);
 typedef void (GLAPI * glStencilOpSeparateProc)(unsigned face, unsigned sfail, unsigned dpfail, unsigned dppass);
@@ -320,6 +324,7 @@ struct GLMethods {
     glViewportProc Viewport;
     glPolygonOffsetProc PolygonOffset;
     glDeleteTexturesProc DeleteTextures;
+    glBindBufferProc BindBuffer;
     glDeleteBuffersProc DeleteBuffers;
     glDrawBuffersProc DrawBuffers;
     glStencilOpSeparateProc StencilOpSeparate;
@@ -727,6 +732,7 @@ GLMethods load_gl(PyObject * loader) {
     load(Viewport);
     load(PolygonOffset);
     load(DeleteTextures);
+    load(BindBuffer);
     load(DeleteBuffers);
     load(DrawBuffers);
     load(StencilOpSeparate);

@@ -225,14 +225,21 @@ def vertex_array_bindings(vertex_buffers, index_buffer):
 
 
 def buffer_bindings(resources):
-    res = []
+    uniform_buffers = []
     for obj in sorted((x for x in resources if x['type'] == 'uniform_buffer'), key=lambda x: x['binding']):
         binding = obj['binding']
         buffer = obj['buffer']
         offset = obj.get('offset', 0)
         size = obj.get('size', buffer.size - offset)
-        res.extend([binding, buffer, offset, size])
-    return tuple(res)
+        uniform_buffers.extend([binding, buffer, offset, size])
+    storage_buffers = []
+    for obj in sorted((x for x in resources if x['type'] == 'storage_buffer'), key=lambda x: x['binding']):
+        binding = obj['binding']
+        buffer = obj['buffer']
+        offset = obj.get('offset', 0)
+        size = obj.get('size', buffer.size - offset)
+        storage_buffers.extend([binding, buffer, offset, size])
+    return tuple(uniform_buffers), tuple(storage_buffers)
 
 
 def sampler_bindings(resources):

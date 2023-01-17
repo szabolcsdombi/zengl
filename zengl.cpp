@@ -36,6 +36,10 @@ struct DescriptorSetBuffers {
     unsigned uniform_buffers[MAX_UNIFORM_BUFFER_BINDINGS];
     sizeiptr uniform_buffer_offsets[MAX_UNIFORM_BUFFER_BINDINGS];
     sizeiptr uniform_buffer_sizes[MAX_UNIFORM_BUFFER_BINDINGS];
+    int storage_buffer_count;
+    unsigned storage_buffers[MAX_UNIFORM_BUFFER_BINDINGS];
+    sizeiptr storage_buffer_offsets[MAX_UNIFORM_BUFFER_BINDINGS];
+    sizeiptr storage_buffer_sizes[MAX_UNIFORM_BUFFER_BINDINGS];
 };
 
 struct DescriptorSetImages {
@@ -148,12 +152,14 @@ struct Pipeline {
     GLObject * framebuffer;
     GLObject * vertex_array;
     GLObject * program;
+    Buffer * indirect_buffer;
     PyObject * uniform_map;
     char * uniform_data;
     int uniform_bindings;
     int topology;
     int vertex_count;
     int instance_count;
+    int indirect_count;
     int first_vertex;
     int index_type;
     int index_size;
@@ -440,15 +446,19 @@ DescriptorSetBuffers * build_descriptor_set_buffers(Context * self, PyObject * b
         return cache;
     }
 
-    int length = (int)PyTuple_Size(bindings);
-    PyObject ** seq = PySequence_Fast_ITEMS(bindings);
+    int length = (int)PyTuple_Size(PyTuple_GetItem(bindings, 0));
+    PyObject ** seq = PySequence_Fast_ITEMS(PyTuple_GetItem(bindings, 0));
 
     DescriptorSetBuffers * res = PyObject_New(DescriptorSetBuffers, self->module_state->DescriptorSetBuffers_type);
     memset(res->uniform_buffers, 0, sizeof(res->uniform_buffers));
     memset(res->uniform_buffer_offsets, 0, sizeof(res->uniform_buffer_offsets));
     memset(res->uniform_buffer_sizes, 0, sizeof(res->uniform_buffer_sizes));
+    memset(res->storage_buffers, 0, sizeof(res->storage_buffers));
+    memset(res->storage_buffer_offsets, 0, sizeof(res->storage_buffer_offsets));
+    memset(res->storage_buffer_sizes, 0, sizeof(res->storage_buffer_sizes));
 
     res->uniform_buffer_count = 0;
+    res->storage_buffer_count = 0;
     res->uses = 1;
 
     for (int i = 0; i < length; i += 4) {
@@ -460,6 +470,20 @@ DescriptorSetBuffers * build_descriptor_set_buffers(Context * self, PyObject * b
         res->uniform_buffer_offsets[binding] = offset;
         res->uniform_buffer_sizes[binding] = size;
         res->uniform_buffer_count = res->uniform_buffer_count > (binding + 1) ? res->uniform_buffer_count : (binding + 1);
+    }
+
+    length = (int)PyTuple_Size(PyTuple_GetItem(bindings, 1));
+    seq = PySequence_Fast_ITEMS(PyTuple_GetItem(bindings, 1));
+
+    for (int i = 0; i < length; i += 4) {
+        int binding = PyLong_AsLong(seq[i + 0]);
+        Buffer * buffer = (Buffer *)seq[i + 1];
+        int offset = PyLong_AsLong(seq[i + 2]);
+        int size = PyLong_AsLong(seq[i + 3]);
+        res->storage_buffers[binding] = buffer->buffer;
+        res->storage_buffer_offsets[binding] = offset;
+        res->storage_buffer_sizes[binding] = size;
+        res->storage_buffer_count = res->storage_buffer_count > (binding + 1) ? res->storage_buffer_count : (binding + 1);
     }
 
     PyDict_SetItem(self->descriptor_set_buffers_cache, bindings, (PyObject *)res);
@@ -1110,11 +1134,13 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         "framebuffer",
         "vertex_buffers",
         "index_buffer",
+        "indirect_buffer",
         "short_index",
         "cull_face",
         "topology",
         "vertex_count",
         "instance_count",
+        "indirect_count",
         "first_vertex",
         "viewport",
         "skip_validation",
@@ -1131,11 +1157,13 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     PyObject * framebuffer_images = NULL;
     PyObject * vertex_buffers = self->module_state->empty_tuple;
     PyObject * index_buffer = Py_None;
+    PyObject * indirect_buffer = Py_None;
     int short_index = false;
     PyObject * cull_face = self->module_state->str_none;
     int topology = GL_TRIANGLES;
     int vertex_count = 0;
     int instance_count = 1;
+    int indirect_count = 0;
     int first_vertex = 0;
     PyObject * viewport = Py_None;
     int skip_validation = false;
@@ -1143,7 +1171,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
-        "|$O!O!OOOOOOOOpOO&iiiOp",
+        "|$O!O!OOOOOOOOOpOO&iiiiOp",
         keywords,
         &PyUnicode_Type,
         &vertex_shader,
@@ -1157,18 +1185,25 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         &framebuffer_images,
         &vertex_buffers,
         &index_buffer,
+        &indirect_buffer,
         &short_index,
         &cull_face,
         topology_converter,
         &topology,
         &vertex_count,
         &instance_count,
+        &indirect_count,
         &first_vertex,
         &viewport,
         &skip_validation
     );
 
     if (!args_ok) {
+        return NULL;
+    }
+
+    if (indirect_buffer != Py_None && Py_TYPE(indirect_buffer) != self->module_state->Buffer_type) {
+        PyErr_Format(PyExc_TypeError, "invalid indirect buffer");
         return NULL;
     }
 
@@ -1305,6 +1340,8 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     GlobalSettings * global_settings = build_global_settings(self, settings);
     Py_DECREF(settings);
 
+    Buffer * indirect_buffer_obj = indirect_buffer != Py_None ? (Buffer *)new_ref(indirect_buffer) : NULL;
+
     Pipeline * res = PyObject_New(Pipeline, self->module_state->Pipeline_type);
     res->gc_prev = self->gc_prev;
     res->gc_next = (GCHeader *)self;
@@ -1314,12 +1351,14 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     res->framebuffer = framebuffer;
     res->vertex_array = vertex_array;
     res->program = program;
+    res->indirect_buffer = indirect_buffer_obj;
     res->uniform_map = uniform_map;
     res->uniform_data = uniform_data;
     res->uniform_bindings = uniform_bindings;
     res->topology = topology;
     res->vertex_count = vertex_count;
     res->instance_count = instance_count;
+    res->indirect_count = indirect_count;
     res->first_vertex = first_vertex;
     res->index_type = index_type;
     res->index_size = index_size;
@@ -2126,6 +2165,16 @@ PyObject * Pipeline_meth_render(Pipeline * self) {
             self->descriptor_set_buffers->uniform_buffer_sizes
         );
     }
+    if (self->descriptor_set_buffers->storage_buffer_count) {
+        gl.BindBuffersRange(
+            GL_SHADER_STORAGE_BUFFER,
+            0,
+            self->descriptor_set_buffers->storage_buffer_count,
+            self->descriptor_set_buffers->storage_buffers,
+            self->descriptor_set_buffers->storage_buffer_offsets,
+            self->descriptor_set_buffers->storage_buffer_sizes
+        );
+    }
     if (self->descriptor_set_images->sampler_count) {
         gl.BindTextures(0, self->descriptor_set_images->sampler_count, self->descriptor_set_images->textures);
         gl.BindSamplers(0, self->descriptor_set_images->sampler_count, self->descriptor_set_images->samplers);
@@ -2133,11 +2182,22 @@ PyObject * Pipeline_meth_render(Pipeline * self) {
     if (self->uniform_data) {
         bind_uniforms(self->ctx, self->program->obj, self->uniform_data, self->uniform_bindings);
     }
-    if (self->index_type) {
-        long long offset = (long long)self->first_vertex * self->index_size;
-        gl.DrawElementsInstanced(self->topology, self->vertex_count, self->index_type, (void *)offset, self->instance_count);
+    if (self->indirect_buffer) {
+        gl.BindBuffer(GL_DRAW_INDIRECT_BUFFER, self->indirect_buffer->buffer);
+        if (self->index_type) {
+            long long offset = (long long)self->first_vertex * self->index_size;
+            gl.MultiDrawElementsIndirect(self->topology, self->index_type, NULL, self->indirect_count, 20);
+        } else {
+            gl.MultiDrawArraysIndirect(self->topology, NULL, self->indirect_count, 16);
+            printf("%d\n", self->indirect_count);
+        }
     } else {
-        gl.DrawArraysInstanced(self->topology, self->first_vertex, self->vertex_count, self->instance_count);
+        if (self->index_type) {
+            long long offset = (long long)self->first_vertex * self->index_size;
+            gl.DrawElementsInstanced(self->topology, self->vertex_count, self->index_type, (void *)offset, self->instance_count);
+        } else {
+            gl.DrawArraysInstanced(self->topology, self->first_vertex, self->vertex_count, self->instance_count);
+        }
     }
     Py_RETURN_NONE;
 }
@@ -2527,6 +2587,7 @@ PyGetSetDef Pipeline_getset[] = {
 PyMemberDef Pipeline_members[] = {
     {"vertex_count", T_INT, offsetof(Pipeline, vertex_count), 0, NULL},
     {"instance_count", T_INT, offsetof(Pipeline, instance_count), 0, NULL},
+    {"indirect_count", T_INT, offsetof(Pipeline, indirect_count), 0, NULL},
     {"first_vertex", T_INT, offsetof(Pipeline, first_vertex), 0, NULL},
     {"uniforms", T_OBJECT_EX, offsetof(Pipeline, uniform_map), 0, NULL},
     {},
