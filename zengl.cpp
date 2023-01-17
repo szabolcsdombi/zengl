@@ -272,6 +272,40 @@ void bind_vertex_array(Context * self, int vertex_array) {
     }
 }
 
+void bind_descriptor_set(Context * self, DescriptorSet * set) {
+    const GLMethods & gl = self->gl;
+    if (self->current_descriptor_set != set) {
+        self->current_descriptor_set = set;
+        if (set->uniform_buffers.buffer_count) {
+            gl.BindBuffersRange(
+                GL_UNIFORM_BUFFER,
+                0,
+                set->uniform_buffers.buffer_count,
+                set->uniform_buffers.buffers,
+                set->uniform_buffers.buffer_offsets,
+                set->uniform_buffers.buffer_sizes
+            );
+        }
+        if (set->storage_buffers.buffer_count) {
+            gl.BindBuffersRange(
+                GL_SHADER_STORAGE_BUFFER,
+                0,
+                set->storage_buffers.buffer_count,
+                set->storage_buffers.buffers,
+                set->storage_buffers.buffer_offsets,
+                set->storage_buffers.buffer_sizes
+            );
+        }
+        if (set->samplers.sampler_count) {
+            gl.BindTextures(0, set->samplers.sampler_count, set->samplers.textures);
+            gl.BindSamplers(0, set->samplers.sampler_count, set->samplers.samplers);
+        }
+        if (set->images.image_count) {
+            gl.BindImageTextures(0, set->images.image_count, set->images.images);
+        }
+    }
+}
+
 GLObject * build_framebuffer(Context * self, PyObject * attachments) {
     if (GLObject * cache = (GLObject *)PyDict_GetItem(self->framebuffer_cache, attachments)) {
         cache->uses += 1;
@@ -2350,33 +2384,7 @@ PyObject * Pipeline_meth_run(Pipeline * self) {
     bind_framebuffer(self->ctx, self->framebuffer->obj);
     bind_program(self->ctx, self->program->obj);
     bind_vertex_array(self->ctx, self->vertex_array->obj);
-    if (self->descriptor_set->uniform_buffers.buffer_count) {
-        gl.BindBuffersRange(
-            GL_UNIFORM_BUFFER,
-            0,
-            self->descriptor_set->uniform_buffers.buffer_count,
-            self->descriptor_set->uniform_buffers.buffers,
-            self->descriptor_set->uniform_buffers.buffer_offsets,
-            self->descriptor_set->uniform_buffers.buffer_sizes
-        );
-    }
-    if (self->descriptor_set->storage_buffers.buffer_count) {
-        gl.BindBuffersRange(
-            GL_SHADER_STORAGE_BUFFER,
-            0,
-            self->descriptor_set->storage_buffers.buffer_count,
-            self->descriptor_set->storage_buffers.buffers,
-            self->descriptor_set->storage_buffers.buffer_offsets,
-            self->descriptor_set->storage_buffers.buffer_sizes
-        );
-    }
-    if (self->descriptor_set->samplers.sampler_count) {
-        gl.BindTextures(0, self->descriptor_set->samplers.sampler_count, self->descriptor_set->samplers.textures);
-        gl.BindSamplers(0, self->descriptor_set->samplers.sampler_count, self->descriptor_set->samplers.samplers);
-    }
-    if (self->descriptor_set->images.image_count) {
-        gl.BindImageTextures(0, self->descriptor_set->images.image_count, self->descriptor_set->images.images);
-    }
+    bind_descriptor_set(self->ctx, self->descriptor_set);
     if (self->uniform_data) {
         bind_uniforms(self->ctx, self->program->obj, self->uniform_data);
     }
