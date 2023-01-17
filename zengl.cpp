@@ -745,11 +745,11 @@ GLObject * compile_compute_program(Context * self, PyObject * includes, PyObject
         return NULL;
     }
 
-    // TODO: decref
-    // Py_DECREF(compute);
+    int compute_shader_obj = compute_shader->obj;
+    Py_DECREF(compute_shader);
 
     int program = gl.CreateProgram();
-    gl.AttachShader(program, compute_shader->obj);
+    gl.AttachShader(program, compute_shader_obj);
     gl.LinkProgram(program);
 
     int linked = false;
@@ -798,7 +798,7 @@ GLObject * compile_program(Context * self, PyObject * includes, PyObject * vert,
         return NULL;
     }
     int vertex_shader_obj = vertex_shader->obj;
-    Py_DECREF(vertex_shader); // TODO: suspecious
+    Py_DECREF(vertex_shader);
 
     GLObject * fragment_shader = compile_shader(self, frag_pair);
     if (!fragment_shader) {
@@ -806,7 +806,7 @@ GLObject * compile_program(Context * self, PyObject * includes, PyObject * vert,
         return NULL;
     }
     int fragment_shader_obj = fragment_shader->obj;
-    Py_DECREF(fragment_shader); // TODO: suspecious
+    Py_DECREF(fragment_shader);
 
     int program = gl.CreateProgram();
     gl.AttachShader(program, vertex_shader_obj);
