@@ -108,5 +108,5 @@ while window.update():
     instance_data[:, 2] += turn
     instance_buffer.write(instance_data)
     image.clear()
-    triangle.render()
+    triangle.run()
     image.blit()

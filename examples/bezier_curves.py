@@ -138,5 +138,5 @@ while window.update():
     curves[:, 7] = initial[:, 7] - np.cos(offset[3] + t) * 50.0
     instance_buffer.write(curves)
     image.clear()
-    pipeline.render()
+    pipeline.run()
     image.blit()

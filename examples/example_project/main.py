@@ -35,9 +35,9 @@ while wnd.update():
     Context.flush_uniform_buffer()
 
     framebuffer.clear(0.2, 0.2, 0.2)
-    object_manager.render()
+    object_manager.run()
 
     # framebuffer.image.blit()
 
-    blur.render()
+    blur.run()
     blur.output_image.blit()

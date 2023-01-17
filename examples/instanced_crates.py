@@ -113,5 +113,5 @@ while window.update():
 
     image.clear()
     depth.clear()
-    crate.render()
+    crate.run()
     image.blit()

@@ -88,7 +88,7 @@ it = iter(cycle(np.clip(np.sin(np.linspace(0.0, 2.0 * np.pi, 180)) * 175 + 225, 
 while window.update():
     image.clear()
     depth.clear()
-    pipeline.render()
+    pipeline.run()
 
     offset, size = table[next(it)]
     pipeline.first_vertex = offset // vertex_size

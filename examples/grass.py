@@ -113,5 +113,5 @@ while window.update():
 
     image.clear()
     depth.clear()
-    triangle.render()
+    triangle.run()
     image.blit()

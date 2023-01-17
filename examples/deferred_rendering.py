@@ -199,6 +199,6 @@ while window.update():
     lights.instance_count = 49
     image.clear()
     depth.clear()
-    pipeline.render()
-    lights.render()
+    pipeline.run()
+    lights.run()
     image.blit()

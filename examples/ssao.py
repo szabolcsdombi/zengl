@@ -192,9 +192,9 @@ while window.update():
     temp_position.clear()
     temp_normal.clear()
     temp_depth.clear()
-    temp_pass.render()
+    temp_pass.run()
 
     image.clear()
     depth.clear()
-    ssao.render()
+    ssao.run()
     image.blit()

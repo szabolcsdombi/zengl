@@ -58,5 +58,5 @@ triangle = ctx.pipeline(
 
 while window.update():
     image.clear()
-    triangle.render()
+    triangle.run()
     image.blit()

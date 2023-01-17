@@ -228,8 +228,8 @@ while window.update():
 
     image.clear()
     depth.clear()
-    monkey.render()
-    monkey_reflection.render()
-    monkey_shadow.render()
-    plane.render()
+    monkey.run()
+    monkey_reflection.run()
+    monkey_shadow.run()
+    plane.run()
     image.blit()

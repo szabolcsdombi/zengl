@@ -235,5 +235,5 @@ while window.update():
 
     image.clear()
     depth.clear()
-    cube.render()
+    cube.run()
     image.blit()

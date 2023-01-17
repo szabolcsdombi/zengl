@@ -69,6 +69,6 @@ while window.update():
     image.clear()
     depth.clear()
     GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE)
-    monkey.render()
+    monkey.run()
     GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
     image.blit()

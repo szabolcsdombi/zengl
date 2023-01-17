@@ -228,5 +228,5 @@ while window.update():
     bone_buffer.write(bones)
     image.clear()
     depth.clear()
-    pipeline.render()
+    pipeline.run()
     image.blit()

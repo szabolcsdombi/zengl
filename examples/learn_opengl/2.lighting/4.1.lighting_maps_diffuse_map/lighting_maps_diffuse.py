@@ -69,6 +69,6 @@ while window.update():
 
     image.clear()
     depth.clear()
-    lighting_shader.render()
-    light_cube_shader.render()
+    lighting_shader.run()
+    light_cube_shader.run()
     image.blit()

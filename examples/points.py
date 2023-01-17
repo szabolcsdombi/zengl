@@ -87,5 +87,5 @@ while window.update():
     image.clear()
     ps.update()
     vertex_buffer.write(ps.get_buffer())
-    triangle.render()
+    triangle.run()
     image.blit()

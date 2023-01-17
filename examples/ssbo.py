@@ -125,5 +125,5 @@ state_buffer.write(b''.join(struct.pack(
 while window.update():
     image.clear()
     depth.clear()
-    pipeline.render()
+    pipeline.run()
     image.blit()

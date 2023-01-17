@@ -115,6 +115,6 @@ uniform_buffer.write(camera)
 while window.update():
     image.clear()
     depth.clear()
-    monkey.render()
-    monkey_wire.render()
+    monkey.run()
+    monkey_wire.run()
     image.blit()

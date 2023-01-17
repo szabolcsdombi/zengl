@@ -151,5 +151,5 @@ uniform_buffer.write(camera)
 while window.update():
     image.clear()
     depth.clear()
-    shape.render()
+    shape.run()
     image.blit()

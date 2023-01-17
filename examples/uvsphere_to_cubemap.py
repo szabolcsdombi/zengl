@@ -111,7 +111,7 @@ print('rendering')
 
 for face, camera in faces:
     uniform_buffer.write(camera)
-    sphere.render()
+    sphere.run()
     img = Image.frombuffer('RGBA', image.size, image.read(), 'raw', 'RGBA', 0, -1)
     img.save(f'downloads/skybox_{face}.png')
 

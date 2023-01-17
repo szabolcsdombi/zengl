@@ -164,7 +164,7 @@ canvas = ctx.pipeline(
 while window.update():
     image.clear()
     uniform_buffer.write(struct.pack('f', window.time))
-    canvas.render()
+    canvas.run()
     image.blit()
 
 '''

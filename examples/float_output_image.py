@@ -37,7 +37,7 @@ triangle = ctx.pipeline(
 )
 
 image.clear()
-triangle.render()
+triangle.run()
 
 plt.imshow(np.frombuffer(image.read(), 'f4').reshape(size))
 plt.show()

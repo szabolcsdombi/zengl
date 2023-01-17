@@ -74,5 +74,5 @@ while window.update():
     uniform_buffer.unmap()
 
     image.clear()
-    triangle.render()
+    triangle.run()
     image.blit()

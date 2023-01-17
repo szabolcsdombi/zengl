@@ -90,7 +90,7 @@ for i in range(samples):
     uniform_buffer.write(camera)
     temp_color.clear()
     temp_depth.clear()
-    texcoord_pipeline.render()
+    texcoord_pipeline.run()
     t = np.frombuffer(temp_color.read(), 'i4').reshape((size, size))
     ao[np.unique(t[t >= 0])] += 1.0
     bar.next()
@@ -166,5 +166,5 @@ while window.update():
     uniform_buffer.write(camera)
     image.clear()
     depth.clear()
-    render_pipeline.render()
+    render_pipeline.run()
     image.blit()

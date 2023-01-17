@@ -112,7 +112,7 @@ while running:
 
     image.clear()
     depth.clear()
-    crate.render()
+    crate.run()
     image.blit()
 
     pg.display.flip()

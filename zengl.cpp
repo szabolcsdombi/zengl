@@ -2337,7 +2337,7 @@ int Image_set_clear_value(Image * self, PyObject * value) {
     return 0;
 }
 
-PyObject * Pipeline_meth_render(Pipeline * self) {
+PyObject * Pipeline_meth_run(Pipeline * self) {
     const GLMethods & gl = self->ctx->gl;
     if (memcmp(&self->viewport, &self->ctx->current_viewport, sizeof(Viewport))) {
         gl.Viewport(self->viewport.x, self->viewport.y, self->viewport.width, self->viewport.height);
@@ -2423,7 +2423,7 @@ int Pipeline_set_framebuffer(Pipeline * self, PyObject * framebuffer) {
     return 0;
 }
 
-PyObject * Compute_meth_render(Compute * self) {
+PyObject * Compute_meth_run(Compute * self) {
     const GLMethods & gl = self->ctx->gl;
     bind_program(self->ctx, self->program->obj);
     if (self->descriptor_set->uniform_buffers.buffer_count) {
@@ -2852,7 +2852,7 @@ PyMemberDef Image_members[] = {
 };
 
 PyMethodDef Pipeline_methods[] = {
-    {"render", (PyCFunction)Pipeline_meth_render, METH_NOARGS},
+    {"run", (PyCFunction)Pipeline_meth_run, METH_NOARGS},
     {},
 };
 
@@ -2872,7 +2872,7 @@ PyMemberDef Pipeline_members[] = {
 };
 
 PyMethodDef Compute_methods[] = {
-    {"render", (PyCFunction)Compute_meth_render, METH_NOARGS},
+    {"run", (PyCFunction)Compute_meth_run, METH_NOARGS},
     {},
 };
 

@@ -72,5 +72,5 @@ image.write(np.array([
 
 while window.update():
     image.blit(temp)
-    scene.render()
+    scene.run()
     temp.blit()

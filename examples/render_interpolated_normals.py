@@ -182,7 +182,7 @@ while window.update():
 
     image.clear()
     depth.clear()
-    pipeline.render()
-    wireframe.render()
-    normals.render()
+    pipeline.run()
+    wireframe.run()
+    normals.run()
     image.blit()

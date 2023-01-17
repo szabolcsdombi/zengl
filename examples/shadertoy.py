@@ -98,6 +98,6 @@ while window.update():
         window.mouse[0], window.mouse[1], 0.0, 0.0,
         0.0, 0.0, 0.0, 0.0,
     ))
-    canvas.render()
+    canvas.run()
     image.blit()
     frame += 1

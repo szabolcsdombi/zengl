@@ -110,5 +110,5 @@ while window.update():
 
     image.clear()
     depth.clear()
-    model.render()
+    model.run()
     image.blit()

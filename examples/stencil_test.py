@@ -139,6 +139,6 @@ uniform_buffer.write(camera)
 while window.update():
     depth_stencil.clear()
     image.clear()
-    triangle.render()
-    monkey.render()
+    triangle.run()
+    monkey.run()
     image.blit()

@@ -72,5 +72,5 @@ scene = ctx.pipeline(
 while window.update():
     uniform_buffer.write(struct.pack('=2f2fi', *window.size, *window.mouse, 100))
     image.clear()
-    scene.render()
+    scene.run()
     image.blit()

@@ -116,5 +116,5 @@ while window.update():
     uniform_buffer.write(camera)
     image.clear()
     depth.clear()
-    boxgrid.render()
+    boxgrid.run()
     image.blit()

@@ -220,7 +220,7 @@ while window.update():
         fbo[1].clear()
 
     for pipeline in shadow_pipelines:
-        pipeline.render()
+        pipeline.run()
 
-    scene.render()
+    scene.run()
     image.blit()

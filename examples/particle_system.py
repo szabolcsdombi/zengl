@@ -146,8 +146,8 @@ while window.update():
     cy = cy * 0.95 + (window.mouse[1] / window.size[1] * 2.0 - 1.0) * 0.05
     uniform_buffer.write(np.array([cx, cy, 0.0, 0.0], 'f4'))
     image.clear()
-    simulate_pipeline.render()
-    render_pipeline.render()
+    simulate_pipeline.run()
+    render_pipeline.run()
     points[1].blit(points[0])
     points[2].blit(points[1])
     image.blit()

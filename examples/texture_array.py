@@ -125,5 +125,5 @@ uniform_buffer.write(struct.pack('3f4x', 3.0, 2.0, 1.5), offset=64)
 while window.update():
     image.clear()
     depth.clear()
-    crate.render()
+    crate.run()
     image.blit()

@@ -39,7 +39,7 @@ class ObjectManager:
         self.pipelines.append(model.pipeline(resource, self.framebuffer))
         return Instance(self, index)
 
-    def render(self):
+    def run(self):
         self.buffer.write(self.data)
         for pipeline in self.pipelines:
-            pipeline.render()
+            pipeline.run()

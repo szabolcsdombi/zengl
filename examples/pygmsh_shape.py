@@ -123,7 +123,7 @@ edges = ctx.pipeline(
 
 while window.update():
     image.clear()
-    mesh.render()
-    loops.render()
-    edges.render()
+    mesh.run()
+    loops.run()
+    edges.run()
     image.blit()

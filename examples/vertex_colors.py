@@ -87,5 +87,5 @@ while window.update():
 
     image.clear()
     depth.clear()
-    monkey.render()
+    monkey.run()
     image.blit(srgb=True)

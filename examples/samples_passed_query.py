@@ -65,7 +65,7 @@ while window.update():
     image.clear()
     uniform_buffer.write(struct.pack('ff8x', np.sin(window.time), np.cos(window.time)))
     GL.glBeginQuery(GL.GL_SAMPLES_PASSED, query)
-    pipeline.render()
+    pipeline.run()
     GL.glEndQuery(GL.GL_SAMPLES_PASSED)
     GL.glGetQueryObjectuiv(query, GL.GL_QUERY_RESULT, ctypes.byref(query_result))
     bar.max = max(bar.max, query_result.value)

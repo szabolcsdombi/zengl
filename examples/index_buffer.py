@@ -55,5 +55,5 @@ square = ctx.pipeline(
 
 while window.update():
     image.clear()
-    square.render()
+    square.run()
     image.blit()

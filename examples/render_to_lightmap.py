@@ -260,12 +260,12 @@ for i in range(samples):
     camera = zengl.camera((x * 5.0, y * 5.0, z * 5.0), (0.0, 0.0, 0.0), aspect=1.0, fov=45.0, near=1.0, far=10.0)
     uniform_buffer.write(camera)
     temp_depth.clear()
-    depth_pipeline.render()
-    texture_pipeline.render()
+    depth_pipeline.run()
+    texture_pipeline.run()
     bar.next()
 
 
-fill_pipeline.render()
+fill_pipeline.run()
 
 ao = np.frombuffer(texture.read(), 'f4').reshape(size, size)[::-1]
 Image.fromarray((ao * 255.0).astype('u1'), 'L').save('generated-ao-map.png')
@@ -277,5 +277,5 @@ while window.update():
 
     image.clear()
     depth.clear()
-    pipeline.render()
+    pipeline.run()
     image.blit()

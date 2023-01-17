@@ -120,5 +120,5 @@ while window.update():
     pose_buffer.write(next(pose_frame))
     image.clear()
     depth.clear()
-    monkey.render()
+    monkey.run()
     image.blit()

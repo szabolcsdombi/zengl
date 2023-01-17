@@ -54,5 +54,5 @@ pipeline = ctx.pipeline(
 )
 
 while window.update():
-    pipeline.render()
+    pipeline.run()
     image.blit()

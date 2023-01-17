@@ -97,7 +97,7 @@ pipeline = ctx.pipeline(
 
 depth.clear()
 image.clear()
-pipeline.render()
+pipeline.run()
 
 temp = ctx.image(image.size, 'rgba8unorm-srgb')
 image.blit(temp)

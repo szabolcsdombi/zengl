@@ -127,7 +127,7 @@ crate = ctx.pipeline(
 )
 
 texture_ms.clear()
-triangle.render()
+triangle.run()
 texture_ms.blit(texture)
 
 while window.update():
@@ -139,5 +139,5 @@ while window.update():
 
     image.clear()
     depth.clear()
-    crate.render()
+    crate.run()
     image.blit()

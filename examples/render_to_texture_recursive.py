@@ -111,18 +111,18 @@ while window.update():
 
     texture_1.clear()
     depth_1.clear()
-    crate_1.render()
+    crate_1.run()
 
     texture_2.clear()
     depth_2.clear()
-    crate_2.render()
+    crate_2.run()
 
     texture_3.clear()
     depth_3.clear()
-    crate_3.render()
+    crate_3.run()
 
     image.clear()
     depth.clear()
-    crate_4.render()
+    crate_4.run()
 
     image.blit()

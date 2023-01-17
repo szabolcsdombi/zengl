@@ -127,7 +127,7 @@ while True:
 
     image.clear()
     depth.clear()
-    cube.render()
+    cube.run()
     image.blit(output)
 
     out_frame = np.frombuffer(output.read(), 'u1').reshape(width, height, 4)[:, :, :3]

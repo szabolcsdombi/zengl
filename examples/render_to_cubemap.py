@@ -177,7 +177,7 @@ while window.update():
     for face, pipeline in scene_pipelines:
         face.clear()
         temp_depth.clear()
-        pipeline.render()
+        pipeline.run()
 
     t = window.time * 0.5
     eye = (np.cos(t) * 5.0, np.sin(t) * 5.0, np.sin(t * 0.7) * 2.0)
@@ -186,5 +186,5 @@ while window.update():
 
     image.clear()
     depth.clear()
-    shape.render()
+    shape.run()
     image.blit()

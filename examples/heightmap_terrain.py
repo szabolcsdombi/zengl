@@ -141,5 +141,5 @@ while window.update():
 
     image.clear()
     depth.clear()
-    terrain.render()
+    terrain.run()
     image.blit()
