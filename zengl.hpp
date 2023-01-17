@@ -507,14 +507,11 @@ struct StencilSettings {
     int reference;
 };
 
-union Viewport {
-    unsigned long long viewport;
-    struct {
-        short x;
-        short y;
-        short width;
-        short height;
-    };
+struct Viewport {
+    int x;
+    int y;
+    int width;
+    int height;
 };
 
 union ClearValue {
@@ -690,10 +687,10 @@ IntPair to_int_pair(PyObject * obj) {
 
 Viewport to_viewport(PyObject * obj) {
     Viewport res = {};
-    res.x = (short)PyLong_AsLong(PySequence_GetItem(obj, 0));
-    res.y = (short)PyLong_AsLong(PySequence_GetItem(obj, 1));
-    res.width = (short)PyLong_AsLong(PySequence_GetItem(obj, 2));
-    res.height = (short)PyLong_AsLong(PySequence_GetItem(obj, 3));
+    res.x = PyLong_AsLong(PySequence_GetItem(obj, 0));
+    res.y = PyLong_AsLong(PySequence_GetItem(obj, 1));
+    res.width = PyLong_AsLong(PySequence_GetItem(obj, 2));
+    res.height = PyLong_AsLong(PySequence_GetItem(obj, 3));
     return res;
 }
 

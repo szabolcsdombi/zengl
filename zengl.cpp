@@ -98,10 +98,10 @@ struct Context {
     PyObject * info;
     DescriptorSet * current_descriptor_set;
     GlobalSettings * current_global_settings;
-    Viewport viewport;
     int is_mask_default;
     int is_stencil_default;
     int is_blend_default;
+    Viewport current_viewport;
     int current_attachments;
     int current_framebuffer;
     int current_program;
@@ -912,12 +912,12 @@ Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwargs) {
     res->is_mask_default = false;
     res->is_stencil_default = false;
     res->is_blend_default = false;
+    res->current_viewport = {};
     res->current_framebuffer = -1;
     res->current_program = -1;
     res->current_vertex_array = -1;
     res->current_depth_mask = 0;
     res->current_stencil_mask = 0;
-    res->viewport = {};
     res->max_samples = max_samples;
     res->screen = 0;
     res->gl = gl;
@@ -1347,8 +1347,8 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         viewport_value = to_viewport(viewport);
     } else {
         PyObject * size = PyTuple_GetItem(attachments, 0);
-        viewport_value.width = (short)PyLong_AsLong(PyTuple_GetItem(size, 0));
-        viewport_value.height = (short)PyLong_AsLong(PyTuple_GetItem(size, 1));
+        viewport_value.width = PyLong_AsLong(PyTuple_GetItem(size, 0));
+        viewport_value.height = PyLong_AsLong(PyTuple_GetItem(size, 1));
     }
 
     GLObject * framebuffer = build_framebuffer(self, attachments);
@@ -1682,10 +1682,10 @@ PyObject * Context_meth_release(Context * self, PyObject * arg) {
 PyObject * Context_meth_reset(Context * self) {
     self->current_descriptor_set = NULL;
     self->current_global_settings = NULL;
-    self->viewport.viewport = 0xffffffffffffffffull;
     self->is_stencil_default = false;
     self->is_mask_default = false;
     self->is_blend_default = false;
+    self->current_viewport = {-1, -1, -1, -1};
     self->current_framebuffer = -1;
     self->current_program = -1;
     self->current_vertex_array = -1;
@@ -2320,9 +2320,9 @@ int Image_set_clear_value(Image * self, PyObject * value) {
 
 PyObject * Pipeline_meth_render(Pipeline * self) {
     const GLMethods & gl = self->ctx->gl;
-    if (self->viewport.viewport != self->ctx->viewport.viewport) {
+    if (memcmp(&self->viewport, &self->ctx->current_viewport, sizeof(Viewport))) {
         gl.Viewport(self->viewport.x, self->viewport.y, self->viewport.width, self->viewport.height);
-        self->ctx->viewport.viewport = self->viewport.viewport;
+        self->ctx->current_viewport = self->viewport;
     }
     bind_global_settings(self->ctx, self->global_settings);
     bind_framebuffer(self->ctx, self->framebuffer->obj);
