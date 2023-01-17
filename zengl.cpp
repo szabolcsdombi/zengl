@@ -1786,6 +1786,38 @@ PyObject * Buffer_meth_write(Buffer * self, PyObject * vargs, PyObject * kwargs)
     Py_RETURN_NONE;
 }
 
+PyObject * Buffer_meth_read(Buffer * self, PyObject * vargs, PyObject * kwargs) {
+    static char * keywords[] = {"size", "offset", NULL};
+
+    int size = self->size;
+    int offset = 0;
+
+    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "|ii", keywords, &size, &offset)) {
+        return NULL;
+    }
+
+    const bool already_mapped = self->mapped;
+    const bool invalid_offset = offset < 0 || offset > self->size;
+    const bool invalid_size = size < 0 || offset + size > self->size;
+
+    if (already_mapped || invalid_offset || invalid_size) {
+        if (already_mapped) {
+            PyErr_Format(PyExc_RuntimeError, "already mapped");
+        } else if (invalid_offset) {
+            PyErr_Format(PyExc_ValueError, "invalid offset");
+        } else if (invalid_size) {
+            PyErr_Format(PyExc_ValueError, "invalid size");
+        }
+        return NULL;
+    }
+
+    const GLMethods & gl = self->ctx->gl;
+
+    PyObject * res = PyBytes_FromStringAndSize(NULL, size);
+    gl.GetNamedBufferSubData(self->buffer, offset, size, PyBytes_AsString(res));
+    return res;
+}
+
 PyObject * Buffer_meth_map(Buffer * self, PyObject * vargs, PyObject * kwargs) {
     static char * keywords[] = {"size", "offset", "discard", NULL};
 
@@ -2881,6 +2913,7 @@ PyMemberDef Context_members[] = {
 
 PyMethodDef Buffer_methods[] = {
     {"write", (PyCFunction)Buffer_meth_write, METH_VARARGS | METH_KEYWORDS},
+    {"read", (PyCFunction)Buffer_meth_read, METH_VARARGS | METH_KEYWORDS},
     {"map", (PyCFunction)Buffer_meth_map, METH_VARARGS | METH_KEYWORDS},
     {"unmap", (PyCFunction)Buffer_meth_unmap, METH_NOARGS},
     {},
