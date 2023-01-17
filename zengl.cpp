@@ -2513,6 +2513,55 @@ int Compute_set_group_count(Compute * self, PyObject * value) {
     return 0;
 }
 
+PyObject * inspect_descriptor_set(DescriptorSet * set) {
+    PyObject * res = PyList_New(0);
+    for (int i = 0; i < set->uniform_buffers.buffer_count; ++i) {
+        PyObject * obj = Py_BuildValue(
+            "{sssisisisi}",
+            "type", "uniform_buffer",
+            "binding", i,
+            "buffer", set->uniform_buffers.buffers[i],
+            "offset", set->uniform_buffers.buffer_offsets[i],
+            "size", set->uniform_buffers.buffer_sizes[i]
+        );
+        PyList_Append(res, obj);
+        Py_DECREF(obj);
+    }
+    for (int i = 0; i < set->storage_buffers.buffer_count; ++i) {
+        PyObject * obj = Py_BuildValue(
+            "{sssisisisi}",
+            "type", "storage_buffer",
+            "buffer", set->storage_buffers.buffers[i],
+            "offset", set->storage_buffers.buffer_offsets[i],
+            "size", set->storage_buffers.buffer_sizes[i]
+        );
+        PyList_Append(res, obj);
+        Py_DECREF(obj);
+    }
+    for (int i = 0; i < set->samplers.sampler_count; ++i) {
+        PyObject * obj = Py_BuildValue(
+            "{sssisisi}",
+            "type", "sampler",
+            "binding", i,
+            "sampler", set->samplers.samplers[i],
+            "texture", set->samplers.textures[i]
+        );
+        PyList_Append(res, obj);
+        Py_DECREF(obj);
+    }
+    for (int i = 0; i < set->images.image_count; ++i) {
+        PyObject * obj = Py_BuildValue(
+            "{sssisisi}",
+            "type", "image",
+            "binding", i,
+            "image", set->images.images[i]
+        );
+        PyList_Append(res, obj);
+        Py_DECREF(obj);
+    }
+    return res;
+}
+
 PyObject * meth_inspect(PyObject * self, PyObject * arg) {
     ModuleState * module_state = (ModuleState *)PyModule_GetState(self);
     if (Py_TYPE(arg) == module_state->Buffer_type) {
@@ -2525,27 +2574,23 @@ PyObject * meth_inspect(PyObject * self, PyObject * arg) {
         return Py_BuildValue("{sssisi}", "type", gltype, gltype, image->image, "framebuffer", framebuffer);
     } else if (Py_TYPE(arg) == module_state->Pipeline_type) {
         Pipeline * pipeline = (Pipeline *)arg;
-        // PyObject * buffers = PyList_New(pipeline->descriptor_set_buffers->buffers); // TODO: restore
-        // for (int i = 0; i < pipeline->descriptor_set_buffers->buffers; ++i) {
-        //     int buffer = pipeline->descriptor_set_buffers->binding[i].buffer;
-        //     PyObject * obj = Py_BuildValue("{sssi}", "type", "buffer", "buffer", buffer);
-        //     PyList_SetItem(buffers, i, obj);
-        // }
-        // PyObject * samplers = PyList_New(pipeline->descriptor_set_images->samplers); // TODO: restore
-        // for (int i = 0; i < pipeline->descriptor_set_images->samplers; ++i) {
-        //     int sampler = pipeline->descriptor_set_images->binding[i].sampler;
-        //     int image = pipeline->descriptor_set_images->binding[i].image;
-        //     PyObject * obj = Py_BuildValue("{sssisi}", "type", "sampler", "sampler", sampler, "texture", image);
-        //     PyList_SetItem(samplers, i, obj);
-        // }
         return Py_BuildValue(
-            "{sssisisi}", // TODO: restore sNsN
+            "{sssNsNsisisi}",
             "type", "pipeline",
-            // "buffers", buffers, // TODO: restore
-            // "samplers", samplers,
+            "interface", pipeline->program->extra,
+            "resources", inspect_descriptor_set(pipeline->descriptor_set),
             "framebuffer", pipeline->framebuffer->obj,
             "vertex_array", pipeline->vertex_array->obj,
             "program", pipeline->program->obj
+        );
+    } else if (Py_TYPE(arg) == module_state->Compute_type) {
+        Compute * compute = (Compute *)arg;
+        return Py_BuildValue(
+            "{sssNsNsi}",
+            "type", "compute",
+            "interface", compute->program->extra,
+            "resources", inspect_descriptor_set(compute->descriptor_set),
+            "program", compute->program->obj
         );
     }
     Py_RETURN_NONE;
