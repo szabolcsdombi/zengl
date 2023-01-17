@@ -129,6 +129,7 @@ struct Image {
     GCHeader * gc_next;
     Context * ctx;
     PyObject * size;
+    PyObject * format;
     GLObject * framebuffer;
     PyObject * faces;
     ClearValue clear_value;
@@ -1008,7 +1009,7 @@ Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * kwargs) 
 
     int width;
     int height;
-    const char * format_str;
+    PyObject * format;
     PyObject * data = Py_None;
     int samples = 1;
     int array = 0;
@@ -1020,11 +1021,12 @@ Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * kwargs) 
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
-        "(ii)s|O$iiiOpi",
+        "(ii)O!|O$iiiOpi",
         keywords,
         &width,
         &height,
-        &format_str,
+        &PyUnicode_Type,
+        &format,
         &data,
         &samples,
         &array,
@@ -1086,7 +1088,7 @@ Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * kwargs) 
         samples = self->max_samples;
     }
 
-    ImageFormat fmt = get_image_format(format_str);
+    ImageFormat fmt = get_image_format(PyUnicode_AsUTF8(format));
 
     if (!fmt.type) {
         PyErr_Format(PyExc_ValueError, "invalid image format");
@@ -1148,6 +1150,7 @@ Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * kwargs) 
     res->gc_next->gc_prev = (GCHeader *)res;
     res->ctx = (Context *)new_ref(self);
     res->size = Py_BuildValue("(ii)", width, height);
+    res->format = (PyObject *)new_ref(format);
     res->faces = PyDict_New();
     res->clear_value = clear_value;
     res->fmt = fmt;
@@ -2796,6 +2799,7 @@ PyGetSetDef Image_getset[] = {
 
 PyMemberDef Image_members[] = {
     {"size", T_OBJECT_EX, offsetof(Image, size), READONLY, NULL},
+    {"format", T_OBJECT_EX, offsetof(Image, format), READONLY, NULL},
     {"samples", T_INT, offsetof(Image, samples), READONLY, NULL},
     {"flags", T_INT, offsetof(Image, fmt.flags), READONLY, NULL},
     {},
