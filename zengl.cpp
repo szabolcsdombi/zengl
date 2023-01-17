@@ -1283,13 +1283,11 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         return NULL;
     }
 
-    if (!vertex_shader || !fragment_shader || !framebuffer_images) { // framebuffer_images = ()
+    if (!vertex_shader || !fragment_shader) {
         if (!vertex_shader) {
             PyErr_Format(PyExc_TypeError, "no vertex_shader was specified");
         } else if (!fragment_shader) {
             PyErr_Format(PyExc_TypeError, "no fragment_shader was specified");
-        } else if (!framebuffer_images) {
-            PyErr_Format(PyExc_TypeError, "no framebuffer was specified");
         }
         return NULL;
     }
