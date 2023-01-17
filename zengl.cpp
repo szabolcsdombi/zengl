@@ -28,20 +28,20 @@ struct GLObject {
     PyObject * extra;
 };
 
-struct DescriptorSetBuffers1 {
+struct DescriptorSetBuffers {
     int buffer_count;
     unsigned buffers[MAX_UNIFORM_BUFFER_BINDINGS];
     sizeiptr buffer_offsets[MAX_UNIFORM_BUFFER_BINDINGS];
     sizeiptr buffer_sizes[MAX_UNIFORM_BUFFER_BINDINGS];
 };
 
-struct DescriptorSetSamplers1 {
+struct DescriptorSetSamplers {
     int sampler_count;
     unsigned samplers[MAX_SAMPLER_BINDINGS];
     unsigned textures[MAX_SAMPLER_BINDINGS];
 };
 
-struct DescriptorSetImages1 {
+struct DescriptorSetImages {
     int image_count;
     unsigned images[MAX_SAMPLER_BINDINGS];
 };
@@ -49,10 +49,10 @@ struct DescriptorSetImages1 {
 struct DescriptorSet {
     PyObject_HEAD
     int uses;
-    DescriptorSetBuffers1 uniform_buffers;
-    DescriptorSetBuffers1 storage_buffers;
-    DescriptorSetSamplers1 samplers;
-    DescriptorSetImages1 images;
+    DescriptorSetBuffers uniform_buffers;
+    DescriptorSetBuffers storage_buffers;
+    DescriptorSetSamplers samplers;
+    DescriptorSetImages images;
 };
 
 struct BlendState {
@@ -436,8 +436,8 @@ GLObject * build_sampler(Context * self, PyObject * params) {
     return res;
 }
 
-DescriptorSetBuffers1 build_descriptor_set_buffers(Context * self, PyObject * bindings) {
-    DescriptorSetBuffers1 res = {};
+DescriptorSetBuffers build_descriptor_set_buffers(Context * self, PyObject * bindings) {
+    DescriptorSetBuffers res = {};
 
     int length = (int)PyTuple_Size(bindings);
     PyObject ** seq = PySequence_Fast_ITEMS(bindings);
@@ -456,8 +456,8 @@ DescriptorSetBuffers1 build_descriptor_set_buffers(Context * self, PyObject * bi
     return res;
 }
 
-DescriptorSetSamplers1 build_descriptor_set_samplers(Context * self, PyObject * bindings) {
-    DescriptorSetSamplers1 res = {};
+DescriptorSetSamplers build_descriptor_set_samplers(Context * self, PyObject * bindings) {
+    DescriptorSetSamplers res = {};
 
     int length = (int)PyTuple_Size(bindings);
     PyObject ** seq = PySequence_Fast_ITEMS(bindings);
@@ -473,8 +473,8 @@ DescriptorSetSamplers1 build_descriptor_set_samplers(Context * self, PyObject * 
     return res;
 }
 
-DescriptorSetImages1 build_descriptor_set_images(Context * self, PyObject * bindings) {
-    DescriptorSetImages1 res = {};
+DescriptorSetImages build_descriptor_set_images(Context * self, PyObject * bindings) {
+    DescriptorSetImages res = {};
 
     int length = (int)PyTuple_Size(bindings);
     PyObject ** seq = PySequence_Fast_ITEMS(bindings);
