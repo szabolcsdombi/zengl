@@ -342,7 +342,7 @@ def settings(cull_face, depth, stencil, blend, attachments):
     return tuple(res)
 
 
-def program(vertex_shader, fragment_shader, includes):
+def program(includes, *shaders):
     def include(match):
         name = match.group(1)
         content = includes.get(name)
@@ -350,19 +350,18 @@ def program(vertex_shader, fragment_shader, includes):
             raise KeyError(f'cannot include "{name}"')
         return content
 
-    vert = textwrap.dedent(vertex_shader).strip()
-    vert = re.sub(r'#include\s+"([^"]+)"', include, vert)
-    vert = vert.encode().replace(b'\r', b'')
+    res = []
+    for shader, type in shaders:
+        shader = textwrap.dedent(shader).strip()
+        shader = re.sub(r'#include\s+"([^"]+)"', include, shader)
+        shader = shader.encode().replace(b'\r', b'')
+        res.append((shader, type))
 
-    frag = textwrap.dedent(fragment_shader).strip()
-    frag = re.sub(r'#include\s+"([^"]+)"', include, frag)
-    frag = frag.encode().replace(b'\r', b'')
-
-    return (vert, 0x8b31), (frag, 0x8b30)
+    return tuple(res)
 
 
 def compile_error(shader: bytes, shader_type: int, log: bytes):
-    name = {0x8b31: 'Vertex Shader', 0x8b30: 'Fragment Shader'}[shader_type]
+    name = {0x8b31: 'Vertex Shader', 0x8b30: 'Fragment Shader', 0x91b9: 'Compute Shader'}[shader_type]
     log = log.rstrip(b'\x00').decode()
     raise ValueError(f'{name} Error\n\n{log}')
 

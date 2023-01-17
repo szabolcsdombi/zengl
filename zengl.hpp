@@ -83,6 +83,8 @@ typedef int sizeiptr;
 #define GL_MAX_VERTEX_ATTRIBS 0x8869
 #define GL_MAX_TEXTURE_IMAGE_UNITS 0x8872
 #define GL_FRAGMENT_SHADER 0x8B30
+#define GL_FRAGMENT_SHADER 0x8B30
+#define GL_VERTEX_SHADER 0x8B31
 #define GL_VERTEX_SHADER 0x8B31
 #define GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS 0x8B4D
 #define GL_COMPILE_STATUS 0x8B81
@@ -155,6 +157,7 @@ typedef int sizeiptr;
 #define GL_TEXTURE_CUBE_MAP_SEAMLESS 0x884F
 #define GL_DRAW_INDIRECT_BUFFER 0x8F3F
 #define GL_PRIMITIVE_RESTART_FIXED_INDEX 0x8D69
+#define GL_COMPUTE_SHADER 0x91B9
 #define GL_DISPATCH_INDIRECT_BUFFER 0x90EE
 #define GL_UNIFORM 0x92E1
 #define GL_UNIFORM_BLOCK 0x92E2
@@ -258,6 +261,8 @@ typedef void (GLAPI * glProgramUniformMatrix2x4fvProc)(unsigned program, int loc
 typedef void (GLAPI * glProgramUniformMatrix4x2fvProc)(unsigned program, int location, int count, unsigned char transpose, const float * value);
 typedef void (GLAPI * glProgramUniformMatrix3x4fvProc)(unsigned program, int location, int count, unsigned char transpose, const float * value);
 typedef void (GLAPI * glProgramUniformMatrix4x3fvProc)(unsigned program, int location, int count, unsigned char transpose, const float * value);
+typedef void (GLAPI * glDispatchComputeProc)(unsigned num_groups_x, unsigned num_groups_y, unsigned num_groups_z);
+typedef void (GLAPI * glDispatchComputeIndirectProc)(sizeiptr indirect);
 typedef void (GLAPI * glMultiDrawArraysIndirectProc)(unsigned mode, const void * indirect, int drawcount, int stride);
 typedef void (GLAPI * glMultiDrawElementsIndirectProc)(unsigned mode, unsigned type, const void * indirect, int drawcount, int stride);
 typedef void (GLAPI * glGetProgramInterfaceivProc)(unsigned program, unsigned programInterface, unsigned pname, int * params);
@@ -396,6 +401,8 @@ struct GLMethods {
     glProgramUniformMatrix4x2fvProc ProgramUniformMatrix4x2fv;
     glProgramUniformMatrix3x4fvProc ProgramUniformMatrix3x4fv;
     glProgramUniformMatrix4x3fvProc ProgramUniformMatrix4x3fv;
+    glDispatchComputeProc DispatchCompute;
+    glDispatchComputeIndirectProc DispatchComputeIndirect;
     glMultiDrawArraysIndirectProc MultiDrawArraysIndirect;
     glMultiDrawElementsIndirectProc MultiDrawElementsIndirect;
     glGetProgramInterfaceivProc GetProgramInterfaceiv;
@@ -804,6 +811,8 @@ GLMethods load_gl(PyObject * loader) {
     load(ProgramUniformMatrix4x2fv);
     load(ProgramUniformMatrix3x4fv);
     load(ProgramUniformMatrix4x3fv);
+    load(DispatchCompute);
+    load(DispatchComputeIndirect);
     load(MultiDrawArraysIndirect);
     load(MultiDrawElementsIndirect);
     load(GetProgramInterfaceiv);
