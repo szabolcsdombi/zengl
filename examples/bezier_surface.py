@@ -177,10 +177,6 @@ surface_pipeline = ctx.pipeline(
             'buffer': control_points_buffer,
         },
     ],
-    polygon_offset={
-        'factor': 1.0,
-        'units': 0.0,
-    },
     framebuffer=[image, depth],
     topology='triangle_strip',
     cull_face='back',
@@ -580,11 +576,13 @@ points_pipeline_seethrough = ctx.pipeline(
         'write': False,
         'func': 'greater',
     },
-    blending={
-        'enable': True,
-        'src_color': 'src_alpha',
-        'dst_color': 'one_minus_src_alpha',
-    },
+    blend=[
+        {
+            'enable': True,
+            'src_color': 'src_alpha',
+            'dst_color': 'one_minus_src_alpha',
+        },
+    ],
     framebuffer=[image, depth],
     topology='triangles',
     cull_face='back',
@@ -718,11 +716,13 @@ lines_pipeline_seethrough = ctx.pipeline(
         'write': False,
         'func': 'greater',
     },
-    blending={
-        'enable': True,
-        'src_color': 'src_alpha',
-        'dst_color': 'one_minus_src_alpha',
-    },
+    blend=[
+        {
+            'enable': True,
+            'src_color': 'src_alpha',
+            'dst_color': 'one_minus_src_alpha',
+        },
+    ],
     framebuffer=[image, depth],
     topology='triangles',
     cull_face='back',
