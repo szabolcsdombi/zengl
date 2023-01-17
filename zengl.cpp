@@ -755,17 +755,15 @@ GLObject * compile_compute_program(Context * self, PyObject * includes, PyObject
     int linked = false;
     gl.GetProgramiv(program, GL_LINK_STATUS, &linked);
 
-    // TODO: restore
-    // if (!linked) {
-    //     int log_size = 0;
-    //     gl.GetProgramiv(program, GL_INFO_LOG_LENGTH, &log_size);
-    //     PyObject * log_text = PyBytes_FromStringAndSize(NULL, log_size);
-    //     gl.GetProgramInfoLog(program, log_size, &log_size, PyBytes_AsString(log_text));
-    //     PyObject * vert_code = PyTuple_GetItem(vert_pair, 0);
-    //     PyObject * frag_code = PyTuple_GetItem(frag_pair, 1);
-    //     Py_XDECREF(PyObject_CallMethod(self->module_state->helper, "linker_error", "(OON)", vert_code, frag_code, log_text));
-    //     return NULL;
-    // }
+    if (!linked) {
+        int log_size = 0;
+        gl.GetProgramiv(program, GL_INFO_LOG_LENGTH, &log_size);
+        PyObject * log_text = PyBytes_FromStringAndSize(NULL, log_size);
+        gl.GetProgramInfoLog(program, log_size, &log_size, PyBytes_AsString(log_text));
+        PyObject * compute_code = PyTuple_GetItem(compute_pair, 0);
+        Py_XDECREF(PyObject_CallMethod(self->module_state->helper, "compute_linker_error", "(ON)", compute_code, log_text));
+        return NULL;
+    }
 
     GLObject * res = PyObject_New(GLObject, self->module_state->GLObject_type);
     res->obj = program;

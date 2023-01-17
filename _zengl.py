@@ -373,6 +373,11 @@ def linker_error(vertex_shader: bytes, fragment_shader: bytes, log: bytes):
     raise ValueError(f'Linker Error\n\n{log}')
 
 
+def compute_linker_error(compute_shader: bytes, log: bytes):
+    log = log.rstrip(b'\x00').decode()
+    raise ValueError(f'Linker Error\n\n{log}')
+
+
 def flatten(iterable):
     try:
         for x in iterable:
