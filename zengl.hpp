@@ -526,6 +526,18 @@ struct IntPair {
     int y;
 };
 
+bool is_uniform_variable(int t) {
+    return (0x1404 <= t && t <= 0x8B5C) || (0x8B65 <= t && t <= 0x8B6A) || (0x8DC6 <= t && t <= 0x8DC8) || (0x8F46 <= t && t <= 0x8FFE);
+}
+
+bool is_uniform_sampler(int t) {
+    return (0x8B5D <= t && t <= 0x8B64) || (0x8DC0 <= t && t <= 0x8DC5) || (0x8DC9 <= t && t <= 0x8DD8) || (0x900C <= t && t <= 0x900F) || (0x9108 <= t && t <= 0x910D);
+}
+
+bool is_uniform_image(int t) {
+    return 0x904C <= t && t <= 0x906C;
+}
+
 VertexFormat get_vertex_format(const char * format) {
     if (!strcmp(format, "uint8x2")) return {GL_UNSIGNED_BYTE, 2, false, true};
     if (!strcmp(format, "uint8x4")) return {GL_UNSIGNED_BYTE, 4, false, true};
