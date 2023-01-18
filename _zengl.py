@@ -447,8 +447,8 @@ def validate(interface, resources, vertex_buffers, attachments, limits):
         extra = provided - expected
         if missing:
             for location in sorted(missing):
-                attribute = next(obj for obj in interface if obj['type'] == 'input' and obj['location'] == location)
-                name = clean_glsl_name(attribute['name'])
+                obj = next(obj for obj in interface if obj['type'] == 'input' and obj['location'] == location)
+                name = clean_glsl_name(obj['name'])
                 errors.append(f'Missing vertex buffer binding for "{name}" with location = {location}')
         if extra:
             for location in sorted(extra):
@@ -461,8 +461,8 @@ def validate(interface, resources, vertex_buffers, attachments, limits):
         extra = provided - expected
         if missing:
             for location in sorted(missing):
-                attachment = next(obj for obj in interface if obj['type'] == 'output' and obj['location'] == location)
-                name = clean_glsl_name(attachment['name'])
+                obj = next(obj for obj in interface if obj['type'] == 'output' and obj['location'] == location)
+                name = clean_glsl_name(obj['name'])
                 errors.append(f'Missing framebuffer attachment for "{name}" with location = {location}')
         if extra:
             for location in sorted(extra):
@@ -475,8 +475,8 @@ def validate(interface, resources, vertex_buffers, attachments, limits):
         extra = provided - expected
         if missing:
             for binding in sorted(missing):
-                uniform_buffer = next(obj for obj in interface if obj['type'] == 'uniform_buffer' and obj['binding'] == binding)
-                name = clean_glsl_name(uniform_buffer['name'])
+                obj = next(obj for obj in interface if obj['type'] == 'uniform_buffer' and obj['binding'] == binding)
+                name = clean_glsl_name(obj['name'])
                 errors.append(f'Missing uniform buffer binding for "{name}" with binding = {binding}')
         if extra:
             for binding in sorted(extra):
@@ -489,8 +489,8 @@ def validate(interface, resources, vertex_buffers, attachments, limits):
         extra = provided - expected
         if missing:
             for binding in sorted(missing):
-                storage_buffer = next(obj for obj in interface if obj['type'] == 'storage_buffer' and obj['binding'] == binding)
-                name = clean_glsl_name(storage_buffer['name'])
+                obj = next(obj for obj in interface if obj['type'] == 'storage_buffer' and obj['binding'] == binding)
+                name = clean_glsl_name(obj['name'])
                 errors.append(f'Missing storage buffer binding for "{name}" with binding = {binding}')
         if extra:
             for binding in sorted(extra):
@@ -503,8 +503,8 @@ def validate(interface, resources, vertex_buffers, attachments, limits):
         extra = provided - expected
         if missing:
             for binding in sorted(missing):
-                sampler = next(obj for obj in interface if obj['type'] == 'sampler' and obj['binding'] == binding)
-                name = clean_glsl_name(sampler['name'])
+                obj = next(obj for obj in interface if obj['type'] == 'sampler' and obj['binding'] == binding)
+                name = clean_glsl_name(obj['name'])
                 errors.append(f'Missing sampler binding for "{name}" with binding = {binding}')
         if extra:
             for binding in sorted(extra):
@@ -517,8 +517,8 @@ def validate(interface, resources, vertex_buffers, attachments, limits):
         extra = provided - expected
         if missing:
             for binding in sorted(missing):
-                image = next(obj for obj in interface if obj['type'] == 'image' and obj['binding'] == binding)
-                name = clean_glsl_name(image['name'])
+                obj = next(obj for obj in interface if obj['type'] == 'image' and obj['binding'] == binding)
+                name = clean_glsl_name(obj['name'])
                 errors.append(f'Missing image binding for "{name}" with binding = {binding}')
         if extra:
             for binding in sorted(extra):
