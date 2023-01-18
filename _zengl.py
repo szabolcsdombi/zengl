@@ -439,7 +439,7 @@ def validate(interface, resources, vertex_buffers, attachments, limits):
                 errors.append(f'Duplicate vertex attribute entry with location = {location}')
             unique.discard(location)
 
-    expected = set(obj['location'] for obj in interface if obj['type'] == 'input')
+    expected = set(obj['location'] + i for obj in interface if obj['type'] == 'input' for i in range(obj['size']))
     provided = set(obj['location'] for obj in vertex_buffers)
 
     if expected ^ provided:
@@ -454,7 +454,7 @@ def validate(interface, resources, vertex_buffers, attachments, limits):
             for location in sorted(extra):
                 errors.append(f'Unknown vertex attribute with location = {location}')
 
-    expected = set(obj['location'] for obj in interface if obj['type'] == 'output')
+    expected = set(obj['location'] + i for obj in interface if obj['type'] == 'output' for i in range(obj['size']))
     provided = set(range(len(attachments)))
     if expected ^ provided:
         missing = expected - provided
@@ -496,7 +496,7 @@ def validate(interface, resources, vertex_buffers, attachments, limits):
             for binding in sorted(extra):
                 errors.append(f'Unknown storage buffer with binding = {binding}')
 
-    expected = set(obj['binding'] for obj in interface if obj['type'] == 'sampler')
+    expected = set(obj['binding'] + i for obj in interface if obj['type'] == 'sampler' for i in range(obj['size']))
     provided = set(obj['binding'] for obj in resources if obj['type'] == 'sampler')
     if expected ^ provided:
         missing = expected - provided
@@ -510,7 +510,7 @@ def validate(interface, resources, vertex_buffers, attachments, limits):
             for binding in sorted(extra):
                 errors.append(f'Unknown sampler with binding = {binding}')
 
-    expected = set(obj['binding'] for obj in interface if obj['type'] == 'image')
+    expected = set(obj['binding'] + i for obj in interface if obj['type'] == 'image' for i in range(obj['size']))
     provided = set(obj['binding'] for obj in resources if obj['type'] == 'image')
     if expected ^ provided:
         missing = expected - provided

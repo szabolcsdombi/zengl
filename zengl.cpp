@@ -694,13 +694,13 @@ PyObject * program_interface(Context * self, int program) {
         if (is_uniform_image(props[0])) {
             int binding = -1;
             gl.GetUniformiv(program, props[2], &binding);
-            PyObject * obj = Py_BuildValue("{sssssisi}", "type", "image", "name", name, "binding", binding, "gltype", props[0]);
+            PyObject * obj = Py_BuildValue("{sssssisisi}", "type", "image", "name", name, "binding", binding, "gltype", props[0], "size", props[1]);
             PyList_Append(res, obj);
             Py_DECREF(obj);
         } else if (is_uniform_sampler(props[0])) {
             int binding = -1;
             gl.GetUniformiv(program, props[2], &binding);
-            PyObject * obj = Py_BuildValue("{sssssisi}", "type", "sampler", "name", name, "binding", binding, "gltype", props[0]);
+            PyObject * obj = Py_BuildValue("{sssssisisi}", "type", "sampler", "name", name, "binding", binding, "gltype", props[0], "size", props[1]);
             PyList_Append(res, obj);
             Py_DECREF(obj);
         } else {
@@ -741,7 +741,7 @@ PyObject * program_interface(Context * self, int program) {
         if (props[2] < 0) {
             continue;
         }
-        PyObject * obj = Py_BuildValue("{sssssi}", "type", "input", "name", name, "location", props[2]);
+        PyObject * obj = Py_BuildValue("{sssssisi}", "type", "input", "name", name, "location", props[2], "size", props[1]);
         PyList_Append(res, obj);
         Py_DECREF(obj);
     }
@@ -755,7 +755,7 @@ PyObject * program_interface(Context * self, int program) {
         if (props[2] < 0) {
             continue;
         }
-        PyObject * obj = Py_BuildValue("{sssssi}", "type", "output", "name", name, "location", props[2]);
+        PyObject * obj = Py_BuildValue("{sssssisi}", "type", "output", "name", name, "location", props[2], "size", props[1]);
         PyList_Append(res, obj);
         Py_DECREF(obj);
     }
