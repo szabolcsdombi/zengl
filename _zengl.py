@@ -386,16 +386,15 @@ def flatten(iterable):
         yield iterable
 
 
-def clean_uniform_name(uniform):
-    name = uniform['name']
-    if name.endswith('[0]') and uniform['size'] > 1:
+def clean_glsl_name(name):
+    if name.endswith('[0]') and name['size'] > 1:
         return name[:-3]
     return name
 
 
 def uniforms(interface, values):
     data = bytearray()
-    uniform_map = {clean_uniform_name(obj): obj for obj in interface if obj['type'] == 'uniform'}
+    uniform_map = {clean_glsl_name(obj['name']): obj for obj in interface if obj['type'] == 'uniform'}
 
     for name, value in values.items():
         if name not in uniform_map:
@@ -419,5 +418,113 @@ def uniforms(interface, values):
     return list(values), data
 
 
-def validate(interface, vertex_buffers, resources, limits):
+def validate(interface, resources, vertex_buffers, attachments, limits):
+    errors = []
+
+    unique = set((obj['type'], obj['binding']) for obj in resources)
+    if len(resources) != len(unique):
+        for obj in resources:
+            key = (obj['type'], obj['binding'])
+            if key not in unique:
+                binding = obj['binding']
+                rtype = obj['type']
+                errors.append(f'Duplicate resource entry for "{rtype}" with binding = {binding}')
+            unique.discard(key)
+
+    unique = set(obj['location'] for obj in vertex_buffers)
+    if len(vertex_buffers) != len(unique):
+        for obj in vertex_buffers:
+            location = obj['location']
+            if location not in unique:
+                errors.append(f'Duplicate vertex attribute entry with location = {location}')
+            unique.discard(location)
+
+    expected = set(obj['location'] for obj in interface if obj['type'] == 'input')
+    provided = set(obj['location'] for obj in vertex_buffers)
+
+    if expected ^ provided:
+        missing = expected - provided
+        extra = provided - expected
+        if missing:
+            for location in sorted(missing):
+                attribute = next(obj for obj in interface if obj['type'] == 'input' and obj['location'] == location)
+                name = clean_glsl_name(attribute['name'])
+                errors.append(f'Missing vertex buffer binding for "{name}" with location = {location}')
+        if extra:
+            for location in sorted(extra):
+                errors.append(f'Unknown vertex attribute with location = {location}')
+
+    expected = set(obj['location'] for obj in interface if obj['type'] == 'output')
+    provided = set(range(len(attachments)))
+    if expected ^ provided:
+        missing = expected - provided
+        extra = provided - expected
+        if missing:
+            for location in sorted(missing):
+                attachment = next(obj for obj in interface if obj['type'] == 'output' and obj['location'] == location)
+                name = clean_glsl_name(attachment['name'])
+                errors.append(f'Missing framebuffer attachment for "{name}" with location = {location}')
+        if extra:
+            for location in sorted(extra):
+                errors.append(f'Unknown framebuffer attachment with location = {location}')
+
+    expected = set(obj['binding'] for obj in interface if obj['type'] == 'uniform_buffer')
+    provided = set(obj['binding'] for obj in resources if obj['type'] == 'uniform_buffer')
+    if expected ^ provided:
+        missing = expected - provided
+        extra = provided - expected
+        if missing:
+            for binding in sorted(missing):
+                uniform_buffer = next(obj for obj in interface if obj['type'] == 'uniform_buffer' and obj['binding'] == binding)
+                name = clean_glsl_name(uniform_buffer['name'])
+                errors.append(f'Missing uniform buffer binding for "{name}" with binding = {binding}')
+        if extra:
+            for binding in sorted(extra):
+                errors.append(f'Unknown uniform buffer with binding = {binding}')
+
+    expected = set(obj['binding'] for obj in interface if obj['type'] == 'storage_buffer')
+    provided = set(obj['binding'] for obj in resources if obj['type'] == 'storage_buffer')
+    if expected ^ provided:
+        missing = expected - provided
+        extra = provided - expected
+        if missing:
+            for binding in sorted(missing):
+                storage_buffer = next(obj for obj in interface if obj['type'] == 'storage_buffer' and obj['binding'] == binding)
+                name = clean_glsl_name(storage_buffer['name'])
+                errors.append(f'Missing storage buffer binding for "{name}" with binding = {binding}')
+        if extra:
+            for binding in sorted(extra):
+                errors.append(f'Unknown storage buffer with binding = {binding}')
+
+    expected = set(obj['binding'] for obj in interface if obj['type'] == 'sampler')
+    provided = set(obj['binding'] for obj in resources if obj['type'] == 'sampler')
+    if expected ^ provided:
+        missing = expected - provided
+        extra = provided - expected
+        if missing:
+            for binding in sorted(missing):
+                sampler = next(obj for obj in interface if obj['type'] == 'sampler' and obj['binding'] == binding)
+                name = clean_glsl_name(sampler['name'])
+                errors.append(f'Missing sampler binding for "{name}" with binding = {binding}')
+        if extra:
+            for binding in sorted(extra):
+                errors.append(f'Unknown sampler with binding = {binding}')
+
+    expected = set(obj['binding'] for obj in interface if obj['type'] == 'image')
+    provided = set(obj['binding'] for obj in resources if obj['type'] == 'image')
+    if expected ^ provided:
+        missing = expected - provided
+        extra = provided - expected
+        if missing:
+            for binding in sorted(missing):
+                image = next(obj for obj in interface if obj['type'] == 'image' and obj['binding'] == binding)
+                name = clean_glsl_name(image['name'])
+                errors.append(f'Missing image binding for "{name}" with binding = {binding}')
+        if extra:
+            for binding in sorted(extra):
+                errors.append(f'Unknown image with binding = {binding}')
+
+    if errors:
+        raise ValueError('Program Validation Error\n\n' + '\n'.join(errors))
+
     return

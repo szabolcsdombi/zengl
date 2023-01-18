@@ -1382,22 +1382,23 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         Py_DECREF(tuple);
     }
 
+    PyObject * attachments = PyObject_CallMethod(self->module_state->helper, "framebuffer_attachments", "(OO)", framebuffer_size, framebuffer_images);
+    if (!attachments) {
+        return NULL;
+    }
+
     PyObject * validate = PyObject_CallMethod(
         self->module_state->helper,
         "validate",
-        "OOOO",
+        "OOOOO",
         program->extra,
-        vertex_buffers,
         resources,
+        vertex_buffers,
+        PyTuple_GetItem(attachments, 1),
         self->limits
     );
 
     if (!validate) {
-        return NULL;
-    }
-
-    PyObject * attachments = PyObject_CallMethod(self->module_state->helper, "framebuffer_attachments", "(OO)", framebuffer_size, framebuffer_images);
-    if (!attachments) {
         return NULL;
     }
 
@@ -1560,19 +1561,18 @@ Compute * Context_meth_compute(Context * self, PyObject * vargs, PyObject * kwar
         Py_DECREF(tuple);
     }
 
-    // PyObject * validate = PyObject_CallMethod(
-    //     self->module_state->helper,
-    //     "validate_compute",
-    //     "OOOO",
-    //     program->extra,
-    //     vertex_buffers,
-    //     resources,
-    //     self->limits
-    // );
+    PyObject * validate = PyObject_CallMethod(
+        self->module_state->helper,
+        "validate",
+        "OO()()O",
+        program->extra,
+        resources,
+        self->limits
+    );
 
-    // if (!validate) {
-    //     return NULL;
-    // }
+    if (!validate) {
+        return NULL;
+    }
 
     PyObject * resource_bindings = PyObject_CallMethod(self->module_state->helper, "resource_bindings", "(O)", resources);
     if (!resource_bindings) {
