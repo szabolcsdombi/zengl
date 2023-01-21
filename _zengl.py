@@ -526,5 +526,3 @@ def validate(interface, resources, vertex_buffers, attachments, limits):
 
     if errors:
         raise ValueError('Program Validation Error\n\n' + '\n'.join(errors))
-
-    return
