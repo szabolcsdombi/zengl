@@ -160,15 +160,14 @@ struct Pipeline {
     GLObject * vertex_array;
     GLObject * program;
     Buffer * indirect_buffer;
+    PyObject * dynamic_state_mem;
+    DynamicState * dynamic_state_ptr;
     PyObject * uniform_map;
     char * uniform_data;
     int topology;
-    int vertex_count;
-    int instance_count;
-    int indirect_count;
-    int first_vertex;
     int index_type;
     int index_size;
+    DynamicState dynamic_state;
     Viewport viewport;
 };
 
@@ -1252,6 +1251,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         "instance_count",
         "indirect_count",
         "first_vertex",
+        "dynamic_state",
         "viewport",
         "includes",
         NULL,
@@ -1276,13 +1276,14 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     int instance_count = 1;
     int indirect_count = 0;
     int first_vertex = 0;
+    PyObject * dynamic_state_mem = Py_None;
     PyObject * viewport = Py_None;
     PyObject * includes = Py_None;
 
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
-        "|$O!O!OOOOOOOOOOpOO&iiiiOO",
+        "|$O!O!OOOOOOOOOOpOO&iiiiO!OO",
         keywords,
         &PyUnicode_Type,
         &vertex_shader,
@@ -1306,6 +1307,8 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         &instance_count,
         &indirect_count,
         &first_vertex,
+        &PyMemoryView_Type,
+        &dynamic_state_mem,
         &viewport,
         &includes
     );
@@ -1455,18 +1458,26 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     res->vertex_array = vertex_array;
     res->program = program;
     res->indirect_buffer = indirect_buffer_obj;
+    res->dynamic_state_mem = NULL;
+    res->dynamic_state_ptr = &res->dynamic_state;
     res->uniform_map = uniform_map;
     res->uniform_data = uniform_data;
     res->topology = topology;
-    res->vertex_count = vertex_count;
-    res->instance_count = instance_count;
-    res->indirect_count = indirect_count;
-    res->first_vertex = first_vertex;
     res->index_type = index_type;
     res->index_size = index_size;
+    res->dynamic_state.vertex_count = vertex_count;
+    res->dynamic_state.instance_count = instance_count;
+    res->dynamic_state.indirect_count = indirect_count;
+    res->dynamic_state.first_vertex = first_vertex;
     res->viewport = viewport_value;
     res->descriptor_set = descriptor_set;
     res->global_settings = global_settings;
+
+    if (dynamic_state_mem != Py_None) {
+        res->dynamic_state_mem = (PyObject *)new_ref(dynamic_state_mem);
+        res->dynamic_state_ptr = (DynamicState *)PyMemoryView_GET_BUFFER(dynamic_state_mem)->buf;
+    }
+
     Py_INCREF(res);
     return res;
 }
@@ -2421,19 +2432,20 @@ PyObject * Pipeline_meth_run(Pipeline * self) {
     if (self->uniform_data) {
         bind_uniforms(self->ctx, self->program->obj, self->uniform_data);
     }
+    const DynamicState * state = self->dynamic_state_ptr;
     if (self->indirect_buffer) {
         gl.BindBuffer(GL_DRAW_INDIRECT_BUFFER, self->indirect_buffer->buffer);
         if (self->index_type) {
-            gl.MultiDrawElementsIndirect(self->topology, self->index_type, NULL, self->indirect_count, 20);
+            gl.MultiDrawElementsIndirect(self->topology, self->index_type, NULL, state->indirect_count, 20);
         } else {
-            gl.MultiDrawArraysIndirect(self->topology, NULL, self->indirect_count, 16);
+            gl.MultiDrawArraysIndirect(self->topology, NULL, state->indirect_count, 16);
         }
     } else {
         if (self->index_type) {
-            long long offset = (long long)self->first_vertex * self->index_size;
-            gl.DrawElementsInstanced(self->topology, self->vertex_count, self->index_type, (void *)offset, self->instance_count);
+            long long offset = (long long)state->first_vertex * self->index_size;
+            gl.DrawElementsInstanced(self->topology, state->vertex_count, self->index_type, (void *)offset, state->instance_count);
         } else {
-            gl.DrawArraysInstanced(self->topology, self->first_vertex, self->vertex_count, self->instance_count);
+            gl.DrawArraysInstanced(self->topology, state->first_vertex, state->vertex_count, state->instance_count);
         }
     }
     Py_RETURN_NONE;
@@ -2961,10 +2973,10 @@ PyGetSetDef Pipeline_getset[] = {
 };
 
 PyMemberDef Pipeline_members[] = {
-    {"vertex_count", T_INT, offsetof(Pipeline, vertex_count), 0},
-    {"instance_count", T_INT, offsetof(Pipeline, instance_count), 0},
-    {"indirect_count", T_INT, offsetof(Pipeline, indirect_count), 0},
-    {"first_vertex", T_INT, offsetof(Pipeline, first_vertex), 0},
+    {"vertex_count", T_INT, offsetof(Pipeline, dynamic_state.vertex_count), 0},
+    {"instance_count", T_INT, offsetof(Pipeline, dynamic_state.instance_count), 0},
+    {"indirect_count", T_INT, offsetof(Pipeline, dynamic_state.indirect_count), 0},
+    {"first_vertex", T_INT, offsetof(Pipeline, dynamic_state.first_vertex), 0},
     {"uniforms", T_OBJECT_EX, offsetof(Pipeline, uniform_map), 0},
     {},
 };

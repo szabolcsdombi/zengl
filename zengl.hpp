@@ -515,6 +515,13 @@ struct Viewport {
     int height;
 };
 
+struct DynamicState {
+    int vertex_count;
+    int instance_count;
+    int indirect_count;
+    int first_vertex;
+};
+
 union ClearValue {
     float clear_floats[4];
     int clear_ints[4];
