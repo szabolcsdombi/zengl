@@ -224,21 +224,25 @@ def vertex_array_bindings(vertex_buffers, index_buffer):
     return tuple(res)
 
 
-def buffer_bindings(resources):
-    res = []
+def resource_bindings(resources):
+    uniform_buffers = []
     for obj in sorted((x for x in resources if x['type'] == 'uniform_buffer'), key=lambda x: x['binding']):
         binding = obj['binding']
         buffer = obj['buffer']
         offset = obj.get('offset', 0)
         size = obj.get('size', buffer.size - offset)
-        res.extend([binding, buffer, offset, size])
-    return tuple(res)
+        uniform_buffers.extend([binding, buffer, offset, size])
 
+    storage_buffers = []
+    for obj in sorted((x for x in resources if x['type'] == 'storage_buffer'), key=lambda x: x['binding']):
+        binding = obj['binding']
+        buffer = obj['buffer']
+        offset = obj.get('offset', 0)
+        size = obj.get('size', buffer.size - offset)
+        storage_buffers.extend([binding, buffer, offset, size])
 
-def sampler_bindings(resources):
-    res = []
+    samplers = []
     for obj in sorted((x for x in resources if x['type'] == 'sampler'), key=lambda x: x['binding']):
-        border_color = obj.get('border_color', (0.0, 0.0, 0.0, 0.0))
         params = (
             MIN_FILTER[obj.get('min_filter', 'linear')],
             MAG_FILTER[obj.get('mag_filter', 'linear')],
@@ -251,16 +255,19 @@ def sampler_bindings(resources):
             COMPARE_MODE[obj.get('compare_mode', 'none')],
             COMPARE_FUNC[obj.get('compare_func', 'never')],
             float(obj.get('max_anisotropy', 1.0)),
-            float(border_color[0]),
-            float(border_color[1]),
-            float(border_color[2]),
-            float(border_color[3]),
         )
-        res.extend([obj['binding'], obj['image'], params])
-    return tuple(res)
+        samplers.extend([obj['binding'], obj['image'], params])
+
+    images = []
+    for obj in sorted((x for x in resources if x['type'] == 'image'), key=lambda x: x['binding']):
+        images.extend([obj['binding'], obj['image']])
+
+    return tuple(uniform_buffers), tuple(storage_buffers), tuple(samplers), tuple(images)
 
 
-def framebuffer_attachments(attachments):
+def framebuffer_attachments(size, attachments):
+    if not attachments:
+        return size, (), None
     attachments = [x.face() if hasattr(x, 'face') else x for x in attachments]
     size = attachments[0].size
     samples = attachments[0].samples
@@ -270,34 +277,35 @@ def framebuffer_attachments(attachments):
         if attachment.samples != samples:
             raise ValueError('Attachments must be images with the same number of samples')
     depth_stencil_attachment = None
-    if not attachments[-1].color:
+    if not attachments[-1].flags & 1:
         depth_stencil_attachment = attachments[-1]
         attachments = attachments[:-1]
     for attachment in attachments:
-        if not attachment.color:
+        if not attachment.flags & 1:
             raise ValueError('The depth stencil attachments must be the last item in the framebuffer')
     return size, tuple(attachments), depth_stencil_attachment
 
 
-def settings(primitive_restart, cull_face, color_mask, depth, stencil, blending, polygon_offset, attachments):
-    res = [bool(primitive_restart), CULL_FACE[cull_face], color_mask]
+def settings(cull_face, depth, stencil, blend, attachments):
+    res = [len(attachments[1]), CULL_FACE[cull_face]]
 
-    if depth is True or depth is False:
-        res.extend([depth, depth, 0x0201])
+    if depth is None:
+        depth = {}
 
-    else:
-        res.extend([bool(depth['test']), bool(depth['write']), COMPARE_FUNC[depth.get('func', 'less')]])
-
-    if stencil is False:
-        res.extend([
-            False, 0x1E00, 0x1E00, 0x1E00, 0x0207, 0xff, 0xff, 0, 0x1E00, 0x1E00, 0x1E00, 0x0207, 0xff, 0xff, 0,
-        ])
+    if attachments[2] is not None and attachments[2].flags & 2:
+        res.extend([True, COMPARE_FUNC[depth.get('func', 'less')], bool(depth.get('write', True))])
 
     else:
+        res.append(False)
+
+    if stencil is None:
+        stencil = {}
+
+    if attachments[2] is not None and attachments[2].flags & 4:
         front = stencil.get('front', stencil.get('both', {}))
         back = stencil.get('back', stencil.get('both', {}))
         res.extend([
-            bool(stencil['test']),
+            True,
             STENCIL_OP[front.get('fail_op', 'keep')],
             STENCIL_OP[front.get('pass_op', 'keep')],
             STENCIL_OP[front.get('depth_fail_op', 'keep')],
@@ -314,35 +322,29 @@ def settings(primitive_restart, cull_face, color_mask, depth, stencil, blending,
             int(back.get('reference', 0)),
         ])
 
-    if blending is False:
-        res.extend([0, 0x8006, 0x8006, 1, 0, 1, 0])
+    else:
+        res.append(False)
+
+    if blend is not None:
+        res.append(True)
+        for obj in blend:
+            res.extend([
+                int(obj.get('enable', True)),
+                BLEND_FUNC[obj.get('op_color', 'add')],
+                BLEND_FUNC[obj.get('op_alpha', 'add')],
+                BLEND_CONSTANT[obj.get('src_color', 'one')],
+                BLEND_CONSTANT[obj.get('dst_color', 'zero')],
+                BLEND_CONSTANT[obj.get('src_alpha', 'one')],
+                BLEND_CONSTANT[obj.get('dst_alpha', 'zero')],
+            ])
 
     else:
-        res.extend([
-            int(blending['enable']),
-            BLEND_FUNC[blending.get('op_color', 'add')],
-            BLEND_FUNC[blending.get('op_alpha', 'add')],
-            BLEND_CONSTANT[blending.get('src_color', 'one')],
-            BLEND_CONSTANT[blending.get('dst_color', 'zero')],
-            BLEND_CONSTANT[blending.get('src_alpha', 'one')],
-            BLEND_CONSTANT[blending.get('dst_alpha', 'zero')],
-        ])
+        res.append(False)
 
-    if polygon_offset is False:
-        res.extend([False, 0.0, 0.0])
-
-    else:
-        res.extend([
-            True,
-            float(polygon_offset['factor']),
-            float(polygon_offset['units']),
-        ])
-
-    res.append(len(attachments[1]))
     return tuple(res)
 
 
-def program(vertex_shader, fragment_shader, layout, includes):
+def program(includes, *shaders):
     def include(match):
         name = match.group(1)
         content = includes.get(name)
@@ -350,28 +352,28 @@ def program(vertex_shader, fragment_shader, layout, includes):
             raise KeyError(f'cannot include "{name}"')
         return content
 
-    vert = textwrap.dedent(vertex_shader).strip()
-    vert = re.sub(r'#include\s+"([^"]+)"', include, vert)
-    vert = vert.encode().replace(b'\r', b'')
+    res = []
+    for shader, type in shaders:
+        shader = textwrap.dedent(shader).strip()
+        shader = re.sub(r'#include\s+"([^"]+)"', include, shader)
+        shader = shader.encode().replace(b'\r', b'')
+        res.append((shader, type))
 
-    frag = textwrap.dedent(fragment_shader).strip()
-    frag = re.sub(r'#include\s+"([^"]+)"', include, frag)
-    frag = frag.encode().replace(b'\r', b'')
-
-    bindings = []
-    for obj in sorted(layout, key=lambda x: x['name']):
-        bindings.extend((obj['name'], obj['binding']))
-
-    return (vert, 0x8b31), (frag, 0x8b30), tuple(bindings)
+    return tuple(res)
 
 
 def compile_error(shader: bytes, shader_type: int, log: bytes):
-    name = {0x8b31: 'Vertex Shader', 0x8b30: 'Fragment Shader'}[shader_type]
+    name = {0x8b31: 'Vertex Shader', 0x8b30: 'Fragment Shader', 0x91b9: 'Compute Shader'}[shader_type]
     log = log.rstrip(b'\x00').decode()
     raise ValueError(f'{name} Error\n\n{log}')
 
 
 def linker_error(vertex_shader: bytes, fragment_shader: bytes, log: bytes):
+    log = log.rstrip(b'\x00').decode()
+    raise ValueError(f'Linker Error\n\n{log}')
+
+
+def compute_linker_error(compute_shader: bytes, log: bytes):
     log = log.rstrip(b'\x00').decode()
     raise ValueError(f'Linker Error\n\n{log}')
 
@@ -384,30 +386,15 @@ def flatten(iterable):
         yield iterable
 
 
-def clean_uniform_name(uniform):
-    name = uniform['name']
-    if name.endswith('[0]') and uniform['size'] > 1:
+def clean_glsl_name(name):
+    if name.endswith('[0]') and name['size'] > 1:
         return name[:-3]
     return name
 
 
-def uniforms(uniforms, values):
+def uniforms(interface, values):
     data = bytearray()
-    uniform_map = {clean_uniform_name(obj): obj for obj in uniforms}
-
-    if values == 'all':
-        names = []
-        for obj in uniforms:
-            location = obj['location']
-            size = obj['size']
-            gltype = obj['type']
-            if gltype not in UNIFORM_PACKER:
-                continue
-            names.append(clean_uniform_name(obj))
-            items, format = UNIFORM_PACKER[gltype]
-            data.extend(struct.pack('4i', size * items, location, size, gltype))
-            data.extend(bytearray(size * items * 4))
-        return names, data
+    uniform_map = {clean_glsl_name(obj['name']): obj for obj in interface if obj['type'] == 'uniform'}
 
     for name, value in values.items():
         if name not in uniform_map:
@@ -415,7 +402,7 @@ def uniforms(uniforms, values):
         value = tuple(flatten(value))
         location = uniform_map[name]['location']
         size = uniform_map[name]['size']
-        gltype = uniform_map[name]['type']
+        gltype = uniform_map[name]['gltype']
         if gltype not in UNIFORM_PACKER:
             raise ValueError(f'Uniform "{name}" has an unknown type')
         items, format = UNIFORM_PACKER[gltype]
@@ -427,120 +414,115 @@ def uniforms(uniforms, values):
         data.extend(struct.pack('4i', len(value), location, count, gltype))
         for value in flatten(value):
             data.extend(struct.pack(format, value))
-
+    data.extend(struct.pack('4i', 0, 0, 0, 0))
     return list(values), data
 
 
-def validate(attributes, uniforms, uniform_buffers, vertex_buffers, layout, resources, limits):
-    attributes = [
-        {
-            'name': obj['name'].replace('[0]', f'[{i:d}]'),
-            'location': obj['location'] + i if obj['location'] >= 0 else -1,
-        }
-        for obj in attributes for i in range(obj['size'])
-        if obj['name'] not in VERTEX_SHADER_BUILTINS
-    ]
-    uniforms = [
-        {
-            'name': obj['name'].replace('[0]', f'[{i}]'),
-            'location': obj['location'] + i if obj['location'] >= 0 else -1,
-        }
-        for obj in uniforms for i in range(obj['size'])
-        if obj['type'] not in UNIFORM_PACKER
-    ]
-    bound_attributes = set()
-    bound_uniforms = set()
-    bound_uniform_buffers = set()
-    uniform_binding_map = {}
-    uniform_buffer_binding_map = {}
-    attribute_map = {obj['location']: obj for obj in attributes}
-    uniform_map = {obj['name']: obj for obj in uniforms}
-    uniform_buffer_map = {obj['name']: obj for obj in uniform_buffers}
-    layout_map = {obj['name']: obj for obj in layout}
-    uniform_buffer_resources = {obj['binding']: obj for obj in resources if obj['type'] == 'uniform_buffer'}
-    sampler_resources = {obj['binding']: obj for obj in resources if obj['type'] == 'sampler'}
-    max_uniform_block_size = limits['max_uniform_block_size']
+def validate(interface, resources, vertex_buffers, attachments, limits):
+    errors = []
 
-    for obj in uniform_buffers:
-        if obj['size'] > max_uniform_block_size:
-            raise ValueError(
-                f'Uniform buffer "{obj["name"]}" is too large, the maximum supported size is {max_uniform_block_size}'
-            )
+    unique = set((obj['type'], obj['binding']) for obj in resources)
+    if len(resources) != len(unique):
+        for obj in resources:
+            key = (obj['type'], obj['binding'])
+            if key not in unique:
+                binding = obj['binding']
+                rtype = obj['type']
+                errors.append(f'Duplicate resource entry for "{rtype}" with binding = {binding}')
+            unique.discard(key)
 
-    for obj in vertex_buffers:
-        location = obj['location']
-        if location < 0:
-            continue
-        if location not in attribute_map:
-            raise ValueError(f'Invalid vertex attribute location {location}')
-        if location in bound_attributes:
-            name = attribute_map[location]['name']
-            raise ValueError(f'Duplicate vertex attribute binding for "{name}" at location {location}')
-        bound_attributes.add(location)
+    unique = set(obj['location'] for obj in vertex_buffers)
+    if len(vertex_buffers) != len(unique):
+        for obj in vertex_buffers:
+            location = obj['location']
+            if location not in unique:
+                errors.append(f'Duplicate vertex attribute entry with location = {location}')
+            unique.discard(location)
 
-    for obj in attributes:
-        location = obj['location']
-        if location < 0:
-            continue
-        if location not in bound_attributes:
-            name = obj['name']
-            raise ValueError(f'Unbound vertex attribute "{name}" at location {location}')
+    expected = set(obj['location'] + i for obj in interface if obj['type'] == 'input' for i in range(obj['size']))
+    provided = set(obj['location'] for obj in vertex_buffers)
 
-    for obj in layout:
-        name = obj['name']
-        binding = obj['binding']
-        if name in uniform_map:
-            uniform_binding_map[binding] = obj
-        elif name in uniform_buffer_map:
-            uniform_buffer_binding_map[binding] = obj
-        else:
-            raise ValueError(f'Cannot set layout binding for "{name}"')
+    if expected ^ provided:
+        missing = expected - provided
+        extra = provided - expected
+        if missing:
+            for location in sorted(missing):
+                obj = next(obj for obj in interface if obj['type'] == 'input' and obj['location'] == location)
+                name = clean_glsl_name(obj['name'])
+                errors.append(f'Missing vertex buffer binding for "{name}" with location = {location}')
+        if extra:
+            for location in sorted(extra):
+                errors.append(f'Unknown vertex attribute with location = {location}')
 
-    for obj in uniforms:
-        name = obj['name']
-        location = obj['location']
-        if location < 0:
-            continue
-        if name not in layout_map:
-            raise ValueError(f'Missing layout binding for "{name}"')
-        binding = layout_map[name]['binding']
-        if binding not in sampler_resources:
-            raise ValueError(f'Missing resource for "{name}" with binding {binding}')
+    expected = set(obj['location'] + i for obj in interface if obj['type'] == 'output' for i in range(obj['size']))
+    provided = set(range(len(attachments)))
+    if expected ^ provided:
+        missing = expected - provided
+        extra = provided - expected
+        if missing:
+            for location in sorted(missing):
+                obj = next(obj for obj in interface if obj['type'] == 'output' and obj['location'] == location)
+                name = clean_glsl_name(obj['name'])
+                errors.append(f'Missing framebuffer attachment for "{name}" with location = {location}')
+        if extra:
+            for location in sorted(extra):
+                errors.append(f'Unknown framebuffer attachment with location = {location}')
 
-    for obj in uniform_buffers:
-        name = obj['name']
-        if name not in layout_map:
-            raise ValueError(f'Missing layout binding for "{name}"')
-        binding = layout_map[name]['binding']
-        if binding not in uniform_buffer_resources:
-            raise ValueError(f'Missing resource for "{name}" with binding {binding}')
+    expected = set(obj['binding'] for obj in interface if obj['type'] == 'uniform_buffer')
+    provided = set(obj['binding'] for obj in resources if obj['type'] == 'uniform_buffer')
+    if expected ^ provided:
+        missing = expected - provided
+        extra = provided - expected
+        if missing:
+            for binding in sorted(missing):
+                obj = next(obj for obj in interface if obj['type'] == 'uniform_buffer' and obj['binding'] == binding)
+                name = clean_glsl_name(obj['name'])
+                errors.append(f'Missing uniform buffer binding for "{name}" with binding = {binding}')
+        if extra:
+            for binding in sorted(extra):
+                errors.append(f'Unknown uniform buffer with binding = {binding}')
 
-    for obj in resources:
-        resource_type = obj['type']
-        binding = obj['binding']
-        if resource_type == 'uniform_buffer':
-            buffer = obj['buffer']
-            if binding not in uniform_buffer_binding_map:
-                raise ValueError(f'Uniform buffer binding {binding} does not exist')
-            name = uniform_buffer_binding_map[binding]['name']
-            if binding in bound_uniform_buffers:
-                raise ValueError(f'Duplicate uniform buffer binding for "{name}" with binding {binding}')
-            size = uniform_buffer_map[name]['size']
-            if buffer.size < size:
-                raise ValueError(
-                    f'Uniform buffer is too small {buffer.size} is less than '
-                    f'{size} for "{name}" with binding {binding}'
-                )
-            bound_uniform_buffers.add(binding)
-        elif resource_type == 'sampler':
-            image = obj['image']
-            if binding not in uniform_binding_map:
-                raise ValueError(f'Sampler binding {binding} does not exist')
-            name = uniform_binding_map[binding]['name']
-            if binding in bound_uniforms:
-                raise ValueError(f'Duplicate sampler binding for "{name}" with binding {binding}')
-            if image.samples != 1:
-                raise ValueError(f'Multisample images cannot be attached to "{name}" with binding {binding}')
-            bound_uniforms.add(binding)
-        else:
-            raise ValueError(f'Invalid resource type "{resource_type}"')
+    expected = set(obj['binding'] for obj in interface if obj['type'] == 'storage_buffer')
+    provided = set(obj['binding'] for obj in resources if obj['type'] == 'storage_buffer')
+    if expected ^ provided:
+        missing = expected - provided
+        extra = provided - expected
+        if missing:
+            for binding in sorted(missing):
+                obj = next(obj for obj in interface if obj['type'] == 'storage_buffer' and obj['binding'] == binding)
+                name = clean_glsl_name(obj['name'])
+                errors.append(f'Missing storage buffer binding for "{name}" with binding = {binding}')
+        if extra:
+            for binding in sorted(extra):
+                errors.append(f'Unknown storage buffer with binding = {binding}')
+
+    expected = set(obj['binding'] + i for obj in interface if obj['type'] == 'sampler' for i in range(obj['size']))
+    provided = set(obj['binding'] for obj in resources if obj['type'] == 'sampler')
+    if expected ^ provided:
+        missing = expected - provided
+        extra = provided - expected
+        if missing:
+            for binding in sorted(missing):
+                obj = next(obj for obj in interface if obj['type'] == 'sampler' and obj['binding'] == binding)
+                name = clean_glsl_name(obj['name'])
+                errors.append(f'Missing sampler binding for "{name}" with binding = {binding}')
+        if extra:
+            for binding in sorted(extra):
+                errors.append(f'Unknown sampler with binding = {binding}')
+
+    expected = set(obj['binding'] + i for obj in interface if obj['type'] == 'image' for i in range(obj['size']))
+    provided = set(obj['binding'] for obj in resources if obj['type'] == 'image')
+    if expected ^ provided:
+        missing = expected - provided
+        extra = provided - expected
+        if missing:
+            for binding in sorted(missing):
+                obj = next(obj for obj in interface if obj['type'] == 'image' and obj['binding'] == binding)
+                name = clean_glsl_name(obj['name'])
+                errors.append(f'Missing image binding for "{name}" with binding = {binding}')
+        if extra:
+            for binding in sorted(extra):
+                errors.append(f'Unknown image with binding = {binding}')
+
+    if errors:
+        raise ValueError('Program Validation Error\n\n' + '\n'.join(errors))
