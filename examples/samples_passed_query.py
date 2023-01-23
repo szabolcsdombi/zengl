@@ -22,9 +22,9 @@ uniform_buffer = ctx.buffer(size=16)
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             vec2 scale;
         };
 
@@ -39,7 +39,7 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         layout (location = 0) out vec4 out_color;
 
@@ -47,12 +47,6 @@ pipeline = ctx.pipeline(
             out_color = vec4(0.0, 0.0, 0.0, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -71,7 +65,7 @@ while window.update():
     image.clear()
     uniform_buffer.write(struct.pack('ff8x', np.sin(window.time), np.cos(window.time)))
     GL.glBeginQuery(GL.GL_SAMPLES_PASSED, query)
-    pipeline.render()
+    pipeline.run()
     GL.glEndQuery(GL.GL_SAMPLES_PASSED)
     GL.glGetQueryObjectuiv(query, GL.GL_QUERY_RESULT, ctypes.byref(query_result))
     bar.max = max(bar.max, query_result.value)

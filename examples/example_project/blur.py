@@ -23,7 +23,7 @@ class Blur:
 
         self.blur_x = ctx.pipeline(
             vertex_shader='''
-                #version 330
+                #version 450 core
 
                 vec2 positions[3] = vec2[](
                     vec2(-1.0, -1.0),
@@ -36,9 +36,9 @@ class Blur:
                 }
             ''',
             fragment_shader='''
-                #version 330
+                #version 450 core
 
-                uniform sampler2D Texture;
+                layout (binding = 0) uniform sampler2D Texture;
 
                 layout (location = 0) out vec4 out_color;
 
@@ -52,12 +52,6 @@ class Blur:
                     out_color = vec4(color, 1.0);
                 }
             ''',
-            layout=[
-                {
-                    'name': 'Texture',
-                    'binding': 0,
-                },
-            ],
             resources=[
                 {
                     'type': 'sampler',
@@ -72,7 +66,7 @@ class Blur:
 
         self.blur_y = ctx.pipeline(
             vertex_shader='''
-                #version 330
+                #version 450 core
 
                 vec2 positions[3] = vec2[](
                     vec2(-1.0, -1.0),
@@ -85,9 +79,9 @@ class Blur:
                 }
             ''',
             fragment_shader='''
-                #version 330
+                #version 450 core
 
-                uniform sampler2D Texture;
+                layout (binding = 0) uniform sampler2D Texture;
 
                 layout (location = 0) out vec4 out_color;
 
@@ -101,12 +95,6 @@ class Blur:
                     out_color = vec4(color, 1.0);
                 }
             ''',
-            layout=[
-                {
-                    'name': 'Texture',
-                    'binding': 0,
-                },
-            ],
             resources=[
                 {
                     'type': 'sampler',
@@ -119,6 +107,6 @@ class Blur:
             vertex_count=3,
         )
 
-    def render(self):
-        self.blur_x.render()
-        self.blur_y.render()
+    def run(self):
+        self.blur_x.run()
+        self.blur_y.run()

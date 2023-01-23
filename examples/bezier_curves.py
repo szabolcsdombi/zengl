@@ -55,9 +55,9 @@ uniform_buffer = ctx.buffer(size=16)
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             vec2 screen_size;
         };
 
@@ -95,7 +95,7 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         in vec3 v_color;
 
@@ -105,12 +105,6 @@ pipeline = ctx.pipeline(
             out_color = vec4(v_color, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -144,5 +138,5 @@ while window.update():
     curves[:, 7] = initial[:, 7] - np.cos(offset[3] + t) * 50.0
     instance_buffer.write(curves)
     image.clear()
-    pipeline.render()
+    pipeline.run()
     image.blit()

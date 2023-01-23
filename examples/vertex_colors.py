@@ -21,9 +21,9 @@ uniform_buffer = ctx.buffer(size=80)
 
 monkey = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
             vec4 light;
         };
@@ -42,9 +42,9 @@ monkey = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
             vec4 light;
         };
@@ -66,12 +66,6 @@ monkey = ctx.pipeline(
             out_color = vec4(v_color * lum, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -93,5 +87,5 @@ while window.update():
 
     image.clear()
     depth.clear()
-    monkey.render()
+    monkey.run()
     image.blit(srgb=True)

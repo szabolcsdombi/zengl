@@ -33,7 +33,7 @@ ctx.includes['get_point'] = f'''
 
 simulate_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         vec2 positions[3] = vec2[](
             vec2(-1.0, -1.0),
@@ -46,14 +46,14 @@ simulate_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             vec2 cursor;
         };
 
-        uniform sampler2D PreviousPoints;
-        uniform sampler2D Points;
+        layout (binding = 0) uniform sampler2D PreviousPoints;
+        layout (binding = 1) uniform sampler2D Points;
 
         layout (location = 0) out vec2 out_point;
 
@@ -72,20 +72,6 @@ simulate_pipeline = ctx.pipeline(
             out_point = point + velocity;
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-        {
-            'name': 'PreviousPoints',
-            'binding': 0,
-        },
-        {
-            'name': 'Points',
-            'binding': 1,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -114,9 +100,9 @@ simulate_pipeline = ctx.pipeline(
 
 render_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
-        uniform sampler2D Points;
+        layout (binding = 0) uniform sampler2D Points;
 
         #include "get_point"
 
@@ -129,7 +115,7 @@ render_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         in vec3 v_color;
 
@@ -139,12 +125,6 @@ render_pipeline = ctx.pipeline(
             out_color = vec4(v_color, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Points',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'sampler',
@@ -166,8 +146,8 @@ while window.update():
     cy = cy * 0.95 + (window.mouse[1] / window.size[1] * 2.0 - 1.0) * 0.05
     uniform_buffer.write(np.array([cx, cy, 0.0, 0.0], 'f4'))
     image.clear()
-    simulate_pipeline.render()
-    render_pipeline.render()
+    simulate_pipeline.run()
+    render_pipeline.run()
     points[1].blit(points[0])
     points[2].blit(points[1])
     image.blit()

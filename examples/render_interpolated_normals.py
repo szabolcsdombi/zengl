@@ -19,9 +19,9 @@ uniform_buffer = ctx.buffer(size=64)
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
         };
 
@@ -36,7 +36,7 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         in vec3 v_norm;
 
@@ -48,12 +48,6 @@ pipeline = ctx.pipeline(
             out_color = vec4(lum, lum, lum, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -61,10 +55,6 @@ pipeline = ctx.pipeline(
             'buffer': uniform_buffer,
         },
     ],
-    polygon_offset={
-        'factor': 1.0,
-        'units': 0.0,
-    },
     framebuffer=[image, depth],
     topology='triangles',
     cull_face='back',
@@ -100,9 +90,9 @@ index_buffer = ctx.buffer(np.array([
 
 wireframe = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
         };
 
@@ -113,20 +103,15 @@ wireframe = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         layout (location = 0) out vec4 out_color;
 
         void main() {
+            gl_FragDepth = gl_FragCoord.z - 1e-4;
             out_color = vec4(0.0, 0.0, 0.0, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -135,7 +120,6 @@ wireframe = ctx.pipeline(
         },
     ],
     framebuffer=[image, depth],
-    primitive_restart=True,
     topology='line_loop',
     vertex_buffers=zengl.bind(vertex_buffer, '3f 3f', 0, -1),
     index_buffer=index_buffer,
@@ -144,9 +128,9 @@ wireframe = ctx.pipeline(
 
 normals = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
         };
 
@@ -166,7 +150,7 @@ normals = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         layout (location = 0) out vec4 out_color;
 
@@ -174,12 +158,6 @@ normals = ctx.pipeline(
             out_color = vec4(0.0, 0.0, 0.0, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -204,7 +182,7 @@ while window.update():
 
     image.clear()
     depth.clear()
-    pipeline.render()
-    wireframe.render()
-    normals.render()
+    pipeline.run()
+    wireframe.run()
+    normals.run()
     image.blit()

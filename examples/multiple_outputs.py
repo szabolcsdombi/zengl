@@ -13,7 +13,7 @@ image2.clear_value = (1.0, 1.0, 1.0, 1.0)
 
 triangle = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         out vec3 v_color;
 
@@ -35,7 +35,7 @@ triangle = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         in vec3 v_color;
 
@@ -55,6 +55,6 @@ triangle = ctx.pipeline(
 while window.update():
     image1.clear()
     image2.clear()
-    triangle.render()
+    triangle.run()
     image1.blit(None, (0, 0, 640, 720), flush=False)
     image2.blit(None, (640, 0, 640, 720))

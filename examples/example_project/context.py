@@ -12,7 +12,7 @@ class Context:
         cls.context = ctx
         cls.main_uniform_buffer = ctx.buffer(size=64)
         ctx.includes['main_uniform_buffer'] = '''
-            layout (std140) uniform MainUniformBuffer {
+            layout (std140, binding = 0) uniform MainUniformBuffer {
                 mat4 mvp;
             };
         '''

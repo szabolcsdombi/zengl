@@ -13,9 +13,9 @@ uniform_buffer = ctx.buffer(size=16)
 
 triangle = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             vec2 move;
             vec2 scale;
         };
@@ -40,7 +40,7 @@ triangle = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         in vec3 v_color;
 
@@ -50,12 +50,6 @@ triangle = ctx.pipeline(
             out_color = vec4(v_color, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -80,5 +74,5 @@ while window.update():
     uniform_buffer.unmap()
 
     image.clear()
-    triangle.render()
+    triangle.run()
     image.blit()

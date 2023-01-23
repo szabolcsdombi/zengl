@@ -13,7 +13,7 @@ uniform_buffer = ctx.buffer(size=32)
 
 scene = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         vec2 positions[3] = vec2[](
             vec2(-1.0, -1.0),
@@ -26,9 +26,9 @@ scene = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             vec2 size;
             vec2 mouse;
             int iter;
@@ -57,12 +57,6 @@ scene = ctx.pipeline(
             );
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -78,5 +72,5 @@ scene = ctx.pipeline(
 while window.update():
     uniform_buffer.write(struct.pack('=2f2fi', *window.size, *window.mouse, 100))
     image.clear()
-    scene.render()
+    scene.run()
     image.blit()

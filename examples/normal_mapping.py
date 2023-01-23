@@ -36,9 +36,9 @@ uniform_buffer = ctx.buffer(size=144)
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
             vec3 eye_pos;
             vec3 light_pos;
@@ -63,17 +63,17 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
             vec3 eye_pos;
             vec3 light_pos;
         };
 
-        uniform sampler2D Texture1;
-        uniform sampler2D Texture2;
-        uniform sampler2D Texture3;
+        layout (binding = 0) uniform sampler2D Texture1;
+        layout (binding = 1) uniform sampler2D Texture2;
+        layout (binding = 2) uniform sampler2D Texture3;
 
         in vec3 v_vert;
         in vec3 v_norm;
@@ -98,24 +98,6 @@ pipeline = ctx.pipeline(
             out_color = vec4(pow(color, vec3(1.0 / 2.2)), 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-        {
-            'name': 'Texture1',
-            'binding': 0,
-        },
-        {
-            'name': 'Texture2',
-            'binding': 1,
-        },
-        {
-            'name': 'Texture3',
-            'binding': 2,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -161,5 +143,5 @@ while window.update():
 
     image.clear()
     depth.clear()
-    pipeline.render()
+    pipeline.run()
     image.blit()

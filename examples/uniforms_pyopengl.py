@@ -35,7 +35,7 @@ vertex_buffer = ctx.buffer(model)
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         uniform mat4 mvp;
 
@@ -50,7 +50,7 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         uniform vec3 color;
 
@@ -84,5 +84,5 @@ while window.update():
 
     image.clear()
     depth.clear()
-    pipeline.render()
+    pipeline.run()
     image.blit()

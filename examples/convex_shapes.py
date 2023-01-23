@@ -102,9 +102,9 @@ uniform_buffer = ctx.buffer(size=80)
 
 shape = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
         };
 
@@ -119,7 +119,7 @@ shape = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         in vec3 v_norm;
 
@@ -131,12 +131,6 @@ shape = ctx.pipeline(
             out_color = vec4(lum, lum, lum, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -157,5 +151,5 @@ uniform_buffer.write(camera)
 while window.update():
     image.clear()
     depth.clear()
-    shape.render()
+    shape.run()
     image.blit()

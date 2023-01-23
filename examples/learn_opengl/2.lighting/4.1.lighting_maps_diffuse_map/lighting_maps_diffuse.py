@@ -20,12 +20,6 @@ diffuse_map = ctx.image(img.size, 'rgba8unorm', img.tobytes())
 lighting_shader = ctx.pipeline(
     vertex_shader=read_file('4.1.lighting_maps.vs'),
     fragment_shader=read_file('4.1.lighting_maps.fs'),
-    layout=[
-        {
-            'name': 'material.diffuse',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'sampler',
@@ -75,6 +69,6 @@ while window.update():
 
     image.clear()
     depth.clear()
-    lighting_shader.render()
-    light_cube_shader.render()
+    lighting_shader.run()
+    light_cube_shader.run()
     image.blit()

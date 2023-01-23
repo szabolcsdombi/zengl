@@ -117,14 +117,14 @@ ctx.includes['hash44'] = '''
 '''
 
 ctx.includes['common'] = '''
-    layout (std140) uniform Common {
+    layout (std140, binding = 0) uniform Common {
         float time;
     };
 '''
 
 canvas = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         vec2 positions[3] = vec2[](
             vec2(-1.0, -1.0),
@@ -137,7 +137,7 @@ canvas = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         #include "common"
         #include "hash13"
@@ -149,12 +149,6 @@ canvas = ctx.pipeline(
             out_color = vec4(gray, gray, gray, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -170,7 +164,7 @@ canvas = ctx.pipeline(
 while window.update():
     image.clear()
     uniform_buffer.write(struct.pack('f', window.time))
-    canvas.render()
+    canvas.run()
     image.blit()
 
 '''

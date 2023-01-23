@@ -29,7 +29,7 @@ def face_pipeline(face):
 
     return ctx.pipeline(
         vertex_shader='''
-            #version 330
+            #version 450 core
 
             vec2 vertices[3] = vec2[](
                 vec2(-1.0, -1.0),
@@ -45,12 +45,12 @@ def face_pipeline(face):
             }
         ''',
         fragment_shader='''
-            #version 330
+            #version 450 core
 
             #include "uv_to_dir"
 
             const float pi = 3.14159265358979323;
-            uniform sampler2D Texture;
+            layout (binding = 0) uniform sampler2D Texture;
 
             in vec2 v_texcoord;
 
@@ -67,12 +67,6 @@ def face_pipeline(face):
                 out_color = texture(Texture, uv);
             }
         ''',
-        layout=[
-            {
-                'name': 'Texture',
-                'binding': 0,
-            },
-        ],
         resources=[
             {
                 'type': 'sampler',
@@ -89,6 +83,6 @@ def face_pipeline(face):
 pipelines = [(i, face_pipeline(i)) for i in range(6)]
 
 for face, pipeline in pipelines:
-    pipeline.render()
+    pipeline.run()
     img = Image.frombuffer('RGBA', image.size, image.read(), 'raw', 'RGBA', 0, -1)
     img.save(f'downloads/skybox_{face}.png')

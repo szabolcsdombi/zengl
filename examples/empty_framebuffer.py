@@ -5,12 +5,9 @@ from window import Window
 window = Window()
 ctx = zengl.context()
 
-print('Hello World | Vendor: %s | Renderer: %s | Version: %s' % ctx.info)
+image = ctx.image(window.size, 'rgba8unorm')
 
-image = ctx.image(window.size, 'rgba8unorm', samples=4)
-image.clear_value = (1.0, 1.0, 1.0, 1.0)
-
-triangle = ctx.pipeline(
+pipeline = ctx.pipeline(
     vertex_shader='''
         #version 450 core
 
@@ -38,18 +35,24 @@ triangle = ctx.pipeline(
 
         in vec3 v_color;
 
-        layout (location = 0) out vec4 out_color;
+        layout(rgba8, binding = 0) writeonly uniform image2D output_image;
 
         void main() {
-            out_color = vec4(v_color, 1.0);
+            imageStore(output_image, ivec2(gl_FragCoord.xy), vec4(v_color, 1.0));
         }
     ''',
-    framebuffer=[image],
+    resources=[
+        {
+            'type': 'image',
+            'binding': 0,
+            'image': image,
+        },
+    ],
+    framebuffer_size=(1280, 720),
     topology='triangles',
     vertex_count=3,
 )
 
 while window.update():
-    image.clear()
-    triangle.run()
+    pipeline.run()
     image.blit()

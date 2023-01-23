@@ -36,9 +36,9 @@ uniform_buffer = ctx.buffer(size=64)
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
         };
 
@@ -53,7 +53,7 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         in vec3 v_norm;
 
@@ -65,12 +65,6 @@ pipeline = ctx.pipeline(
             out_color = vec4(lum, lum, lum, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -94,7 +88,7 @@ it = iter(cycle(np.clip(np.sin(np.linspace(0.0, 2.0 * np.pi, 180)) * 175 + 225, 
 while window.update():
     image.clear()
     depth.clear()
-    pipeline.render()
+    pipeline.run()
 
     offset, size = table[next(it)]
     pipeline.first_vertex = offset // vertex_size

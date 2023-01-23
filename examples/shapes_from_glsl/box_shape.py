@@ -17,7 +17,7 @@ grid = grid_pipeline(ctx, [image, depth])
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         #include "defaults"
 
@@ -150,7 +150,7 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         #include "defaults"
 
@@ -172,6 +172,6 @@ pipeline = ctx.pipeline(
 while window.update():
     image.clear()
     depth.clear()
-    grid.render()
-    pipeline.render()
+    grid.run()
+    pipeline.run()
     image.blit()

@@ -36,7 +36,7 @@ ctx.includes['screen_size'] = f'const vec2 screen_size = vec2({width}, {height})
 
 triangle = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         #include "screen_size"
 
@@ -62,11 +62,11 @@ triangle = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         in vec3 v_texcoord;
 
-        uniform sampler2DArray Texture;
+        layout (binding = 0) uniform sampler2DArray Texture;
 
         layout (location = 0) out vec4 out_color;
 
@@ -77,12 +77,6 @@ triangle = ctx.pipeline(
             }
         }
     ''',
-    layout=[
-        {
-            'name': 'Texture',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'sampler',
@@ -92,11 +86,13 @@ triangle = ctx.pipeline(
             'wrap_y': 'clamp_to_edge',
         },
     ],
-    blending={
-        'enable': True,
-        'src_color': 'src_alpha',
-        'dst_color': 'one_minus_src_alpha',
-    },
+    blend=[
+        {
+            'enable': True,
+            'src_color': 'src_alpha',
+            'dst_color': 'one_minus_src_alpha',
+        },
+    ],
     framebuffer=[image],
     topology='triangle_strip',
     vertex_buffers=zengl.bind(instance_buffer, '4f /i', 0),
@@ -112,5 +108,5 @@ while window.update():
     instance_data[:, 2] += turn
     instance_buffer.write(instance_data)
     image.clear()
-    triangle.render()
+    triangle.run()
     image.blit()

@@ -35,9 +35,9 @@ vertex_buffers = [
 def build_pipeline(vertex_buffer):
     return ctx.pipeline(
         vertex_shader='''
-            #version 330
+            #version 450 core
 
-            layout (std140) uniform Common {
+            layout (std140, binding = 0) uniform Common {
                 mat4 mvp;
             };
 
@@ -48,7 +48,7 @@ def build_pipeline(vertex_buffer):
             }
         ''',
         fragment_shader='''
-            #version 330
+            #version 450 core
 
             layout (location = 0) out vec4 out_color;
 
@@ -56,12 +56,6 @@ def build_pipeline(vertex_buffer):
                 out_color = vec4(0.0, 0.0, 0.0, 1.0);
             }
         ''',
-        layout=[
-            {
-                'name': 'Common',
-                'binding': 0,
-            },
-        ],
         resources=[
             {
                 'type': 'uniform_buffer',
@@ -85,9 +79,9 @@ while window.update():
     image.clear()
     depth.clear()
     GL.glLineWidth(1.0)
-    pipelines[0].render()
+    pipelines[0].run()
     GL.glLineWidth(3.0)
-    pipelines[1].render()
+    pipelines[1].run()
     GL.glLineWidth(9.0)
-    pipelines[2].render()
+    pipelines[2].run()
     image.blit()

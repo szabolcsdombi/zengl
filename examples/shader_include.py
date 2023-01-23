@@ -20,8 +20,14 @@ vertex_buffer = ctx.buffer(np.array([
 ], 'f4'))
 
 triangle = ctx.pipeline(
+    # includes={
+    #     'vertex_attributes': '''
+    #         layout (location = 0) in vec2 in_vert;
+    #         layout (location = 1) in vec3 in_color;
+    #     ''',
+    # },
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         #include "vertex_attributes"
 
@@ -33,7 +39,7 @@ triangle = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         in vec3 v_color;
 
@@ -51,5 +57,5 @@ triangle = ctx.pipeline(
 
 while window.update():
     image.clear()
-    triangle.render()
+    triangle.run()
     image.blit()

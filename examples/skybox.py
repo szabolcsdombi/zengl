@@ -33,9 +33,9 @@ texture = ctx.image(size, 'rgba8unorm', faces, cubemap=True)
 
 shape = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
             vec4 eye;
         };
@@ -87,7 +87,7 @@ shape = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         uniform samplerCube Texture;
         in vec3 v_text;
@@ -98,16 +98,6 @@ shape = ctx.pipeline(
             out_color = vec4(texture(Texture, v_text).rgb, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-        {
-            'name': 'Texture',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -134,5 +124,5 @@ while window.update():
 
     image.clear()
     depth.clear()
-    shape.render()
+    shape.run()
     image.blit()

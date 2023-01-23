@@ -40,9 +40,9 @@ uniform_buffer = ctx.buffer(size=64)
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
         };
 
@@ -59,7 +59,7 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         in vec3 v_vertex;
         in vec3 v_normal;
@@ -74,12 +74,6 @@ pipeline = ctx.pipeline(
             out_color = vec3(1.0, 1.0, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -96,9 +90,9 @@ pipeline = ctx.pipeline(
 
 lights = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
         };
 
@@ -119,11 +113,11 @@ lights = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
-        uniform sampler2D Vertex;
-        uniform sampler2D Normal;
-        uniform sampler2D Color;
+        layout (binding = 0) uniform sampler2D Vertex;
+        layout (binding = 1) uniform sampler2D Normal;
+        layout (binding = 2) uniform sampler2D Color;
 
         in vec3 v_position;
         in float v_size;
@@ -142,24 +136,6 @@ lights = ctx.pipeline(
             out_color = vec4(color * v_color * lum, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-        {
-            'name': 'Vertex',
-            'binding': 0,
-        },
-        {
-            'name': 'Normal',
-            'binding': 1,
-        },
-        {
-            'name': 'Color',
-            'binding': 2,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -189,11 +165,13 @@ lights = ctx.pipeline(
         *zengl.bind(light_vertex_buffer, '3f', 0),
         *zengl.bind(light_instance_buffer, '3f 1f 3f /i', 1, 2, 3),
     ],
-    blending={
-        'enable': 1,
-        'src_color': 'one',
-        'dst_color': 'one',
-    },
+    blend=[
+        {
+            'enable': 1,
+            'src_color': 'one',
+            'dst_color': 'one',
+        },
+    ],
     vertex_count=light_vertex_buffer.size // zengl.calcsize('3f'),
 )
 
@@ -221,6 +199,6 @@ while window.update():
     lights.instance_count = 49
     image.clear()
     depth.clear()
-    pipeline.render()
-    lights.render()
+    pipeline.run()
+    lights.run()
     image.blit()

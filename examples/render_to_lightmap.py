@@ -31,9 +31,9 @@ uniform_buffer = ctx.buffer(size=64)
 
 depth_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
         };
 
@@ -46,17 +46,11 @@ depth_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         void main() {
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -64,10 +58,6 @@ depth_pipeline = ctx.pipeline(
             'buffer': uniform_buffer,
         },
     ],
-    polygon_offset={
-        'factor': 1.0,
-        'units': 0.0,
-    },
     framebuffer=[temp_depth],
     topology='triangles',
     cull_face='back',
@@ -77,7 +67,7 @@ depth_pipeline = ctx.pipeline(
 
 texture_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         layout (location = 0) in vec3 in_vertex;
         layout (location = 1) in vec2 in_texcoord;
@@ -90,15 +80,15 @@ texture_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         #include "samples"
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
         };
 
-        uniform sampler2DShadow DepthTexture;
+        layout (binding = 0) uniform sampler2DShadow DepthTexture;
 
         in vec3 v_vertex;
 
@@ -111,16 +101,6 @@ texture_pipeline = ctx.pipeline(
             out_color = vec4(vec3(lum) / samples, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-        {
-            'name': 'DepthTexture',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -135,11 +115,13 @@ texture_pipeline = ctx.pipeline(
             'compare_mode': 'ref_to_texture',
         },
     ],
-    blending={
-        'enable': True,
-        'src_color': 'one',
-        'dst_color': 'one',
-    },
+    blend=[
+        {
+            'enable': True,
+            'src_color': 'one',
+            'dst_color': 'one',
+        },
+    ],
     framebuffer=[temp_texture],
     topology='triangles',
     vertex_buffers=zengl.bind(vertex_buffer, '3f 2f', 0, 1),
@@ -148,7 +130,7 @@ texture_pipeline = ctx.pipeline(
 
 fill_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         vec2 positions[3] = vec2[](
             vec2(-1.0, -1.0),
@@ -161,9 +143,9 @@ fill_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
-        uniform sampler2D Texture;
+        layout (binding = 0) uniform sampler2D Texture;
 
         layout (location = 0) out float out_color;
 
@@ -197,12 +179,6 @@ fill_pipeline = ctx.pipeline(
             out_color = color;
         }
     ''',
-    layout=[
-        {
-            'name': 'Texture',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'sampler',
@@ -217,9 +193,9 @@ fill_pipeline = ctx.pipeline(
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
         };
 
@@ -236,9 +212,9 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
-        uniform sampler2D Texture;
+        layout (binding = 0) uniform sampler2D Texture;
 
         in vec3 v_vertex;
         in vec2 v_texcoord;
@@ -250,16 +226,6 @@ pipeline = ctx.pipeline(
             out_color = vec4(lum, lum, lum, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-        {
-            'name': 'Texture',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -294,12 +260,12 @@ for i in range(samples):
     camera = zengl.camera((x * 5.0, y * 5.0, z * 5.0), (0.0, 0.0, 0.0), aspect=1.0, fov=45.0, near=1.0, far=10.0)
     uniform_buffer.write(camera)
     temp_depth.clear()
-    depth_pipeline.render()
-    texture_pipeline.render()
+    depth_pipeline.run()
+    texture_pipeline.run()
     bar.next()
 
 
-fill_pipeline.render()
+fill_pipeline.run()
 
 ao = np.frombuffer(texture.read(), 'f4').reshape(size, size)[::-1]
 Image.fromarray((ao * 255.0).astype('u1'), 'L').save('generated-ao-map.png')
@@ -311,5 +277,5 @@ while window.update():
 
     image.clear()
     depth.clear()
-    pipeline.render()
+    pipeline.run()
     image.blit()

@@ -8,7 +8,7 @@ image = ctx.image(size, 'rgba8unorm', samples=1)
 
 triangle = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         out vec3 v_color;
 
@@ -30,7 +30,7 @@ triangle = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         in vec3 v_color;
 
@@ -47,6 +47,6 @@ triangle = ctx.pipeline(
 
 image.clear_value = (1.0, 1.0, 1.0, 1.0)
 image.clear()
-triangle.render()
+triangle.run()
 
 Image.frombuffer('RGBA', size, image.read(), 'raw', 'RGBA', 0, -1).save('hello.png')

@@ -21,9 +21,9 @@ uniform_buffer = ctx.buffer(size=80)
 
 monkey = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
         };
 
@@ -38,7 +38,7 @@ monkey = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         in vec3 v_norm;
 
@@ -50,12 +50,6 @@ monkey = ctx.pipeline(
             out_color = vec4(lum, lum, lum, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -72,9 +66,9 @@ monkey = ctx.pipeline(
 
 monkey_reflection = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
         };
 
@@ -89,7 +83,7 @@ monkey_reflection = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         in vec3 v_norm;
 
@@ -101,12 +95,6 @@ monkey_reflection = ctx.pipeline(
             out_color = vec4(lum, lum, lum, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -123,9 +111,9 @@ monkey_reflection = ctx.pipeline(
 
 monkey_shadow = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
         };
 
@@ -137,20 +125,15 @@ monkey_shadow = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         layout (location = 0) out vec4 out_color;
 
         void main() {
+            gl_FragDepth = gl_FragCoord.z - 1e-4;
             out_color = vec4(0.0, 0.0, 0.0, 0.3);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -158,13 +141,15 @@ monkey_shadow = ctx.pipeline(
             'buffer': uniform_buffer,
         },
     ],
-    blending={
-        'enable': True,
-        'src_color': 'src_alpha',
-        'dst_color': 'one_minus_src_alpha',
-        'src_alpha': 'one',
-        'dst_alpha': 'zero',
-    },
+    blend=[
+        {
+            'enable': True,
+            'src_color': 'src_alpha',
+            'dst_color': 'one_minus_src_alpha',
+            'src_alpha': 'one',
+            'dst_alpha': 'zero',
+        },
+    ],
     stencil={
         'test': True,
         'both': {
@@ -186,9 +171,9 @@ monkey_shadow = ctx.pipeline(
 
 plane = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
         };
 
@@ -204,7 +189,7 @@ plane = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         layout (location = 0) out vec4 out_color;
 
@@ -212,12 +197,6 @@ plane = ctx.pipeline(
             out_color = vec4(1.0, 1.0, 1.0, 0.7);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -225,17 +204,15 @@ plane = ctx.pipeline(
             'buffer': uniform_buffer,
         },
     ],
-    polygon_offset={
-        'factor': 1.0,
-        'units': 0.0,
-    },
-    blending={
-        'enable': True,
-        'src_color': 'src_alpha',
-        'dst_color': 'one_minus_src_alpha',
-        'src_alpha': 'one',
-        'dst_alpha': 'zero',
-    },
+    blend=[
+        {
+            'enable': True,
+            'src_color': 'src_alpha',
+            'dst_color': 'one_minus_src_alpha',
+            'src_alpha': 'one',
+            'dst_alpha': 'zero',
+        },
+    ],
     framebuffer=[image, depth],
     topology='triangle_strip',
     vertex_count=4,
@@ -251,8 +228,8 @@ while window.update():
 
     image.clear()
     depth.clear()
-    monkey.render()
-    monkey_reflection.render()
-    monkey_shadow.render()
-    plane.render()
+    monkey.run()
+    monkey_reflection.run()
+    monkey_shadow.run()
+    plane.run()
     image.blit()

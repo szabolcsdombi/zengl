@@ -56,7 +56,7 @@ ctx.includes['font_size'] = 'const vec2 font_size = vec2(32.0, 32.0);'
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         #include "screen_size"
         #include "font_size"
@@ -81,11 +81,11 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         in vec3 v_texcoord;
 
-        uniform sampler2DArray Texture;
+        layout (binding = 0) uniform sampler2DArray Texture;
 
         layout (location = 0) out vec4 out_color;
 
@@ -93,12 +93,6 @@ pipeline = ctx.pipeline(
             out_color = texture(Texture, v_texcoord);
         }
     ''',
-    layout=[
-        {
-            'name': 'Texture',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'sampler',
@@ -110,11 +104,13 @@ pipeline = ctx.pipeline(
             'mag_filter': 'nearest',
         },
     ],
-    blending={
-        'enable': True,
-        'src_color': 'src_alpha',
-        'dst_color': 'one_minus_src_alpha',
-    },
+    blend=[
+        {
+            'enable': True,
+            'src_color': 'src_alpha',
+            'dst_color': 'one_minus_src_alpha',
+        },
+    ],
     framebuffer=[image],
     topology='triangle_strip',
     vertex_buffers=zengl.bind(instance_buffer, '3f /i', 0),
@@ -125,5 +121,5 @@ pipeline = ctx.pipeline(
 
 while window.update():
     image.clear()
-    pipeline.render()
+    pipeline.run()
     image.blit()

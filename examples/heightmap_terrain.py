@@ -64,16 +64,16 @@ ctx.includes['terrain_info'] = '''
 
 terrain = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         #include "terrain_info"
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
         };
 
-        uniform sampler2D Heightmap;
-        uniform sampler2D Normalmap;
+        layout (binding = 0) uniform sampler2D Heightmap;
+        layout (binding = 1) uniform sampler2D Normalmap;
 
         layout (location = 0) in ivec2 in_vert;
 
@@ -88,12 +88,12 @@ terrain = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         in vec3 v_normal;
         in vec2 v_texcoord;
 
-        uniform sampler2D Colormap;
+        layout (binding = 2) uniform sampler2D Colormap;
 
         layout (location = 0) out vec4 out_color;
 
@@ -104,24 +104,6 @@ terrain = ctx.pipeline(
             out_color = vec4(color * lum, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-        {
-            'name': 'Heightmap',
-            'binding': 0,
-        },
-        {
-            'name': 'Normalmap',
-            'binding': 1,
-        },
-        {
-            'name': 'Colormap',
-            'binding': 2,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -145,7 +127,6 @@ terrain = ctx.pipeline(
         },
     ],
     framebuffer=[image, depth],
-    primitive_restart=True,
     topology='triangle_strip',
     cull_face='back',
     vertex_buffers=zengl.bind(vertex_buffer, '2i', 0),
@@ -160,5 +141,5 @@ while window.update():
 
     image.clear()
     depth.clear()
-    terrain.render()
+    terrain.run()
     image.blit()

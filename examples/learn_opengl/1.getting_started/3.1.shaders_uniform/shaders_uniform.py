@@ -20,7 +20,7 @@ vertex_buffer = ctx.buffer(np.array([
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 450 core
         layout (location = 0) in vec3 aPos;
         void main()
         {
@@ -28,7 +28,7 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 450 core
         out vec4 FragColor;
         uniform vec4 ourColor;
 
@@ -37,7 +37,7 @@ pipeline = ctx.pipeline(
             FragColor = ourColor;
         }
     ''',
-    # Uniforms defined this way will be set by the pipeline.render() call.
+    # Uniforms defined this way will be set by the pipeline.run() call.
     # It is possible to mutate these values.
     # To share uniforms across multiple pipeline objects using uniform buffers is the way to go.
     # For simplicity we will use uniforms.
@@ -63,5 +63,5 @@ while window.update():
     green = np.sin(window.time) / 2.0 + 0.5
     pipeline.uniforms['ourColor'][:] = struct.pack('4f', 0.0, green, 0.0, 1.0)
 
-    pipeline.render()
+    pipeline.run()
     image.blit()

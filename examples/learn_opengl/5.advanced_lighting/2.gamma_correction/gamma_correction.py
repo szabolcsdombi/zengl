@@ -20,12 +20,6 @@ floor_texture.mipmaps()
 pipeline = ctx.pipeline(
     vertex_shader=read_file('2.gamma_correction.vs'),
     fragment_shader=read_file('2.gamma_correction.fs'),
-    layout=[
-        {
-            'name': 'floorTexture',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'sampler',
@@ -70,5 +64,5 @@ while window.update():
 
     image.clear()
     depth.clear()
-    pipeline.render()
+    pipeline.run()
     image.blit()

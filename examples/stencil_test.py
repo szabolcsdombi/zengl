@@ -19,7 +19,7 @@ uniform_buffer = ctx.buffer(size=80)
 
 triangle = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         vec2 positions[3] = vec2[](
             vec2(0.0, 0.8),
@@ -32,7 +32,7 @@ triangle = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         void main() {
         }
@@ -58,7 +58,10 @@ triangle = ctx.pipeline(
             'reference': 1,
         },
     },
-    depth=False,
+    depth={
+        'func': 'never',
+        'write': False,
+    },
     framebuffer=[depth_stencil],
     topology='triangles',
     vertex_count=3,
@@ -66,9 +69,9 @@ triangle = ctx.pipeline(
 
 monkey = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
         };
 
@@ -83,7 +86,7 @@ monkey = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         in vec3 v_norm;
 
@@ -95,12 +98,6 @@ monkey = ctx.pipeline(
             out_color = vec4(lum, lum, lum, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -142,6 +139,6 @@ uniform_buffer.write(camera)
 while window.update():
     depth_stencil.clear()
     image.clear()
-    triangle.render()
-    monkey.render()
+    triangle.run()
+    monkey.run()
     image.blit()

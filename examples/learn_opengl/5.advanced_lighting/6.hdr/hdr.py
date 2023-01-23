@@ -28,12 +28,6 @@ floor_texture.mipmaps()
 lighting = ctx.pipeline(
     vertex_shader=read_file('6.lighting.vs'),
     fragment_shader=read_file('6.lighting.fs'),
-    layout=[
-        {
-            'name': 'diffuseTexture',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'sampler',
@@ -54,12 +48,6 @@ lighting = ctx.pipeline(
 hdr = ctx.pipeline(
     vertex_shader=read_file('6.hdr.vs'),
     fragment_shader=read_file('6.hdr.fs'),
-    layout=[
-        {
-            'name': 'hdrBuffer',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'sampler',
@@ -129,7 +117,7 @@ while window.update():
     model = glm.scale(model, glm.vec3(2.5, 2.5, 27.5))
     set_uniform_glm(lighting, 'model', model)
     set_uniform_int(lighting, 'inverse_normals', True)
-    lighting.render()
-    hdr.render()
+    lighting.run()
+    hdr.run()
 
     final_image.blit()

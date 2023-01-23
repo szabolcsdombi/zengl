@@ -23,16 +23,6 @@ specular_map = ctx.image(img.size, 'rgba8unorm', img.tobytes())
 lighting_shader = ctx.pipeline(
     vertex_shader=read_file('6.multiple_lights.vs'),
     fragment_shader=read_file('6.multiple_lights.fs'),
-    layout=[
-        {
-            'name': 'material.diffuse',
-            'binding': 0,
-        },
-        {
-            'name': 'material.specular',
-            'binding': 1,
-        },
-    ],
     resources=[
         {
             'type': 'sampler',
@@ -164,10 +154,10 @@ while window.update():
         model = glm.translate(model, position)
         model = glm.rotate(model, glm.radians(angle), glm.vec3(1.0, 0.3, 0.5))
         set_uniform_glm(lighting_shader, 'model', model)
-        lighting_shader.render()
+        lighting_shader.run()
 
     for light_pos in point_lights:
         set_uniform_glm(light_cube_shader, 'model', glm.scale(glm.translate(glm.mat4(1.0), light_pos), glm.vec3(0.2)))
-        light_cube_shader.render()
+        light_cube_shader.run()
 
     image.blit()

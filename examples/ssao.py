@@ -22,9 +22,9 @@ temp_depth = ctx.image(window.size, 'depth24plus')
 
 temp_pass = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
             vec4 light_pos;
             vec4 camera_pos;
@@ -43,9 +43,9 @@ temp_pass = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
             vec4 light_pos;
             vec4 camera_pos;
@@ -62,12 +62,6 @@ temp_pass = ctx.pipeline(
             out_normal = vec4(v_norm, 0.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -84,7 +78,7 @@ temp_pass = ctx.pipeline(
 
 ssao = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 450 core
 
         vec2 positions[3] = vec2[](
             vec2(-1.0, -1.0),
@@ -97,7 +91,7 @@ ssao = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 450 core
 
         float hash13(vec3 p3) {
             p3 = fract(p3 * 0.1031);
@@ -105,7 +99,7 @@ ssao = ctx.pipeline(
             return fract((p3.x + p3.y) * p3.z);
         }
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
             vec4 light_pos;
             vec4 camera_pos;
@@ -130,8 +124,8 @@ ssao = ctx.pipeline(
             vec3(-0.4802, -0.5583, 0.2939)
         );
 
-        uniform sampler2D Position;
-        uniform sampler2D Normal;
+        layout (binding = 0) uniform sampler2D Position;
+        layout (binding = 1) uniform sampler2D Normal;
 
         layout (location = 0) out vec4 out_color;
 
@@ -154,8 +148,8 @@ ssao = ctx.pipeline(
             for (int i = 0; i < 16; i++) {
                 vec4 tmp = mvp * vec4(position + basis * points[i] * 0.08, 1.0);
                 vec2 uv = (tmp.xy / tmp.w) * 0.5 + 0.5;
-                vec3 sample = texture(Position, uv).rgb;
-                if (distance(sample, camera_pos.xyz) > distance(position, camera_pos.xyz) - 1e-2) {
+                vec3 pick = texture(Position, uv).rgb;
+                if (distance(pick, camera_pos.xyz) > distance(position, camera_pos.xyz) - 1e-2) {
                     lum += 1.0 / 16.0;
                 }
             }
@@ -163,20 +157,6 @@ ssao = ctx.pipeline(
             out_color = vec4(lum, lum, lum, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-        {
-            'name': 'Position',
-            'binding': 0,
-        },
-        {
-            'name': 'Normal',
-            'binding': 1,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -212,9 +192,9 @@ while window.update():
     temp_position.clear()
     temp_normal.clear()
     temp_depth.clear()
-    temp_pass.render()
+    temp_pass.run()
 
     image.clear()
     depth.clear()
-    ssao.render()
+    ssao.run()
     image.blit()

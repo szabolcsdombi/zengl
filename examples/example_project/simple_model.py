@@ -15,11 +15,11 @@ class SimpleModel:
     def pipeline(self, object_state_resource, framebuffer: List[zengl.Image]):
         return self.ctx.pipeline(
             vertex_shader='''
-                #version 330
+                #version 450 core
 
                 #include "main_uniform_buffer"
 
-                layout (std140) uniform ObjectState {
+                layout (std140, binding = 1) uniform ObjectState {
                     vec3 position;
                 };
 
@@ -34,7 +34,7 @@ class SimpleModel:
                 }
             ''',
             fragment_shader='''
-                #version 330
+                #version 450 core
 
                 in vec3 v_norm;
 
@@ -46,16 +46,6 @@ class SimpleModel:
                     out_color = vec4(lum, lum, lum, 1.0);
                 }
             ''',
-            layout=[
-                {
-                    'name': 'MainUniformBuffer',
-                    'binding': 0,
-                },
-                {
-                    'name': 'ObjectState',
-                    'binding': 1,
-                },
-            ],
             resources=[
                 {
                     'type': 'uniform_buffer',

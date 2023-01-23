@@ -22,9 +22,9 @@ material_uniform_buffer = ctx.buffer(size=112)
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
             vec4 eye_pos;
         };
@@ -42,14 +42,14 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
             vec4 eye_pos;
         };
 
-        layout (std140) uniform Material {
+        layout (std140, binding = 1) uniform Material {
             vec4 light_pos;
             vec4 light_color;
             float light_power;
@@ -90,16 +90,6 @@ pipeline = ctx.pipeline(
             out_color = vec4(color_gamma_corrected, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-        {
-            'name': 'Material',
-            'binding': 1,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -143,5 +133,5 @@ while window.update():
 
     image.clear()
     depth.clear()
-    pipeline.render()
+    pipeline.run()
     image.blit()

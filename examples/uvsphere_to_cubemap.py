@@ -42,9 +42,9 @@ uniform_buffer = ctx.buffer(size=64)
 
 sphere = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
         };
 
@@ -59,13 +59,13 @@ sphere = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
         };
 
-        uniform sampler2D Texture;
+        layout (binding = 0) uniform sampler2D Texture;
 
         in vec2 v_text;
 
@@ -75,16 +75,6 @@ sphere = ctx.pipeline(
             out_color = texture(Texture, v_text);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-        {
-            'name': 'Texture',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -121,7 +111,7 @@ print('rendering')
 
 for face, camera in faces:
     uniform_buffer.write(camera)
-    sphere.render()
+    sphere.run()
     img = Image.frombuffer('RGBA', image.size, image.read(), 'raw', 'RGBA', 0, -1)
     img.save(f'downloads/skybox_{face}.png')
 

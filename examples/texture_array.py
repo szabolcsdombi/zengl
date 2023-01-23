@@ -37,8 +37,8 @@ for i in range(10):
     draw.font = ImageFont.truetype(pack.open('Roboto-Bold.ttf'), size=64)
     rgb = (np.array(colorsys.hls_to_rgb(i / 10, 0.6, 0.6)) * 255).astype('u1')
     draw.rectangle((0, 0, 128, 128), tuple(rgb))
-    x = 64 - draw.textsize(f'{i + 1}')[0] // 2
-    draw.text((x, 25), f'{i + 1}', '#000')
+    aabb = draw.textbbox((0, 0), f'{i + 1}')
+    draw.text((64 - (aabb[2] - aabb[0]) // 2, 25), f'{i + 1}', '#000')
     texture.write(img.transpose(Image.Transpose.FLIP_TOP_BOTTOM).tobytes(), layer=i)
 
 texture.mipmaps()
@@ -47,9 +47,9 @@ uniform_buffer = ctx.buffer(size=80)
 
 crate = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
             vec3 light;
         };
@@ -72,14 +72,14 @@ crate = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
             vec3 light;
         };
 
-        uniform sampler2DArray Texture;
+        layout (binding = 0) uniform sampler2DArray Texture;
 
         in vec3 v_vert;
         in vec3 v_norm;
@@ -92,16 +92,6 @@ crate = ctx.pipeline(
             out_color = vec4(texture(Texture, v_text).rgb * lum, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-        {
-            'name': 'Texture',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -135,5 +125,5 @@ uniform_buffer.write(struct.pack('3f4x', 3.0, 2.0, 1.5), offset=64)
 while window.update():
     image.clear()
     depth.clear()
-    crate.render()
+    crate.run()
     image.blit()

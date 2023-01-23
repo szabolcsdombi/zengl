@@ -30,9 +30,9 @@ ctx.includes['size'] = f'const int size = {size};'
 
 texcoord_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
         };
 
@@ -48,7 +48,7 @@ texcoord_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         #include "size"
 
@@ -62,12 +62,6 @@ texcoord_pipeline = ctx.pipeline(
             out_address = ty * size + tx;
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -96,7 +90,7 @@ for i in range(samples):
     uniform_buffer.write(camera)
     temp_color.clear()
     temp_depth.clear()
-    texcoord_pipeline.render()
+    texcoord_pipeline.run()
     t = np.frombuffer(temp_color.read(), 'i4').reshape((size, size))
     ao[np.unique(t[t >= 0])] += 1.0
     bar.next()
@@ -111,9 +105,9 @@ Image.fromarray((ao.reshape(size, size) * 255.0).astype('u1'), 'L').save('genera
 
 render_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
-        layout (std140) uniform Common {
+        layout (std140, binding = 0) uniform Common {
             mat4 mvp;
         };
 
@@ -131,9 +125,9 @@ render_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
-        uniform sampler2D Texture;
+        layout (binding = 0) uniform sampler2D Texture;
 
         in vec2 v_texcoord;
 
@@ -145,16 +139,6 @@ render_pipeline = ctx.pipeline(
             out_color = vec4(color * lum, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-        {
-            'name': 'Texture',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -182,5 +166,5 @@ while window.update():
     uniform_buffer.write(camera)
     image.clear()
     depth.clear()
-    render_pipeline.render()
+    render_pipeline.run()
     image.blit()

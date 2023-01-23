@@ -23,7 +23,7 @@ index_buffer = ctx.buffer(np.array([
 
 square = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 450 core
 
         layout (location = 0) in vec2 in_vert;
         layout (location = 1) in vec3 in_color;
@@ -36,7 +36,7 @@ square = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 450 core
 
         in vec3 v_color;
 
@@ -55,5 +55,5 @@ square = ctx.pipeline(
 
 while window.update():
     image.clear()
-    square.render()
+    square.run()
     image.blit()
