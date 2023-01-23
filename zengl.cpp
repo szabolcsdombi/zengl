@@ -981,7 +981,7 @@ Buffer * Context_meth_buffer(Context * self, PyObject * vargs, PyObject * kwargs
     PyObject * size_arg = Py_None;
     int external = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "|O$Oi", keywords, &data, &size_arg, &external)) {
+    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "|OOi", keywords, &data, &size_arg, &external)) {
         return NULL;
     }
 
@@ -1063,7 +1063,7 @@ Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * kwargs) 
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
-        "(ii)O!|O$iiiOpi",
+        "(ii)O!|OiiiOpi",
         keywords,
         &width,
         &height,
@@ -1282,7 +1282,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
-        "|$O!O!OOOOOOOOOOpOO&iiiiO!OO",
+        "|O!O!OOOOOOOOOOpOO&iiiiO!OO",
         keywords,
         &PyUnicode_Type,
         &vertex_shader,
@@ -1500,7 +1500,7 @@ Compute * Context_meth_compute(Context * self, PyObject * vargs, PyObject * kwar
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
-        "|$O!OO(iii)O",
+        "|O!OO(iii)O",
         keywords,
         &PyUnicode_Type,
         &compute_shader,
@@ -1850,7 +1850,7 @@ PyObject * Buffer_meth_map(Buffer * self, PyObject * vargs, PyObject * kwargs) {
     PyObject * offset_arg = Py_None;
     int discard = false;
 
-    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "|$OOp", keywords, &size_arg, &offset_arg, &discard)) {
+    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "|OOp", keywords, &size_arg, &offset_arg, &discard)) {
         return NULL;
     }
 
@@ -1953,7 +1953,7 @@ PyObject * Image_meth_write(Image * self, PyObject * vargs, PyObject * kwargs) {
     PyObject * layer_arg = Py_None;
     int level = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "y*|O$OOi", keywords, &view, &size_arg, &offset_arg, &layer_arg, &level)) {
+    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "y*|OOOi", keywords, &view, &size_arg, &offset_arg, &layer_arg, &level)) {
         return NULL;
     }
 
@@ -2057,7 +2057,7 @@ PyObject * Image_meth_mipmaps(Image * self, PyObject * vargs, PyObject * kwargs)
     int base = 0;
     PyObject * levels_arg = Py_None;
 
-    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "|$iO", keywords, &base, &levels_arg)) {
+    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "|iO", keywords, &base, &levels_arg)) {
         return NULL;
     }
 
@@ -2101,7 +2101,7 @@ PyObject * Image_meth_read(Image * self, PyObject * vargs, PyObject * kwargs) {
     PyObject * size_arg = Py_None;
     PyObject * offset_arg = Py_None;
 
-    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "|O$O", keywords, &size_arg, &offset_arg)) {
+    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "|OO", keywords, &size_arg, &offset_arg)) {
         return NULL;
     }
 
@@ -2169,7 +2169,7 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
-        "|OO$OpOO",
+        "|OOOpOO",
         keywords,
         &target_arg,
         &target_viewport_arg,
@@ -2679,7 +2679,7 @@ PyObject * ImageFace_meth_blit(ImageFace * self, PyObject * vargs, PyObject * kw
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
-        "|O!O$OpO",
+        "|O!OOpO",
         keywords,
         self->image->ctx->module_state->ImageFace_type,
         &target,
