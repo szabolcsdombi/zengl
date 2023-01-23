@@ -7,8 +7,6 @@ from window import Window
 window = Window()
 ctx = zengl.context()
 
-print('Hello World | Vendor: %s | Renderer: %s | Version: %s' % ctx.info)
-
 image = ctx.image(window.size, 'rgba8unorm')
 
 compute = ctx.compute(
