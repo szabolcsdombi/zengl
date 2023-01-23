@@ -178,7 +178,6 @@ struct Compute {
     Context * ctx;
     DescriptorSet * descriptor_set;
     GLObject * program;
-    Buffer * indirect_buffer;
     PyObject * uniform_map;
     char * uniform_data;
     int uniform_bindings;
@@ -1487,7 +1486,6 @@ Compute * Context_meth_compute(Context * self, PyObject * vargs, PyObject * kwar
         "compute_shader",
         "resources",
         "uniforms",
-        "indirect_buffer",
         "group_count",
         "includes",
         NULL,
@@ -1496,20 +1494,18 @@ Compute * Context_meth_compute(Context * self, PyObject * vargs, PyObject * kwar
     PyObject * compute_shader = NULL;
     PyObject * resources = self->module_state->empty_tuple;
     PyObject * uniforms = Py_None;
-    PyObject * indirect_buffer = Py_None;
     int group_count[3] = {};
     PyObject * includes = Py_None;
 
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
-        "|$O!OOO(iii)O",
+        "|$O!OO(iii)O",
         keywords,
         &PyUnicode_Type,
         &compute_shader,
         &resources,
         &uniforms,
-        &indirect_buffer,
         &group_count[0],
         &group_count[1],
         &group_count[2],
@@ -1517,11 +1513,6 @@ Compute * Context_meth_compute(Context * self, PyObject * vargs, PyObject * kwar
     );
 
     if (!args_ok) {
-        return NULL;
-    }
-
-    if (indirect_buffer != Py_None && Py_TYPE(indirect_buffer) != self->module_state->Buffer_type) {
-        PyErr_Format(PyExc_TypeError, "invalid indirect buffer");
         return NULL;
     }
 
@@ -1588,8 +1579,6 @@ Compute * Context_meth_compute(Context * self, PyObject * vargs, PyObject * kwar
     DescriptorSet * descriptor_set = build_descriptor_set(self, resource_bindings);
     Py_DECREF(resource_bindings);
 
-    Buffer * indirect_buffer_obj = indirect_buffer != Py_None ? (Buffer *)new_ref(indirect_buffer) : NULL;
-
     Compute * res = PyObject_New(Compute, self->module_state->Compute_type);
     res->gc_prev = self->gc_prev;
     res->gc_next = (GCHeader *)self;
@@ -1597,7 +1586,6 @@ Compute * Context_meth_compute(Context * self, PyObject * vargs, PyObject * kwar
     res->gc_next->gc_prev = (GCHeader *)res;
     res->ctx = (Context *)new_ref(self);
     res->program = program;
-    res->indirect_buffer = indirect_buffer_obj;
     res->uniform_map = uniform_map;
     res->uniform_data = uniform_data;
     res->descriptor_set = descriptor_set;
@@ -2539,12 +2527,7 @@ PyObject * Compute_meth_run(Compute * self) {
     if (self->uniform_data) {
         bind_uniforms(self->ctx, self->program->obj, self->uniform_data);
     }
-    if (self->indirect_buffer) {
-        gl.BindBuffer(GL_DISPATCH_INDIRECT_BUFFER, self->indirect_buffer->buffer);
-        gl.DispatchComputeIndirect(0);
-    } else {
-        gl.DispatchCompute(self->group_count[0], self->group_count[1], self->group_count[2]);
-    }
+    gl.DispatchCompute(self->group_count[0], self->group_count[1], self->group_count[2]);
     Py_RETURN_NONE;
 }
 
