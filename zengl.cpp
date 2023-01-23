@@ -1025,7 +1025,7 @@ Buffer * Context_meth_buffer(Context * self, PyObject * vargs, PyObject * kwargs
         buffer = external;
     } else {
         gl.CreateBuffers(1, (unsigned *)&buffer);
-        unsigned flags = GL_DYNAMIC_STORAGE_BIT | GL_MAP_READ_BIT | GL_MAP_WRITE_BIT; //, GL_MAP_PERSISTENT_BIT, GL_MAP_COHERENT_BIT, and GL_CLIENT_STORAGE_BIT;
+        unsigned flags = GL_DYNAMIC_STORAGE_BIT | GL_MAP_READ_BIT | GL_MAP_WRITE_BIT;
         gl.NamedBufferStorage(buffer, size, view.buf, flags);
     }
 
@@ -1608,6 +1608,80 @@ Compute * Context_meth_compute(Context * self, PyObject * vargs, PyObject * kwar
     return res;
 }
 
+void release_descriptor_set(Context * self, DescriptorSet * set) {
+    set->uses -= 1;
+    if (!set->uses) {
+        for (int i = 0; i < set->samplers.sampler_count; ++i) {
+            GLObject * sampler = (GLObject *)set->samplers.sampler_refs[i];
+            sampler->uses -= 1;
+            if (!sampler->uses) {
+                remove_dict_value(self->sampler_cache, (PyObject *)sampler);
+                self->gl.DeleteSamplers(1, (unsigned int *)&sampler->obj);
+            }
+        }
+        for (int i = 0; i < set->uniform_buffers.buffer_count; ++i) {
+            Py_XDECREF(set->uniform_buffers.buffer_refs[i]);
+        }
+        for (int i = 0; i < set->storage_buffers.buffer_count; ++i) {
+            Py_XDECREF(set->storage_buffers.buffer_refs[i]);
+        }
+        for (int i = 0; i < set->samplers.sampler_count; ++i) {
+            Py_XDECREF(set->samplers.sampler_refs[i]);
+            Py_XDECREF(set->samplers.texture_refs[i]);
+        }
+        for (int i = 0; i < set->images.image_count; ++i) {
+            Py_XDECREF(set->images.image_refs[i]);
+        }
+        remove_dict_value(self->descriptor_set_cache, (PyObject *)set);
+        if (self->current_descriptor_set == set) {
+            self->current_descriptor_set = NULL;
+        }
+    }
+}
+
+void release_global_settings(Context * self, GlobalSettings * settings) {
+    settings->uses -= 1;
+    if (!settings->uses) {
+        remove_dict_value(self->global_settings_cache, (PyObject *)settings);
+        if (self->current_global_settings == settings) {
+            self->current_global_settings = NULL;
+        }
+    }
+}
+
+void release_framebuffer(Context * self, GLObject * framebuffer) {
+    framebuffer->uses -= 1;
+    if (!framebuffer->uses) {
+        remove_dict_value(self->framebuffer_cache, (PyObject *)framebuffer);
+        if (self->current_framebuffer == framebuffer->obj) {
+            self->current_framebuffer = 0;
+        }
+        self->gl.DeleteFramebuffers(1, (unsigned int *)&framebuffer->obj);
+    }
+}
+
+void release_program(Context * self, GLObject * program) {
+    program->uses -= 1;
+    if (!program->uses) {
+        remove_dict_value(self->program_cache, (PyObject *)program);
+        if (self->current_program == program->obj) {
+            self->current_program = 0;
+        }
+        self->gl.DeleteProgram(program->obj);
+    }
+}
+
+void release_vertex_array(Context * self, GLObject * vertex_array) {
+    vertex_array->uses -= 1;
+    if (!vertex_array->uses) {
+        remove_dict_value(self->vertex_array_cache, (PyObject *)vertex_array);
+        if (self->current_vertex_array == vertex_array->obj) {
+            self->current_vertex_array = 0;
+        }
+        self->gl.DeleteVertexArrays(1, (unsigned int *)&vertex_array->obj);
+    }
+}
+
 PyObject * Context_meth_release(Context * self, PyObject * arg) {
     const GLMethods & gl = self->gl;
     if (Py_TYPE(arg) == self->module_state->Buffer_type) {
@@ -1621,25 +1695,14 @@ PyObject * Context_meth_release(Context * self, PyObject * arg) {
         image->gc_prev->gc_next = image->gc_next;
         image->gc_next->gc_prev = image->gc_prev;
         if (image->framebuffer) {
-            image->framebuffer->uses -= 1;
-            if (!image->framebuffer->uses) {
-                remove_dict_value(self->framebuffer_cache, (PyObject *)image->framebuffer);
-                if (self->current_framebuffer == image->framebuffer->obj) {
-                    self->current_framebuffer = 0;
-                }
-                gl.DeleteFramebuffers(1, (unsigned int *)&image->framebuffer->obj);
-            }
+            release_framebuffer(self, image->framebuffer);
         }
         if (image->faces) {
             PyObject * key = NULL;
             PyObject * value = NULL;
             Py_ssize_t pos = 0;
             while (PyDict_Next(image->faces, &pos, &key, &value)) {
-                GLObject * framebuffer = (GLObject *)value;
-                if (self->current_framebuffer == framebuffer->obj) {
-                    self->current_framebuffer = 0;
-                }
-                gl.DeleteFramebuffers(1, (unsigned int *)&framebuffer->obj);
+                release_framebuffer(self, (GLObject *)value);
             }
             PyDict_Clear(self->shader_cache);
         }
@@ -1653,66 +1716,28 @@ PyObject * Context_meth_release(Context * self, PyObject * arg) {
         Pipeline * pipeline = (Pipeline *)arg;
         pipeline->gc_prev->gc_next = pipeline->gc_next;
         pipeline->gc_next->gc_prev = pipeline->gc_prev;
-        // pipeline->descriptor_set_buffers->uses -= 1;
-        // if (!pipeline->descriptor_set_buffers->uses) {
-        //     remove_dict_value(self->descriptor_set_buffers_cache, (PyObject *)pipeline->descriptor_set_buffers);
-        //     if (self->current_buffers == pipeline->descriptor_set_buffers) {
-        //         self->current_buffers = NULL;
-        //     }
-        // }
-        // pipeline->descriptor_set_images->uses -= 1;
-        // if (!pipeline->descriptor_set_images->uses) {
-        //     // for (int i = 0; i < pipeline->descriptor_set_images->samplers; ++i) {
-        //     //     GLObject * sampler = pipeline->descriptor_set_images->sampler[i];
-        //     //     sampler->uses -= 1;
-        //     //     if (!sampler->uses) {
-        //     //         remove_dict_value(self->sampler_cache, (PyObject *)sampler);
-        //     //         gl.DeleteSamplers(1, (unsigned int *)&sampler->obj);
-        //     //     }
-        //     // } // TODO: fix
-        //     remove_dict_value(self->descriptor_set_images_cache, (PyObject *)pipeline->descriptor_set_images);
-        //     if (self->current_images == pipeline->descriptor_set_images) {
-        //         self->current_images = NULL;
-        //     }
-        // }
-        pipeline->global_settings->uses -= 1;
-        if (!pipeline->global_settings->uses) {
-            remove_dict_value(self->global_settings_cache, (PyObject *)pipeline->global_settings);
-            if (self->current_global_settings == pipeline->global_settings) {
-                self->current_global_settings = NULL;
-            }
-        }
-        pipeline->framebuffer->uses -= 1;
-        if (!pipeline->framebuffer->uses) {
-            remove_dict_value(self->framebuffer_cache, (PyObject *)pipeline->framebuffer);
-            if (self->current_framebuffer == pipeline->framebuffer->obj) {
-                self->current_framebuffer = 0;
-            }
-            gl.DeleteFramebuffers(1, (unsigned int *)&pipeline->framebuffer->obj);
-        }
-        pipeline->program->uses -= 1;
-        if (!pipeline->program->uses) {
-            remove_dict_value(self->program_cache, (PyObject *)pipeline->program);
-            if (self->current_program == pipeline->program->obj) {
-                self->current_program = 0;
-            }
-            gl.DeleteProgram(pipeline->program->obj);
-        }
-        pipeline->vertex_array->uses -= 1;
-        if (!pipeline->vertex_array->uses) {
-            remove_dict_value(self->vertex_array_cache, (PyObject *)pipeline->vertex_array);
-            if (self->current_vertex_array == pipeline->vertex_array->obj) {
-                self->current_vertex_array = 0;
-            }
-            gl.DeleteVertexArrays(1, (unsigned int *)&pipeline->vertex_array->obj);
-        }
+        release_descriptor_set(self, pipeline->descriptor_set);
+        release_global_settings(self, pipeline->global_settings);
+        release_framebuffer(self, pipeline->framebuffer);
+        release_program(self, pipeline->program);
+        release_vertex_array(self, pipeline->vertex_array);
         if (pipeline->uniform_data) {
             PyMem_Free(pipeline->uniform_data);
             Py_DECREF(pipeline->uniform_map);
         }
+        Py_XDECREF(pipeline->dynamic_state_mem);
         Py_DECREF(pipeline);
     } else if (Py_TYPE(arg) == self->module_state->Compute_type) {
-        // TODO: implement
+        Compute * compute = (Compute *)arg;
+        compute->gc_prev->gc_next = compute->gc_next;
+        compute->gc_next->gc_prev = compute->gc_prev;
+        release_descriptor_set(self, compute->descriptor_set);
+        release_program(self, compute->program);
+        if (compute->uniform_data) {
+            PyMem_Free(compute->uniform_data);
+            Py_DECREF(compute->uniform_map);
+        }
+        Py_DECREF(compute);
     } else if (PyUnicode_CheckExact(arg) && !PyUnicode_CompareWithASCIIString(arg, "shader_cache")) {
         PyObject * key = NULL;
         PyObject * value = NULL;
