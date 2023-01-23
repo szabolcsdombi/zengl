@@ -42,24 +42,12 @@ ImageFormat = Literal[
     'depth16unorm', 'depth24plus', 'depth24plus-stencil8', 'depth32float',
 ]
 
-FromImageFormat = Literal['rgba', 'bgr', 'rgb', 'bgra', 'lum']
-
 Vec3 = Tuple[float, float, float]
 Viewport = Tuple[int, int, int, int]
 Bytes = bytes | Any
 
 
-class PolygonOffsetSettings(TypedDict, total=False):
-    factor: float
-    units: float
-
-
-class LayoutBinding(TypedDict, total=False):
-    name: str
-    binding: int
-
-
-class BufferResourceBinding(TypedDict, total=False):
+class UniformBufferResource(TypedDict, total=False):
     type: Literal['uniform_buffer']
     binding: int
     buffer: 'Buffer'
@@ -67,7 +55,15 @@ class BufferResourceBinding(TypedDict, total=False):
     size: int
 
 
-class ImageResourceBinding(TypedDict, total=False):
+class StorageBufferResource(TypedDict, total=False):
+    type: Literal['storage_buffer']
+    binding: int
+    buffer: 'Buffer'
+    offset: int
+    size: int
+
+
+class SamplerResource(TypedDict, total=False):
     type: Literal['sampler']
     binding: int
     image: 'Image'
@@ -82,7 +78,15 @@ class ImageResourceBinding(TypedDict, total=False):
     compare_mode: CompareMode
     compare_func: CompareFunc
     max_anisotropy: float
-    border_color: Tuple[float, float, float, float]
+
+
+class ImageResource(TypedDict, total=False):
+    type: Literal['image']
+    binding: int
+    image: 'Image'
+
+
+Resources = UniformBufferResource | StorageBufferResource | SamplerResource | ImageResource
 
 
 class VertexBufferBinding(TypedDict, total=False):
@@ -95,7 +99,6 @@ class VertexBufferBinding(TypedDict, total=False):
 
 
 class DepthSettings(TypedDict, total=False):
-    test: bool
     write: bool
     func: CompareFunc
 
@@ -111,7 +114,6 @@ class StencilFaceSettings(TypedDict, total=False):
 
 
 class StencilSettings(TypedDict, total=False):
-    test: bool
     front: StencilFaceSettings
     back: StencilFaceSettings
     both: StencilFaceSettings
@@ -143,7 +145,7 @@ class ImageFace:
     color: bool
     def clear(self) -> None: ...
     def blit(
-        self, target: 'ImageFace', target_viewport: Viewport | None = None, *,
+        self, target: 'ImageFace', target_viewport: Viewport | None = None,
         source_viewport: Viewport | None = None, filter: bool = True, srgb: bool | None = None) -> None: ...
 
 
@@ -155,7 +157,8 @@ class ContextLoader:
 class Buffer:
     size: int
     def write(self, data: Bytes, offset: int = 0) -> None: ...
-    def map(self, size: int | None = None, *, offset: int | None = None, discard: bool = False) -> memoryview: ...
+    def read(self, size: int = ..., offset: int = 0) -> bytes: ...
+    def map(self, size: int | None = None, offset: int | None = None, discard: bool = False) -> memoryview: ...
     def unmap(self) -> None: ...
 
 
@@ -169,10 +172,10 @@ class Image:
     def write(
         self, data: Bytes, size: Tuple[int, int] | None = None,
         offset: Tuple[int, int] | None = None, layer: int | None = None, level: int = 0) -> None: ...
-    def mipmaps(self, *, base: int = 0, levels: int | None = None) -> None: ...
-    def read(self, size: Tuple[int, int] | None = None, *, offset: Tuple[int, int] | None = None) -> bytes: ...
+    def mipmaps(self, base: int = 0, levels: int | None = None) -> None: ...
+    def read(self, size: Tuple[int, int] | None = None, offset: Tuple[int, int] | None = None) -> bytes: ...
     def blit(
-        self, target: 'Image' | None = None, target_viewport: Viewport | None = None, *,
+        self, target: 'Image' | None = None, target_viewport: Viewport | None = None,
         source_viewport: Viewport | None = None, filter: bool = True, srgb: bool | None = None,
         flush: bool | None = None) -> None: ...
 
@@ -183,7 +186,13 @@ class Pipeline:
     first_vertex: int
     viewport: Viewport
     uniforms: Dict[str, memoryview] | None
-    def render(self) -> None: ...
+    def run(self) -> None: ...
+
+
+class Compute:
+    group_count: int
+    uniforms: Dict[str, memoryview] | None
+    def run(self) -> None: ...
 
 
 class Context:
@@ -192,47 +201,52 @@ class Context:
     includes: Dict[str, str]
     screen: int
     def buffer(
-        self, data: Bytes | None = None, *, size: int | None = None, dynamic: bool = False,
-        external: int = 0) -> Buffer: ...
+        self, data: Bytes | None = None, size: int | None = None, external: int = 0) -> Buffer: ...
     def image(
-        self, size: Tuple[int, int], format: ImageFormat, data: Bytes | None = None, *,
-        samples: int = 1, array: int = 0, texture: bool | None = None, cubemap: bool = False,
+        self, size: Tuple[int, int], format: ImageFormat, data: Bytes | None = None,
+        samples: int = 1, array: int = 0, levels: int = ..., texture: bool | None = None, cubemap: bool = False,
         external: int = 0) -> Image: ...
     def pipeline(
-        self, *,
+        self,
         vertex_shader: str = ...,
         fragment_shader: str = ...,
-        layout: Iterable[LayoutBinding] = (),
-        resources: Iterable[BufferResourceBinding | ImageResourceBinding] = (),
-        uniforms: Dict[str, Any] | Literal['all'] | None = None,
-        depth: DepthSettings | bool | None = None,
-        stencil: StencilSettings | bool = False,
-        blending: BlendingSettings | bool = False,
-        polygon_offset: PolygonOffsetSettings | bool = False,
-        color_mask: int = 0xffffffffffffffff,
+        resources: Iterable[Resources] = (),
+        uniforms: Dict[str, Any] | None = None,
+        depth: DepthSettings | None = None,
+        stencil: StencilSettings | None = None,
+        blend: Iterable[BlendingSettings] = (),
         framebuffer: Iterable[Image] = (),
+        framebuffer_size: Tuple[int, int] | None = None,
         vertex_buffers: Iterable[VertexBufferBinding] = (),
         index_buffer: Buffer | None = None,
+        indirect_buffer: Buffer | None = None,
         short_index: bool = False,
         cull_face: CullFace = 'none',
         topology: Topology = 'triangles',
         vertex_count: int = 0,
         instance_count: int = 0,
+        indirect_count: int = 0,
         first_vertex: int = 0,
+        dynamic_state: memoryview | None = None,
         viewport: Viewport | None = None,
-        skip_validation: bool = False) -> Pipeline: ...
-    def release(self, obj: Buffer | Image | Pipeline | Literal['shader_cache'] | Literal['all']) -> None: ...
+        includes: Dict[str, str] | None = None) -> Pipeline: ...
+    def compute(
+        self,
+        compute_shader: str = ...,
+        resources: Iterable[Resources] = (),
+        uniforms: Dict[str, Any] | None = None,
+        group_count: Tuple[int, int, int] = (0, 0, 0),
+        includes: Dict[str, str] | None = None) -> Pipeline: ...
+    def release(self, obj: Buffer | Image | Pipeline | Compute | Literal['shader_cache'] | Literal['all']) -> None: ...
     def reset(self) -> None: ...
 
 
 def context(loader: ContextLoader | Any | None = None) -> Context: ...
 def inspect(self, obj: Buffer | Image | Pipeline): ...
 def camera(
-    eye: Vec3, target: Vec3, up: Vec3 = (0.0, 0.0, 1.0), *,
+    eye: Vec3, target: Vec3, up: Vec3 = (0.0, 0.0, 1.0),
     fov: float = 45.0, aspect: float = 1.0, near: float = 0.1, far: float = 1000.0,
     size: float = 1.0, clip: bool = False) -> bytes: ...
-def rgba(data: bytes, format: FromImageFormat) -> bytes: ...
-def pack(*values: Iterable[float | int]) -> bytes: ...
 def bind(buffer: Buffer, layout: str, *attributes: Iterable[int]) -> List[VertexBufferBinding]: ...
 def calcsize(layout: str) -> int: ...
 def loader(headless: bool = False) -> ContextLoader: ...
