@@ -2461,9 +2461,11 @@ PyObject * Pipeline_meth_run(Pipeline * self) {
     if (self->indirect_buffer) {
         gl.BindBuffer(GL_DRAW_INDIRECT_BUFFER, self->indirect_buffer->buffer);
         if (self->index_type) {
-            gl.MultiDrawElementsIndirect(self->topology, self->index_type, NULL, state->indirect_count, 20);
+            long long offset = (long long)state->first_vertex * 20;
+            gl.MultiDrawElementsIndirect(self->topology, self->index_type, (void *)offset, state->indirect_count, 20);
         } else {
-            gl.MultiDrawArraysIndirect(self->topology, NULL, state->indirect_count, 16);
+            long long offset = (long long)state->first_vertex * 16;
+            gl.MultiDrawArraysIndirect(self->topology, (void *)offset, state->indirect_count, 16);
         }
     } else {
         if (self->index_type) {
