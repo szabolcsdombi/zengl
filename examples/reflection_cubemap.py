@@ -158,9 +158,9 @@ class Scene:
                     'image': cubemap.image,
                 },
             ],
-                uniforms={
-                    'reflecting': 1 if reflecting else 0,
-                },
+            uniforms={
+                'reflecting': 1 if reflecting else 0,
+            },
             framebuffer=[self.image, self.depth],
             topology='triangles',
             cull_face='back',
