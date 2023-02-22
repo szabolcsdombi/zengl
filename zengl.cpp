@@ -1769,7 +1769,7 @@ PyObject * Context_meth_release(Context * self, PyObject * arg) {
     Py_RETURN_NONE;
 }
 
-PyObject * Context_meth_reset(Context * self) {
+PyObject * Context_meth_reset(Context * self, PyObject * args) {
     self->current_descriptor_set = NULL;
     self->current_global_settings = NULL;
     self->is_stencil_default = false;
@@ -1907,7 +1907,7 @@ PyObject * Buffer_meth_map(Buffer * self, PyObject * vargs, PyObject * kwargs) {
     return PyMemoryView_FromMemory((char *)ptr, size, PyBUF_WRITE);
 }
 
-PyObject * Buffer_meth_unmap(Buffer * self) {
+PyObject * Buffer_meth_unmap(Buffer * self, PyObject * args) {
     const GLMethods & gl = self->ctx->gl;
     if (self->mapped) {
         self->mapped = false;
@@ -1943,7 +1943,7 @@ void clear_bound_image(Image * self) {
     }
 }
 
-PyObject * Image_meth_clear(Image * self) {
+PyObject * Image_meth_clear(Image * self, PyObject * args) {
     if (!self->framebuffer) {
         PyErr_Format(PyExc_TypeError, "cannot clear cubemap or array textures");
         return NULL;
@@ -2440,7 +2440,7 @@ int Image_set_clear_value(Image * self, PyObject * value) {
     return 0;
 }
 
-PyObject * Pipeline_meth_run(Pipeline * self) {
+PyObject * Pipeline_meth_run(Pipeline * self, PyObject * args) {
     const GLMethods & gl = self->ctx->gl;
     if (memcmp(&self->viewport, &self->ctx->current_viewport, sizeof(Viewport))) {
         gl.Viewport(self->viewport.x, self->viewport.y, self->viewport.width, self->viewport.height);
@@ -2503,7 +2503,7 @@ int Pipeline_set_framebuffer(Pipeline * self, PyObject * framebuffer) {
     return 0;
 }
 
-PyObject * Compute_meth_run(Compute * self) {
+PyObject * Compute_meth_run(Compute * self, PyObject * args) {
     const GLMethods & gl = self->ctx->gl;
     bind_program(self->ctx, self->program->obj);
     if (self->descriptor_set->uniform_buffers.buffer_count) {
@@ -2673,7 +2673,7 @@ PyObject * meth_inspect(PyObject * self, PyObject * arg) {
     Py_RETURN_NONE;
 }
 
-PyObject * ImageFace_meth_clear(ImageFace * self) {
+PyObject * ImageFace_meth_clear(ImageFace * self, PyObject * args) {
     bind_framebuffer(self->ctx, self->framebuffer->obj);
     clear_bound_image(self->image);
     Py_RETURN_NONE;
