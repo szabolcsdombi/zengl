@@ -141,6 +141,7 @@ typedef int sizeiptr;
 #define GL_PROGRAM_POINT_SIZE 0x8642
 #define GL_TEXTURE_CUBE_MAP_SEAMLESS 0x884F
 #define GL_DRAW_INDIRECT_BUFFER 0x8F3F
+#define GL_ALL_BARRIER_BITS 0xFFFFFFFF
 #define GL_PRIMITIVE_RESTART_FIXED_INDEX 0x8D69
 #define GL_COMPUTE_SHADER 0x91B9
 #define GL_FRAMEBUFFER_DEFAULT_WIDTH 0x9310
@@ -232,6 +233,7 @@ typedef void (GLAPI * glProgramUniformMatrix2x4fvProc)(unsigned program, int loc
 typedef void (GLAPI * glProgramUniformMatrix4x2fvProc)(unsigned program, int location, int count, unsigned char transpose, const float * value);
 typedef void (GLAPI * glProgramUniformMatrix3x4fvProc)(unsigned program, int location, int count, unsigned char transpose, const float * value);
 typedef void (GLAPI * glProgramUniformMatrix4x3fvProc)(unsigned program, int location, int count, unsigned char transpose, const float * value);
+typedef void (GLAPI * glMemoryBarrierProc)(unsigned barriers);
 typedef void (GLAPI * glDispatchComputeProc)(unsigned num_groups_x, unsigned num_groups_y, unsigned num_groups_z);
 typedef void (GLAPI * glMultiDrawArraysIndirectProc)(unsigned mode, const void * indirect, int drawcount, int stride);
 typedef void (GLAPI * glMultiDrawElementsIndirectProc)(unsigned mode, unsigned type, const void * indirect, int drawcount, int stride);
@@ -347,6 +349,7 @@ struct GLMethods {
     glProgramUniformMatrix4x2fvProc ProgramUniformMatrix4x2fv;
     glProgramUniformMatrix3x4fvProc ProgramUniformMatrix3x4fv;
     glProgramUniformMatrix4x3fvProc ProgramUniformMatrix4x3fv;
+    glMemoryBarrierProc MemoryBarrier;
     glDispatchComputeProc DispatchCompute;
     glMultiDrawArraysIndirectProc MultiDrawArraysIndirect;
     glMultiDrawElementsIndirectProc MultiDrawElementsIndirect;
@@ -748,6 +751,7 @@ GLMethods load_gl(PyObject * loader) {
     load(ProgramUniformMatrix4x2fv);
     load(ProgramUniformMatrix3x4fv);
     load(ProgramUniformMatrix4x3fv);
+    load(MemoryBarrier);
     load(DispatchCompute);
     load(MultiDrawArraysIndirect);
     load(MultiDrawElementsIndirect);

@@ -181,8 +181,8 @@ struct Compute {
     PyObject * uniform_map;
     char * uniform_data;
     int uniform_bindings;
+    int barrier;
     int group_count[3];
-    int indirect_count;
 };
 
 struct ImageFace {
@@ -1486,6 +1486,7 @@ Compute * Context_meth_compute(Context * self, PyObject * vargs, PyObject * kwar
         "compute_shader",
         "resources",
         "uniforms",
+        "barrier",
         "group_count",
         "includes",
         NULL,
@@ -1494,18 +1495,20 @@ Compute * Context_meth_compute(Context * self, PyObject * vargs, PyObject * kwar
     PyObject * compute_shader = NULL;
     PyObject * resources = self->module_state->empty_tuple;
     PyObject * uniforms = Py_None;
+    int barrier = true;
     int group_count[3] = {};
     PyObject * includes = Py_None;
 
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
-        "|O!OO(iii)O",
+        "|O!OOp(iii)O",
         keywords,
         &PyUnicode_Type,
         &compute_shader,
         &resources,
         &uniforms,
+        &barrier,
         &group_count[0],
         &group_count[1],
         &group_count[2],
@@ -1513,6 +1516,11 @@ Compute * Context_meth_compute(Context * self, PyObject * vargs, PyObject * kwar
     );
 
     if (!args_ok) {
+        return NULL;
+    }
+
+    if (!compute_shader) {
+        PyErr_Format(PyExc_TypeError, "no compute_shader was specified");
         return NULL;
     }
 
@@ -1589,6 +1597,7 @@ Compute * Context_meth_compute(Context * self, PyObject * vargs, PyObject * kwar
     res->uniform_map = uniform_map;
     res->uniform_data = uniform_data;
     res->descriptor_set = descriptor_set;
+    res->barrier = barrier;
     res->group_count[0] = group_count[0];
     res->group_count[1] = group_count[1];
     res->group_count[2] = group_count[2];
@@ -2528,6 +2537,9 @@ PyObject * Compute_meth_run(Compute * self) {
         bind_uniforms(self->ctx, self->program->obj, self->uniform_data);
     }
     gl.DispatchCompute(self->group_count[0], self->group_count[1], self->group_count[2]);
+    if (self->barrier) {
+        gl.MemoryBarrier(GL_ALL_BARRIER_BITS);
+    }
     Py_RETURN_NONE;
 }
 

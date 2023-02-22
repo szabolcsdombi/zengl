@@ -235,6 +235,7 @@ class Context:
         compute_shader: str = ...,
         resources: Iterable[Resources] = (),
         uniforms: Dict[str, Any] | None = None,
+        barrier: bool = True,
         group_count: Tuple[int, int, int] = (0, 0, 0),
         includes: Dict[str, str] | None = None) -> Pipeline: ...
     def release(self, obj: Buffer | Image | Pipeline | Compute | Literal['shader_cache'] | Literal['all']) -> None: ...
