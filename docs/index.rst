@@ -642,7 +642,6 @@ ZenGL format         internal format       format             type
 r8unorm              GL_R8                 GL_RED             GL_UNSIGNED_BYTE
 rg8unorm             GL_RG8                GL_RG              GL_UNSIGNED_BYTE
 rgba8unorm           GL_RGBA8              GL_RGBA            GL_UNSIGNED_BYTE
-bgra8unorm           GL_RGBA8              GL_BGRA            GL_UNSIGNED_BYTE
 r8snorm              GL_R8_SNORM           GL_RED             GL_UNSIGNED_BYTE
 rg8snorm             GL_RG8_SNORM          GL_RG              GL_UNSIGNED_BYTE
 rgba8snorm           GL_RGBA8_SNORM        GL_RGBA            GL_UNSIGNED_BYTE
@@ -671,7 +670,6 @@ r32float             GL_R32F               GL_RED             GL_FLOAT
 rg32float            GL_RG32F              GL_RG              GL_FLOAT
 rgba32float          GL_RGBA32F            GL_RGBA            GL_FLOAT
 rgba8unorm-srgb      GL_RGBA8              GL_RGBA            GL_UNSIGNED_BYTE
-bgra8unorm-srgb      GL_RGBA8              GL_BGRA            GL_UNSIGNED_BYTE
 stencil8             GL_STENCIL_INDEX8     GL_STENCIL_INDEX   GL_UNSIGNED_BYTE
 depth16unorm         GL_DEPTH_COMPONENT16  GL_DEPTH_COMPONENT GL_UNSIGNED_SHORT
 depth24plus          GL_DEPTH_COMPONENT24  GL_DEPTH_COMPONENT GL_UNSIGNED_INT
