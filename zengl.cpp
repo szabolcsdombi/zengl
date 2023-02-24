@@ -431,12 +431,12 @@ GLObject * build_vertex_array(Context * self, PyObject * bindings) {
         int stride = PyLong_AsLong(seq[i + 3]);
         int divisor = PyLong_AsLong(seq[i + 4]);
         VertexFormat format = get_vertex_format(PyUnicode_AsUTF8(seq[i + 5]));
+        gl.VertexArrayVertexBuffer(vertex_array, location, buffer->buffer, offset, stride);
         if (format.integer) {
             gl.VertexArrayAttribIFormat(vertex_array, location, format.size, format.type, 0);
         } else {
             gl.VertexArrayAttribFormat(vertex_array, location, format.size, format.type, format.normalize, 0);
         }
-        gl.VertexArrayVertexBuffer(vertex_array, location, buffer->buffer, offset, stride);
         gl.VertexArrayBindingDivisor(vertex_array, location, divisor);
         gl.EnableVertexArrayAttrib(vertex_array, location);
     }
