@@ -675,8 +675,9 @@ void * load_opengl_function(PyObject * loader, const char * method) {
 
 GLMethods load_gl(PyObject * loader) {
     GLMethods res = {};
+    PyObject * missing = PyList_New(0);
 
-    #define check(name) if (!res.name) return {}
+    #define check(name) if (!res.name) { if (PyErr_Occurred()) return {}; PyList_Append(missing, PyUnicode_FromString("gl" # name)); }
     #define load(name) res.name = (gl ## name ## Proc)load_opengl_function(loader, "gl" # name); check(name)
 
     load(CullFace);
@@ -796,5 +797,12 @@ GLMethods load_gl(PyObject * loader) {
 
     #undef load
     #undef check
+
+    if (PyList_Size(missing)) {
+        PyErr_Format(PyExc_RuntimeError, "cannot load opengl %R", missing);
+        return {};
+    }
+
+    Py_DECREF(missing);
     return res;
 }
