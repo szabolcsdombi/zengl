@@ -267,6 +267,8 @@ def resource_bindings(resources):
 
 def framebuffer_attachments(size, attachments):
     if not attachments:
+        if size is None:
+            raise ValueError('Missing framebuffer')
         return size, (), None
     attachments = [x.face() if hasattr(x, 'face') else x for x in attachments]
     size = attachments[0].size
