@@ -181,7 +181,6 @@ struct Compute {
     PyObject * uniform_map;
     char * uniform_data;
     int uniform_bindings;
-    int barrier;
     int group_count[3];
 };
 
@@ -1486,7 +1485,6 @@ Compute * Context_meth_compute(Context * self, PyObject * vargs, PyObject * kwar
         "compute_shader",
         "resources",
         "uniforms",
-        "barrier",
         "group_count",
         "includes",
         NULL,
@@ -1495,20 +1493,18 @@ Compute * Context_meth_compute(Context * self, PyObject * vargs, PyObject * kwar
     PyObject * compute_shader = NULL;
     PyObject * resources = self->module_state->empty_tuple;
     PyObject * uniforms = Py_None;
-    int barrier = true;
     int group_count[3] = {};
     PyObject * includes = Py_None;
 
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
-        "|O!OOp(iii)O",
+        "|O!OO(iii)O",
         keywords,
         &PyUnicode_Type,
         &compute_shader,
         &resources,
         &uniforms,
-        &barrier,
         &group_count[0],
         &group_count[1],
         &group_count[2],
@@ -1597,12 +1593,16 @@ Compute * Context_meth_compute(Context * self, PyObject * vargs, PyObject * kwar
     res->uniform_map = uniform_map;
     res->uniform_data = uniform_data;
     res->descriptor_set = descriptor_set;
-    res->barrier = barrier;
     res->group_count[0] = group_count[0];
     res->group_count[1] = group_count[1];
     res->group_count[2] = group_count[2];
     Py_INCREF(res);
     return res;
+}
+
+PyObject * Context_meth_barrier(Context * self, PyObject * args) {
+    self->gl.MemoryBarrier(GL_ALL_BARRIER_BITS);
+    Py_RETURN_NONE;
 }
 
 void release_descriptor_set(Context * self, DescriptorSet * set) {
@@ -2537,9 +2537,6 @@ PyObject * Compute_meth_run(Compute * self, PyObject * args) {
         bind_uniforms(self->ctx, self->program->obj, self->uniform_data);
     }
     gl.DispatchCompute(self->group_count[0], self->group_count[1], self->group_count[2]);
-    if (self->barrier) {
-        gl.MemoryBarrier(GL_ALL_BARRIER_BITS);
-    }
     Py_RETURN_NONE;
 }
 
@@ -2933,6 +2930,7 @@ PyMethodDef Context_methods[] = {
     {"image", (PyCFunction)Context_meth_image, METH_VARARGS | METH_KEYWORDS},
     {"pipeline", (PyCFunction)Context_meth_pipeline, METH_VARARGS | METH_KEYWORDS},
     {"compute", (PyCFunction)Context_meth_compute, METH_VARARGS | METH_KEYWORDS},
+    {"barrier", (PyCFunction)Context_meth_barrier, METH_NOARGS},
     {"release", (PyCFunction)Context_meth_release, METH_O},
     {"reset", (PyCFunction)Context_meth_reset, METH_NOARGS},
     {},

@@ -39,4 +39,5 @@ compute = ctx.compute(
 while window.update():
     compute.uniforms['time'][:] = struct.pack('f', window.time)
     compute.run()
+    ctx.barrier()
     image.blit()

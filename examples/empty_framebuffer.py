@@ -6,6 +6,7 @@ window = Window()
 ctx = zengl.context()
 
 image = ctx.image(window.size, 'rgba8unorm')
+image.clear_value = (1.0, 1.0, 1.0, 1.0)
 
 pipeline = ctx.pipeline(
     vertex_shader='''
@@ -53,6 +54,9 @@ pipeline = ctx.pipeline(
     vertex_count=3,
 )
 
+image.clear()
+pipeline.run()
+ctx.barrier()
+
 while window.update():
-    pipeline.run()
     image.blit()
