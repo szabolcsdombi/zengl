@@ -2506,33 +2506,7 @@ int Pipeline_set_framebuffer(Pipeline * self, PyObject * framebuffer) {
 PyObject * Compute_meth_run(Compute * self, PyObject * args) {
     const GLMethods & gl = self->ctx->gl;
     bind_program(self->ctx, self->program->obj);
-    if (self->descriptor_set->uniform_buffers.buffer_count) {
-        gl.BindBuffersRange(
-            GL_UNIFORM_BUFFER,
-            0,
-            self->descriptor_set->uniform_buffers.buffer_count,
-            self->descriptor_set->uniform_buffers.buffers,
-            self->descriptor_set->uniform_buffers.buffer_offsets,
-            self->descriptor_set->uniform_buffers.buffer_sizes
-        );
-    }
-    if (self->descriptor_set->storage_buffers.buffer_count) {
-        gl.BindBuffersRange(
-            GL_SHADER_STORAGE_BUFFER,
-            0,
-            self->descriptor_set->storage_buffers.buffer_count,
-            self->descriptor_set->storage_buffers.buffers,
-            self->descriptor_set->storage_buffers.buffer_offsets,
-            self->descriptor_set->storage_buffers.buffer_sizes
-        );
-    }
-    if (self->descriptor_set->samplers.sampler_count) {
-        gl.BindTextures(0, self->descriptor_set->samplers.sampler_count, self->descriptor_set->samplers.textures);
-        gl.BindSamplers(0, self->descriptor_set->samplers.sampler_count, self->descriptor_set->samplers.samplers);
-    }
-    if (self->descriptor_set->images.image_count) {
-        gl.BindImageTextures(0, self->descriptor_set->images.image_count, self->descriptor_set->images.images);
-    }
+    bind_descriptor_set(self->ctx, self->descriptor_set);
     if (self->uniform_data) {
         bind_uniforms(self->ctx, self->program->obj, self->uniform_data);
     }
