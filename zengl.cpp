@@ -2497,7 +2497,7 @@ int Image_set_clear_value(Image * self, PyObject * value) {
     return 0;
 }
 
-PyObject * Pipeline_meth_run(Pipeline * self, PyObject * args) {
+PyObject * Pipeline_meth_render(Pipeline * self, PyObject * args) {
     const GLMethods & gl = self->ctx->gl;
     if (memcmp(&self->viewport, &self->ctx->current_viewport, sizeof(Viewport))) {
         gl.Viewport(self->viewport.x, self->viewport.y, self->viewport.width, self->viewport.height);
@@ -3016,7 +3016,7 @@ PyMemberDef Image_members[] = {
 };
 
 PyMethodDef Pipeline_methods[] = {
-    {"run", (PyCFunction)Pipeline_meth_run, METH_NOARGS},
+    {"render", (PyCFunction)Pipeline_meth_render, METH_NOARGS},
     {},
 };
 

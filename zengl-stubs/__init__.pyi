@@ -186,7 +186,7 @@ class Pipeline:
     first_vertex: int
     viewport: Viewport
     uniforms: Dict[str, memoryview] | None
-    def run(self) -> None: ...
+    def render(self) -> None: ...
 
 
 class Compute:
