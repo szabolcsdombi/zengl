@@ -96,6 +96,8 @@ typedef int sizeiptr;
 #define GL_DEPTH_STENCIL 0x84F9
 #define GL_UNSIGNED_INT_24_8 0x84FA
 #define GL_DEPTH24_STENCIL8 0x88F0
+#define GL_READ_FRAMEBUFFER 0x8CA8
+#define GL_DRAW_FRAMEBUFFER 0x8CA9
 #define GL_COLOR_ATTACHMENT0 0x8CE0
 #define GL_DEPTH_ATTACHMENT 0x8D00
 #define GL_STENCIL_ATTACHMENT 0x8D20
@@ -200,6 +202,7 @@ typedef void (GLAPI * glClearBufferfiProc)(unsigned buffer, int drawbuffer, floa
 typedef void (GLAPI * glDeleteRenderbuffersProc)(int n, const unsigned * renderbuffers);
 typedef void (GLAPI * glBindFramebufferProc)(unsigned target, unsigned framebuffer);
 typedef void (GLAPI * glDeleteFramebuffersProc)(int n, const unsigned * framebuffers);
+typedef void (GLAPI * glBlitFramebufferProc)(int srcX0, int srcY0, int srcX1, int srcY1, int dstX0, int dstY0, int dstX1, int dstY1, unsigned mask, unsigned filter);
 typedef void (GLAPI * glBindVertexArrayProc)(unsigned array);
 typedef void (GLAPI * glDeleteVertexArraysProc)(int n, const unsigned * arrays);
 typedef void (GLAPI * glDrawArraysInstancedProc)(unsigned mode, int first, int count, int instancecount);
@@ -256,7 +259,6 @@ typedef void (GLAPI * glNamedFramebufferTextureProc)(unsigned framebuffer, unsig
 typedef void (GLAPI * glNamedFramebufferTextureLayerProc)(unsigned framebuffer, unsigned attachment, unsigned texture, int level, int layer);
 typedef void (GLAPI * glNamedFramebufferDrawBuffersProc)(unsigned framebuffer, int n, const unsigned * bufs);
 typedef void (GLAPI * glNamedFramebufferReadBufferProc)(unsigned framebuffer, unsigned src);
-typedef void (GLAPI * glBlitNamedFramebufferProc)(unsigned readFramebuffer, unsigned drawFramebuffer, int srcX0, int srcY0, int srcX1, int srcY1, int dstX0, int dstY0, int dstX1, int dstY1, unsigned mask, unsigned filter);
 typedef void (GLAPI * glCreateRenderbuffersProc)(int n, unsigned * renderbuffers);
 typedef void (GLAPI * glNamedRenderbufferStorageMultisampleProc)(unsigned renderbuffer, int samples, unsigned internalformat, int width, int height);
 typedef void (GLAPI * glCreateTexturesProc)(unsigned target, int n, unsigned * textures);
@@ -316,6 +318,7 @@ struct GLMethods {
     glDeleteRenderbuffersProc DeleteRenderbuffers;
     glBindFramebufferProc BindFramebuffer;
     glDeleteFramebuffersProc DeleteFramebuffers;
+    glBlitFramebufferProc BlitFramebuffer;
     glBindVertexArrayProc BindVertexArray;
     glDeleteVertexArraysProc DeleteVertexArrays;
     glDrawArraysInstancedProc DrawArraysInstanced;
@@ -372,7 +375,6 @@ struct GLMethods {
     glNamedFramebufferTextureLayerProc NamedFramebufferTextureLayer;
     glNamedFramebufferDrawBuffersProc NamedFramebufferDrawBuffers;
     glNamedFramebufferReadBufferProc NamedFramebufferReadBuffer;
-    glBlitNamedFramebufferProc BlitNamedFramebuffer;
     glCreateRenderbuffersProc CreateRenderbuffers;
     glNamedRenderbufferStorageMultisampleProc NamedRenderbufferStorageMultisample;
     glCreateTexturesProc CreateTextures;
@@ -717,6 +719,7 @@ GLMethods load_gl(PyObject * loader) {
     load(DeleteRenderbuffers);
     load(BindFramebuffer);
     load(DeleteFramebuffers);
+    load(BlitFramebuffer);
     load(BindVertexArray);
     load(DeleteVertexArrays);
     load(DrawArraysInstanced);
@@ -773,7 +776,6 @@ GLMethods load_gl(PyObject * loader) {
     load(NamedFramebufferTextureLayer);
     load(NamedFramebufferDrawBuffers);
     load(NamedFramebufferReadBuffer);
-    load(BlitNamedFramebuffer);
     load(CreateRenderbuffers);
     load(NamedRenderbufferStorageMultisample);
     load(CreateTextures);

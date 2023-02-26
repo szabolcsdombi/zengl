@@ -2151,26 +2151,24 @@ PyObject * Image_meth_read(Image * self, PyObject * vargs, PyObject * kwargs) {
 }
 
 PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
-    static char * keywords[] = {"target", "target_viewport", "source_viewport", "filter", "srgb", "flush", NULL};
+    static char * keywords[] = {"target", "target_viewport", "source_viewport", "filter", "srgb", NULL};
 
     PyObject * target_arg = Py_None;
     PyObject * target_viewport_arg = Py_None;
     PyObject * source_viewport_arg = Py_None;
     int filter = true;
     PyObject * srgb_arg = Py_None;
-    PyObject * flush_arg = Py_None;
 
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
-        "|OOOpOO",
+        "|OOOpO",
         keywords,
         &target_arg,
         &target_viewport_arg,
         &source_viewport_arg,
         &filter,
-        &srgb_arg,
-        &flush_arg
+        &srgb_arg
     );
 
     if (!args_ok) {
@@ -2179,7 +2177,6 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
 
     const bool invalid_target_type = target_arg != Py_None && Py_TYPE(target_arg) != self->ctx->module_state->Image_type;
     const bool invalid_srgb_parameter = srgb_arg != Py_True && srgb_arg != Py_False && srgb_arg != Py_None;
-    const bool invalid_flush_parameter = flush_arg != Py_True && flush_arg != Py_False && flush_arg != Py_None;
 
     Image * target = target_arg != Py_None && !invalid_target_type ? (Image *)target_arg : NULL;
 
@@ -2204,7 +2201,6 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
     }
 
     const bool srgb = (srgb_arg == Py_None && self->fmt.internal_format == GL_SRGB8_ALPHA8) || srgb_arg == Py_True;
-    const bool flush = (flush_arg == Py_None && target_arg == Py_None) || flush_arg == Py_True;
 
     const bool invalid_target_viewport = invalid_target_viewport_type || (
         target_viewport.x < 0 || target_viewport.y < 0 || target_viewport.width <= 0 || target_viewport.height <= 0 ||
@@ -2220,9 +2216,9 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
     const bool invalid_source = self->cubemap || self->array || !self->fmt.color;
 
     const bool error = (
-        invalid_target_type || invalid_srgb_parameter || invalid_flush_parameter ||
-        invalid_target_viewport_type || invalid_source_viewport_type || invalid_target_viewport ||
-        invalid_source_viewport || invalid_target || invalid_source
+        invalid_target_type || invalid_srgb_parameter || invalid_target_viewport_type ||
+        invalid_source_viewport_type || invalid_target_viewport || invalid_source_viewport ||
+        invalid_target || invalid_source
     );
 
     if (error) {
@@ -2230,8 +2226,6 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
             PyErr_Format(PyExc_TypeError, "target must be an Image or None");
         } else if (invalid_srgb_parameter) {
             PyErr_Format(PyExc_TypeError, "invalid srgb parameter");
-        } else if (invalid_flush_parameter) {
-            PyErr_Format(PyExc_TypeError, "invalid flush parameter");
         } else if (invalid_target_viewport_type) {
             PyErr_Format(PyExc_TypeError, "the target viewport must be a tuple of 4 ints");
         } else if (invalid_source_viewport_type) {
@@ -2263,22 +2257,21 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
     if (!srgb) {
         gl.Disable(GL_FRAMEBUFFER_SRGB);
     }
-    gl.BlitNamedFramebuffer(
-        self->framebuffer->obj, target ? target->framebuffer->obj : self->ctx->screen,
+
+    int target_framebuffer = target ? target->framebuffer->obj : self->ctx->screen;
+    gl.BindFramebuffer(GL_READ_FRAMEBUFFER, self->framebuffer->obj);
+    gl.BindFramebuffer(GL_DRAW_FRAMEBUFFER, target_framebuffer);
+    gl.BlitFramebuffer(
         source_viewport.x, source_viewport.y, source_viewport.x + source_viewport.width, source_viewport.y + source_viewport.height,
         target_viewport.x, target_viewport.y, target_viewport.x + target_viewport.width, target_viewport.y + target_viewport.height,
         GL_COLOR_BUFFER_BIT, filter ? GL_LINEAR : GL_NEAREST
     );
-    if (!target) {
-        self->ctx->current_framebuffer = self->ctx->screen;
-        gl.BindFramebuffer(GL_FRAMEBUFFER, self->ctx->screen);
-    }
+    self->ctx->current_framebuffer = -1;
+
     if (!srgb) {
         gl.Enable(GL_FRAMEBUFFER_SRGB);
     }
-    if (flush) {
-        gl.Flush();
-    }
+
     Py_RETURN_NONE;
 }
 
@@ -2638,7 +2631,7 @@ PyObject * ImageFace_meth_clear(ImageFace * self, PyObject * args) {
 PyObject * ImageFace_meth_blit(ImageFace * self, PyObject * vargs, PyObject * kwargs) {
     static char * keywords[] = {"target", "target_viewport", "source_viewport", "filter", "srgb", NULL};
 
-    ImageFace * target;
+    ImageFace * target = NULL;
     PyObject * target_viewport_arg = Py_None;
     PyObject * source_viewport_arg = Py_None;
     int filter = true;
@@ -2647,7 +2640,7 @@ PyObject * ImageFace_meth_blit(ImageFace * self, PyObject * vargs, PyObject * kw
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
-        "|O!OOpO",
+        "O!|OOpO",
         keywords,
         self->image->ctx->module_state->ImageFace_type,
         &target,
@@ -2712,19 +2705,21 @@ PyObject * ImageFace_meth_blit(ImageFace * self, PyObject * vargs, PyObject * kw
     if (!srgb) {
         gl.Disable(GL_FRAMEBUFFER_SRGB);
     }
-    gl.BlitNamedFramebuffer(
-        self->framebuffer->obj, target ? target->framebuffer->obj : self->ctx->screen,
+
+    int target_framebuffer = target ? target->framebuffer->obj : self->ctx->screen;
+    gl.BindFramebuffer(GL_READ_FRAMEBUFFER, self->framebuffer->obj);
+    gl.BindFramebuffer(GL_DRAW_FRAMEBUFFER, target_framebuffer);
+    gl.BlitFramebuffer(
         source_viewport.x, source_viewport.y, source_viewport.x + source_viewport.width, source_viewport.y + source_viewport.height,
         target_viewport.x, target_viewport.y, target_viewport.x + target_viewport.width, target_viewport.y + target_viewport.height,
         GL_COLOR_BUFFER_BIT, filter ? GL_LINEAR : GL_NEAREST
     );
-    if (!target) {
-        self->ctx->current_framebuffer = self->ctx->screen;
-        gl.BindFramebuffer(GL_FRAMEBUFFER, self->ctx->screen);
-    }
+    self->ctx->current_framebuffer = -1;
+
     if (!srgb) {
         gl.Enable(GL_FRAMEBUFFER_SRGB);
     }
+
     Py_RETURN_NONE;
 }
 
