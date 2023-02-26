@@ -1903,8 +1903,8 @@ PyObject * Buffer_meth_unmap(Buffer * self, PyObject * args) {
 
 void clear_bound_image(Image * self) {
     const GLMethods & gl = self->ctx->gl;
-    const bool depth_mask = self->ctx->current_depth_mask != 1 && self->fmt.buffer == GL_DEPTH || self->fmt.buffer == GL_DEPTH_STENCIL;
-    const bool stencil_mask = self->ctx->current_stencil_mask != 0xff && self->fmt.buffer == GL_STENCIL || self->fmt.buffer == GL_DEPTH_STENCIL;
+    const bool depth_mask = self->ctx->current_depth_mask != 1 && (self->fmt.buffer == GL_DEPTH || self->fmt.buffer == GL_DEPTH_STENCIL);
+    const bool stencil_mask = self->ctx->current_stencil_mask != 0xff && (self->fmt.buffer == GL_STENCIL || self->fmt.buffer == GL_DEPTH_STENCIL);
     if (depth_mask) {
         gl.DepthMask(1);
     }
