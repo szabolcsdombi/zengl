@@ -3,7 +3,7 @@
 
 const int MAX_ATTACHMENTS = 16;
 const int MAX_BUFFER_BINDINGS = 32;
-const int MAX_TEXTURE_BINDINGS = 64;
+const int MAX_TEXTURE_BINDINGS = 128;
 const int MAX_IMAGE_BINDINGS = 32;
 
 #if defined(_WIN32) || defined(_WIN64)
