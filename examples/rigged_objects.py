@@ -225,8 +225,10 @@ while window.update():
     for i in range(7, loader.idx):
         bones[i, 0:3] = c[i], s[i], v[i]
         bones[i, 4:8] = vmath.rotate(rotation_axis[i], rotation_speed[i]) * vmath.quat(bones[i, 4:8])
+    ctx.new_frame()
     bone_buffer.write(bones)
     image.clear()
     depth.clear()
-    pipeline.run()
+    pipeline.render()
     image.blit()
+    ctx.end_frame()

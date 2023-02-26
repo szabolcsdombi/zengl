@@ -173,11 +173,12 @@ scene_uniform_buffer.write(b''.join([
 ]))
 
 while window.update():
+    ctx.new_frame()
 
     for face, pipeline in scene_pipelines:
         face.clear()
         temp_depth.clear()
-        pipeline.run()
+        pipeline.render()
 
     t = window.time * 0.5
     eye = (np.cos(t) * 5.0, np.sin(t) * 5.0, np.sin(t * 0.7) * 2.0)
@@ -186,5 +187,6 @@ while window.update():
 
     image.clear()
     depth.clear()
-    shape.run()
+    shape.render()
     image.blit()
+    ctx.end_frame()

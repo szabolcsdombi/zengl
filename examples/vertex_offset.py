@@ -86,11 +86,13 @@ uniform_buffer.write(camera)
 it = iter(cycle(np.clip(np.sin(np.linspace(0.0, 2.0 * np.pi, 180)) * 175 + 225, 50, 400).astype(int)))
 
 while window.update():
+    ctx.new_frame()
     image.clear()
     depth.clear()
-    pipeline.run()
+    pipeline.render()
 
     offset, size = table[next(it)]
     pipeline.first_vertex = offset // vertex_size
     pipeline.vertex_count = size // vertex_size
     image.blit()
+    ctx.end_frame()

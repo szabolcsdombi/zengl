@@ -103,6 +103,7 @@ crate_3 = crate_pipeline(texture_2, texture_3, depth_3)
 crate_4 = crate_pipeline(texture_3, image, depth)
 
 while window.update():
+    ctx.new_frame()
     x, y = math.sin(window.time * 0.5) * 2.0, math.cos(window.time * 0.5) * 2.0
     camera = zengl.camera((x, y, 0.8), (0.0, 0.0, -0.15), aspect=window.aspect, fov=45.0)
 
@@ -111,18 +112,19 @@ while window.update():
 
     texture_1.clear()
     depth_1.clear()
-    crate_1.run()
+    crate_1.render()
 
     texture_2.clear()
     depth_2.clear()
-    crate_2.run()
+    crate_2.render()
 
     texture_3.clear()
     depth_3.clear()
-    crate_3.run()
+    crate_3.render()
 
     image.clear()
     depth.clear()
-    crate_4.run()
+    crate_4.render()
 
     image.blit()
+    ctx.end_frame()

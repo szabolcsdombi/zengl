@@ -117,8 +117,10 @@ camera = zengl.camera((1.0, -2.0, 1.0), (0.0, 0.0, 0.5), aspect=window.aspect, f
 uniform_buffer.write(camera)
 
 while window.update():
+    ctx.new_frame()
     pose_buffer.write(next(pose_frame))
     image.clear()
     depth.clear()
-    monkey.run()
+    monkey.render()
     image.blit()
+    ctx.end_frame()

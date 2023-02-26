@@ -117,6 +117,7 @@ shape = ctx.pipeline(
 )
 
 while window.update():
+    ctx.new_frame()
     t = window.time * 0.5
     eye = (np.cos(t) * 5.0, np.sin(t) * 5.0, np.sin(t * 0.7) * 2.0)
     camera = zengl.camera(eye, (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
@@ -124,5 +125,6 @@ while window.update():
 
     image.clear()
     depth.clear()
-    shape.run()
+    shape.render()
     image.blit()
+    ctx.end_frame()

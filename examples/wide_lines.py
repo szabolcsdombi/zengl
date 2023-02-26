@@ -76,12 +76,14 @@ camera = zengl.camera((0.0, -20.0, 0.0), (0.0, 0.0, 0.0), aspect=window.aspect, 
 uniform_buffer.write(camera)
 
 while window.update():
+    ctx.new_frame()
     image.clear()
     depth.clear()
     GL.glLineWidth(1.0)
-    pipelines[0].run()
+    pipelines[0].render()
     GL.glLineWidth(3.0)
-    pipelines[1].run()
+    pipelines[1].render()
     GL.glLineWidth(9.0)
-    pipelines[2].run()
+    pipelines[2].render()
     image.blit()
+    ctx.end_frame()

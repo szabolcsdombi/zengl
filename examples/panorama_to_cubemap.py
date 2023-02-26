@@ -83,6 +83,8 @@ def face_pipeline(face):
 pipelines = [(i, face_pipeline(i)) for i in range(6)]
 
 for face, pipeline in pipelines:
-    pipeline.run()
+    ctx.new_frame()
+    pipeline.render()
+    ctx.end_frame()
     img = Image.frombuffer('RGBA', image.size, image.read(), 'raw', 'RGBA', 0, -1)
     img.save(f'downloads/skybox_{face}.png')

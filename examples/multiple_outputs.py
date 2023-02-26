@@ -53,8 +53,10 @@ triangle = ctx.pipeline(
 )
 
 while window.update():
+    ctx.new_frame()
     image1.clear()
     image2.clear()
-    triangle.run()
-    image1.blit(None, (0, 0, 640, 720), flush=False)
+    triangle.render()
+    image1.blit(None, (0, 0, 640, 720))
     image2.blit(None, (640, 0, 640, 720))
+    ctx.end_frame()

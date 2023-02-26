@@ -89,6 +89,7 @@ last_time = window.time
 frame = 0
 
 while window.update():
+    ctx.new_frame()
     image.clear()
     uniform_buffer.write(ubo.pack(
         window.size[0], window.size[1], 0.0,
@@ -98,6 +99,7 @@ while window.update():
         window.mouse[0], window.mouse[1], 0.0, 0.0,
         0.0, 0.0, 0.0, 0.0,
     ))
-    canvas.run()
+    canvas.render()
     image.blit()
+    ctx.end_frame()
     frame += 1

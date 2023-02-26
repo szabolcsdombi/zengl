@@ -54,6 +54,8 @@ square = ctx.pipeline(
 )
 
 while window.update():
+    ctx.new_frame()
     image.clear()
-    square.run()
+    square.render()
     image.blit()
+    ctx.end_frame()

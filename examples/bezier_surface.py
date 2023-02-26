@@ -747,6 +747,7 @@ while window.update():
         np.zeros(16),
     ]).T
 
+    ctx.new_frame()
     control_points_buffer.write(pts.astype('f4').tobytes())
 
     x, y = np.sin(window.time * 0.5) * 3.0, np.cos(window.time * 0.5) * 3.0
@@ -755,10 +756,11 @@ while window.update():
 
     image.clear()
     depth.clear()
-    surface_pipeline.run()
-    surface_wire_pipeline.run()
-    lines_pipeline.run()
-    points_pipeline.run()
-    points_pipeline_seethrough.run()
-    lines_pipeline_seethrough.run()
+    surface_pipeline.render()
+    surface_wire_pipeline.render()
+    lines_pipeline.render()
+    points_pipeline.render()
+    points_pipeline_seethrough.render()
+    lines_pipeline_seethrough.render()
     image.blit()
+    ctx.end_frame()

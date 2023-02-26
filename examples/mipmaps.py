@@ -82,7 +82,9 @@ camera = zengl.camera((0, 0, 1.0), (2.0, 2.0, 0.25), aspect=window.aspect, fov=4
 uniform_buffer.write(camera)
 
 while window.update():
+    ctx.new_frame()
     image.clear()
     depth.clear()
-    pipeline.run()
+    pipeline.render()
     image.blit()
+    ctx.end_frame()

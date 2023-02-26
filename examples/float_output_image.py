@@ -36,8 +36,10 @@ triangle = ctx.pipeline(
     vertex_count=3,
 )
 
+ctx.new_frame()
 image.clear()
-triangle.run()
+triangle.render()
+ctx.end_frame()
 
 plt.imshow(np.frombuffer(image.read(), 'f4').reshape(size))
 plt.show()

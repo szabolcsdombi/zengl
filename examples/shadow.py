@@ -213,6 +213,7 @@ uniform_buffer.write(struct.pack(
 ))
 
 while window.update():
+    ctx.new_frame()
     image.clear()
     depth.clear()
     for fbo in shadow_framebuffers:
@@ -220,7 +221,8 @@ while window.update():
         fbo[1].clear()
 
     for pipeline in shadow_pipelines:
-        pipeline.run()
+        pipeline.render()
 
-    scene.run()
+    scene.render()
     image.blit()
+    ctx.end_frame()

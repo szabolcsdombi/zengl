@@ -133,6 +133,7 @@ uniform_buffer.write(struct.pack('3f4x', 8.0, 6.0, 14.0), offset=64)
 while window.update():
     pb.stepSimulation()
 
+    ctx.new_frame()
     z = np.frombuffer(instance_buffer.map(), 'f4').reshape(-1, 8)
     for i, obj in enumerate(bullet_crates):
         pos, rot = pb.getBasePositionAndOrientation(obj)
@@ -143,5 +144,6 @@ while window.update():
 
     image.clear()
     depth.clear()
-    crate.run()
+    crate.render()
     image.blit()
+    ctx.end_frame()

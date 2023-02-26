@@ -125,6 +125,7 @@ crate = ctx.pipeline(
 )
 
 while window.update():
+    ctx.new_frame()
     x, y = math.sin(window.time * 0.5) * 2.0, math.cos(window.time * 0.5) * 2.0
     camera = zengl.camera((x, y, 1.2), (0.0, 0.0, 0.5), aspect=window.aspect, fov=45.0)
 
@@ -134,5 +135,6 @@ while window.update():
 
     image.clear()
     depth.clear()
-    crate.run()
+    crate.render()
     image.blit(srgb=True)
+    ctx.end_frame()

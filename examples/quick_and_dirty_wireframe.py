@@ -66,9 +66,11 @@ camera = zengl.camera((3.0, 2.0, 2.0), (0.0, 0.0, 0.5), aspect=window.aspect, fo
 uniform_buffer.write(camera)
 
 while window.update():
+    ctx.new_frame()
     image.clear()
     depth.clear()
     GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE)
-    monkey.run()
+    monkey.render()
     GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
     image.blit()
+    ctx.end_frame()

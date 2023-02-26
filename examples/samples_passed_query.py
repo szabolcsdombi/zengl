@@ -62,12 +62,14 @@ pipeline = ctx.pipeline(
 bar = Bar('Samples Passed:', fill='-')
 
 while window.update():
+    ctx.new_frame()
     image.clear()
     uniform_buffer.write(struct.pack('ff8x', np.sin(window.time), np.cos(window.time)))
     GL.glBeginQuery(GL.GL_SAMPLES_PASSED, query)
-    pipeline.run()
+    pipeline.render()
     GL.glEndQuery(GL.GL_SAMPLES_PASSED)
     GL.glGetQueryObjectuiv(query, GL.GL_QUERY_RESULT, ctypes.byref(query_result))
     bar.max = max(bar.max, query_result.value)
     bar.goto(query_result.value)
     image.blit()
+    ctx.end_frame()

@@ -109,6 +109,7 @@ crate = ctx.pipeline(
 redraw_plot = cycle([True] + [False] * 15)
 
 while window.update():
+    ctx.new_frame()
     if next(redraw_plot):
         temp.seek(0)
         plot(window.time)
@@ -122,5 +123,6 @@ while window.update():
 
     image.clear()
     depth.clear()
-    crate.run()
+    crate.render()
     image.blit()
+    ctx.end_frame()

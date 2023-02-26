@@ -66,6 +66,8 @@ scene = ctx.pipeline(
 image.write((np.random.randint(0, 2, 512 * 512, 'u1') * 255).repeat(4))
 
 while window.update():
+    ctx.new_frame()
     image.blit(temp)
-    scene.run()
+    scene.render()
     temp.blit()
+    ctx.end_frame()

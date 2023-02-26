@@ -135,11 +135,13 @@ terrain = ctx.pipeline(
 )
 
 while window.update():
+    ctx.new_frame()
     x, y = np.sin(window.time * 0.5) * 30.0, np.cos(window.time * 0.5) * 30.0
     camera = zengl.camera((x, y, 25.0), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
     uniform_buffer.write(camera)
 
     image.clear()
     depth.clear()
-    terrain.run()
+    terrain.render()
     image.blit()
+    ctx.end_frame()

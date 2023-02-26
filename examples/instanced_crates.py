@@ -107,11 +107,13 @@ uniform_buffer.write(camera)
 uniform_buffer.write(struct.pack('3f4x', 3.0, 2.0, 1.5), offset=64)
 
 while window.update():
+    ctx.new_frame()
     z = np.frombuffer(instance_buffer.map(), 'f4').reshape(-1, 3)
     z[:, 2] += np.random.normal(0.0, 0.01, z.shape[0])
     instance_buffer.unmap()
 
     image.clear()
     depth.clear()
-    crate.run()
+    crate.render()
     image.blit()
+    ctx.end_frame()

@@ -95,13 +95,18 @@ pipeline = ctx.pipeline(
     instance_count=7,
 )
 
+ctx.new_frame()
 depth.clear()
 image.clear()
-pipeline.run()
+pipeline.render()
 
 temp = ctx.image(image.size, 'rgba8unorm-srgb')
 image.blit(temp)
+ctx.end_frame()
+
 Image.frombuffer('RGBA', temp.size, temp.read(), 'raw', 'RGBA', 0, -1).save('logo.png')
 
 while window.update():
+    ctx.new_frame()
     image.blit()
+    ctx.end_frame()

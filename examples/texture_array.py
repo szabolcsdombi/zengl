@@ -123,7 +123,9 @@ uniform_buffer.write(camera)
 uniform_buffer.write(struct.pack('3f4x', 3.0, 2.0, 1.5), offset=64)
 
 while window.update():
+    ctx.new_frame()
     image.clear()
     depth.clear()
-    crate.run()
+    crate.render()
     image.blit()
+    ctx.end_frame()

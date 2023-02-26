@@ -86,6 +86,7 @@ model = ctx.pipeline(
 )
 
 while window.update():
+    ctx.new_frame()
     x, y = math.sin(window.time * 0.5) * 2.5 * radius, math.cos(window.time * 0.5) * 2.5 * radius
     camera = zengl.camera((x, y, 1.5 * radius), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
 
@@ -93,5 +94,6 @@ while window.update():
 
     image.clear()
     depth.clear()
-    model.run()
+    model.render()
     image.blit()
+    ctx.end_frame()

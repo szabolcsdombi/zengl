@@ -90,7 +90,7 @@ for i in range(samples):
     uniform_buffer.write(camera)
     temp_color.clear()
     temp_depth.clear()
-    texcoord_pipeline.run()
+    texcoord_pipeline.render()
     t = np.frombuffer(temp_color.read(), 'i4').reshape((size, size))
     ao[np.unique(t[t >= 0])] += 1.0
     bar.next()
@@ -161,10 +161,12 @@ render_pipeline = ctx.pipeline(
 )
 
 while window.update():
+    ctx.new_frame()
     x, y = np.cos(window.time * 0.5) * 5.0, np.sin(window.time * 0.5) * 5.0
     camera = zengl.camera((x, y, 1.0), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
     uniform_buffer.write(camera)
     image.clear()
     depth.clear()
-    render_pipeline.run()
+    render_pipeline.render()
     image.blit()
+    ctx.end_frame()

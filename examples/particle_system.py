@@ -144,10 +144,12 @@ cx, cy = 0.0, 0.0
 while window.update():
     cx = cx * 0.95 + (window.mouse[0] / window.size[0] * 2.0 - 1.0) * 0.05
     cy = cy * 0.95 + (window.mouse[1] / window.size[1] * 2.0 - 1.0) * 0.05
+    ctx.new_frame()
     uniform_buffer.write(np.array([cx, cy, 0.0, 0.0], 'f4'))
     image.clear()
-    simulate_pipeline.run()
-    render_pipeline.run()
+    simulate_pipeline.render()
+    render_pipeline.render()
     points[1].blit(points[0])
     points[2].blit(points[1])
     image.blit()
+    ctx.end_frame()

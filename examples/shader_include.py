@@ -56,6 +56,8 @@ triangle = ctx.pipeline(
 )
 
 while window.update():
+    ctx.new_frame()
     image.clear()
-    triangle.run()
+    triangle.render()
     image.blit()
+    ctx.end_frame()

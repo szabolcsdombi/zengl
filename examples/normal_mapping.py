@@ -137,11 +137,14 @@ while window.update():
     ambient = 0.1
     shininess = 64.0
     camera = zengl.camera(eye_pos, (0.0, 0.0, 0.0), (0.0, 1.0, 0.0), aspect=window.aspect, fov=45.0)
-    uniform_buffer.write(struct.pack(
+    uniform_buffer_data = struct.pack(
         '=64s3f4x3f4x3f4x3fff', camera, *eye_pos, *light_pos, *light_color, *object_color, ambient, shininess,
-    ))
+    )
 
+    ctx.new_frame()
+    uniform_buffer.write(uniform_buffer_data)
     image.clear()
     depth.clear()
-    pipeline.run()
+    pipeline.render()
     image.blit()
+    ctx.end_frame()

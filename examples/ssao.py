@@ -184,6 +184,7 @@ ssao = ctx.pipeline(
 )
 
 while window.update():
+    ctx.new_frame()
     eye = (0.0 + math.sin(window.time) * 0.5, -4.0, 3.0)
     camera = zengl.camera(eye, (0.0, 0.0, 1.0), aspect=window.aspect, fov=45.0)
 
@@ -192,9 +193,10 @@ while window.update():
     temp_position.clear()
     temp_normal.clear()
     temp_depth.clear()
-    temp_pass.run()
+    temp_pass.render()
 
     image.clear()
     depth.clear()
-    ssao.run()
+    ssao.render()
     image.blit()
+    ctx.end_frame()

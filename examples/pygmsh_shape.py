@@ -122,8 +122,10 @@ edges = ctx.pipeline(
 )
 
 while window.update():
+    ctx.new_frame()
     image.clear()
-    mesh.run()
-    loops.run()
-    edges.run()
+    mesh.render()
+    loops.render()
+    edges.render()
     image.blit()
+    ctx.end_frame()

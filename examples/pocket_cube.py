@@ -230,10 +230,12 @@ moves = [f'{sign}{axis}{level}' for sign in '+-' for axis in 'xyz' for level in 
 animation = Rotateions(rotations, np.random.choice(moves, 1000))
 
 while window.update():
+    ctx.new_frame()
     animation.update()
     rotation_buffer.write(rotations)
 
     image.clear()
     depth.clear()
-    cube.run()
+    cube.render()
     image.blit()
+    ctx.end_frame()

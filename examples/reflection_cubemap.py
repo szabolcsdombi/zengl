@@ -79,12 +79,12 @@ class Cubemap:
         ]
         self.pipelines.append(row)
 
-    def run(self):
+    def render(self):
         for i in range(6):
             self.image.face(layer=i).clear()
             self.depth.clear()
             for row in self.pipelines:
-                row[i].run()
+                row[i].render()
 
 
 class Scene:
@@ -174,11 +174,11 @@ class Scene:
         self.uniform_buffer_data[64:76] = struct.pack('3f', *eye)
         self.uniform_buffer.write(self.uniform_buffer_data)
 
-    def run(self):
+    def render(self):
         self.image.clear()
         self.depth.clear()
         for pipeline in self.pipelines:
-            pipeline.run()
+            pipeline.render()
 
 
 model = gzip.decompress(open(assets.get('boxgrid.obj.gz'), 'rb').read())
@@ -197,7 +197,9 @@ scene.pipeline(monkey_vertex_buffer, True)
 
 
 while window.update():
-    cubemap.run()
+    ctx.new_frame()
+    cubemap.render()
     scene.update(window.time)
-    scene.run()
+    scene.render()
     scene.image.blit()
+    ctx.end_frame()

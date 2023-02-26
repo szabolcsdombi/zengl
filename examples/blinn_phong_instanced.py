@@ -166,10 +166,12 @@ for i in range(instance_count):
 instance_buffer.write(instances)
 
 while window.update():
+    ctx.new_frame()
     camera = zengl.camera((0.0, -15.0, 10.0), (0.0, 10.0, 0.0), aspect=window.aspect, fov=45.0)
     uniform_buffer.write(camera + struct.pack('=3f4x', 0.0, -15.0, 10.0))
 
     image.clear()
     depth.clear()
-    pipeline.run()
+    pipeline.render()
     image.blit()
+    ctx.end_frame()

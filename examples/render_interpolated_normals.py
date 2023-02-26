@@ -176,13 +176,15 @@ normals = ctx.pipeline(
 )
 
 while window.update():
+    ctx.new_frame()
     x, y = np.cos(window.time * 0.5) * 5.0, np.sin(window.time * 0.5) * 5.0
     camera = zengl.camera((x, y, 2.0), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
     uniform_buffer.write(camera)
 
     image.clear()
     depth.clear()
-    pipeline.run()
-    wireframe.run()
-    normals.run()
+    pipeline.render()
+    wireframe.render()
+    normals.render()
     image.blit()
+    ctx.end_frame()

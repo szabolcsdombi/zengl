@@ -162,10 +162,12 @@ canvas = ctx.pipeline(
 )
 
 while window.update():
+    ctx.new_frame()
     image.clear()
     uniform_buffer.write(struct.pack('f', window.time))
-    canvas.run()
+    canvas.render()
     image.blit()
+    ctx.end_frame()
 
 '''
 MIT License

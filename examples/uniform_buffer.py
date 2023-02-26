@@ -63,6 +63,7 @@ triangle = ctx.pipeline(
 )
 
 while window.update():
+    ctx.new_frame()
     t = window.time
     z = np.frombuffer(uniform_buffer.map(), 'f4')
     z[:] = [
@@ -74,5 +75,6 @@ while window.update():
     uniform_buffer.unmap()
 
     image.clear()
-    triangle.run()
+    triangle.render()
     image.blit()
+    ctx.end_frame()

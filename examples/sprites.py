@@ -103,10 +103,12 @@ triangle = ctx.pipeline(
 turn = np.random.uniform(-0.002, 0.002, count)
 
 while window.update():
+    ctx.new_frame()
     instance_data[:, 0] = (instance_data[:, 0] - np.sin(instance_data[:, 2]) * 0.2) % window.size[0]
     instance_data[:, 1] = (instance_data[:, 1] - np.cos(instance_data[:, 2]) * 0.2) % window.size[1]
     instance_data[:, 2] += turn
     instance_buffer.write(instance_data)
     image.clear()
-    triangle.run()
+    triangle.render()
     image.blit()
+    ctx.end_frame()

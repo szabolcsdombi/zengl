@@ -266,18 +266,20 @@ def cubemap_face_pipeline(face):
 scene_pipelines = [cubemap_face_pipeline(i) for i in range(6)]
 
 while window.update():
+    ctx.new_frame()
 
     for face, pipeline in scene_pipelines:
         face.clear()
         temp_depth.clear()
-        pipeline.run()
+        pipeline.render()
 
     t = window.time * 0.5
     cube.uniforms['view'][:] = struct.pack('ff', t, sin(t))
 
     image.clear()
     if not window.key_down('space'):
-        cube.run()
+        cube.render()
     else:
-        flat.run()
+        flat.render()
     image.blit()
+    ctx.end_frame()

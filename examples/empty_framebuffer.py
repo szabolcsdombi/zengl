@@ -57,7 +57,7 @@ pipeline = ctx.pipeline(
 while window.update():
     ctx.new_frame()
     image.clear()
-    pipeline.run()
+    pipeline.render()
     ctx.barrier()
     image.blit()
     ctx.end_frame()

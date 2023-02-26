@@ -101,9 +101,11 @@ while window.update():
     for blob in blobs:
         blob.update()
 
+    ctx.new_frame()
     instance_buffer.write(b''.join(blob.pack() for blob in blobs))
 
     image.clear()
     depth.clear()
-    shape.run()
+    shape.render()
     image.blit()
+    ctx.end_frame()

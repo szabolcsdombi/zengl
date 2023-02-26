@@ -194,11 +194,13 @@ radius1 = np.random.uniform(1.5, 3.0, 49)
 radius2 = np.random.uniform(1.5, 3.0, 49)
 
 while window.update():
+    ctx.new_frame()
     light_instances[:, 3] = (radius1 + radius2) / 2.0 + (radius1 - radius2) * np.sin(offset + window.time)
     light_instance_buffer.write(light_instances.tobytes())
     lights.instance_count = 49
     image.clear()
     depth.clear()
-    pipeline.run()
-    lights.run()
+    pipeline.render()
+    lights.render()
     image.blit()
+    ctx.end_frame()

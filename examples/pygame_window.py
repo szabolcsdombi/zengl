@@ -107,13 +107,15 @@ while running:
     x, y = math.sin(frames * 0.02) * 3.0, math.cos(frames * 0.02) * 3.0
     camera = zengl.camera((x, y, 1.5), (0.0, 0.0, 0.0), aspect=window_aspect, fov=45.0)
 
+    ctx.new_frame()
     uniform_buffer.write(camera)
     uniform_buffer.write(struct.pack('3f4x', x, y, 1.5), offset=64)
 
     image.clear()
     depth.clear()
-    crate.run()
+    crate.render()
     image.blit()
+    ctx.end_frame()
 
     pg.display.flip()
     pg.time.wait(10)

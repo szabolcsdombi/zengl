@@ -77,7 +77,9 @@ triangle = ctx.pipeline(
 )
 
 while window.update():
+    ctx.new_frame()
     image.clear()
     uniform_buffer.write(struct.pack('3f4x', 0.5, 0.5 * window.aspect, window.time))
-    triangle.run()
+    triangle.render()
     image.blit()
+    ctx.end_frame()

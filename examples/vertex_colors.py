@@ -81,11 +81,13 @@ monkey = ctx.pipeline(
 )
 
 while window.update():
+    ctx.new_frame()
     eye = (np.cos(window.time * 0.5) * 5.0, np.sin(window.time * 0.5) * 5.0, 1.0)
     camera = zengl.camera(eye, (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
     uniform_buffer.write(camera + struct.pack('fff4x', *eye))
 
     image.clear()
     depth.clear()
-    monkey.run()
+    monkey.render()
     image.blit(srgb=True)
+    ctx.end_frame()

@@ -122,7 +122,9 @@ state_buffer.write(b''.join(struct.pack(
 ) for i in range(4)))
 
 while window.update():
+    ctx.new_frame()
     image.clear()
     depth.clear()
-    pipeline.run()
+    pipeline.render()
     image.blit()
+    ctx.end_frame()
