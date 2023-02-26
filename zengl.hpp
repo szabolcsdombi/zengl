@@ -141,6 +141,9 @@ typedef int sizeiptr;
 #define GL_UNIFORM_BLOCK_DATA_SIZE 0x8A40
 #define GL_PROGRAM_POINT_SIZE 0x8642
 #define GL_TEXTURE_CUBE_MAP_SEAMLESS 0x884F
+#define GL_SYNC_GPU_COMMANDS_COMPLETE 0x9117
+#define GL_TIMEOUT_IGNORED 0xFFFFFFFFFFFFFFFFull
+#define GL_SYNC_FLUSH_COMMANDS_BIT 0x00000001
 #define GL_DRAW_INDIRECT_BUFFER 0x8F3F
 #define GL_ALL_BARRIER_BITS 0xFFFFFFFF
 #define GL_PRIMITIVE_RESTART_FIXED_INDEX 0x8D69
@@ -207,6 +210,9 @@ typedef void (GLAPI * glBindVertexArrayProc)(unsigned array);
 typedef void (GLAPI * glDeleteVertexArraysProc)(int n, const unsigned * arrays);
 typedef void (GLAPI * glDrawArraysInstancedProc)(unsigned mode, int first, int count, int instancecount);
 typedef void (GLAPI * glDrawElementsInstancedProc)(unsigned mode, int count, unsigned type, const void * indices, int instancecount);
+typedef void * (GLAPI * glFenceSyncProc)(unsigned condition, unsigned flags);
+typedef void (GLAPI * glDeleteSyncProc)(void * sync);
+typedef unsigned (GLAPI * glClientWaitSyncProc)(void * sync, unsigned flags, unsigned long long timeout);
 typedef void (GLAPI * glDeleteSamplersProc)(int count, const unsigned * samplers);
 typedef void (GLAPI * glSamplerParameteriProc)(unsigned sampler, unsigned pname, int param);
 typedef void (GLAPI * glSamplerParameterfProc)(unsigned sampler, unsigned pname, float param);
@@ -323,6 +329,9 @@ struct GLMethods {
     glDeleteVertexArraysProc DeleteVertexArrays;
     glDrawArraysInstancedProc DrawArraysInstanced;
     glDrawElementsInstancedProc DrawElementsInstanced;
+    glFenceSyncProc FenceSync;
+    glDeleteSyncProc DeleteSync;
+    glClientWaitSyncProc ClientWaitSync;
     glDeleteSamplersProc DeleteSamplers;
     glSamplerParameteriProc SamplerParameteri;
     glSamplerParameterfProc SamplerParameterf;
@@ -724,6 +733,9 @@ GLMethods load_gl(PyObject * loader) {
     load(DeleteVertexArrays);
     load(DrawArraysInstanced);
     load(DrawElementsInstanced);
+    load(FenceSync);
+    load(DeleteSync);
+    load(ClientWaitSync);
     load(DeleteSamplers);
     load(SamplerParameteri);
     load(SamplerParameterf);

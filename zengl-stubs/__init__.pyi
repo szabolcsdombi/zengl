@@ -1,4 +1,4 @@
-from typing import Any, Dict, Iterable, List, Literal, Tuple, TypedDict
+from typing import Any, Callable, Dict, Iterable, List, Literal, Tuple, TypedDict
 
 CullFace = Literal['front', 'back', 'front_and_back', 'none']
 Topology = Literal['points', 'lines', 'line_loop', 'line_strip', 'triangles', 'triangle_strip', 'triangle_fan']
@@ -199,6 +199,8 @@ class Context:
     info: Tuple[str, str, str]
     limits: Limits
     includes: Dict[str, str]
+    before_frame: Callable | None
+    after_frame: Callable | None
     screen: int
     def buffer(
         self, data: Bytes | None = None, size: int | None = None, external: int = 0) -> Buffer: ...
@@ -238,6 +240,8 @@ class Context:
         group_count: Tuple[int, int, int] = (0, 0, 0),
         includes: Dict[str, str] | None = None) -> Pipeline: ...
     def barrier(self) -> None: ...
+    def new_frame(self, reset: bool = True) -> None: ...
+    def end_frame(self, clean: bool = True, flush: bool = True, sync: bool = False) -> None: ...
     def release(self, obj: Buffer | Image | Pipeline | Compute | Literal['shader_cache'] | Literal['all']) -> None: ...
 
 

@@ -98,6 +98,8 @@ struct Context {
     PyObject * program_cache;
     PyObject * shader_cache;
     PyObject * includes;
+    PyObject * before_frame;
+    PyObject * after_frame;
     PyObject * limits;
     PyObject * info;
     DescriptorSet * current_descriptor_set;
@@ -954,6 +956,8 @@ Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwargs) {
     res->program_cache = PyDict_New();
     res->shader_cache = PyDict_New();
     res->includes = PyDict_New();
+    res->before_frame = (PyObject *)new_ref(Py_None);
+    res->after_frame = (PyObject *)new_ref(Py_None);
     res->limits = limits;
     res->info = info;
     res->current_descriptor_set = NULL;
@@ -1602,6 +1606,81 @@ Compute * Context_meth_compute(Context * self, PyObject * vargs, PyObject * kwar
 
 PyObject * Context_meth_barrier(Context * self, PyObject * args) {
     self->gl.MemoryBarrier(GL_ALL_BARRIER_BITS);
+    Py_RETURN_NONE;
+}
+
+PyObject * Context_meth_new_frame(Context * self, PyObject * args, PyObject * kwargs) {
+    static char * keywords[] = {"reset", NULL};
+
+    int reset = true;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|p", keywords, &reset)) {
+        return NULL;
+    }
+
+    if (self->before_frame != Py_None) {
+        PyObject * temp = PyObject_CallObject(self->before_frame, NULL);
+        Py_XDECREF(temp);
+        if (!temp) {
+            return NULL;
+        }
+    }
+
+    if (reset) {
+        self->current_descriptor_set = NULL;
+        self->current_global_settings = NULL;
+        self->is_stencil_default = false;
+        self->is_mask_default = false;
+        self->is_blend_default = false;
+        self->current_viewport = {-1, -1, -1, -1};
+        self->current_framebuffer = -1;
+        self->current_program = -1;
+        self->current_vertex_array = -1;
+        self->current_depth_mask = 0;
+        self->current_stencil_mask = 0;
+    }
+    Py_RETURN_NONE;
+}
+
+PyObject * Context_meth_end_frame(Context * self, PyObject * args, PyObject * kwargs) {
+    static char * keywords[] = {"clean", "flush", "sync", NULL};
+
+    int clean = true;
+    int flush = true;
+    int sync = false;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|ppp", keywords, &clean, &flush, &sync)) {
+        return NULL;
+    }
+
+    if (clean) {
+        bind_framebuffer(self, 0);
+        bind_program(self, 0);
+        bind_vertex_array(self, 0);
+        self->gl.BindBuffersRange(GL_UNIFORM_BUFFER, 0, MAX_BUFFER_BINDINGS, NULL, NULL, NULL);
+        self->gl.BindBuffersRange(GL_SHADER_STORAGE_BUFFER, 0, MAX_BUFFER_BINDINGS, NULL, NULL, NULL);
+        self->gl.BindSamplers(0, MAX_IMAGE_BINDINGS, NULL);
+        self->gl.BindImageTextures(0, MAX_IMAGE_BINDINGS, NULL);
+    }
+
+    if (flush) {
+        self->gl.Flush();
+    }
+
+    if (sync) {
+        void * sync = self->gl.FenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+        self->gl.ClientWaitSync(sync, GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED);
+        self->gl.DeleteSync(sync);
+    }
+
+    if (self->after_frame != Py_None) {
+        PyObject * temp = PyObject_CallObject(self->after_frame, NULL);
+        Py_XDECREF(temp);
+        if (!temp) {
+            return NULL;
+        }
+    }
+
     Py_RETURN_NONE;
 }
 
@@ -2885,6 +2964,8 @@ PyMethodDef Context_methods[] = {
     {"pipeline", (PyCFunction)Context_meth_pipeline, METH_VARARGS | METH_KEYWORDS},
     {"compute", (PyCFunction)Context_meth_compute, METH_VARARGS | METH_KEYWORDS},
     {"barrier", (PyCFunction)Context_meth_barrier, METH_NOARGS},
+    {"new_frame", (PyCFunction)Context_meth_new_frame, METH_VARARGS | METH_KEYWORDS},
+    {"end_frame", (PyCFunction)Context_meth_end_frame, METH_VARARGS | METH_KEYWORDS},
     {"release", (PyCFunction)Context_meth_release, METH_O},
     {},
 };
