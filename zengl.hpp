@@ -69,6 +69,7 @@ typedef int sizeiptr;
 #define GL_TEXTURE_LOD_BIAS 0x8501
 #define GL_TEXTURE_COMPARE_MODE 0x884C
 #define GL_TEXTURE_COMPARE_FUNC 0x884D
+#define GL_QUERY_RESULT 0x8866
 #define GL_MAX_DRAW_BUFFERS 0x8824
 #define GL_MAX_VERTEX_ATTRIBS 0x8869
 #define GL_MAX_TEXTURE_IMAGE_UNITS 0x8872
@@ -146,6 +147,7 @@ typedef int sizeiptr;
 #define GL_SYNC_GPU_COMMANDS_COMPLETE 0x9117
 #define GL_TIMEOUT_IGNORED 0xFFFFFFFFFFFFFFFFull
 #define GL_SYNC_FLUSH_COMMANDS_BIT 0x00000001
+#define GL_TIME_ELAPSED 0x88BF
 #define GL_DRAW_INDIRECT_BUFFER 0x8F3F
 #define GL_ALL_BARRIER_BITS 0xFFFFFFFF
 #define GL_MAX_IMAGE_UNITS 0x8F38
@@ -183,6 +185,11 @@ typedef void (GLAPI * glGetIntegervProc)(unsigned pname, int * data);
 typedef const unsigned char *(GLAPI * glGetStringProc)(unsigned name);
 typedef void (GLAPI * glViewportProc)(int x, int y, int width, int height);
 typedef void (GLAPI * glDeleteTexturesProc)(int n, const unsigned * textures);
+typedef void (GLAPI * glGenQueriesProc)(int n, unsigned * ids);
+typedef void (GLAPI * glDeleteQueriesProc)(int n, const unsigned * ids);
+typedef void (GLAPI * glBeginQueryProc)(unsigned target, unsigned id);
+typedef void (GLAPI * glEndQueryProc)(unsigned target);
+typedef void (GLAPI * glGetQueryObjectuivProc)(unsigned id, unsigned pname, unsigned * params);
 typedef void (GLAPI * glBindBufferProc)(unsigned target, unsigned buffer);
 typedef void (GLAPI * glDeleteBuffersProc)(int n, const unsigned * buffers);
 typedef void (GLAPI * glStencilOpSeparateProc)(unsigned face, unsigned sfail, unsigned dpfail, unsigned dppass);
@@ -302,6 +309,11 @@ struct GLMethods {
     glGetStringProc GetString;
     glViewportProc Viewport;
     glDeleteTexturesProc DeleteTextures;
+    glGenQueriesProc GenQueries;
+    glDeleteQueriesProc DeleteQueries;
+    glBeginQueryProc BeginQuery;
+    glEndQueryProc EndQuery;
+    glGetQueryObjectuivProc GetQueryObjectuiv;
     glBindBufferProc BindBuffer;
     glDeleteBuffersProc DeleteBuffers;
     glStencilOpSeparateProc StencilOpSeparate;
@@ -703,6 +715,11 @@ GLMethods load_gl(PyObject * loader) {
     load(GetString);
     load(Viewport);
     load(DeleteTextures);
+    load(GenQueries);
+    load(DeleteQueries);
+    load(BeginQuery);
+    load(EndQuery);
+    load(GetQueryObjectuiv);
     load(BindBuffer);
     load(DeleteBuffers);
     load(StencilOpSeparate);

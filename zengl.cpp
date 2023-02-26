@@ -128,6 +128,9 @@ struct Context {
     int current_vertex_array;
     int current_depth_mask;
     int current_stencil_mask;
+    int frame_time_query;
+    int frame_time_query_running;
+    int frame_time;
     int screen;
     Limits limits;
     GLMethods gl;
@@ -990,6 +993,9 @@ Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwargs) {
     res->current_vertex_array = -1;
     res->current_depth_mask = 0;
     res->current_stencil_mask = 0;
+    res->frame_time_query = 0;
+    res->frame_time_query_running = false;
+    res->frame_time = 0;
     res->screen = 0;
     res->limits = limits;
     res->gl = gl;
@@ -1629,11 +1635,12 @@ PyObject * Context_meth_barrier(Context * self, PyObject * args) {
 }
 
 PyObject * Context_meth_new_frame(Context * self, PyObject * args, PyObject * kwargs) {
-    static char * keywords[] = {"reset", NULL};
+    static char * keywords[] = {"reset", "frame_time", NULL};
 
     int reset = true;
+    int frame_time = false;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|p", keywords, &reset)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|pp", keywords, &reset, &frame_time)) {
         return NULL;
     }
 
@@ -1659,6 +1666,15 @@ PyObject * Context_meth_new_frame(Context * self, PyObject * args, PyObject * kw
         self->current_vertex_array = -1;
         self->current_depth_mask = 0;
         self->current_stencil_mask = 0;
+    }
+
+    if (frame_time) {
+        if (!self->frame_time_query) {
+            gl.GenQueries(1, (unsigned *)&self->frame_time_query);
+        }
+        gl.BeginQuery(GL_TIME_ELAPSED, self->frame_time_query);
+        self->frame_time_query_running = true;
+        self->frame_time = 0;
     }
 
     gl.Enable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
@@ -1696,6 +1712,14 @@ PyObject * Context_meth_end_frame(Context * self, PyObject * args, PyObject * kw
         gl.Disable(GL_PROGRAM_POINT_SIZE);
         gl.Disable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
         gl.Disable(GL_FRAMEBUFFER_SRGB);
+    }
+
+    if (self->frame_time_query_running) {
+        gl.EndQuery(GL_TIME_ELAPSED);
+        gl.GetQueryObjectuiv(self->frame_time_query, GL_QUERY_RESULT, (unsigned *)&self->frame_time);
+        self->frame_time_query_running = false;
+    } else {
+        self->frame_time = 0;
     }
 
     if (flush) {
@@ -2996,6 +3020,7 @@ PyMemberDef Context_members[] = {
     {"info", T_OBJECT, offsetof(Context, info_dict), READONLY},
     {"before_frame", T_OBJECT, offsetof(Context, before_frame_callback), 0},
     {"after_frame", T_OBJECT, offsetof(Context, after_frame_callback), 0},
+    {"frame_time", T_INT, offsetof(Context, frame_time), READONLY},
     {"screen", T_INT, offsetof(Context, screen), 0},
     {},
 };
