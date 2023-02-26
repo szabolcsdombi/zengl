@@ -5,7 +5,7 @@ from window import Window
 window = Window()
 ctx = zengl.context()
 
-print('Hello World | Vendor: %s | Renderer: %s | Version: %s' % ctx.info)
+print('Vendor: {vendor} | Renderer: {renderer} | Version: {version} | GLSL: {glsl}'.format_map(ctx.info))
 
 image = ctx.image(window.size, 'rgba8unorm', samples=4)
 image.clear_value = (1.0, 1.0, 1.0, 1.0)

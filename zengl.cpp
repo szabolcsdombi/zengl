@@ -1,5 +1,19 @@
 #include "zengl.hpp"
 
+struct Limits {
+    int max_uniform_buffer_bindings;
+    int max_uniform_block_size;
+    int max_combined_uniform_blocks;
+    int max_shader_storage_buffer_bindings;
+    int max_shader_storage_block_size;
+    int max_combined_shader_storage_blocks;
+    int max_combined_texture_image_units;
+    int max_image_units;
+    int max_vertex_attribs;
+    int max_draw_buffers;
+    int max_samples;
+};
+
 struct ModuleState {
     PyObject * helper;
     PyObject * empty_tuple;
@@ -39,10 +53,10 @@ struct DescriptorSetBuffers {
 
 struct DescriptorSetSamplers {
     int sampler_count;
-    unsigned samplers[MAX_IMAGE_BINDINGS];
-    unsigned textures[MAX_IMAGE_BINDINGS];
-    PyObject * sampler_refs[MAX_IMAGE_BINDINGS];
-    PyObject * texture_refs[MAX_IMAGE_BINDINGS];
+    unsigned samplers[MAX_TEXTURE_BINDINGS];
+    unsigned textures[MAX_TEXTURE_BINDINGS];
+    PyObject * sampler_refs[MAX_TEXTURE_BINDINGS];
+    PyObject * texture_refs[MAX_TEXTURE_BINDINGS];
 };
 
 struct DescriptorSetImages {
@@ -98,10 +112,10 @@ struct Context {
     PyObject * program_cache;
     PyObject * shader_cache;
     PyObject * includes;
-    PyObject * before_frame;
-    PyObject * after_frame;
-    PyObject * limits;
-    PyObject * info;
+    PyObject * before_frame_callback;
+    PyObject * after_frame_callback;
+    PyObject * limits_dict;
+    PyObject * info_dict;
     DescriptorSet * current_descriptor_set;
     GlobalSettings * current_global_settings;
     int is_mask_default;
@@ -114,8 +128,8 @@ struct Context {
     int current_vertex_array;
     int current_depth_mask;
     int current_stencil_mask;
-    int max_samples;
     int screen;
+    Limits limits;
     GLMethods gl;
 };
 
@@ -902,47 +916,52 @@ Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwargs) {
         return NULL;
     }
 
-    int max_uniform_buffer_bindings = 0;
-    gl.GetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &max_uniform_buffer_bindings);
+    Limits limits = {};
 
-    int max_uniform_block_size = 0;
-    gl.GetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &max_uniform_block_size);
+    gl.GetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &limits.max_uniform_buffer_bindings);
+    gl.GetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &limits.max_uniform_block_size);
+    gl.GetIntegerv(GL_MAX_COMBINED_UNIFORM_BLOCKS, &limits.max_combined_uniform_blocks);
+    gl.GetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, &limits.max_shader_storage_buffer_bindings);
+    gl.GetIntegerv(GL_MAX_SHADER_STORAGE_BLOCK_SIZE, &limits.max_shader_storage_block_size);
+    gl.GetIntegerv(GL_MAX_COMBINED_SHADER_STORAGE_BLOCKS, &limits.max_combined_shader_storage_blocks);
+    gl.GetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &limits.max_combined_texture_image_units);
+    gl.GetIntegerv(GL_MAX_IMAGE_UNITS, &limits.max_image_units);
+    gl.GetIntegerv(GL_MAX_VERTEX_ATTRIBS, &limits.max_vertex_attribs);
+    gl.GetIntegerv(GL_MAX_DRAW_BUFFERS, &limits.max_draw_buffers);
+    gl.GetIntegerv(GL_MAX_SAMPLES, &limits.max_samples);
 
-    int max_combined_uniform_blocks = 0;
-    gl.GetIntegerv(GL_MAX_COMBINED_UNIFORM_BLOCKS, &max_combined_uniform_blocks);
+    limits.max_uniform_buffer_bindings = min(limits.max_uniform_buffer_bindings, MAX_BUFFER_BINDINGS);
+    limits.max_shader_storage_buffer_bindings = min(limits.max_shader_storage_buffer_bindings, MAX_BUFFER_BINDINGS);
+    limits.max_combined_texture_image_units = min(limits.max_combined_texture_image_units, MAX_TEXTURE_BINDINGS);
+    limits.max_image_units = min(limits.max_image_units, MAX_IMAGE_BINDINGS);
 
-    int max_combined_texture_image_units = 0;
-    gl.GetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_combined_texture_image_units);
+    PyObject * limits_dict = Py_BuildValue(
+        "{sisisisisisisisisisisi}",
+        "max_uniform_buffer_bindings", limits.max_uniform_buffer_bindings,
+        "max_uniform_block_size", limits.max_uniform_block_size,
+        "max_combined_uniform_blocks", limits.max_combined_uniform_blocks,
+        "max_shader_storage_buffer_bindings", limits.max_shader_storage_buffer_bindings,
+        "max_shader_storage_block_size", limits.max_shader_storage_block_size,
+        "max_combined_shader_storage_blocks", limits.max_combined_shader_storage_blocks,
+        "max_combined_texture_image_units", limits.max_combined_texture_image_units,
+        "max_image_units", limits.max_image_units,
+        "max_vertex_attribs", limits.max_vertex_attribs,
+        "max_draw_buffers", limits.max_draw_buffers,
+        "max_samples", limits.max_samples
+    );
 
-    int max_vertex_attribs = 0;
-    gl.GetIntegerv(GL_MAX_VERTEX_ATTRIBS, &max_vertex_attribs);
-
-    int max_draw_buffers = 0;
-    gl.GetIntegerv(GL_MAX_DRAW_BUFFERS, &max_draw_buffers);
-
-    int max_samples = 0;
-    gl.GetIntegerv(GL_MAX_SAMPLES, &max_samples);
+    PyObject * info_dict = Py_BuildValue(
+        "{szszszsz}",
+        "vendor", gl.GetString(GL_VENDOR),
+        "renderer", gl.GetString(GL_RENDERER),
+        "version", gl.GetString(GL_VERSION),
+        "glsl", gl.GetString(GL_SHADING_LANGUAGE_VERSION)
+    );
 
     gl.Enable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
     gl.Enable(GL_PROGRAM_POINT_SIZE);
     gl.Enable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
     gl.Enable(GL_FRAMEBUFFER_SRGB);
-
-    PyObject * limits = Py_BuildValue(
-        "{sisisisisisisi}",
-        "max_uniform_buffer_bindings", max_uniform_buffer_bindings,
-        "max_uniform_block_size", max_uniform_block_size,
-        "max_combined_uniform_blocks", max_combined_uniform_blocks,
-        "max_combined_texture_image_units", max_combined_texture_image_units,
-        "max_vertex_attribs", max_vertex_attribs,
-        "max_draw_buffers", max_draw_buffers,
-        "max_samples", max_samples
-    );
-
-    PyObject * info = PyTuple_New(3);
-    PyTuple_SetItem(info, 0, to_str(gl.GetString(GL_VENDOR)));
-    PyTuple_SetItem(info, 1, to_str(gl.GetString(GL_RENDERER)));
-    PyTuple_SetItem(info, 2, to_str(gl.GetString(GL_VERSION)));
 
     Context * res = PyObject_New(Context, module_state->Context_type);
     res->gc_prev = (GCHeader *)res;
@@ -956,10 +975,10 @@ Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwargs) {
     res->program_cache = PyDict_New();
     res->shader_cache = PyDict_New();
     res->includes = PyDict_New();
-    res->before_frame = (PyObject *)new_ref(Py_None);
-    res->after_frame = (PyObject *)new_ref(Py_None);
-    res->limits = limits;
-    res->info = info;
+    res->before_frame_callback = (PyObject *)new_ref(Py_None);
+    res->after_frame_callback = (PyObject *)new_ref(Py_None);
+    res->limits_dict = limits_dict;
+    res->info_dict = info_dict;
     res->current_descriptor_set = NULL;
     res->current_global_settings = NULL;
     res->is_mask_default = false;
@@ -971,8 +990,8 @@ Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwargs) {
     res->current_vertex_array = -1;
     res->current_depth_mask = 0;
     res->current_stencil_mask = 0;
-    res->max_samples = max_samples;
     res->screen = 0;
+    res->limits = limits;
     res->gl = gl;
     return res;
 }
@@ -1129,8 +1148,8 @@ Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * kwargs) 
     int renderbuffer = samples > 1 || texture == Py_False;
     int target = cubemap ? GL_TEXTURE_CUBE_MAP : array ? GL_TEXTURE_2D_ARRAY : GL_TEXTURE_2D;
 
-    if (samples > self->max_samples) {
-        samples = self->max_samples;
+    if (samples > self->limits.max_samples) {
+        samples = self->limits.max_samples;
     }
 
     ImageFormat fmt = get_image_format(PyUnicode_AsUTF8(format));
@@ -1618,8 +1637,10 @@ PyObject * Context_meth_new_frame(Context * self, PyObject * args, PyObject * kw
         return NULL;
     }
 
-    if (self->before_frame != Py_None) {
-        PyObject * temp = PyObject_CallObject(self->before_frame, NULL);
+    const GLMethods & gl = self->gl;
+
+    if (self->before_frame_callback != Py_None) {
+        PyObject * temp = PyObject_CallObject(self->before_frame_callback, NULL);
         Py_XDECREF(temp);
         if (!temp) {
             return NULL;
@@ -1639,6 +1660,11 @@ PyObject * Context_meth_new_frame(Context * self, PyObject * args, PyObject * kw
         self->current_depth_mask = 0;
         self->current_stencil_mask = 0;
     }
+
+    gl.Enable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
+    gl.Enable(GL_PROGRAM_POINT_SIZE);
+    gl.Enable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+    gl.Enable(GL_FRAMEBUFFER_SRGB);
     Py_RETURN_NONE;
 }
 
@@ -1653,28 +1679,37 @@ PyObject * Context_meth_end_frame(Context * self, PyObject * args, PyObject * kw
         return NULL;
     }
 
+    const GLMethods & gl = self->gl;
+
     if (clean) {
         bind_framebuffer(self, 0);
         bind_program(self, 0);
         bind_vertex_array(self, 0);
-        self->gl.BindBuffersRange(GL_UNIFORM_BUFFER, 0, MAX_BUFFER_BINDINGS, NULL, NULL, NULL);
-        self->gl.BindBuffersRange(GL_SHADER_STORAGE_BUFFER, 0, MAX_BUFFER_BINDINGS, NULL, NULL, NULL);
-        self->gl.BindSamplers(0, MAX_IMAGE_BINDINGS, NULL);
-        self->gl.BindImageTextures(0, MAX_IMAGE_BINDINGS, NULL);
+
+        gl.BindBuffersRange(GL_UNIFORM_BUFFER, 0, self->limits.max_uniform_buffer_bindings, NULL, NULL, NULL);
+        gl.BindBuffersRange(GL_SHADER_STORAGE_BUFFER, 0, self->limits.max_shader_storage_buffer_bindings, NULL, NULL, NULL);
+        gl.BindTextures(0, self->limits.max_combined_texture_image_units, NULL);
+        gl.BindSamplers(0, self->limits.max_combined_texture_image_units, NULL);
+        gl.BindImageTextures(0, self->limits.max_image_units, NULL);
+
+        gl.Disable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
+        gl.Disable(GL_PROGRAM_POINT_SIZE);
+        gl.Disable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+        gl.Disable(GL_FRAMEBUFFER_SRGB);
     }
 
     if (flush) {
-        self->gl.Flush();
+        gl.Flush();
     }
 
     if (sync) {
-        void * sync = self->gl.FenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-        self->gl.ClientWaitSync(sync, GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED);
-        self->gl.DeleteSync(sync);
+        void * sync = gl.FenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+        gl.ClientWaitSync(sync, GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED);
+        gl.DeleteSync(sync);
     }
 
-    if (self->after_frame != Py_None) {
-        PyObject * temp = PyObject_CallObject(self->after_frame, NULL);
+    if (self->after_frame_callback != Py_None) {
+        PyObject * temp = PyObject_CallObject(self->after_frame_callback, NULL);
         Py_XDECREF(temp);
         if (!temp) {
             return NULL;
@@ -2545,21 +2580,6 @@ int Pipeline_set_viewport(Pipeline * self, PyObject * viewport) {
     return 0;
 }
 
-PyObject * Pipeline_get_framebuffer(Pipeline * self) {
-    return PyLong_FromLong(self->framebuffer->obj);
-}
-
-int Pipeline_set_framebuffer(Pipeline * self, PyObject * framebuffer) {
-    if (!PyLong_CheckExact(framebuffer)) {
-        PyErr_Format(PyExc_TypeError, "the framebuffer must be an int");
-        return -1;
-    }
-    self->framebuffer = PyObject_New(GLObject, self->ctx->module_state->GLObject_type);
-    self->framebuffer->uses = -1;
-    self->framebuffer->obj = PyLong_AsLong(framebuffer);
-    return 0;
-}
-
 PyObject * Compute_meth_run(Compute * self, PyObject * args) {
     const GLMethods & gl = self->ctx->gl;
     bind_program(self->ctx, self->program->obj);
@@ -2907,8 +2927,8 @@ void Context_dealloc(Context * self) {
     Py_DECREF(self->program_cache);
     Py_DECREF(self->shader_cache);
     Py_DECREF(self->includes);
-    Py_DECREF(self->limits);
-    Py_DECREF(self->info);
+    Py_DECREF(self->limits_dict);
+    Py_DECREF(self->info_dict);
     Py_TYPE(self)->tp_free(self);
 }
 
@@ -2971,9 +2991,11 @@ PyMethodDef Context_methods[] = {
 };
 
 PyMemberDef Context_members[] = {
-    {"includes", T_OBJECT_EX, offsetof(Context, includes), READONLY},
-    {"limits", T_OBJECT_EX, offsetof(Context, limits), READONLY},
-    {"info", T_OBJECT_EX, offsetof(Context, info), READONLY},
+    {"includes", T_OBJECT, offsetof(Context, includes), READONLY},
+    {"limits", T_OBJECT, offsetof(Context, limits_dict), READONLY},
+    {"info", T_OBJECT, offsetof(Context, info_dict), READONLY},
+    {"before_frame", T_OBJECT, offsetof(Context, before_frame_callback), 0},
+    {"after_frame", T_OBJECT, offsetof(Context, after_frame_callback), 0},
     {"screen", T_INT, offsetof(Context, screen), 0},
     {},
 };
@@ -3007,8 +3029,8 @@ PyGetSetDef Image_getset[] = {
 };
 
 PyMemberDef Image_members[] = {
-    {"size", T_OBJECT_EX, offsetof(Image, size), READONLY},
-    {"format", T_OBJECT_EX, offsetof(Image, format), READONLY},
+    {"size", T_OBJECT, offsetof(Image, size), READONLY},
+    {"format", T_OBJECT, offsetof(Image, format), READONLY},
     {"samples", T_INT, offsetof(Image, samples), READONLY},
     {"array", T_INT, offsetof(Image, array), READONLY},
     {"flags", T_INT, offsetof(Image, fmt.flags), READONLY},
@@ -3022,7 +3044,6 @@ PyMethodDef Pipeline_methods[] = {
 
 PyGetSetDef Pipeline_getset[] = {
     {"viewport", (getter)Pipeline_get_viewport, (setter)Pipeline_set_viewport},
-    {"_framebuffer", (getter)Pipeline_get_framebuffer, (setter)Pipeline_set_framebuffer},
     {},
 };
 
@@ -3031,7 +3052,7 @@ PyMemberDef Pipeline_members[] = {
     {"instance_count", T_INT, offsetof(Pipeline, dynamic_state.instance_count), 0},
     {"indirect_count", T_INT, offsetof(Pipeline, dynamic_state.indirect_count), 0},
     {"first_vertex", T_INT, offsetof(Pipeline, dynamic_state.first_vertex), 0},
-    {"uniforms", T_OBJECT_EX, offsetof(Pipeline, uniform_map), 0},
+    {"uniforms", T_OBJECT_EX, offsetof(Pipeline, uniform_map), READONLY},
     {},
 };
 
@@ -3046,7 +3067,7 @@ PyGetSetDef Compute_getset[] = {
 };
 
 PyMemberDef Compute_members[] = {
-    {"uniforms", T_OBJECT_EX, offsetof(Compute, uniform_map), 0},
+    {"uniforms", T_OBJECT_EX, offsetof(Compute, uniform_map), READONLY},
     {},
 };
 
@@ -3057,8 +3078,8 @@ PyMethodDef ImageFace_methods[] = {
 };
 
 PyMemberDef ImageFace_members[] = {
-    {"image", T_OBJECT_EX, offsetof(ImageFace, image), READONLY},
-    {"size", T_OBJECT_EX, offsetof(ImageFace, size), READONLY},
+    {"image", T_OBJECT, offsetof(ImageFace, image), READONLY},
+    {"size", T_OBJECT, offsetof(ImageFace, size), READONLY},
     {"layer", T_INT, offsetof(ImageFace, layer), READONLY},
     {"level", T_INT, offsetof(ImageFace, level), READONLY},
     {"samples", T_INT, offsetof(ImageFace, samples), READONLY},

@@ -127,13 +127,23 @@ class BlendingSettings(TypedDict, total=False):
     dst_alpha: BlendConstant
 
 
+class Info(TypedDict):
+    vendor: str
+    renderer: str
+    version: str
+    glsl: str
+
+
 class Limits(TypedDict):
     max_uniform_buffer_bindings: int
     max_uniform_block_size: int
     max_combined_uniform_blocks: int
+    max_shader_storage_buffer_bindings: int
+    max_shader_storage_block_size: int
+    max_combined_shader_storage_blocks: int
     max_combined_texture_image_units: int
+    max_image_units: int
     max_vertex_attribs: int
-    max_varying_components: int
     max_draw_buffers: int
     max_samples: int
 
@@ -196,7 +206,7 @@ class Compute:
 
 
 class Context:
-    info: Tuple[str, str, str]
+    info: Info
     limits: Limits
     includes: Dict[str, str]
     before_frame: Callable | None

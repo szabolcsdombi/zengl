@@ -2,5 +2,5 @@ import zengl
 
 
 def test_context_info(ctx: zengl.Context):
-    assert isinstance(ctx.info, tuple)
-    assert len(ctx.info) == 3
+    assert isinstance(ctx.info, dict)
+    assert len(ctx.info) == 4

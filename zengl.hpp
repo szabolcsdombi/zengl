@@ -2,8 +2,9 @@
 #include <structmember.h>
 
 const int MAX_ATTACHMENTS = 16;
-const int MAX_BUFFER_BINDINGS = 16;
-const int MAX_IMAGE_BINDINGS = 64;
+const int MAX_BUFFER_BINDINGS = 32;
+const int MAX_TEXTURE_BINDINGS = 64;
+const int MAX_IMAGE_BINDINGS = 32;
 
 #if defined(_WIN32) || defined(_WIN64)
 #define GLAPI __stdcall
@@ -79,6 +80,7 @@ typedef int sizeiptr;
 #define GL_COMPILE_STATUS 0x8B81
 #define GL_LINK_STATUS 0x8B82
 #define GL_INFO_LOG_LENGTH 0x8B84
+#define GL_SHADING_LANGUAGE_VERSION 0x8B8C
 #define GL_SRGB8_ALPHA8 0x8C43
 #define GL_RGBA32F 0x8814
 #define GL_RGBA16F 0x881A
@@ -146,6 +148,7 @@ typedef int sizeiptr;
 #define GL_SYNC_FLUSH_COMMANDS_BIT 0x00000001
 #define GL_DRAW_INDIRECT_BUFFER 0x8F3F
 #define GL_ALL_BARRIER_BITS 0xFFFFFFFF
+#define GL_MAX_IMAGE_UNITS 0x8F38
 #define GL_PRIMITIVE_RESTART_FIXED_INDEX 0x8D69
 #define GL_COMPUTE_SHADER 0x91B9
 #define GL_FRAMEBUFFER_DEFAULT_WIDTH 0x9310
@@ -162,6 +165,9 @@ typedef int sizeiptr;
 #define GL_BUFFER_DATA_SIZE 0x9303
 #define GL_LOCATION 0x930E
 #define GL_SHADER_STORAGE_BUFFER 0x90D2
+#define GL_MAX_COMBINED_SHADER_STORAGE_BLOCKS 0x90DC
+#define GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS 0x90DD
+#define GL_MAX_SHADER_STORAGE_BLOCK_SIZE 0x90DE
 #define GL_DYNAMIC_STORAGE_BIT 0x0100
 #define GL_TEXTURE_MAX_ANISOTROPY 0x84FE
 
@@ -481,6 +487,10 @@ struct IntPair {
     int y;
 };
 
+int min(int a, int b) {
+    return a < b ? a : b;
+}
+
 bool is_uniform_variable(int t) {
     return (0x1404 <= t && t <= 0x8B5C) || (0x8B65 <= t && t <= 0x8B6A) || (0x8DC6 <= t && t <= 0x8DC8) || (0x8F46 <= t && t <= 0x8FFE);
 }
@@ -617,13 +627,6 @@ void remove_dict_value(PyObject * dict, PyObject * obj) {
 void * new_ref(void * obj) {
     Py_INCREF(obj);
     return obj;
-}
-
-PyObject * to_str(const unsigned char * ptr) {
-    if (!ptr) {
-        return PyUnicode_FromString("");
-    }
-    return PyUnicode_FromString((char *)ptr);
 }
 
 bool is_int_pair(PyObject * obj) {
