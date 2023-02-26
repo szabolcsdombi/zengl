@@ -54,9 +54,10 @@ pipeline = ctx.pipeline(
     vertex_count=3,
 )
 
-image.clear()
-pipeline.run()
-ctx.barrier()
-
 while window.update():
+    ctx.new_frame()
+    image.clear()
+    pipeline.run()
+    ctx.barrier()
     image.blit()
+    ctx.end_frame()
