@@ -1769,21 +1769,6 @@ PyObject * Context_meth_release(Context * self, PyObject * arg) {
     Py_RETURN_NONE;
 }
 
-PyObject * Context_meth_reset(Context * self, PyObject * args) {
-    self->current_descriptor_set = NULL;
-    self->current_global_settings = NULL;
-    self->is_stencil_default = false;
-    self->is_mask_default = false;
-    self->is_blend_default = false;
-    self->current_viewport = {-1, -1, -1, -1};
-    self->current_framebuffer = -1;
-    self->current_program = -1;
-    self->current_vertex_array = -1;
-    self->current_depth_mask = 0;
-    self->current_stencil_mask = 0;
-    Py_RETURN_NONE;
-}
-
 PyObject * Buffer_meth_write(Buffer * self, PyObject * vargs, PyObject * kwargs) {
     static char * keywords[] = {"data", "offset", NULL};
 
@@ -2906,7 +2891,6 @@ PyMethodDef Context_methods[] = {
     {"compute", (PyCFunction)Context_meth_compute, METH_VARARGS | METH_KEYWORDS},
     {"barrier", (PyCFunction)Context_meth_barrier, METH_NOARGS},
     {"release", (PyCFunction)Context_meth_release, METH_O},
-    {"reset", (PyCFunction)Context_meth_reset, METH_NOARGS},
     {},
 };
 
