@@ -69,6 +69,6 @@ while window.update():
                 0.0,
             ))
             set_uniform_glm(pipeline, 'model', model)
-            pipeline.run()
+            pipeline.render()
 
     image.blit()

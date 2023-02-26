@@ -97,7 +97,7 @@ while window.update():
         model = glm.translate(model, position)
         model = glm.rotate(model, glm.radians(angle), glm.vec3(1.0, 0.3, 0.5))
         set_uniform_glm(lighting_shader, 'model', model)
-        lighting_shader.run()
+        lighting_shader.render()
 
-    light_cube_shader.run()
+    light_cube_shader.render()
     image.blit()

@@ -38,5 +38,5 @@ background = ctx.pipeline(
 
 while window.update():
     image.clear()
-    background.run()
+    background.render()
     image.blit()

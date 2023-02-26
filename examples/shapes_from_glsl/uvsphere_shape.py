@@ -146,6 +146,6 @@ pipeline = ctx.pipeline(
 while window.update():
     image.clear()
     depth.clear()
-    grid.run()
-    pipeline.run()
+    grid.render()
+    pipeline.render()
     image.blit()

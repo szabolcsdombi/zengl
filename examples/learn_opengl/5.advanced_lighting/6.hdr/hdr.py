@@ -117,7 +117,7 @@ while window.update():
     model = glm.scale(model, glm.vec3(2.5, 2.5, 27.5))
     set_uniform_glm(lighting, 'model', model)
     set_uniform_int(lighting, 'inverse_normals', True)
-    lighting.run()
-    hdr.run()
+    lighting.render()
+    hdr.render()
 
     final_image.blit()

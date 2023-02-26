@@ -13,7 +13,7 @@ def test_render_triangle(ctx: zengl.Context):
         vertex_count=3,
     )
     img.clear()
-    triangle.run()
+    triangle.render()
     pixels = np.frombuffer(img.read(), 'u1').reshape(256, 256, 4)
     x = np.repeat(np.arange(4) * 50 + 50, 4)
     y = np.tile(np.arange(4) * 50 + 50, 4)

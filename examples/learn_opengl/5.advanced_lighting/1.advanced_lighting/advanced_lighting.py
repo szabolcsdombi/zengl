@@ -51,5 +51,5 @@ while window.update():
 
     image.clear()
     depth.clear()
-    pipeline.run()
+    pipeline.render()
     image.blit()

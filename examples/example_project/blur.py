@@ -107,6 +107,6 @@ class Blur:
             vertex_count=3,
         )
 
-    def run(self):
-        self.blur_x.run()
-        self.blur_y.run()
+    def render(self):
+        self.blur_x.render()
+        self.blur_y.render()

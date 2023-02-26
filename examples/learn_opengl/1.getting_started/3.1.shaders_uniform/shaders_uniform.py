@@ -37,7 +37,7 @@ pipeline = ctx.pipeline(
             FragColor = ourColor;
         }
     ''',
-    # Uniforms defined this way will be set by the pipeline.run() call.
+    # Uniforms defined this way will be set by the pipeline.render() call.
     # It is possible to mutate these values.
     # To share uniforms across multiple pipeline objects using uniform buffers is the way to go.
     # For simplicity we will use uniforms.
@@ -63,5 +63,5 @@ while window.update():
     green = np.sin(window.time) / 2.0 + 0.5
     pipeline.uniforms['ourColor'][:] = struct.pack('4f', 0.0, green, 0.0, 1.0)
 
-    pipeline.run()
+    pipeline.render()
     image.blit()

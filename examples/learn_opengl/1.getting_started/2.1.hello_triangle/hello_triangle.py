@@ -56,6 +56,6 @@ while window.update():
     depth.clear()
 
     # After the images are cleared we invoke our rendering pipeline.
-    # The pipeline.run() takes no arguments by design.
-    pipeline.run()
+    # The pipeline.render() takes no arguments by design.
+    pipeline.render()
     image.blit()

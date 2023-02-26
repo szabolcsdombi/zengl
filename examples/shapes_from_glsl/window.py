@@ -42,4 +42,4 @@ class Window(pyglet.window.Window):
 
     @staticmethod
     def run():
-        pyglet.app.run()
+        pyglet.app.render()
