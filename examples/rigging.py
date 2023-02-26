@@ -43,7 +43,7 @@ ctx.includes['qtransform'] = '''
     }
 '''
 
-monkey = ctx.pipeline(
+pipeline = ctx.pipeline(
     vertex_shader='''
         #version 450 core
 
@@ -121,6 +121,6 @@ while window.update():
     pose_buffer.write(next(pose_frame))
     image.clear()
     depth.clear()
-    monkey.render()
+    pipeline.render()
     image.blit()
     ctx.end_frame()

@@ -17,7 +17,7 @@ vertex_buffer = ctx.buffer(model)
 
 uniform_buffer = ctx.buffer(size=64)
 
-monkey = ctx.pipeline(
+pipeline = ctx.pipeline(
     vertex_shader='''
         #version 450 core
 
@@ -70,7 +70,7 @@ while window.update():
     image.clear()
     depth.clear()
     GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE)
-    monkey.render()
+    pipeline.render()
     GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
     image.blit()
     ctx.end_frame()
