@@ -73,7 +73,7 @@ class PygletWindow(pyglet.window.Window):
             major_version=3,
             minor_version=3,
             forward_compatible=True,
-            double_buffer=False,
+            double_buffer=True,
             depth_size=0,
             samples=0,
         )
