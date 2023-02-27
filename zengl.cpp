@@ -1421,7 +1421,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         resources,
         vertex_buffers,
         PyTuple_GetItem(attachments, 1),
-        self->limits
+        self->limits_dict
     );
 
     if (!validate) {
@@ -1597,7 +1597,7 @@ Compute * Context_meth_compute(Context * self, PyObject * vargs, PyObject * kwar
         "OO()()O",
         program->extra,
         resources,
-        self->limits
+        self->limits_dict
     );
 
     if (!validate) {
