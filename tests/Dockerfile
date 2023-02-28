@@ -1,14 +1,10 @@
-FROM python:3.10.4
-RUN apt-get update && apt-get install -y xvfb libgl1-mesa-dev libx11-dev
+FROM ubuntu:22.04
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    python3 python3-pip libgl1-mesa-dev libegl1-mesa-dev libx11-dev gcovr
 RUN pip install -U pip wheel setuptools &&\
-    pip install glcontext numpy pytest pycodestyle flake8 isort sphinx furo pyopengl
+    pip install https://github.com/moderngl/glcontext/archive/refs/tags/2.4.0.zip numpy pytest pyopengl
 WORKDIR /app
 COPY . .
-RUN python -m pycodestyle --max-line-length=120 .
-RUN python -m flake8 --max-line-length=120 .
-RUN python -m isort -c -o zengl -p window -p assets -p utils --gitignore --line-length=120 --multi-line=5 \
-    --src=examples/example_project --src=examples/shapes_from_glsl .
-RUN python setup.py sdist
-RUN python setup.py build_sphinx
-RUN find dist/zengl-*.tar.gz | xargs pip install
-CMD xvfb-run -s "-screen 0 1x1x24" python -m pytest tests
+RUN python3 setup.py sdist
+RUN find dist/zengl-*.tar.gz | xargs python3 -m pip install
+CMD python3 -X dev -m pytest -s -vvv tests
