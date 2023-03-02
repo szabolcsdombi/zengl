@@ -91,6 +91,7 @@ while window.update():
     x, y = math.sin(window.time * 0.5) * 3.0, math.cos(window.time * 0.5) * 3.0
     camera = zengl.camera((x, y, 1.5), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
 
+    ctx.new_frame()
     uniform_buffer.write(camera)
     uniform_buffer.write(struct.pack('3f4x', x, y, 1.5), offset=64)
 
