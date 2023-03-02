@@ -86,7 +86,7 @@ ZenGL does not implement OpenGL function loading. glcontext is used when no alte
 .. note::
 
     Implementing a context loader enables zengl to run in custom environments.
-    ZenGL uses a subset of the OpenGL 3.3 core, the list of methods can be found in the project source.
+    ZenGL uses a subset of the OpenGL 4.5 core, the list of methods can be found in the project source.
 
 **Context for a window**
 
@@ -129,11 +129,6 @@ Buffer
     | The size of the buffer. It must be None if the data parameter was provided.
     | The default value is None and it means the size of the data.
 
-**dynamic**
-    | A boolean to enable ``GL_DYNAMIC_DRAW`` on buffer creation.
-    | When this flag is False the ``GL_STATIC_DRAW`` is used.
-    | The default value is True.
-
 **external**
     | An OpenGL Buffer Object returned by glGenBuffers.
     | The default value is 0.
@@ -142,6 +137,14 @@ Buffer
 
 **data**
     | The content to be written into the buffer, represented as ``bytes`` or a buffer.
+
+**offset**
+    | An int, representing the write offset in bytes.
+
+.. py:method:: Buffer.read(size, offset)
+
+**size**
+    | An int, representing the size of the buffer in bytes to be read.
 
 **offset**
     | An int, representing the write offset in bytes.
@@ -192,7 +195,7 @@ Image
     img = Image.open('example.png').convert('RGBA')
     texture = ctx.image(img.size, 'rgba8unorm', img.tobytes())
 
-.. py:method:: Context.image(size, format, data, samples, array, texture, cubemap, external) -> Image
+.. py:method:: Context.image(size, format, data, samples, array, levels, texture, cubemap, external) -> Image
 
 **size**
     | The image size as a tuple of two ints.
@@ -213,6 +216,10 @@ Image
 **array**
     | The number of array layers for the image. For non-array textures, the value must be 0.
     | The default value is 0.
+
+**levels**
+    | The number of mipmap levels for the image.
+    | The default value is -1 and it means the number of possible mipmap levels for the given image size.
 
 **texture**
     | A boolean representing the image to be sampled from shaders or not.
@@ -242,10 +249,6 @@ Image
 **srgb**
     | A boolean to enable linear to srgb conversion.
     | By default it is None and it means False except for srgb source images.
-
-**flush**
-    | A boolean to enable flush after blitting.
-    | By default it is None and it means False for image targets and True for blitting to the default framebuffer.
 
 .. py:method:: Image.clear()
 
@@ -293,6 +296,14 @@ Generate mipmaps for the image.
     | An int representing the mipmap level to be written to.
     | The default value is 0.
 
+.. py:method:: Image.face(layer, level) -> ImageFace
+
+**layer**
+    | An int, representing the image layer.
+
+**level**
+    | An int, representing the mipmap level.
+
 .. py:attribute:: Image.clear_value
 
 | The clear value for the image used by the :py:meth:`Image.clear`
@@ -317,16 +328,13 @@ Generate mipmaps for the image.
 Pipeline
 --------
 
-.. py:method:: Context.pipeline(vertex_shader, fragment_shader, layout, resources, depth, stencil, blending, polygon_offset, color_mask, framebuffer, vertex_buffers, index_buffer, short_index, primitive_restart, cull_face, topology, vertex_count, instance_count, first_vertex, viewport, skip_validation) -> Pipeline
+.. py:method:: Context.pipeline(vertex_shader, fragment_shader, resources, uniforms, depth, stencil, blend, framebuffer, empty_framebuffer, vertex_buffers, index_buffer, indirect_buffer, short_index, cull_face, topology, vertex_count, instance_count, indirect_count, first_vertex, dynamic_state, viewport, includes) -> Pipeline
 
 **vertex_shader**
     | The vertex shader code.
 
 **fragment_shader**
     | The fragment shader code.
-
-**layout**
-    | Layout binding definition for the uniform buffers and samplers.
 
 **resources**
     | The list of uniform buffers and samplers to be bound.
@@ -340,22 +348,16 @@ Pipeline
 **stencil**
     | The stencil settings
 
-**blending**
-    | The blending settings
-
-**polygon_offset**
-    | The polygon offset
-
-**color_mask**
-    | The color mask, defined as a single integer.
-    | The bits of the color mask grouped in fours represent the color mask for the attachments.
-    | The bits in the groups of four represent the mask for the red, green, blue, and alpha channels.
-    | It is easier to understand it from the `implementation <https://github.com/szabolcsdombi/zengl/search?l=C%2B%2B&q=color_mask>`_.
+**blend**
+    | The blend settings
 
 **framebuffer**
     | A list of images representing the framebuffer for the rendering.
     | The depth or stencil attachment must be the last one in the list.
     | The size and number of samples of the images must match.
+
+**empty_framebuffer**
+    | The size of the framebuffer if empty.
 
 **vertex_buffers**
     | A list of vertex attribute bindings with the following keys:
@@ -373,14 +375,14 @@ Pipeline
     | A buffer object to be used as the index buffer.
     | The default value is None and it means to disable indexed rendering.
 
+**indirect_buffer**
+    | A buffer object to be used as the indirect buffer.
+    | The default value is None and it means to disable indirect rendering.
+
 **short_index**
     | A boolean to enable ``GL_UNSIGNED_SHORT`` as the index type.
     | When this flag is False the ``GL_UNSIGNED_INT`` is used.
     | The default value is False.
-
-**primitive_restart**
-    | A boolean to enable the primitive restart index. The default primitive restart index is -1.
-    | The default value is True.
 
 **cull_face**
     | A string representing the cull face. It must be ``'front'``, ``'back'`` or ``'none'``
@@ -406,16 +408,22 @@ Pipeline
 **instance_count**
     | The number of instances to draw.
 
+**indirect_count**
+    | The number of indirect commands to draw.
+
 **first_vertex**
     | The first vertex or the first index to start drawing from.
     | The default value is 0. This is a mutable parameter at runtime.
+
+**dynamic_state**
+    | A memoryview to replace the vertex_count, instance_count, indirect_count and first_vertex.
 
 **viewport**
     | The render viewport, defined as tuples of four ints in (x, y, width, height) format.
     | The default is the full size of the framebuffer.
 
-**skip_validation**
-    | You know better. You are on your own.
+**includes**
+    | A dictionary to use in place of the :py:attr:`Context.includes`.
 
 .. py:attribute:: Pipeline.vertex_count
 
@@ -424,6 +432,10 @@ Pipeline
 .. py:attribute:: Pipeline.instance_count
 
     | The number of instances to draw.
+
+.. py:attribute:: Pipeline.instance_count
+
+    | The number of indirect commands to draw.
 
 .. py:attribute:: Pipeline.first_vertex
 
