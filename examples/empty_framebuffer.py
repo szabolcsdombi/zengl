@@ -49,7 +49,7 @@ pipeline = ctx.pipeline(
             'image': image,
         },
     ],
-    framebuffer_size=(1280, 720),
+    empty_framebuffer=(1280, 720),
     topology='triangles',
     vertex_count=3,
 )

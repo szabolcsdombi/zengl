@@ -1267,7 +1267,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         "stencil",
         "blend",
         "framebuffer",
-        "framebuffer_size",
+        "empty_framebuffer",
         "vertex_buffers",
         "index_buffer",
         "indirect_buffer",
@@ -1292,7 +1292,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     PyObject * stencil = Py_None;
     PyObject * blend = Py_None;
     PyObject * framebuffer_images = self->module_state->empty_tuple;
-    PyObject * framebuffer_size = Py_None;
+    PyObject * empty_framebuffer = Py_None;
     PyObject * vertex_buffers = self->module_state->empty_tuple;
     PyObject * index_buffer = Py_None;
     PyObject * indirect_buffer = Py_None;
@@ -1322,7 +1322,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         &stencil,
         &blend,
         &framebuffer_images,
-        &framebuffer_size,
+        &empty_framebuffer,
         &vertex_buffers,
         &index_buffer,
         &indirect_buffer,
@@ -1408,7 +1408,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         Py_DECREF(tuple);
     }
 
-    PyObject * attachments = PyObject_CallMethod(self->module_state->helper, "framebuffer_attachments", "(OO)", framebuffer_size, framebuffer_images);
+    PyObject * attachments = PyObject_CallMethod(self->module_state->helper, "framebuffer_attachments", "(OO)", empty_framebuffer, framebuffer_images);
     if (!attachments) {
         return NULL;
     }

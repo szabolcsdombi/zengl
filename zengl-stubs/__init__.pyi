@@ -229,7 +229,7 @@ class Context:
         stencil: StencilSettings | None = None,
         blend: Iterable[BlendingSettings] = (),
         framebuffer: Iterable[Image] = (),
-        framebuffer_size: Tuple[int, int] | None = None,
+        empty_framebuffer: Tuple[int, int] | None = None,
         vertex_buffers: Iterable[VertexBufferBinding] = (),
         index_buffer: Buffer | None = None,
         indirect_buffer: Buffer | None = None,
