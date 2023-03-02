@@ -453,6 +453,38 @@ Pipeline
 
     | Execute the rendering pipeline.
 
+Compute
+-------
+
+.. py:method:: Context.compute(compute_shader, resources, uniforms, group_count, includes) -> Compute
+
+**compute_shader**
+    | The compute shader code.
+
+**resources**
+    | The list of uniform buffers and samplers to be bound.
+
+**uniforms**
+    | The default values for uniforms.
+
+**group_count**
+    | The number of invokation groups to dispatch.
+
+**includes**
+    | A dictionary to use in place of the :py:attr:`Context.includes`.
+
+.. py:attribute:: Pipeline.group_count
+
+    | The number of invokation groups to dispatch.
+
+.. py:attribute:: Pipeline.uniforms
+
+    | The uniform values as memoryviews.
+
+.. py:method:: Pipeline.run()
+
+    | Execute the compute pipeline.
+
 Shader Code
 -----------
 
