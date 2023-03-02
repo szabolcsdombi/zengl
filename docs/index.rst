@@ -337,7 +337,7 @@ Pipeline
     | The fragment shader code.
 
 **resources**
-    | The list of uniform buffers and samplers to be bound.
+    | The list of uniform buffers, storage buffer, images and samplers to be bound.
 
 **uniforms**
     | The default values for uniforms.
@@ -462,7 +462,7 @@ Compute
     | The compute shader code.
 
 **resources**
-    | The list of uniform buffers and samplers to be bound.
+    | The list of uniform buffers, storage buffer, images and samplers to be bound.
 
 **uniforms**
     | The default values for uniforms.
