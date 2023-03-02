@@ -1702,11 +1702,19 @@ PyObject * Context_meth_end_frame(Context * self, PyObject * args, PyObject * kw
         bind_program(self, 0);
         bind_vertex_array(self, 0);
 
+        self->current_descriptor_set = NULL;
+        self->current_global_settings = NULL;
+
         gl.BindBuffersRange(GL_UNIFORM_BUFFER, 0, self->limits.max_uniform_buffer_bindings, NULL, NULL, NULL);
         gl.BindBuffersRange(GL_SHADER_STORAGE_BUFFER, 0, self->limits.max_shader_storage_buffer_bindings, NULL, NULL, NULL);
         gl.BindTextures(0, self->limits.max_combined_texture_image_units, NULL);
         gl.BindSamplers(0, self->limits.max_combined_texture_image_units, NULL);
         gl.BindImageTextures(0, self->limits.max_image_units, NULL);
+
+        gl.Disable(GL_CULL_FACE);
+        gl.Disable(GL_DEPTH_TEST);
+        gl.Disable(GL_STENCIL_TEST);
+        gl.Disable(GL_BLEND);
 
         gl.Disable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
         gl.Disable(GL_PROGRAM_POINT_SIZE);
@@ -2045,9 +2053,11 @@ void clear_bound_image(Image * self) {
     const bool stencil_mask = self->ctx->current_stencil_mask != 0xff && (self->fmt.buffer == GL_STENCIL || self->fmt.buffer == GL_DEPTH_STENCIL);
     if (depth_mask) {
         gl.DepthMask(1);
+        self->ctx->current_depth_mask = 1;
     }
     if (stencil_mask) {
         gl.StencilMaskSeparate(GL_FRONT, 0xff);
+        self->ctx->current_stencil_mask = 0xff;
     }
     if (self->fmt.clear_type == 'f') {
         gl.ClearBufferfv(self->fmt.buffer, 0, self->clear_value.clear_floats);
@@ -2057,12 +2067,6 @@ void clear_bound_image(Image * self) {
         gl.ClearBufferuiv(self->fmt.buffer, 0, self->clear_value.clear_uints);
     } else if (self->fmt.clear_type == 'x') {
         gl.ClearBufferfi(self->fmt.buffer, 0, self->clear_value.clear_floats[0], self->clear_value.clear_ints[1]);
-    }
-    if (depth_mask) {
-        gl.DepthMask(self->ctx->current_depth_mask);
-    }
-    if (stencil_mask) {
-        gl.StencilMaskSeparate(GL_FRONT, self->ctx->current_stencil_mask);
     }
 }
 
