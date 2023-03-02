@@ -1,7 +1,7 @@
 ZenGL
 -----
 
-ZenGL is a minimalist Python module providing exactly **one** way to render scenes with OpenGL.
+Self-Contained Standalone Pipelines for Reliable Rendering.
 
 .. code::
 
@@ -10,17 +10,6 @@ ZenGL is a minimalist Python module providing exactly **one** way to render scen
 - `Documentation <https://zengl.readthedocs.io/>`_
 - `zengl on Github <https://github.com/szabolcsdombi/zengl/>`_
 - `zengl on PyPI <https://pypi.org/project/zengl/>`_
-
-**ZenGL is ...**
-
-- **high-performance**
-- **simple** - *buffers, images, pipelines and there you go*
-- **easy-to-learn** - *it is simply OpenGL with no magic added*
-- **verbose** - *most common mistakes are catched and reported in a clear and understandable way*
-- **robust** - *there is no global state or external trouble-maker affecting the render*
-- **backward-compatible** - *it requires OpenGL 3.3 - it is just enough*
-- **cached** - *most OpenGL objects are reused between renders*
-- **zen** - *there is one way to do it*
 
 .. py:class:: Context
 
@@ -37,7 +26,12 @@ ZenGL is a minimalist Python module providing exactly **one** way to render scen
 .. py:class:: Pipeline
 
 | Represents an entire rendering pipeline including the global state, shader program, framebuffer, vertex state,
-  uniform buffer bindings, samplers, and sampler bindings.
+  buffer bindings, image bindings, samplers, and sampler bindings.
+
+.. py:class:: Compute
+
+| Represents an entire compute pipeline including the global state, shader program, buffer bindings, image bindings,
+  samplers, and sampler bindings.
 
 Concept
 -------
@@ -46,26 +40,14 @@ Concept
   rendering to a window is done by blitting the final image to the screen. By doing this we have full control of
   what we render. The window does not have to be multisample, and it requires no depth buffer at all.
 
-| Offscreen rendering works out of the box on all platforms if the right loader is provided.
-| Loaders implement a load method to resolve a subset of OpenGL 3.3 core. The return value of the load method is
-  an int, a void pointer to the function implementation.
-| Virtualized, traced, and debug environments can be provided by custom loaders.
-| The current implementation uses the glcontext from moderngl to load the OpenGL methods.
-
-| ZenGL's main focus is on readability and maintainability. Pipelines in ZenGL are almost entirely immutable and they
+| ZenGL's main focus is on Prototyping. Pipelines in ZenGL are almost entirely immutable and they
   cannot affect each other except when one draws on top of the other's result that is expected.
   No global state is affecting the render, if something breaks there is one place to debug.
 
-| ZenGL does not use anything beyond OpenGL 3.3 core, not even if the more convenient methods are available.
-  Implementation is kept simple. Usually, this is not a bottleneck.
+| ZenGL uses OpenGL 4.5 core without fallbacks to earlier versions. Pipelines defined in ZenGL map easily to Vulkan.
 
-| ZenGL does not implement transform feedback, storage buffers or storage images, tesselation, geometry shader, and maybe many more.
-  We have a strong reason not to include them in the feature list. They add to the complexity and are against ZenGL's main philosophy.
-  ZenGL was built on top experience gathered on real-life projects that could never make good use of any of that.
-
-| ZenGL is using the same vertex and image format naming as WebGPU and keeping the vertex array definition from ModernGL.
-  ZenGL is not the next version of ModernGL. ZenGL is a simplification of a subset of ModernGL with some extras
-  that was not possible to include in ModernGL.
+| ZenGL does not implement transform feedback, tesselation, geometry shader, and maybe many more.
+  We have a strong reason not to include them in the feature list.
 
 Context
 -------
@@ -490,13 +472,14 @@ Shader Code
 
 - **do** use ``#version 450 core`` as the first line in the shader.
 - **do** use ``layout (std140)`` for uniform buffers.
+- **do** use ``layout (std430)`` for storage buffers.
 - **do** use ``layout (location = ...)`` for the vertex shader inputs.
 - **do** use ``layout (location = ...)`` for the fragment shader outputs.
 
 - **don't** use ``layout (location = ...)`` for the vertex shader outputs or the fragment shader inputs.
   Matching name and order are sufficient and much more readable.
 
-- **do** use ``layout (binding = ...)`` for the uniform buffers or samplers.
+- **do** use ``layout (binding = ...)`` for the uniform buffers, storage buffers, samplers or images.
 - **don't** use uniforms, use uniform buffers instead.
 - **don't** put constants in uniform buffers, use ``#include`` and string formatting.
 - **don't** over-use the ``#include`` statement.
@@ -611,14 +594,13 @@ Interoperability
 | Some window implementations expose a framebuffer object for drawing.
 | Detecting this framebuffer is an error-prone and non-reliable solution.
 | The recommended way is to change :py:attr:`Context.screen` to the frambuffer object.
-| Do not change the :py:attr:`Pipeline._framebuffer`. It is for a different purpose.
 
-| Running zengl alongside another renderer is not supported.
+| Running zengl alongside another renderer is not well supported.
 | However, to port existing code to zengl, some interoperability may be necessary.
 | OpenGL objects can be extracted with :py:meth:`zengl.inspect`.
 | It is possible to interact with these objects using the OpenGL API directly.
 
-.. py:method:: zengl.inspect(obj: Buffer | Image | Pipeline)
+.. py:method:: zengl.inspect(obj: Buffer | Image | Pipeline | Compute)
 
 Returns an object with all of the OpenGL objects.
 
@@ -627,28 +609,23 @@ Returns an object with all of the OpenGL objects.
 | An integer representing the default framebuffer object.
 | You may want to change this attribute when using PyQt.
 
-.. py:attribute:: Pipeline._framebuffer
-
-| An integer value of the framebuffer object used by the pipeline.
-| This attribute can be changed.
-
-.. py:method:: Context.reset()
-
-| Reset assumptions on the current global OpenGL state. Assume a dirty OpenGL context.
-
 Utils
 -----
 
 .. py:attribute:: Context.info
 
-| The GL_VENDOR, GL_RENDERER, and GL_VERSION strings as a tuple.
+| A dictionary holding device and driver information.
 
 .. py:attribute:: Context.limits
 
 - max_uniform_buffer_bindings
 - max_uniform_block_size
 - max_combined_uniform_blocks
+- max_shader_storage_buffer_bindings
+- max_shader_storage_block_size
+- max_combined_shader_storage_blocks
 - max_combined_texture_image_units
+- max_image_units
 - max_vertex_attribs
 - max_draw_buffers
 - max_samples
