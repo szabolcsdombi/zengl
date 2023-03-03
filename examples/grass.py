@@ -33,7 +33,7 @@ N = 200
 ctx.includes['N'] = f'const int N = {N};'
 ctx.includes['grass'] = grass_mesh()
 
-triangle = ctx.pipeline(
+pipeline = ctx.pipeline(
     vertex_shader='''
         #version 450 core
 
@@ -114,6 +114,6 @@ while window.update():
 
     image.clear()
     depth.clear()
-    triangle.render()
+    pipeline.render()
     image.blit()
     ctx.end_frame()

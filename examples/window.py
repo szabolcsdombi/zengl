@@ -70,8 +70,8 @@ class PygletWindow(pyglet.window.Window):
         self.keys = set(), set()
         self.wheel = 0.0
         config = pyglet.gl.Config(
-            major_version=3,
-            minor_version=3,
+            major_version=4,
+            minor_version=5,
             forward_compatible=True,
             double_buffer=True,
             depth_size=0,

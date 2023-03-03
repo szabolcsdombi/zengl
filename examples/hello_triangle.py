@@ -5,12 +5,10 @@ from window import Window
 window = Window()
 ctx = zengl.context()
 
-print('Vendor: {vendor} | Renderer: {renderer} | Version: {version} | GLSL: {glsl}'.format_map(ctx.info))
+image = ctx.image(window.size, 'rgba8unorm-srgb', samples=4)
+image.clear_value = (0.005, 0.005, 0.005, 1.0)
 
-image = ctx.image(window.size, 'rgba8unorm', samples=4)
-image.clear_value = (1.0, 1.0, 1.0, 1.0)
-
-triangle = ctx.pipeline(
+pipeline = ctx.pipeline(
     vertex_shader='''
         #version 450 core
 
@@ -52,6 +50,6 @@ triangle = ctx.pipeline(
 while window.update():
     ctx.new_frame()
     image.clear()
-    triangle.render()
+    pipeline.render()
     image.blit()
     ctx.end_frame()
