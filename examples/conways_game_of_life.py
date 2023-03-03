@@ -3,7 +3,8 @@ import zengl
 
 from window import Window
 
-window = Window((512, 512))
+window = Window()
+width, height = window.size
 ctx = zengl.context()
 
 image = ctx.image(window.size, 'rgba8unorm')
@@ -11,7 +12,7 @@ temp = ctx.image(window.size, 'rgba8unorm')
 
 scene = ctx.pipeline(
     includes={
-        'size': 'ivec2 SIZE = ivec2(512);',
+        'size': f'ivec2 SIZE = ivec2({width, height});',
     },
     vertex_shader='''
         #version 450 core
@@ -63,7 +64,7 @@ scene = ctx.pipeline(
     vertex_count=3,
 )
 
-image.write((np.random.randint(0, 2, 512 * 512, 'u1') * 255).repeat(4))
+image.write((np.random.randint(0, 2, width * height, 'u1') * 255).repeat(4))
 
 while window.update():
     ctx.new_frame()
