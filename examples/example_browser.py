@@ -37,25 +37,35 @@ def load_example(name):
 
 
 def update(main_loop=True):
+    if not main_loop and not g.load_next:
+        if wnd.key_pressed('left'):
+            index = next(i for i in range(-1, len(examples)) if examples[i + 1][0] == g.example)
+            g.load_next = examples[index][0]
+        if wnd.key_pressed('right'):
+            index = next(i for i in range(len(examples)) if examples[i - 1][0] == g.example)
+            g.load_next = examples[index][0]
     imgui.new_frame()
     # imgui.show_demo_window()
     imgui.push_style_var(imgui.STYLE_FRAME_PADDING, (4.0, 6.0))
     imgui.push_style_var(imgui.STYLE_WINDOW_BORDERSIZE, 0.0)
+    imgui.push_style_color(imgui.COLOR_TEXT_DISABLED, 1.0, 1.0, 1.0, 1.0)
     if imgui.begin_main_menu_bar():
         if imgui.begin_menu('Examples', True):
             for example, title in examples:
-                if imgui.menu_item(title, None, g.example == example, True)[0]:
+                if imgui.menu_item(title, None, g.example == example, g.load_next is None)[0]:
                     g.load_next = example
             imgui.end_menu()
         if g.download_progress:
             filename, progress = g.download_progress
             full = int(progress * 50)
             line = 'Downloading |' + '-' * full + ' ' * (50 - full) + '| ' + filename
-            imgui.push_style_color(imgui.COLOR_TEXT_DISABLED, 1.0, 1.0, 1.0, 1.0)
             if imgui.begin_menu(line, False):
                 imgui.end_menu()
-            imgui.pop_style_color()
+        if g.load_next:
+            if imgui.begin_menu('Loading...', False):
+                imgui.end_menu()
         imgui.end_main_menu_bar()
+    imgui.pop_style_color()
     imgui.pop_style_var(2)
     imgui.render()
     impl.render(imgui.get_draw_data())
