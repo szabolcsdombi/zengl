@@ -7,8 +7,8 @@ from window import Window
 
 window = Window()
 ctx = zengl.context()
-image = ctx.image(window.size, 'rgba8unorm', samples=4)
-image.clear_value = (1.0, 1.0, 1.0, 1.0)
+image = ctx.image(window.size, 'rgba8unorm-srgb', samples=4)
+image.clear_value = (0.0, 0.0, 0.0, 1.0)
 
 uniform_buffer = ctx.buffer(size=16)
 

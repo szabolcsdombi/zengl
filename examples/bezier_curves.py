@@ -8,8 +8,8 @@ from window import Window
 
 window = Window()
 ctx = zengl.context()
-image = ctx.image(window.size, 'rgba8unorm', samples=4)
-image.clear_value = (1.0, 1.0, 1.0, 1.0)
+image = ctx.image(window.size, 'rgba8unorm-srgb', samples=4)
+image.clear_value = (0.0, 0.0, 0.0, 1.0)
 
 N, M = 16, 128
 t = np.linspace(0.0, np.pi / 2.0, N, endpoint=False)
@@ -26,7 +26,7 @@ x = np.concatenate([sx, vx, -sx[::-1]])
 y = np.concatenate([sy, vy, -sy[::-1]])
 z = np.concatenate([sz, vz, sz + 1.0])
 
-instance_count = 100
+instance_count = 32
 curves = []
 
 for i in range(instance_count):
@@ -38,7 +38,7 @@ for i in range(instance_count):
     x2, y2 = np.cos(b) * 300.0 + 640.0, np.sin(b) * 300.0 + 360.0
     x3, y3 = np.cos(c) * 150.0 + 640.0 - x1, np.sin(c) * 150.0 + 360.0 - y1
     x4, y4 = x2 - (np.cos(d) * 150.0 + 640.0), y2 - (np.sin(d) * 150.0 + 360.0)
-    r, g, b = hls_to_rgb(np.random.uniform(0.0, 1.0), 0.5, 0.5)
+    r, g, b = hls_to_rgb(np.random.uniform(0.0, 1.0), 0.3, 1.0)
     s = np.random.uniform(5.0, 15.0)
     curves.append([
         x1, y1, x3, y3,
