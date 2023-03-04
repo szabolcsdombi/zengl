@@ -42,10 +42,10 @@ def load_example(name):
 
 def update(main_loop=True):
     if not main_loop and not g.load_next:
-        if wnd.key_pressed('left'):
+        if wnd.key_pressed('up'):
             index = next(i for i in range(-1, len(examples)) if examples[i + 1][0] == g.example)
             g.load_next = examples[index][0]
-        if wnd.key_pressed('right'):
+        if wnd.key_pressed('down'):
             index = next(i for i in range(len(examples)) if examples[i - 1][0] == g.example)
             g.load_next = examples[index][0]
     imgui.new_frame()
