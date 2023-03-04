@@ -12,7 +12,7 @@ ctx = zengl.context()
 
 image = ctx.image(window.size, 'rgba8unorm-srgb', samples=4)
 depth = ctx.image(window.size, 'depth24plus', samples=4)
-image.clear_value = (0.2, 0.2, 0.2, 1.0)
+image.clear_value = (0.005, 0.005, 0.005, 1.0)
 
 model = gzip.decompress(open(assets.get('colormonkey.mesh.gz'), 'rb').read())
 vertex_buffer = ctx.buffer(model)
