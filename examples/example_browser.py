@@ -13,9 +13,14 @@ examples = [
     ('hello_triangle', 'Hello Triangle'),
     ('bezier_curves', 'Bezier Curves'),
     ('rigged_objects', 'Rigged Objects'),
+    ('envmap', 'Environment Map'),
+    ('normal_mapping', 'Normal Mapping'),
     ('grass', 'Grass'),
     ('box_grid', 'Box Grid'),
     ('blending', 'Blending'),
+    ('julia_fractal', 'Fractal'),
+    ('vertex_colors', 'Toon Shading'),
+    ('deferred_rendering', 'Deferred Rendering'),
     ('crate', 'Crate'),
 ]
 
