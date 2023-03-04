@@ -64,5 +64,4 @@ setup(
         'graphics',
         'visualization',
     ],
-    install_requires=['glcontext'],
 )
