@@ -21,11 +21,11 @@ def gen_sphere(radius, res=100):
 window = Window()
 ctx = zengl.context()
 
-image = ctx.image(window.size, 'rgba8unorm')
+image = ctx.image(window.size, 'rgba8unorm-srgb')
 
 vertex = ctx.image(window.size, 'rgba32float')
 normal = ctx.image(window.size, 'rgba32float')
-color = ctx.image(window.size, 'rgba8unorm')
+color = ctx.image(window.size, 'rgba8unorm-srgb')
 depth = ctx.image(window.size, 'depth24plus')
 color.clear_value = (0.2, 0.2, 0.2, 1.0)
 normal.clear_value = (0.0, 0.0, 0.0, 1.0)
@@ -178,7 +178,7 @@ lights = ctx.pipeline(
 camera = zengl.camera((20.0, 0.0, 10.0), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
 uniform_buffer.write(camera)
 
-light_color = np.array([hls_to_rgb(x, 0.5, 0.5) for x in np.random.uniform(0.0, 1.0, 49)])
+light_color = np.array([hls_to_rgb(x, 0.3, 0.8) for x in np.random.uniform(0.0, 1.0, 49)])
 light_instances = np.array([
     np.tile(np.linspace(-9.0, 9.0, 7), 7),
     np.repeat(np.linspace(-9.0, 9.0, 7), 7),
