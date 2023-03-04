@@ -30,14 +30,15 @@ instance_count = 32
 curves = []
 
 for i in range(instance_count):
+    w, h = window.size
     a = np.random.uniform(0.0, np.pi * 2.0)
     b = a + np.pi + np.random.uniform(-0.5, 0.5)
     c = np.random.uniform(0.0, np.pi * 2.0)
     d = np.random.uniform(0.0, np.pi * 2.0)
-    x1, y1 = np.cos(a) * 300.0 + 640.0, np.sin(a) * 300.0 + 360.0
-    x2, y2 = np.cos(b) * 300.0 + 640.0, np.sin(b) * 300.0 + 360.0
-    x3, y3 = np.cos(c) * 150.0 + 640.0 - x1, np.sin(c) * 150.0 + 360.0 - y1
-    x4, y4 = x2 - (np.cos(d) * 150.0 + 640.0), y2 - (np.sin(d) * 150.0 + 360.0)
+    x1, y1 = np.cos(a) * 300.0 + w / 2.0, np.sin(a) * 300.0 + h / 2.0
+    x2, y2 = np.cos(b) * 300.0 + w / 2.0, np.sin(b) * 300.0 + h / 2.0
+    x3, y3 = np.cos(c) * 150.0 + w / 2.0 - x1, np.sin(c) * 150.0 + h / 2.0 - y1
+    x4, y4 = x2 - (np.cos(d) * 150.0 + w / 2.0), y2 - (np.sin(d) * 150.0 + h / 2.0)
     r, g, b = hls_to_rgb(np.random.uniform(0.0, 1.0), 0.3, 1.0)
     s = np.random.uniform(5.0, 15.0)
     curves.append([

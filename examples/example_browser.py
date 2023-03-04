@@ -11,8 +11,12 @@ import window
 examples = [
     ('zengl_logo', 'ZenGL Logo'),
     ('hello_triangle', 'Hello Triangle'),
+    ('bezier_curves', 'Bezier Curves'),
     ('rigged_objects', 'Rigged Objects'),
     ('grass', 'Grass'),
+    ('box_grid', 'Box Grid'),
+    ('blending', 'Blending'),
+    ('crate', 'Crate'),
 ]
 
 wnd = window.Window((1600, 900))
