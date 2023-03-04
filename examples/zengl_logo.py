@@ -1,7 +1,6 @@
 import struct
 
 import zengl
-from PIL import Image
 
 from window import Window
 
