@@ -1,5 +1,6 @@
 import importlib
 import os
+import random
 
 import imgui
 from imgui.integrations.pyglet import create_renderer
@@ -53,6 +54,10 @@ def update(main_loop=True):
         if wnd.key_pressed('down'):
             index = next(i for i in range(len(examples)) if examples[i - 1][0] == g.example)
             g.load_next = examples[index][0]
+        if wnd.key_pressed('tab'):
+            g.load_next = g.example
+            while g.load_next == g.example:
+                g.load_next = random.choice(examples)[0]
     imgui.new_frame()
     # imgui.show_demo_window()
     imgui.push_style_var(imgui.STYLE_FRAME_PADDING, (4.0, 6.0))
