@@ -3186,7 +3186,7 @@ PyType_Spec DescriptorSet_spec = {"zengl.DescriptorSet", sizeof(DescriptorSet), 
 PyType_Spec GlobalSettings_spec = {"zengl.GlobalSettings", sizeof(GlobalSettings), 0, Py_TPFLAGS_DEFAULT, GlobalSettings_slots};
 PyType_Spec GLObject_spec = {"zengl.GLObject", sizeof(GLObject), 0, Py_TPFLAGS_DEFAULT, GLObject_slots};
 
-int module_exec(PyObject * self) {
+static int module_exec(PyObject * self) {
     ModuleState * state = (ModuleState *)PyModule_GetState(self);
 
     state->helper = PyImport_ImportModule("_zengl");
@@ -3220,19 +3220,19 @@ int module_exec(PyObject * self) {
     return 0;
 }
 
-PyModuleDef_Slot module_slots[] = {
+static PyModuleDef_Slot module_slots[] = {
     {Py_mod_exec, (void *)module_exec},
     {},
 };
 
-PyMethodDef module_methods[] = {
+static PyMethodDef module_methods[] = {
     {"context", (PyCFunction)meth_context, METH_VARARGS | METH_KEYWORDS},
     {"inspect", (PyCFunction)meth_inspect, METH_O},
     {"camera", (PyCFunction)meth_camera, METH_VARARGS | METH_KEYWORDS},
     {},
 };
 
-void module_free(PyObject * self) {
+static void module_free(PyObject * self) {
     ModuleState * state = (ModuleState *)PyModule_GetState(self);
     if (!state) {
         return;
@@ -3251,7 +3251,7 @@ void module_free(PyObject * self) {
     Py_DECREF(state->GLObject_type);
 }
 
-PyModuleDef module_def = {
+static PyModuleDef module_def = {
     PyModuleDef_HEAD_INIT, "zengl", NULL, sizeof(ModuleState), module_methods, module_slots, NULL, NULL, (freefunc)module_free,
 };
 
