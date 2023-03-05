@@ -2472,7 +2472,7 @@ ImageFace * Image_meth_face(Image * self, PyObject * vargs, PyObject * kwargs) {
     return res;
 }
 
-PyObject * Image_get_clear_value(Image * self) {
+PyObject * Image_get_clear_value(Image * self, PyObject *_null) {
     if (self->fmt.clear_type == 'x') {
         return Py_BuildValue("fi", self->clear_value.clear_floats[0], self->clear_value.clear_ints[1]);
     }
@@ -2498,7 +2498,7 @@ PyObject * Image_get_clear_value(Image * self) {
     return res;
 }
 
-int Image_set_clear_value(Image * self, PyObject * value) {
+int Image_set_clear_value(Image * self, PyObject * value, PyObject *_null) {
     ClearValue clear_value = {};
     if (self->fmt.components == 1) {
         if (self->fmt.clear_type == 'f' ? !PyFloat_CheckExact(value) : !PyLong_CheckExact(value)) {
