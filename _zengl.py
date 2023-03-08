@@ -292,8 +292,8 @@ def framebuffer_attachments(attachments):
     return size, tuple(attachments), depth_stencil_attachment
 
 
-def settings(primitive_restart, cull_face, color_mask, depth, stencil, blending, polygon_offset, attachments):
-    res = [bool(primitive_restart), CULL_FACE[cull_face], color_mask]
+def settings(primitive_restart, cull_face, depth, stencil, blending, polygon_offset, attachments):
+    res = [bool(primitive_restart), CULL_FACE[cull_face], None]
 
     if depth is True or depth is False:
         res.extend([depth, depth, 0x0201])

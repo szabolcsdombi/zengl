@@ -243,7 +243,6 @@ struct GLMethods {
     void (GLAPI * UniformMatrix4x2fv)(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
     void (GLAPI * UniformMatrix3x4fv)(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
     void (GLAPI * UniformMatrix4x3fv)(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-    void (GLAPI * ColorMaski)(GLuint index, GLboolean r, GLboolean g, GLboolean b, GLboolean a);
     void (GLAPI * Enablei)(GLenum target, GLuint index);
     void (GLAPI * Disablei)(GLenum target, GLuint index);
     void (GLAPI * BindBufferRange)(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size);
@@ -631,7 +630,6 @@ GLMethods load_gl(PyObject * loader) {
     load(UniformMatrix4x2fv);
     load(UniformMatrix3x4fv);
     load(UniformMatrix4x3fv);
-    load(ColorMaski);
     load(Enablei);
     load(Disablei);
     load(BindBufferRange);
@@ -696,7 +694,6 @@ struct ModuleState {
     PyObject * empty_tuple;
     PyObject * str_none;
     PyObject * float_one;
-    PyObject * default_color_mask;
     PyTypeObject * Context_type;
     PyTypeObject * Buffer_type;
     PyTypeObject * Image_type;
@@ -738,7 +735,6 @@ struct DescriptorSetImages {
 struct GlobalSettings {
     PyObject_HEAD
     int uses;
-    unsigned long long color_mask;
     int primitive_restart;
     int cull_face;
     int depth_test;
@@ -941,15 +937,6 @@ void bind_global_settings(Context * self, GlobalSettings * settings) {
     }
     if (!self->is_mask_default || !settings->is_mask_default || self->current_attachments != settings->attachments) {
         gl.DepthMask(settings->depth_write);
-        for (int i = 0; i < settings->attachments; ++i) {
-            gl.ColorMaski(
-                i,
-                settings->color_mask >> (i * 4 + 0) & 1,
-                settings->color_mask >> (i * 4 + 1) & 1,
-                settings->color_mask >> (i * 4 + 2) & 1,
-                settings->color_mask >> (i * 4 + 3) & 1
-            );
-        }
         self->is_mask_default = settings->is_mask_default;
     }
     if (!self->is_blend_default || !settings->is_blend_default || self->current_attachments != settings->attachments) {
@@ -967,7 +954,7 @@ void bind_global_settings(Context * self, GlobalSettings * settings) {
     self->current_global_settings = settings;
     self->current_attachments = settings->attachments;
     if (settings->attachments > 0) {
-        self->current_clear_mask = (settings->color_mask & 0xf) | settings->depth_write << 8 | settings->stencil_front.write_mask << 16;
+        self->current_clear_mask = settings->depth_write << 8 | settings->stencil_front.write_mask << 16;
     } else {
         self->current_clear_mask = (self->current_clear_mask & 0xf) | settings->depth_write << 8 | settings->stencil_front.write_mask << 16;
     }
@@ -1251,7 +1238,6 @@ GlobalSettings * build_global_settings(Context * self, PyObject * settings) {
 
     res->primitive_restart = PyObject_IsTrue(seq[0]);
     res->cull_face = PyLong_AsLong(seq[1]);
-    res->color_mask = PyLong_AsUnsignedLongLong(seq[2]);
     res->depth_test = PyObject_IsTrue(seq[3]);
     res->depth_write = PyObject_IsTrue(seq[4]);
     res->depth_func = PyLong_AsLong(seq[5]);
@@ -1286,7 +1272,7 @@ GlobalSettings * build_global_settings(Context * self, PyObject * settings) {
     res->polygon_offset_units = (float)PyFloat_AsDouble(seq[30]);
     res->attachments = PyLong_AsLong(seq[31]);
 
-    res->is_mask_default = res->color_mask == 0xffffffffffffffffull && res->depth_write;
+    res->is_mask_default = res->depth_write;
     res->is_stencil_default = !res->stencil_test;
     if (memcmp(&res->stencil_front, &default_stencil_settings, sizeof(StencilSettings))) {
         res->is_stencil_default = false;
@@ -1768,7 +1754,6 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         "stencil",
         "blending",
         "polygon_offset",
-        "color_mask",
         "framebuffer",
         "vertex_buffers",
         "index_buffer",
@@ -1793,7 +1778,6 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     PyObject * stencil = Py_False;
     PyObject * blending = Py_False;
     PyObject * polygon_offset = Py_False;
-    PyObject * color_mask = self->module_state->default_color_mask;
     PyObject * framebuffer_images = NULL;
     PyObject * vertex_buffers = self->module_state->empty_tuple;
     PyObject * index_buffer = Py_None;
@@ -1810,7 +1794,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
-        "|$O!O!OOOOOOOOOOOpOOO&iiiOp",
+        "|$O!O!OOOOOOOOOOpOOO&iiiOp",
         keywords,
         &PyUnicode_Type,
         &vertex_shader,
@@ -1823,7 +1807,6 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         &stencil,
         &blending,
         &polygon_offset,
-        &color_mask,
         &framebuffer_images,
         &vertex_buffers,
         &index_buffer,
@@ -2020,10 +2003,9 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     PyObject * settings = PyObject_CallMethod(
         self->module_state->helper,
         "settings",
-        "OOOOOOON",
+        "OOOOOON",
         primitive_restart,
         cull_face,
-        color_mask,
         depth,
         stencil,
         blending,
@@ -2327,7 +2309,6 @@ void clear_bound_image(Image * self) {
             if ((self->ctx->current_clear_mask & 0xf) != 0xf) {
                 self->ctx->current_clear_mask |= 0xf;
                 self->ctx->current_global_settings = NULL;
-                gl.ColorMaski(0, 1, 1, 1, 1);
             }
             break;
         }
@@ -2715,7 +2696,6 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
     if ((self->ctx->current_clear_mask & 0xf) != 0xf) {
         self->ctx->current_clear_mask |= 0xf;
         self->ctx->current_global_settings = NULL;
-        gl.ColorMaski(0, 1, 1, 1, 1);
     }
     int target_framebuffer = target ? target->framebuffer->obj : self->ctx->screen;
     bind_framebuffer(self->ctx, target_framebuffer);
@@ -3058,7 +3038,6 @@ PyObject * ImageFace_meth_blit(ImageFace * self, PyObject * vargs, PyObject * kw
     if ((self->ctx->current_clear_mask & 0xf) != 0xf) {
         self->ctx->current_clear_mask |= 0xf;
         self->ctx->current_global_settings = NULL;
-        gl.ColorMaski(0, 1, 1, 1, 1);
     }
     gl.BindFramebuffer(GL_READ_FRAMEBUFFER, self->framebuffer->obj);
     gl.BindFramebuffer(GL_DRAW_FRAMEBUFFER, target ? target->framebuffer->obj : self->ctx->screen);
@@ -3396,7 +3375,6 @@ int module_exec(PyObject * self) {
     state->empty_tuple = PyTuple_New(0);
     state->str_none = PyUnicode_FromString("none");
     state->float_one = PyFloat_FromDouble(1.0);
-    state->default_color_mask = PyLong_FromUnsignedLongLong(0xffffffffffffffffull);
     state->Context_type = (PyTypeObject *)PyType_FromSpec(&Context_spec);
     state->Buffer_type = (PyTypeObject *)PyType_FromSpec(&Buffer_spec);
     state->Image_type = (PyTypeObject *)PyType_FromSpec(&Image_spec);
@@ -3439,7 +3417,6 @@ void module_free(PyObject * self) {
     Py_DECREF(state->empty_tuple);
     Py_DECREF(state->str_none);
     Py_DECREF(state->float_one);
-    Py_DECREF(state->default_color_mask);
     Py_DECREF(state->Context_type);
     Py_DECREF(state->Buffer_type);
     Py_DECREF(state->Image_type);
