@@ -3,6 +3,6 @@
 .gitignore
 .pytest_cache
 .vscode
-downloads
 build
 dist
+downloads
