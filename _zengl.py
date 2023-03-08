@@ -237,21 +237,17 @@ def vertex_array_bindings(vertex_buffers, index_buffer):
     return tuple(res)
 
 
-def buffer_bindings(resources):
-    res = []
+def resource_bindings(resources):
+    uniform_buffers = []
     for obj in sorted((x for x in resources if x['type'] == 'uniform_buffer'), key=lambda x: x['binding']):
         binding = obj['binding']
         buffer = obj['buffer']
         offset = obj.get('offset', 0)
         size = obj.get('size', buffer.size - offset)
-        res.extend([binding, buffer, offset, size])
-    return tuple(res)
+        uniform_buffers.extend([binding, buffer, offset, size])
 
-
-def sampler_bindings(resources):
-    res = []
+    samplers = []
     for obj in sorted((x for x in resources if x['type'] == 'sampler'), key=lambda x: x['binding']):
-        border_color = obj.get('border_color', (0.0, 0.0, 0.0, 0.0))
         params = (
             MIN_FILTER[obj.get('min_filter', 'linear')],
             MAG_FILTER[obj.get('mag_filter', 'linear')],
@@ -264,13 +260,10 @@ def sampler_bindings(resources):
             COMPARE_MODE[obj.get('compare_mode', 'none')],
             COMPARE_FUNC[obj.get('compare_func', 'never')],
             float(obj.get('max_anisotropy', 1.0)),
-            float(border_color[0]),
-            float(border_color[1]),
-            float(border_color[2]),
-            float(border_color[3]),
         )
-        res.extend([obj['binding'], obj['image'], params])
-    return tuple(res)
+        samplers.extend([obj['binding'], obj['image'], params])
+
+    return tuple(uniform_buffers), tuple(samplers)
 
 
 def framebuffer_attachments(attachments):
