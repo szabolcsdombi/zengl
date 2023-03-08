@@ -1,9 +1,9 @@
 #include <Python.h>
 #include <structmember.h>
 
-const int MAX_ATTACHMENTS = 16;
-const int MAX_UNIFORM_BUFFER_BINDINGS = 16;
-const int MAX_SAMPLER_BINDINGS = 64;
+#define MAX_ATTACHMENTS 16
+#define MAX_UNIFORM_BUFFER_BINDINGS 16
+#define MAX_SAMPLER_BINDINGS 64
 
 #ifdef _WIN32
 #define GLAPI __stdcall
@@ -360,7 +360,7 @@ struct IntPair {
     int y;
 };
 
-VertexFormat get_vertex_format(const char * format) {
+static VertexFormat get_vertex_format(const char * format) {
     if (!strcmp(format, "uint8x2")) return {GL_UNSIGNED_BYTE, 2, false, true};
     if (!strcmp(format, "uint8x4")) return {GL_UNSIGNED_BYTE, 4, false, true};
     if (!strcmp(format, "sint8x2")) return {GL_BYTE, 2, false, true};
@@ -434,7 +434,7 @@ static ImageFormat get_image_format(const char * format) {
     return {};
 }
 
-int get_topology(const char * topology) {
+static int get_topology(const char * topology) {
     if (!strcmp(topology, "points")) return GL_POINTS;
     if (!strcmp(topology, "lines")) return GL_LINES;
     if (!strcmp(topology, "line_loop")) return GL_LINE_LOOP;
@@ -445,7 +445,7 @@ int get_topology(const char * topology) {
     return -1;
 }
 
-int topology_converter(PyObject * arg, int * value) {
+static int topology_converter(PyObject * arg, int * value) {
     if (!PyUnicode_CheckExact(arg)) {
         PyErr_Format(PyExc_TypeError, "topology must be a string");
         return 0;
@@ -459,7 +459,7 @@ int topology_converter(PyObject * arg, int * value) {
     return 1;
 }
 
-int count_mipmaps(int width, int height) {
+static int count_mipmaps(int width, int height) {
     int size = width > height ? width : height;
     for (int i = 0; i < 32; ++i) {
         if (size <= (1 << i)) {
@@ -469,7 +469,7 @@ int count_mipmaps(int width, int height) {
     return 32;
 }
 
-void remove_dict_value(PyObject * dict, PyObject * obj) {
+static void remove_dict_value(PyObject * dict, PyObject * obj) {
     PyObject * key = NULL;
     PyObject * value = NULL;
     Py_ssize_t pos = 0;
@@ -481,19 +481,19 @@ void remove_dict_value(PyObject * dict, PyObject * obj) {
     }
 }
 
-void * new_ref(void * obj) {
+static void * new_ref(void * obj) {
     Py_INCREF(obj);
     return obj;
 }
 
-PyObject * to_str(const unsigned char * ptr) {
+static PyObject * to_str(const unsigned char * ptr) {
     if (!ptr) {
         return PyUnicode_FromString("");
     }
     return PyUnicode_FromString((char *)ptr);
 }
 
-bool is_int_pair(PyObject * obj) {
+static bool is_int_pair(PyObject * obj) {
     return (
         PySequence_Check(obj) && PySequence_Size(obj) == 2 &&
         PyLong_CheckExact(PySequence_GetItem(obj, 0)) &&
@@ -501,7 +501,7 @@ bool is_int_pair(PyObject * obj) {
     );
 }
 
-bool is_viewport(PyObject * obj) {
+static bool is_viewport(PyObject * obj) {
     return (
         PySequence_Check(obj) && PySequence_Size(obj) == 4 &&
         PyLong_CheckExact(PySequence_GetItem(obj, 0)) &&
@@ -511,14 +511,14 @@ bool is_viewport(PyObject * obj) {
     );
 }
 
-IntPair to_int_pair(PyObject * obj) {
+static IntPair to_int_pair(PyObject * obj) {
     IntPair res = {};
     res.x = PyLong_AsLong(PySequence_GetItem(obj, 0));
     res.y = PyLong_AsLong(PySequence_GetItem(obj, 1));
     return res;
 }
 
-Viewport to_viewport(PyObject * obj) {
+static Viewport to_viewport(PyObject * obj) {
     Viewport res = {};
     res.x = (short)PyLong_AsLong(PySequence_GetItem(obj, 0));
     res.y = (short)PyLong_AsLong(PySequence_GetItem(obj, 1));
@@ -527,11 +527,11 @@ Viewport to_viewport(PyObject * obj) {
     return res;
 }
 
-int max(int a, int b) {
+static int max(int a, int b) {
     return a > b ? a : b;
 }
 
-void * load_opengl_function(PyObject * loader, const char * method) {
+static void * load_opengl_function(PyObject * loader, const char * method) {
     if (PyObject_HasAttrString(loader, "load_opengl_function")) {
         PyObject * res = PyObject_CallMethod(loader, "load_opengl_function", "s", method);
         if (!res) {
@@ -548,7 +548,7 @@ void * load_opengl_function(PyObject * loader, const char * method) {
     return PyLong_AsVoidPtr(res);
 }
 
-GLMethods load_gl(PyObject * loader) {
+static GLMethods load_gl(PyObject * loader) {
     GLMethods res = {};
     PyObject * missing = PyList_New(0);
 
@@ -683,7 +683,7 @@ GLMethods load_gl(PyObject * loader) {
     return res;
 }
 
-const StencilSettings default_stencil_settings = {
+static const StencilSettings default_stencil_settings = {
     0x1E00, 0x1E00, 0x1E00, 0x0207, 0xff, 0xff, 0,
 };
 
@@ -917,21 +917,21 @@ static void bind_global_settings(Context * self, GlobalSettings * settings) {
     self->current_global_settings = settings;
 }
 
-void bind_framebuffer(Context * self, int framebuffer) {
+static void bind_framebuffer(Context * self, int framebuffer) {
     if (self->current_framebuffer != framebuffer) {
         self->current_framebuffer = framebuffer;
         self->gl.BindFramebuffer(GL_FRAMEBUFFER, framebuffer);
     }
 }
 
-void bind_program(Context * self, int program) {
+static void bind_program(Context * self, int program) {
     if (self->current_program != program) {
         self->current_program = program;
         self->gl.UseProgram(program);
     }
 }
 
-void bind_vertex_array(Context * self, int vertex_array) {
+static void bind_vertex_array(Context * self, int vertex_array) {
     if (self->current_vertex_array != vertex_array) {
         self->current_vertex_array = vertex_array;
         self->gl.BindVertexArray(vertex_array);
@@ -963,7 +963,7 @@ static void bind_descriptor_set(Context * self, DescriptorSet * set) {
     }
 }
 
-GLObject * build_framebuffer(Context * self, PyObject * attachments) {
+static GLObject * build_framebuffer(Context * self, PyObject * attachments) {
     if (GLObject * cache = (GLObject *)PyDict_GetItem(self->framebuffer_cache, attachments)) {
         cache->uses += 1;
         Py_INCREF(cache);
@@ -1023,7 +1023,7 @@ GLObject * build_framebuffer(Context * self, PyObject * attachments) {
     return res;
 }
 
-void bind_uniforms(Context * self, char * data, int count) {
+static void bind_uniforms(Context * self, char * data, int count) {
     const GLMethods & gl = self->gl;
     int offset = 0;
     for (int i = 0; i < count; ++i) {
@@ -1059,7 +1059,7 @@ void bind_uniforms(Context * self, char * data, int count) {
     }
 }
 
-GLObject * build_vertex_array(Context * self, PyObject * bindings) {
+static GLObject * build_vertex_array(Context * self, PyObject * bindings) {
     if (GLObject * cache = (GLObject *)PyDict_GetItem(self->vertex_array_cache, bindings)) {
         cache->uses += 1;
         Py_INCREF(cache);
@@ -1258,7 +1258,7 @@ static GlobalSettings * build_global_settings(Context * self, PyObject * setting
     return res;
 }
 
-GLObject * compile_shader(Context * self, PyObject * pair) {
+static GLObject * compile_shader(Context * self, PyObject * pair) {
     if (GLObject * cache = (GLObject *)PyDict_GetItem(self->shader_cache, pair)) {
         cache->uses += 1;
         Py_INCREF(cache);
@@ -1294,7 +1294,7 @@ GLObject * compile_shader(Context * self, PyObject * pair) {
     return res;
 }
 
-GLObject * compile_program(Context * self, PyObject * vert, PyObject * frag, PyObject * layout) {
+static GLObject * compile_program(Context * self, PyObject * vert, PyObject * frag, PyObject * layout) {
     const GLMethods & gl = self->gl;
 
     PyObject * pair = PyObject_CallMethod(self->module_state->helper, "program", "OOOO", vert, frag, layout, self->includes);
@@ -1355,7 +1355,7 @@ GLObject * compile_program(Context * self, PyObject * vert, PyObject * frag, PyO
     return res;
 }
 
-Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwargs) {
+static Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwargs) {
     static char * keywords[] = {"loader", NULL};
 
     PyObject * loader = Py_None;
@@ -1463,7 +1463,7 @@ Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwargs) {
     return res;
 }
 
-Buffer * Context_meth_buffer(Context * self, PyObject * vargs, PyObject * kwargs) {
+static Buffer * Context_meth_buffer(Context * self, PyObject * vargs, PyObject * kwargs) {
     static char * keywords[] = {"data", "size", "dynamic", "external", NULL};
 
     PyObject * data = Py_None;
@@ -1537,7 +1537,7 @@ Buffer * Context_meth_buffer(Context * self, PyObject * vargs, PyObject * kwargs
     return res;
 }
 
-Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * kwargs) {
+static Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * kwargs) {
     static char * keywords[] = {"size", "format", "data", "samples", "array", "texture", "cubemap", "external", NULL};
 
     int width;
@@ -1712,7 +1712,7 @@ Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * kwargs) 
     return res;
 }
 
-Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kwargs) {
+static Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kwargs) {
     static char * keywords[] = {
         "vertex_shader",
         "fragment_shader",
@@ -1996,7 +1996,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     return res;
 }
 
-PyObject * Context_meth_release(Context * self, PyObject * arg) {
+static PyObject * Context_meth_release(Context * self, PyObject * arg) {
     // const GLMethods & gl = self->gl;
     // if (Py_TYPE(arg) == self->module_state->Buffer_type) {
     //     Buffer * buffer = (Buffer *)arg;
@@ -2131,7 +2131,7 @@ PyObject * Context_meth_release(Context * self, PyObject * arg) {
     Py_RETURN_NONE;
 }
 
-PyObject * Context_meth_reset(Context * self) {
+static PyObject * Context_meth_reset(Context * self) {
     // self->current_buffers = NULL;
     // self->current_images = NULL;
     // self->current_global_settings = NULL;
@@ -2147,7 +2147,7 @@ PyObject * Context_meth_reset(Context * self) {
     Py_RETURN_NONE;
 }
 
-PyObject * Buffer_meth_write(Buffer * self, PyObject * vargs, PyObject * kwargs) {
+static PyObject * Buffer_meth_write(Buffer * self, PyObject * vargs, PyObject * kwargs) {
     static char * keywords[] = {"data", "offset", NULL};
 
     Py_buffer view;
@@ -2184,7 +2184,7 @@ PyObject * Buffer_meth_write(Buffer * self, PyObject * vargs, PyObject * kwargs)
     Py_RETURN_NONE;
 }
 
-PyObject * Buffer_meth_map(Buffer * self, PyObject * vargs, PyObject * kwargs) {
+static PyObject * Buffer_meth_map(Buffer * self, PyObject * vargs, PyObject * kwargs) {
     static char * keywords[] = {"size", "offset", "discard", NULL};
 
     PyObject * size_arg = Py_None;
@@ -2241,7 +2241,7 @@ PyObject * Buffer_meth_map(Buffer * self, PyObject * vargs, PyObject * kwargs) {
     return PyMemoryView_FromMemory((char *)ptr, size, PyBUF_WRITE);
 }
 
-PyObject * Buffer_meth_unmap(Buffer * self) {
+static PyObject * Buffer_meth_unmap(Buffer * self) {
     const GLMethods & gl = self->ctx->gl;
     if (self->mapped) {
         self->mapped = false;
@@ -2252,7 +2252,7 @@ PyObject * Buffer_meth_unmap(Buffer * self) {
     Py_RETURN_NONE;
 }
 
-void clear_bound_image(Image * self) {
+static void clear_bound_image(Image * self) {
     const GLMethods & gl = self->ctx->gl;
     switch (self->fmt.buffer) {
         case GL_COLOR: {
@@ -2299,7 +2299,7 @@ void clear_bound_image(Image * self) {
     }
 }
 
-PyObject * Image_meth_clear(Image * self) {
+static PyObject * Image_meth_clear(Image * self) {
     if (!self->framebuffer) {
         PyErr_Format(PyExc_TypeError, "cannot clear cubemap or array textures");
         return NULL;
@@ -2309,7 +2309,7 @@ PyObject * Image_meth_clear(Image * self) {
     Py_RETURN_NONE;
 }
 
-PyObject * Image_meth_write(Image * self, PyObject * vargs, PyObject * kwargs) {
+static PyObject * Image_meth_write(Image * self, PyObject * vargs, PyObject * kwargs) {
     static char * keywords[] = {"data", "size", "offset", "layer", "level", NULL};
 
     Py_buffer view;
@@ -2424,7 +2424,7 @@ PyObject * Image_meth_write(Image * self, PyObject * vargs, PyObject * kwargs) {
     Py_RETURN_NONE;
 }
 
-PyObject * Image_meth_mipmaps(Image * self, PyObject * vargs, PyObject * kwargs) {
+static PyObject * Image_meth_mipmaps(Image * self, PyObject * vargs, PyObject * kwargs) {
     static char * keywords[] = {"base", "levels", NULL};
 
     int base = 0;
@@ -2469,7 +2469,7 @@ PyObject * Image_meth_mipmaps(Image * self, PyObject * vargs, PyObject * kwargs)
     Py_RETURN_NONE;
 }
 
-PyObject * Image_meth_read(Image * self, PyObject * vargs, PyObject * kwargs) {
+static PyObject * Image_meth_read(Image * self, PyObject * vargs, PyObject * kwargs) {
     static char * keywords[] = {"size", "offset", NULL};
 
     PyObject * size_arg = Py_None;
@@ -2530,7 +2530,7 @@ PyObject * Image_meth_read(Image * self, PyObject * vargs, PyObject * kwargs) {
     return res;
 }
 
-PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
+static PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
     static char * keywords[] = {"target", "target_viewport", "source_viewport", "filter", "srgb", "flush", NULL};
 
     PyObject * target_arg = Py_None;
@@ -2665,7 +2665,7 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
     Py_RETURN_NONE;
 }
 
-ImageFace * Image_meth_face(Image * self, PyObject * vargs, PyObject * kwargs) {
+static ImageFace * Image_meth_face(Image * self, PyObject * vargs, PyObject * kwargs) {
     static char * keywords[] = {"layer", "level", NULL};
 
     int layer = 0;
@@ -2720,7 +2720,7 @@ ImageFace * Image_meth_face(Image * self, PyObject * vargs, PyObject * kwargs) {
     return res;
 }
 
-PyObject * Image_get_clear_value(Image * self) {
+static PyObject * Image_get_clear_value(Image * self) {
     if (self->fmt.clear_type == 'x') {
         return Py_BuildValue("fi", self->clear_value.clear_floats[0], self->clear_value.clear_ints[1]);
     }
@@ -2746,7 +2746,7 @@ PyObject * Image_get_clear_value(Image * self) {
     return res;
 }
 
-int Image_set_clear_value(Image * self, PyObject * value) {
+static int Image_set_clear_value(Image * self, PyObject * value) {
     ClearValue clear_value = {};
     if (self->fmt.components == 1) {
         if (self->fmt.clear_type == 'f' ? !PyFloat_CheckExact(value) : !PyLong_CheckExact(value)) {
@@ -2808,7 +2808,7 @@ int Image_set_clear_value(Image * self, PyObject * value) {
     return 0;
 }
 
-PyObject * Pipeline_meth_render(Pipeline * self) {
+static PyObject * Pipeline_meth_render(Pipeline * self) {
     if (self->ctx->mapped_buffers) {
         PyErr_Format(PyExc_RuntimeError, "rendering with mapped buffers");
         return NULL;
@@ -2835,11 +2835,11 @@ PyObject * Pipeline_meth_render(Pipeline * self) {
     Py_RETURN_NONE;
 }
 
-PyObject * Pipeline_get_viewport(Pipeline * self) {
+static PyObject * Pipeline_get_viewport(Pipeline * self) {
     return Py_BuildValue("iiii", self->viewport.x, self->viewport.y, self->viewport.width, self->viewport.height);
 }
 
-int Pipeline_set_viewport(Pipeline * self, PyObject * viewport) {
+static int Pipeline_set_viewport(Pipeline * self, PyObject * viewport) {
     if (!is_viewport(viewport)) {
         PyErr_Format(PyExc_TypeError, "the viewport must be a tuple of 4 ints");
         return -1;
@@ -2848,11 +2848,11 @@ int Pipeline_set_viewport(Pipeline * self, PyObject * viewport) {
     return 0;
 }
 
-PyObject * Pipeline_get_framebuffer(Pipeline * self) {
+static PyObject * Pipeline_get_framebuffer(Pipeline * self) {
     return PyLong_FromLong(self->framebuffer->obj);
 }
 
-int Pipeline_set_framebuffer(Pipeline * self, PyObject * framebuffer) {
+static int Pipeline_set_framebuffer(Pipeline * self, PyObject * framebuffer) {
     if (!PyLong_CheckExact(framebuffer)) {
         PyErr_Format(PyExc_TypeError, "the framebuffer must be an int");
         return -1;
@@ -2863,7 +2863,7 @@ int Pipeline_set_framebuffer(Pipeline * self, PyObject * framebuffer) {
     return 0;
 }
 
-PyObject * meth_inspect(PyObject * self, PyObject * arg) {
+static PyObject * meth_inspect(PyObject * self, PyObject * arg) {
     // ModuleState * module_state = (ModuleState *)PyModule_GetState(self);
     // if (Py_TYPE(arg) == module_state->Buffer_type) {
     //     Buffer * buffer = (Buffer *)arg;
@@ -2901,13 +2901,13 @@ PyObject * meth_inspect(PyObject * self, PyObject * arg) {
     Py_RETURN_NONE;
 }
 
-PyObject * ImageFace_meth_clear(ImageFace * self) {
+static PyObject * ImageFace_meth_clear(ImageFace * self) {
     bind_framebuffer(self->ctx, self->framebuffer->obj);
     clear_bound_image(self->image);
     Py_RETURN_NONE;
 }
 
-PyObject * ImageFace_meth_blit(ImageFace * self, PyObject * vargs, PyObject * kwargs) {
+static PyObject * ImageFace_meth_blit(ImageFace * self, PyObject * vargs, PyObject * kwargs) {
     static char * keywords[] = {"target", "target_viewport", "source_viewport", "filter", "srgb", NULL};
 
     ImageFace * target;
@@ -3009,24 +3009,24 @@ struct vec3 {
     double x, y, z;
 };
 
-vec3 operator - (const vec3 & a, const vec3 & b) {
+static vec3 operator - (const vec3 & a, const vec3 & b) {
     return {a.x - b.x, a.y - b.y, a.z - b.z};
 }
 
-vec3 normalize(const vec3 & a) {
+static vec3 normalize(const vec3 & a) {
     const double l = sqrt(a.x * a.x + a.y * a.y + a.z * a.z);
     return {a.x / l, a.y / l, a.z / l};
 }
 
-vec3 cross(const vec3 & a, const vec3 & b) {
+static vec3 cross(const vec3 & a, const vec3 & b) {
     return {a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x};
 }
 
-double dot(const vec3 & a, const vec3 & b) {
+static double dot(const vec3 & a, const vec3 & b) {
     return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 
-PyObject * meth_camera(PyObject * self, PyObject * args, PyObject * kwargs) {
+static PyObject * meth_camera(PyObject * self, PyObject * args, PyObject * kwargs) {
     static char * keywords[] = {"eye", "target", "up", "fov", "aspect", "near", "far", "size", "clip", NULL};
 
     vec3 eye;
@@ -3101,7 +3101,7 @@ PyObject * meth_camera(PyObject * self, PyObject * args, PyObject * kwargs) {
     return PyBytes_FromStringAndSize((char *)res, 64);
 }
 
-void Context_dealloc(Context * self) {
+static void Context_dealloc(Context * self) {
     Py_DECREF(self->descriptor_set_cache);
     Py_DECREF(self->global_settings_cache);
     Py_DECREF(self->sampler_cache);
@@ -3115,12 +3115,12 @@ void Context_dealloc(Context * self) {
     Py_TYPE(self)->tp_free(self);
 }
 
-void Buffer_dealloc(Buffer * self) {
+static void Buffer_dealloc(Buffer * self) {
     Py_DECREF(self->ctx);
     Py_TYPE(self)->tp_free(self);
 }
 
-void Image_dealloc(Image * self) {
+static void Image_dealloc(Image * self) {
     Py_DECREF(self->ctx);
     Py_DECREF(self->framebuffer);
     Py_DECREF(self->faces);
@@ -3128,7 +3128,7 @@ void Image_dealloc(Image * self) {
     Py_TYPE(self)->tp_free(self);
 }
 
-void Pipeline_dealloc(Pipeline * self) {
+static void Pipeline_dealloc(Pipeline * self) {
     Py_DECREF(self->ctx);
     Py_DECREF(self->descriptor_set);
     Py_DECREF(self->global_settings);
@@ -3138,27 +3138,27 @@ void Pipeline_dealloc(Pipeline * self) {
     Py_TYPE(self)->tp_free(self);
 }
 
-void ImageFace_dealloc(ImageFace * self) {
+static void ImageFace_dealloc(ImageFace * self) {
     Py_TYPE(self)->tp_free(self);
 }
 
-void DescriptorSetBuffers_dealloc(DescriptorSetBuffers * self) {
+static void DescriptorSetBuffers_dealloc(DescriptorSetBuffers * self) {
     Py_TYPE(self)->tp_free(self);
 }
 
-void DescriptorSet_dealloc(DescriptorSet * self) {
+static void DescriptorSet_dealloc(DescriptorSet * self) {
     Py_TYPE(self)->tp_free(self);
 }
 
-void GlobalSettings_dealloc(GlobalSettings * self) {
+static void GlobalSettings_dealloc(GlobalSettings * self) {
     Py_TYPE(self)->tp_free(self);
 }
 
-void GLObject_dealloc(GLObject * self) {
+static void GLObject_dealloc(GLObject * self) {
     Py_TYPE(self)->tp_free(self);
 }
 
-PyMethodDef Context_methods[] = {
+static PyMethodDef Context_methods[] = {
     {"buffer", (PyCFunction)Context_meth_buffer, METH_VARARGS | METH_KEYWORDS, NULL},
     {"image", (PyCFunction)Context_meth_image, METH_VARARGS | METH_KEYWORDS, NULL},
     {"pipeline", (PyCFunction)Context_meth_pipeline, METH_VARARGS | METH_KEYWORDS, NULL},
@@ -3167,7 +3167,7 @@ PyMethodDef Context_methods[] = {
     {},
 };
 
-PyMemberDef Context_members[] = {
+static PyMemberDef Context_members[] = {
     {"includes", T_OBJECT_EX, offsetof(Context, includes), READONLY, NULL},
     {"limits", T_OBJECT_EX, offsetof(Context, limits), READONLY, NULL},
     {"info", T_OBJECT_EX, offsetof(Context, info), READONLY, NULL},
@@ -3175,19 +3175,19 @@ PyMemberDef Context_members[] = {
     {},
 };
 
-PyMethodDef Buffer_methods[] = {
+static PyMethodDef Buffer_methods[] = {
     {"write", (PyCFunction)Buffer_meth_write, METH_VARARGS | METH_KEYWORDS, NULL},
     {"map", (PyCFunction)Buffer_meth_map, METH_VARARGS | METH_KEYWORDS, NULL},
     {"unmap", (PyCFunction)Buffer_meth_unmap, METH_NOARGS, NULL},
     {},
 };
 
-PyMemberDef Buffer_members[] = {
+static PyMemberDef Buffer_members[] = {
     {"size", T_INT, offsetof(Buffer, size), READONLY, NULL},
     {},
 };
 
-PyMethodDef Image_methods[] = {
+static PyMethodDef Image_methods[] = {
     {"clear", (PyCFunction)Image_meth_clear, METH_NOARGS, NULL},
     {"write", (PyCFunction)Image_meth_write, METH_VARARGS | METH_KEYWORDS, NULL},
     {"read", (PyCFunction)Image_meth_read, METH_VARARGS | METH_KEYWORDS, NULL},
@@ -3197,30 +3197,30 @@ PyMethodDef Image_methods[] = {
     {},
 };
 
-PyGetSetDef Image_getset[] = {
+static PyGetSetDef Image_getset[] = {
     {"clear_value", (getter)Image_get_clear_value, (setter)Image_set_clear_value, NULL, NULL},
     {},
 };
 
-PyMemberDef Image_members[] = {
+static PyMemberDef Image_members[] = {
     {"size", T_OBJECT_EX, offsetof(Image, size), READONLY, NULL},
     {"samples", T_INT, offsetof(Image, samples), READONLY, NULL},
     {"flags", T_INT, offsetof(Image, fmt.flags), READONLY},
     {},
 };
 
-PyMethodDef Pipeline_methods[] = {
+static PyMethodDef Pipeline_methods[] = {
     {"render", (PyCFunction)Pipeline_meth_render, METH_NOARGS, NULL},
     {},
 };
 
-PyGetSetDef Pipeline_getset[] = {
+static PyGetSetDef Pipeline_getset[] = {
     {"viewport", (getter)Pipeline_get_viewport, (setter)Pipeline_set_viewport, NULL, NULL},
     {"_framebuffer", (getter)Pipeline_get_framebuffer, (setter)Pipeline_set_framebuffer, NULL, NULL},
     {},
 };
 
-PyMemberDef Pipeline_members[] = {
+static PyMemberDef Pipeline_members[] = {
     {"vertex_count", T_INT, offsetof(Pipeline, vertex_count), 0, NULL},
     {"instance_count", T_INT, offsetof(Pipeline, instance_count), 0, NULL},
     {"first_vertex", T_INT, offsetof(Pipeline, first_vertex), 0, NULL},
@@ -3228,13 +3228,13 @@ PyMemberDef Pipeline_members[] = {
     {},
 };
 
-PyMethodDef ImageFace_methods[] = {
+static PyMethodDef ImageFace_methods[] = {
     {"clear", (PyCFunction)ImageFace_meth_clear, METH_NOARGS, NULL},
     {"blit", (PyCFunction)ImageFace_meth_blit, METH_VARARGS | METH_KEYWORDS, NULL},
     {},
 };
 
-PyMemberDef ImageFace_members[] = {
+static PyMemberDef ImageFace_members[] = {
     {"image", T_OBJECT_EX, offsetof(ImageFace, image), READONLY, NULL},
     {"size", T_OBJECT_EX, offsetof(ImageFace, size), READONLY, NULL},
     {"layer", T_INT, offsetof(ImageFace, layer), READONLY, NULL},
@@ -3244,21 +3244,21 @@ PyMemberDef ImageFace_members[] = {
     {},
 };
 
-PyType_Slot Context_slots[] = {
+static PyType_Slot Context_slots[] = {
     {Py_tp_methods, Context_methods},
     {Py_tp_members, Context_members},
     {Py_tp_dealloc, (void *)Context_dealloc},
     {},
 };
 
-PyType_Slot Buffer_slots[] = {
+static PyType_Slot Buffer_slots[] = {
     {Py_tp_methods, Buffer_methods},
     {Py_tp_members, Buffer_members},
     {Py_tp_dealloc, (void *)Buffer_dealloc},
     {},
 };
 
-PyType_Slot Image_slots[] = {
+static PyType_Slot Image_slots[] = {
     {Py_tp_methods, Image_methods},
     {Py_tp_getset, Image_getset},
     {Py_tp_members, Image_members},
@@ -3266,7 +3266,7 @@ PyType_Slot Image_slots[] = {
     {},
 };
 
-PyType_Slot Pipeline_slots[] = {
+static PyType_Slot Pipeline_slots[] = {
     {Py_tp_methods, Pipeline_methods},
     {Py_tp_getset, Pipeline_getset},
     {Py_tp_members, Pipeline_members},
@@ -3274,38 +3274,38 @@ PyType_Slot Pipeline_slots[] = {
     {},
 };
 
-PyType_Slot ImageFace_slots[] = {
+static PyType_Slot ImageFace_slots[] = {
     {Py_tp_methods, ImageFace_methods},
     {Py_tp_members, ImageFace_members},
     {Py_tp_dealloc, (void *)ImageFace_dealloc},
     {},
 };
 
-PyType_Slot DescriptorSet_slots[] = {
+static PyType_Slot DescriptorSet_slots[] = {
     {Py_tp_dealloc, (void *)DescriptorSet_dealloc},
     {},
 };
 
-PyType_Slot GlobalSettings_slots[] = {
+static PyType_Slot GlobalSettings_slots[] = {
     {Py_tp_dealloc, (void *)GlobalSettings_dealloc},
     {},
 };
 
-PyType_Slot GLObject_slots[] = {
+static PyType_Slot GLObject_slots[] = {
     {Py_tp_dealloc, (void *)GLObject_dealloc},
     {},
 };
 
-PyType_Spec Context_spec = {"zengl.Context", sizeof(Context), 0, Py_TPFLAGS_DEFAULT, Context_slots};
-PyType_Spec Buffer_spec = {"zengl.Buffer", sizeof(Buffer), 0, Py_TPFLAGS_DEFAULT, Buffer_slots};
-PyType_Spec Image_spec = {"zengl.Image", sizeof(Image), 0, Py_TPFLAGS_DEFAULT, Image_slots};
-PyType_Spec Pipeline_spec = {"zengl.Pipeline", sizeof(Pipeline), 0, Py_TPFLAGS_DEFAULT, Pipeline_slots};
-PyType_Spec ImageFace_spec = {"zengl.ImageFace", sizeof(ImageFace), 0, Py_TPFLAGS_DEFAULT, ImageFace_slots};
-PyType_Spec DescriptorSet_spec = {"zengl.DescriptorSet", sizeof(DescriptorSet), 0, Py_TPFLAGS_DEFAULT, DescriptorSet_slots};
-PyType_Spec GlobalSettings_spec = {"zengl.GlobalSettings", sizeof(GlobalSettings), 0, Py_TPFLAGS_DEFAULT, GlobalSettings_slots};
-PyType_Spec GLObject_spec = {"zengl.GLObject", sizeof(GLObject), 0, Py_TPFLAGS_DEFAULT, GLObject_slots};
+static PyType_Spec Context_spec = {"zengl.Context", sizeof(Context), 0, Py_TPFLAGS_DEFAULT, Context_slots};
+static PyType_Spec Buffer_spec = {"zengl.Buffer", sizeof(Buffer), 0, Py_TPFLAGS_DEFAULT, Buffer_slots};
+static PyType_Spec Image_spec = {"zengl.Image", sizeof(Image), 0, Py_TPFLAGS_DEFAULT, Image_slots};
+static PyType_Spec Pipeline_spec = {"zengl.Pipeline", sizeof(Pipeline), 0, Py_TPFLAGS_DEFAULT, Pipeline_slots};
+static PyType_Spec ImageFace_spec = {"zengl.ImageFace", sizeof(ImageFace), 0, Py_TPFLAGS_DEFAULT, ImageFace_slots};
+static PyType_Spec DescriptorSet_spec = {"zengl.DescriptorSet", sizeof(DescriptorSet), 0, Py_TPFLAGS_DEFAULT, DescriptorSet_slots};
+static PyType_Spec GlobalSettings_spec = {"zengl.GlobalSettings", sizeof(GlobalSettings), 0, Py_TPFLAGS_DEFAULT, GlobalSettings_slots};
+static PyType_Spec GLObject_spec = {"zengl.GLObject", sizeof(GLObject), 0, Py_TPFLAGS_DEFAULT, GLObject_slots};
 
-int module_exec(PyObject * self) {
+static int module_exec(PyObject * self) {
     ModuleState * state = (ModuleState *)PyModule_GetState(self);
 
     state->helper = PyImport_ImportModule("_zengl");
@@ -3337,19 +3337,19 @@ int module_exec(PyObject * self) {
     return 0;
 }
 
-PyModuleDef_Slot module_slots[] = {
+static PyModuleDef_Slot module_slots[] = {
     {Py_mod_exec, (void *)module_exec},
     {},
 };
 
-PyMethodDef module_methods[] = {
+static PyMethodDef module_methods[] = {
     {"context", (PyCFunction)meth_context, METH_VARARGS | METH_KEYWORDS, NULL},
     {"inspect", (PyCFunction)meth_inspect, METH_O, NULL},
     {"camera", (PyCFunction)meth_camera, METH_VARARGS | METH_KEYWORDS, NULL},
     {},
 };
 
-void module_free(PyObject * self) {
+static void module_free(PyObject * self) {
     ModuleState * state = (ModuleState *)PyModule_GetState(self);
     if (!state) {
         return;
@@ -3367,7 +3367,7 @@ void module_free(PyObject * self) {
     Py_DECREF(state->GLObject_type);
 }
 
-PyModuleDef module_def = {
+static PyModuleDef module_def = {
     PyModuleDef_HEAD_INIT, "zengl", NULL, sizeof(ModuleState), module_methods, module_slots, NULL, NULL, (freefunc)module_free,
 };
 
