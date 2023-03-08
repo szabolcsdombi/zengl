@@ -3110,8 +3110,8 @@ static void Context_dealloc(Context * self) {
     Py_DECREF(self->program_cache);
     Py_DECREF(self->shader_cache);
     Py_DECREF(self->includes);
-    Py_DECREF(self->limits);
-    Py_DECREF(self->info);
+    // Py_DECREF(self->limits_dict);
+    // Py_DECREF(self->info_dict);
     Py_TYPE(self)->tp_free(self);
 }
 
@@ -3142,10 +3142,6 @@ static void ImageFace_dealloc(ImageFace * self) {
     Py_TYPE(self)->tp_free(self);
 }
 
-static void DescriptorSetBuffers_dealloc(DescriptorSetBuffers * self) {
-    Py_TYPE(self)->tp_free(self);
-}
-
 static void DescriptorSet_dealloc(DescriptorSet * self) {
     Py_TYPE(self)->tp_free(self);
 }
@@ -3159,87 +3155,92 @@ static void GLObject_dealloc(GLObject * self) {
 }
 
 static PyMethodDef Context_methods[] = {
-    {"buffer", (PyCFunction)Context_meth_buffer, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"image", (PyCFunction)Context_meth_image, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"pipeline", (PyCFunction)Context_meth_pipeline, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"release", (PyCFunction)Context_meth_release, METH_O, NULL},
-    {"reset", (PyCFunction)Context_meth_reset, METH_NOARGS, NULL},
+    {"buffer", (PyCFunction)Context_meth_buffer, METH_VARARGS | METH_KEYWORDS},
+    {"image", (PyCFunction)Context_meth_image, METH_VARARGS | METH_KEYWORDS},
+    {"pipeline", (PyCFunction)Context_meth_pipeline, METH_VARARGS | METH_KEYWORDS},
+    // {"new_frame", (PyCFunction)Context_meth_new_frame, METH_VARARGS | METH_KEYWORDS},
+    // {"end_frame", (PyCFunction)Context_meth_end_frame, METH_VARARGS | METH_KEYWORDS},
+    {"release", (PyCFunction)Context_meth_release, METH_O},
     {},
 };
 
 static PyMemberDef Context_members[] = {
-    {"includes", T_OBJECT_EX, offsetof(Context, includes), READONLY, NULL},
-    {"limits", T_OBJECT_EX, offsetof(Context, limits), READONLY, NULL},
-    {"info", T_OBJECT_EX, offsetof(Context, info), READONLY, NULL},
-    {"screen", T_INT, offsetof(Context, screen), 0, NULL},
+    {"includes", T_OBJECT, offsetof(Context, includes), READONLY},
+    // {"limits", T_OBJECT, offsetof(Context, limits_dict), READONLY},
+    // {"info", T_OBJECT, offsetof(Context, info_dict), READONLY},
+    // {"before_frame", T_OBJECT, offsetof(Context, before_frame_callback), 0},
+    // {"after_frame", T_OBJECT, offsetof(Context, after_frame_callback), 0},
+    // {"frame_time", T_INT, offsetof(Context, frame_time), READONLY},
+    {"screen", T_INT, offsetof(Context, screen), 0},
     {},
 };
 
 static PyMethodDef Buffer_methods[] = {
-    {"write", (PyCFunction)Buffer_meth_write, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"map", (PyCFunction)Buffer_meth_map, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"unmap", (PyCFunction)Buffer_meth_unmap, METH_NOARGS, NULL},
+    {"write", (PyCFunction)Buffer_meth_write, METH_VARARGS | METH_KEYWORDS},
+    {"map", (PyCFunction)Buffer_meth_map, METH_VARARGS | METH_KEYWORDS},
+    {"unmap", (PyCFunction)Buffer_meth_unmap, METH_NOARGS},
     {},
 };
 
 static PyMemberDef Buffer_members[] = {
-    {"size", T_INT, offsetof(Buffer, size), READONLY, NULL},
+    {"size", T_INT, offsetof(Buffer, size), READONLY},
     {},
 };
 
 static PyMethodDef Image_methods[] = {
-    {"clear", (PyCFunction)Image_meth_clear, METH_NOARGS, NULL},
-    {"write", (PyCFunction)Image_meth_write, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"read", (PyCFunction)Image_meth_read, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"mipmaps", (PyCFunction)Image_meth_mipmaps, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"blit", (PyCFunction)Image_meth_blit, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"face", (PyCFunction)Image_meth_face, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"clear", (PyCFunction)Image_meth_clear, METH_NOARGS},
+    {"write", (PyCFunction)Image_meth_write, METH_VARARGS | METH_KEYWORDS},
+    {"read", (PyCFunction)Image_meth_read, METH_VARARGS | METH_KEYWORDS},
+    {"mipmaps", (PyCFunction)Image_meth_mipmaps, METH_VARARGS | METH_KEYWORDS},
+    {"blit", (PyCFunction)Image_meth_blit, METH_VARARGS | METH_KEYWORDS},
+    {"face", (PyCFunction)Image_meth_face, METH_VARARGS | METH_KEYWORDS},
     {},
 };
 
 static PyGetSetDef Image_getset[] = {
-    {"clear_value", (getter)Image_get_clear_value, (setter)Image_set_clear_value, NULL, NULL},
+    {"clear_value", (getter)Image_get_clear_value, (setter)Image_set_clear_value},
     {},
 };
 
 static PyMemberDef Image_members[] = {
-    {"size", T_OBJECT_EX, offsetof(Image, size), READONLY, NULL},
-    {"samples", T_INT, offsetof(Image, samples), READONLY, NULL},
+    {"size", T_OBJECT, offsetof(Image, size), READONLY},
+    // {"format", T_OBJECT, offsetof(Image, format), READONLY},
+    {"samples", T_INT, offsetof(Image, samples), READONLY},
+    {"array", T_INT, offsetof(Image, array), READONLY},
     {"flags", T_INT, offsetof(Image, fmt.flags), READONLY},
     {},
 };
 
 static PyMethodDef Pipeline_methods[] = {
-    {"render", (PyCFunction)Pipeline_meth_render, METH_NOARGS, NULL},
+    {"render", (PyCFunction)Pipeline_meth_render, METH_NOARGS},
     {},
 };
 
 static PyGetSetDef Pipeline_getset[] = {
-    {"viewport", (getter)Pipeline_get_viewport, (setter)Pipeline_set_viewport, NULL, NULL},
-    {"_framebuffer", (getter)Pipeline_get_framebuffer, (setter)Pipeline_set_framebuffer, NULL, NULL},
+    {"viewport", (getter)Pipeline_get_viewport, (setter)Pipeline_set_viewport},
     {},
 };
 
 static PyMemberDef Pipeline_members[] = {
-    {"vertex_count", T_INT, offsetof(Pipeline, vertex_count), 0, NULL},
-    {"instance_count", T_INT, offsetof(Pipeline, instance_count), 0, NULL},
-    {"first_vertex", T_INT, offsetof(Pipeline, first_vertex), 0, NULL},
-    {"uniforms", T_OBJECT_EX, offsetof(Pipeline, uniform_map), 0, NULL},
+    {"vertex_count", T_INT, offsetof(Pipeline, vertex_count), 0},
+    {"instance_count", T_INT, offsetof(Pipeline, instance_count), 0},
+    {"first_vertex", T_INT, offsetof(Pipeline, first_vertex), 0},
+    {"uniforms", T_OBJECT_EX, offsetof(Pipeline, uniform_map), READONLY},
     {},
 };
 
 static PyMethodDef ImageFace_methods[] = {
-    {"clear", (PyCFunction)ImageFace_meth_clear, METH_NOARGS, NULL},
-    {"blit", (PyCFunction)ImageFace_meth_blit, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"clear", (PyCFunction)ImageFace_meth_clear, METH_NOARGS},
+    {"blit", (PyCFunction)ImageFace_meth_blit, METH_VARARGS | METH_KEYWORDS},
     {},
 };
 
 static PyMemberDef ImageFace_members[] = {
-    {"image", T_OBJECT_EX, offsetof(ImageFace, image), READONLY, NULL},
-    {"size", T_OBJECT_EX, offsetof(ImageFace, size), READONLY, NULL},
-    {"layer", T_INT, offsetof(ImageFace, layer), READONLY, NULL},
-    {"level", T_INT, offsetof(ImageFace, level), READONLY, NULL},
-    {"samples", T_INT, offsetof(ImageFace, samples), READONLY, NULL},
+    {"image", T_OBJECT, offsetof(ImageFace, image), READONLY},
+    {"size", T_OBJECT, offsetof(ImageFace, size), READONLY},
+    {"layer", T_INT, offsetof(ImageFace, layer), READONLY},
+    {"level", T_INT, offsetof(ImageFace, level), READONLY},
+    {"samples", T_INT, offsetof(ImageFace, samples), READONLY},
     {"flags", T_INT, offsetof(ImageFace, flags), READONLY},
     {},
 };
@@ -3343,9 +3344,9 @@ static PyModuleDef_Slot module_slots[] = {
 };
 
 static PyMethodDef module_methods[] = {
-    {"context", (PyCFunction)meth_context, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"inspect", (PyCFunction)meth_inspect, METH_O, NULL},
-    {"camera", (PyCFunction)meth_camera, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"context", (PyCFunction)meth_context, METH_VARARGS | METH_KEYWORDS},
+    {"inspect", (PyCFunction)meth_inspect, METH_O},
+    {"camera", (PyCFunction)meth_camera, METH_VARARGS | METH_KEYWORDS},
     {},
 };
 
