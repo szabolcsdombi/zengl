@@ -303,6 +303,7 @@ struct ImageFormat {
     int buffer;
     int color;
     int clear_type;
+    int flags;
 };
 
 struct UniformBufferBinding {
@@ -394,45 +395,43 @@ VertexFormat get_vertex_format(const char * format) {
     return {};
 }
 
-ImageFormat get_image_format(const char * format) {
-    if (!strcmp(format, "r8unorm")) return {GL_R8, GL_RED, GL_UNSIGNED_BYTE, 1, 1, GL_COLOR, true, 'f'};
-    if (!strcmp(format, "rg8unorm")) return {GL_RG8, GL_RG, GL_UNSIGNED_BYTE, 2, 2, GL_COLOR, true, 'f'};
-    if (!strcmp(format, "rgba8unorm")) return {GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 4, 4, GL_COLOR, true, 'f'};
-    if (!strcmp(format, "bgra8unorm")) return {GL_RGBA8, GL_BGRA, GL_UNSIGNED_BYTE, 4, 4, GL_COLOR, true, 'f'};
-    if (!strcmp(format, "r8snorm")) return {GL_R8_SNORM, GL_RED, GL_UNSIGNED_BYTE, 1, 1, GL_COLOR, true, 'f'};
-    if (!strcmp(format, "rg8snorm")) return {GL_RG8_SNORM, GL_RG, GL_UNSIGNED_BYTE, 2, 2, GL_COLOR, true, 'f'};
-    if (!strcmp(format, "rgba8snorm")) return {GL_RGBA8_SNORM, GL_RGBA, GL_UNSIGNED_BYTE, 4, 4, GL_COLOR, true, 'f'};
-    if (!strcmp(format, "r8uint")) return {GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, 1, 1, GL_COLOR, true, 'u'};
-    if (!strcmp(format, "rg8uint")) return {GL_RG8UI, GL_RG_INTEGER, GL_UNSIGNED_BYTE, 2, 2, GL_COLOR, true, 'u'};
-    if (!strcmp(format, "rgba8uint")) return {GL_RGBA8UI, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, 4, 4, GL_COLOR, true, 'u'};
-    if (!strcmp(format, "r16uint")) return {GL_R16UI, GL_RED_INTEGER, GL_UNSIGNED_SHORT, 1, 2, GL_COLOR, true, 'u'};
-    if (!strcmp(format, "rg16uint")) return {GL_RG16UI, GL_RG_INTEGER, GL_UNSIGNED_SHORT, 2, 4, GL_COLOR, true, 'u'};
-    if (!strcmp(format, "rgba16uint")) return {GL_RGBA16UI, GL_RGBA_INTEGER, GL_UNSIGNED_SHORT, 4, 8, GL_COLOR, true, 'u'};
-    if (!strcmp(format, "r32uint")) return {GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, 1, 4, GL_COLOR, true, 'u'};
-    if (!strcmp(format, "rg32uint")) return {GL_RG32UI, GL_RG_INTEGER, GL_UNSIGNED_INT, 2, 8, GL_COLOR, true, 'u'};
-    if (!strcmp(format, "rgba32uint")) return {GL_RGBA32UI, GL_RGBA_INTEGER, GL_UNSIGNED_INT, 4, 16, GL_COLOR, true, 'u'};
-    if (!strcmp(format, "r8sint")) return {GL_R8I, GL_RED_INTEGER, GL_BYTE, 1, 1, GL_COLOR, true, 'i'};
-    if (!strcmp(format, "rg8sint")) return {GL_RG8I, GL_RG_INTEGER, GL_BYTE, 2, 2, GL_COLOR, true, 'i'};
-    if (!strcmp(format, "rgba8sint")) return {GL_RGBA8I, GL_RGBA_INTEGER, GL_BYTE, 4, 4, GL_COLOR, true, 'i'};
-    if (!strcmp(format, "r16sint")) return {GL_R16I, GL_RED_INTEGER, GL_SHORT, 1, 2, GL_COLOR, true, 'i'};
-    if (!strcmp(format, "rg16sint")) return {GL_RG16I, GL_RG_INTEGER, GL_SHORT, 2, 4, GL_COLOR, true, 'i'};
-    if (!strcmp(format, "rgba16sint")) return {GL_RGBA16I, GL_RGBA_INTEGER, GL_SHORT, 4, 8, GL_COLOR, true, 'i'};
-    if (!strcmp(format, "r32sint")) return {GL_R32I, GL_RED_INTEGER, GL_INT, 1, 4, GL_COLOR, true, 'i'};
-    if (!strcmp(format, "rg32sint")) return {GL_RG32I, GL_RG_INTEGER, GL_INT, 2, 8, GL_COLOR, true, 'i'};
-    if (!strcmp(format, "rgba32sint")) return {GL_RGBA32I, GL_RGBA_INTEGER, GL_INT, 4, 16, GL_COLOR, true, 'i'};
-    if (!strcmp(format, "r16float")) return {GL_R16F, GL_RED, GL_FLOAT, 1, 2, GL_COLOR, true, 'f'};
-    if (!strcmp(format, "rg16float")) return {GL_RG16F, GL_RG, GL_FLOAT, 2, 4, GL_COLOR, true, 'f'};
-    if (!strcmp(format, "rgba16float")) return {GL_RGBA16F, GL_RGBA, GL_FLOAT, 4, 8, GL_COLOR, true, 'f'};
-    if (!strcmp(format, "r32float")) return {GL_R32F, GL_RED, GL_FLOAT, 1, 4, GL_COLOR, true, 'f'};
-    if (!strcmp(format, "rg32float")) return {GL_RG32F, GL_RG, GL_FLOAT, 2, 8, GL_COLOR, true, 'f'};
-    if (!strcmp(format, "rgba32float")) return {GL_RGBA32F, GL_RGBA, GL_FLOAT, 4, 16, GL_COLOR, true, 'f'};
-    if (!strcmp(format, "rgba8unorm-srgb")) return {GL_SRGB8_ALPHA8, GL_RGBA, GL_UNSIGNED_BYTE, 4, 4, GL_COLOR, true, 'f'};
-    if (!strcmp(format, "bgra8unorm-srgb")) return {GL_SRGB8_ALPHA8, GL_BGRA, GL_UNSIGNED_BYTE, 4, 4, GL_COLOR, true, 'f'};
-    if (!strcmp(format, "stencil8")) return {GL_STENCIL_INDEX8, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, 1, 1, GL_STENCIL, false, 'i'};
-    if (!strcmp(format, "depth16unorm")) return {GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, 1, 2, GL_DEPTH, false, 'f'};
-    if (!strcmp(format, "depth24plus")) return {GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, 1, 4, GL_DEPTH, false, 'f'};
-    if (!strcmp(format, "depth24plus-stencil8")) return {GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 2, 4, GL_DEPTH_STENCIL, false, 'x'};
-    if (!strcmp(format, "depth32float")) return {GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, 1, 4, GL_DEPTH, false, 'f'};
+static ImageFormat get_image_format(const char * format) {
+    if (!strcmp(format, "r8unorm")) return {GL_R8, GL_RED, GL_UNSIGNED_BYTE, 1, 1, GL_COLOR, true, 'f', 1};
+    if (!strcmp(format, "rg8unorm")) return {GL_RG8, GL_RG, GL_UNSIGNED_BYTE, 2, 2, GL_COLOR, true, 'f', 1};
+    if (!strcmp(format, "rgba8unorm")) return {GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 4, 4, GL_COLOR, true, 'f', 1};
+    if (!strcmp(format, "r8snorm")) return {GL_R8_SNORM, GL_RED, GL_UNSIGNED_BYTE, 1, 1, GL_COLOR, true, 'f', 1};
+    if (!strcmp(format, "rg8snorm")) return {GL_RG8_SNORM, GL_RG, GL_UNSIGNED_BYTE, 2, 2, GL_COLOR, true, 'f', 1};
+    if (!strcmp(format, "rgba8snorm")) return {GL_RGBA8_SNORM, GL_RGBA, GL_UNSIGNED_BYTE, 4, 4, GL_COLOR, true, 'f', 1};
+    if (!strcmp(format, "r8uint")) return {GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, 1, 1, GL_COLOR, true, 'u', 1};
+    if (!strcmp(format, "rg8uint")) return {GL_RG8UI, GL_RG_INTEGER, GL_UNSIGNED_BYTE, 2, 2, GL_COLOR, true, 'u', 1};
+    if (!strcmp(format, "rgba8uint")) return {GL_RGBA8UI, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, 4, 4, GL_COLOR, true, 'u', 1};
+    if (!strcmp(format, "r16uint")) return {GL_R16UI, GL_RED_INTEGER, GL_UNSIGNED_SHORT, 1, 2, GL_COLOR, true, 'u', 1};
+    if (!strcmp(format, "rg16uint")) return {GL_RG16UI, GL_RG_INTEGER, GL_UNSIGNED_SHORT, 2, 4, GL_COLOR, true, 'u', 1};
+    if (!strcmp(format, "rgba16uint")) return {GL_RGBA16UI, GL_RGBA_INTEGER, GL_UNSIGNED_SHORT, 4, 8, GL_COLOR, true, 'u', 1};
+    if (!strcmp(format, "r32uint")) return {GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, 1, 4, GL_COLOR, true, 'u', 1};
+    if (!strcmp(format, "rg32uint")) return {GL_RG32UI, GL_RG_INTEGER, GL_UNSIGNED_INT, 2, 8, GL_COLOR, true, 'u', 1};
+    if (!strcmp(format, "rgba32uint")) return {GL_RGBA32UI, GL_RGBA_INTEGER, GL_UNSIGNED_INT, 4, 16, GL_COLOR, true, 'u', 1};
+    if (!strcmp(format, "r8sint")) return {GL_R8I, GL_RED_INTEGER, GL_BYTE, 1, 1, GL_COLOR, true, 'i', 1};
+    if (!strcmp(format, "rg8sint")) return {GL_RG8I, GL_RG_INTEGER, GL_BYTE, 2, 2, GL_COLOR, true, 'i', 1};
+    if (!strcmp(format, "rgba8sint")) return {GL_RGBA8I, GL_RGBA_INTEGER, GL_BYTE, 4, 4, GL_COLOR, true, 'i', 1};
+    if (!strcmp(format, "r16sint")) return {GL_R16I, GL_RED_INTEGER, GL_SHORT, 1, 2, GL_COLOR, true, 'i', 1};
+    if (!strcmp(format, "rg16sint")) return {GL_RG16I, GL_RG_INTEGER, GL_SHORT, 2, 4, GL_COLOR, true, 'i', 1};
+    if (!strcmp(format, "rgba16sint")) return {GL_RGBA16I, GL_RGBA_INTEGER, GL_SHORT, 4, 8, GL_COLOR, true, 'i', 1};
+    if (!strcmp(format, "r32sint")) return {GL_R32I, GL_RED_INTEGER, GL_INT, 1, 4, GL_COLOR, true, 'i', 1};
+    if (!strcmp(format, "rg32sint")) return {GL_RG32I, GL_RG_INTEGER, GL_INT, 2, 8, GL_COLOR, true, 'i', 1};
+    if (!strcmp(format, "rgba32sint")) return {GL_RGBA32I, GL_RGBA_INTEGER, GL_INT, 4, 16, GL_COLOR, true, 'i', 1};
+    if (!strcmp(format, "r16float")) return {GL_R16F, GL_RED, GL_FLOAT, 1, 2, GL_COLOR, true, 'f', 1};
+    if (!strcmp(format, "rg16float")) return {GL_RG16F, GL_RG, GL_FLOAT, 2, 4, GL_COLOR, true, 'f', 1};
+    if (!strcmp(format, "rgba16float")) return {GL_RGBA16F, GL_RGBA, GL_FLOAT, 4, 8, GL_COLOR, true, 'f', 1};
+    if (!strcmp(format, "r32float")) return {GL_R32F, GL_RED, GL_FLOAT, 1, 4, GL_COLOR, true, 'f', 1};
+    if (!strcmp(format, "rg32float")) return {GL_RG32F, GL_RG, GL_FLOAT, 2, 8, GL_COLOR, true, 'f', 1};
+    if (!strcmp(format, "rgba32float")) return {GL_RGBA32F, GL_RGBA, GL_FLOAT, 4, 16, GL_COLOR, true, 'f', 1};
+    if (!strcmp(format, "rgba8unorm-srgb")) return {GL_SRGB8_ALPHA8, GL_RGBA, GL_UNSIGNED_BYTE, 4, 4, GL_COLOR, true, 'f', 1};
+    if (!strcmp(format, "stencil8")) return {GL_STENCIL_INDEX8, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, 1, 1, GL_STENCIL, false, 'i', 4};
+    if (!strcmp(format, "depth16unorm")) return {GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, 1, 2, GL_DEPTH, false, 'f', 2};
+    if (!strcmp(format, "depth24plus")) return {GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, 1, 4, GL_DEPTH, false, 'f', 2};
+    if (!strcmp(format, "depth24plus-stencil8")) return {GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 2, 4, GL_DEPTH_STENCIL, false, 'x', 6};
+    if (!strcmp(format, "depth32float")) return {GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, 1, 4, GL_DEPTH, false, 'f', 2};
     return {};
 }
 
@@ -732,31 +731,29 @@ struct DescriptorSetImages {
     GLObject * sampler[MAX_SAMPLER_BINDINGS];
 };
 
+struct BlendState {
+    int enable;
+    int op_color;
+    int op_alpha;
+    int src_color;
+    int dst_color;
+    int src_alpha;
+    int dst_alpha;
+};
+
 struct GlobalSettings {
     PyObject_HEAD
     int uses;
-    int primitive_restart;
+    int attachments;
     int cull_face;
-    int depth_test;
+    int depth_enabled;
     int depth_write;
     int depth_func;
-    int stencil_test;
+    int stencil_enabled;
     StencilSettings stencil_front;
     StencilSettings stencil_back;
-    int blend_enable;
-    int blend_op_color;
-    int blend_op_alpha;
-    int blend_src_color;
-    int blend_dst_color;
-    int blend_src_alpha;
-    int blend_dst_alpha;
-    int polygon_offset;
-    float polygon_offset_factor;
-    float polygon_offset_units;
-    int attachments;
-    int is_mask_default;
-    int is_stencil_default;
-    int is_blend_default;
+    int blend_enabled;
+    BlendState blend[MAX_ATTACHMENTS];
 };
 
 struct Context {
@@ -787,6 +784,8 @@ struct Context {
     int current_program;
     int current_vertex_array;
     int current_clear_mask;
+    int current_depth_mask;
+    int current_stencil_mask;
     int default_texture_unit;
     int max_samples;
     int mapped_buffers;
@@ -811,10 +810,11 @@ struct Image {
     GCHeader * gc_next;
     Context * ctx;
     PyObject * size;
+    // PyObject * format;
     GLObject * framebuffer;
     PyObject * faces;
     ClearValue clear_value;
-    ImageFormat format;
+    ImageFormat fmt;
     int image;
     int width;
     int height;
@@ -862,7 +862,7 @@ struct ImageFace {
     int layer;
     int level;
     int samples;
-    int color;
+    int flags;
 };
 
 void bind_descriptor_set_buffers(Context * self, DescriptorSetBuffers * set) {
@@ -893,21 +893,10 @@ void bind_descriptor_set_images(Context * self, DescriptorSetImages * set) {
     }
 }
 
-void bind_global_settings(Context * self, GlobalSettings * settings) {
+static void bind_global_settings(Context * self, GlobalSettings * settings) {
     const GLMethods & gl = self->gl;
     if (self->current_global_settings == settings) {
         return;
-    }
-    if (settings->primitive_restart) {
-        gl.Enable(GL_PRIMITIVE_RESTART);
-    } else {
-        gl.Disable(GL_PRIMITIVE_RESTART);
-    }
-    if (settings->polygon_offset) {
-        gl.Enable(GL_POLYGON_OFFSET_FILL);
-        gl.PolygonOffset(settings->polygon_offset_factor, settings->polygon_offset_units);
-    } else {
-        gl.Disable(GL_POLYGON_OFFSET_FILL);
     }
     if (settings->cull_face) {
         gl.Enable(GL_CULL_FACE);
@@ -915,49 +904,40 @@ void bind_global_settings(Context * self, GlobalSettings * settings) {
     } else {
         gl.Disable(GL_CULL_FACE);
     }
-    if (settings->depth_test) {
+    if (settings->depth_enabled) {
         gl.Enable(GL_DEPTH_TEST);
         gl.DepthFunc(settings->depth_func);
+        gl.DepthMask(settings->depth_write);
+        self->current_depth_mask = settings->depth_write;
     } else {
         gl.Disable(GL_DEPTH_TEST);
     }
-    if (!self->is_stencil_default || !settings->is_stencil_default) {
-        if (settings->stencil_test) {
-            gl.Enable(GL_STENCIL_TEST);
-        } else {
-            gl.Disable(GL_STENCIL_TEST);
-        }
+    if (settings->stencil_enabled) {
+        gl.Enable(GL_STENCIL_TEST);
         gl.StencilMaskSeparate(GL_FRONT, settings->stencil_front.write_mask);
         gl.StencilMaskSeparate(GL_BACK, settings->stencil_back.write_mask);
         gl.StencilFuncSeparate(GL_FRONT, settings->stencil_front.compare_op, settings->stencil_front.reference, settings->stencil_front.compare_mask);
         gl.StencilFuncSeparate(GL_BACK, settings->stencil_back.compare_op, settings->stencil_back.reference, settings->stencil_back.compare_mask);
         gl.StencilOpSeparate(GL_FRONT, settings->stencil_front.fail_op, settings->stencil_front.pass_op, settings->stencil_front.depth_fail_op);
         gl.StencilOpSeparate(GL_BACK, settings->stencil_back.fail_op, settings->stencil_back.pass_op, settings->stencil_back.depth_fail_op);
-        self->is_stencil_default = settings->is_stencil_default;
+        self->current_stencil_mask = settings->stencil_front.write_mask;
+    } else {
+        gl.Disable(GL_STENCIL_TEST);
     }
-    if (!self->is_mask_default || !settings->is_mask_default || self->current_attachments != settings->attachments) {
-        gl.DepthMask(settings->depth_write);
-        self->is_mask_default = settings->is_mask_default;
-    }
-    if (!self->is_blend_default || !settings->is_blend_default || self->current_attachments != settings->attachments) {
-        gl.BlendEquationSeparate(settings->blend_op_color, settings->blend_op_alpha);
-        gl.BlendFuncSeparate(settings->blend_src_color, settings->blend_dst_color, settings->blend_src_alpha, settings->blend_dst_alpha);
+    if (settings->blend_enabled) {
         for (int i = 0; i < settings->attachments; ++i) {
-            if (settings->blend_enable >> i & 1) {
+            if (settings->blend[i].enable) {
                 gl.Enablei(GL_BLEND, i);
             } else {
                 gl.Disablei(GL_BLEND, i);
             }
+            // gl.BlendEquationSeparatei(i, settings->blend[i].op_color, settings->blend[i].op_alpha);
+            // gl.BlendFuncSeparatei(i, settings->blend[i].src_color, settings->blend[i].dst_color, settings->blend[i].src_alpha, settings->blend[i].dst_alpha);
         }
-        self->is_blend_default = settings->is_blend_default;
+    } else {
+        gl.Disable(GL_BLEND);
     }
     self->current_global_settings = settings;
-    self->current_attachments = settings->attachments;
-    if (settings->attachments > 0) {
-        self->current_clear_mask = settings->depth_write << 8 | settings->stencil_front.write_mask << 16;
-    } else {
-        self->current_clear_mask = (self->current_clear_mask & 0xf) | settings->depth_write << 8 | settings->stencil_front.write_mask << 16;
-    }
 }
 
 void bind_framebuffer(Context * self, int framebuffer) {
@@ -1012,7 +992,7 @@ GLObject * build_framebuffer(Context * self, PyObject * attachments) {
 
     if (depth_stencil_attachment != Py_None) {
         ImageFace * face = (ImageFace *)depth_stencil_attachment;
-        int buffer = face->image->format.buffer;
+        int buffer = face->image->fmt.buffer;
         int attachment = buffer == GL_DEPTH ? GL_DEPTH_ATTACHMENT : buffer == GL_STENCIL ? GL_STENCIL_ATTACHMENT : GL_DEPTH_STENCIL_ATTACHMENT;
         if (face->image->renderbuffer) {
             gl.FramebufferRenderbuffer(GL_FRAMEBUFFER, attachment, GL_RENDERBUFFER, face->image->image);
@@ -1224,7 +1204,7 @@ DescriptorSetImages * build_descriptor_set_images(Context * self, PyObject * bin
     return res;
 }
 
-GlobalSettings * build_global_settings(Context * self, PyObject * settings) {
+static GlobalSettings * build_global_settings(Context * self, PyObject * settings) {
     if (GlobalSettings * cache = (GlobalSettings *)PyDict_GetItem(self->global_settings_cache, settings)) {
         cache->uses += 1;
         Py_INCREF(cache);
@@ -1236,53 +1216,46 @@ GlobalSettings * build_global_settings(Context * self, PyObject * settings) {
     GlobalSettings * res = PyObject_New(GlobalSettings, self->module_state->GlobalSettings_type);
     res->uses = 1;
 
-    res->primitive_restart = PyObject_IsTrue(seq[0]);
-    res->cull_face = PyLong_AsLong(seq[1]);
-    res->depth_test = PyObject_IsTrue(seq[3]);
-    res->depth_write = PyObject_IsTrue(seq[4]);
-    res->depth_func = PyLong_AsLong(seq[5]);
-    res->stencil_test = PyObject_IsTrue(seq[6]);
-    res->stencil_front = {
-        PyLong_AsLong(seq[7]),
-        PyLong_AsLong(seq[8]),
-        PyLong_AsLong(seq[9]),
-        PyLong_AsLong(seq[10]),
-        PyLong_AsLong(seq[11]),
-        PyLong_AsLong(seq[12]),
-        PyLong_AsLong(seq[13]),
-    };
-    res->stencil_back = {
-        PyLong_AsLong(seq[14]),
-        PyLong_AsLong(seq[15]),
-        PyLong_AsLong(seq[16]),
-        PyLong_AsLong(seq[17]),
-        PyLong_AsLong(seq[18]),
-        PyLong_AsLong(seq[19]),
-        PyLong_AsLong(seq[20]),
-    };
-    res->blend_enable = PyLong_AsLong(seq[21]);
-    res->blend_op_color = PyLong_AsLong(seq[22]);
-    res->blend_op_alpha = PyLong_AsLong(seq[23]);
-    res->blend_src_color = PyLong_AsLong(seq[24]);
-    res->blend_dst_color = PyLong_AsLong(seq[25]);
-    res->blend_src_alpha = PyLong_AsLong(seq[26]);
-    res->blend_dst_alpha = PyLong_AsLong(seq[27]);
-    res->polygon_offset = PyObject_IsTrue(seq[28]);
-    res->polygon_offset_factor = (float)PyFloat_AsDouble(seq[29]);
-    res->polygon_offset_units = (float)PyFloat_AsDouble(seq[30]);
-    res->attachments = PyLong_AsLong(seq[31]);
-
-    res->is_mask_default = res->depth_write;
-    res->is_stencil_default = !res->stencil_test;
-    if (memcmp(&res->stencil_front, &default_stencil_settings, sizeof(StencilSettings))) {
-        res->is_stencil_default = false;
+    int it = 0;
+    res->attachments = PyLong_AsLong(seq[it++]);
+    res->cull_face = PyLong_AsLong(seq[it++]);
+    res->depth_enabled = PyObject_IsTrue(seq[it++]);
+    if (res->depth_enabled) {
+        res->depth_func = PyLong_AsLong(seq[it++]);
+        res->depth_write = PyObject_IsTrue(seq[it++]);
     }
-    if (memcmp(&res->stencil_back, &default_stencil_settings, sizeof(StencilSettings))) {
-        res->is_stencil_default = false;
+    res->stencil_enabled = PyObject_IsTrue(seq[it++]);
+    if (res->stencil_enabled) {
+        res->stencil_front = {
+            PyLong_AsLong(seq[it++]),
+            PyLong_AsLong(seq[it++]),
+            PyLong_AsLong(seq[it++]),
+            PyLong_AsLong(seq[it++]),
+            PyLong_AsLong(seq[it++]),
+            PyLong_AsLong(seq[it++]),
+            PyLong_AsLong(seq[it++]),
+        };
+        res->stencil_back = {
+            PyLong_AsLong(seq[it++]),
+            PyLong_AsLong(seq[it++]),
+            PyLong_AsLong(seq[it++]),
+            PyLong_AsLong(seq[it++]),
+            PyLong_AsLong(seq[it++]),
+            PyLong_AsLong(seq[it++]),
+            PyLong_AsLong(seq[it++]),
+        };
     }
-    res->is_blend_default = !res->blend_enable;
-    if (res->blend_op_color != 0x8006 || res->blend_op_alpha != 0x8006 || res->blend_src_color != 1 || res->blend_dst_color != 0 || res->blend_src_alpha != 1 || res->blend_dst_alpha != 0) {
-        res->is_blend_default = false;
+    res->blend_enabled = PyLong_AsLong(seq[it++]);
+    if (res->blend_enabled) {
+        for (int i = 0; i < res->attachments; ++i) {
+            res->blend[i].enable = PyLong_AsLong(seq[it++]);
+            res->blend[i].op_color = PyLong_AsLong(seq[it++]);
+            res->blend[i].op_alpha = PyLong_AsLong(seq[it++]);
+            res->blend[i].src_color = PyLong_AsLong(seq[it++]);
+            res->blend[i].dst_color = PyLong_AsLong(seq[it++]);
+            res->blend[i].src_alpha = PyLong_AsLong(seq[it++]);
+            res->blend[i].dst_alpha = PyLong_AsLong(seq[it++]);
+        }
     }
 
     PyDict_SetItem(self->global_settings_cache, settings, (PyObject *)res);
@@ -1485,6 +1458,8 @@ Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwargs) {
     res->current_program = -1;
     res->current_vertex_array = -1;
     res->current_clear_mask = 0;
+    res->current_depth_mask = 0;
+    res->current_stencil_mask = 0;
     res->viewport = {};
     res->default_texture_unit = default_texture_unit;
     res->max_samples = max_samples;
@@ -1645,9 +1620,9 @@ Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * kwargs) 
         samples = self->max_samples;
     }
 
-    ImageFormat format = get_image_format(format_str);
+    ImageFormat fmt = get_image_format(format_str);
 
-    if (!format.type) {
+    if (!fmt.type) {
         PyErr_Format(PyExc_ValueError, "invalid image format");
         return NULL;
     }
@@ -1658,7 +1633,7 @@ Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * kwargs) 
         if (PyObject_GetBuffer(data, &view, PyBUF_SIMPLE)) {
             return NULL;
         }
-        int padded_row = (width * format.pixel_size + 3) & ~3;
+        int padded_row = (width * fmt.pixel_size + 3) & ~3;
         int expected_size = padded_row * height * (array ? array : 1) * (cubemap ? 6 : 1);
         if ((int)view.len != expected_size) {
             PyBuffer_Release(&view);
@@ -1673,7 +1648,7 @@ Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * kwargs) 
     } else if (renderbuffer) {
         gl.GenRenderbuffers(1, (unsigned *)&image);
         gl.BindRenderbuffer(GL_RENDERBUFFER, image);
-        gl.RenderbufferStorageMultisample(GL_RENDERBUFFER, samples > 1 ? samples : 0, format.internal_format, width, height);
+        gl.RenderbufferStorageMultisample(GL_RENDERBUFFER, samples > 1 ? samples : 0, fmt.internal_format, width, height);
     } else {
         gl.GenTextures(1, (unsigned *)&image);
         gl.ActiveTexture(self->default_texture_unit);
@@ -1681,22 +1656,22 @@ Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * kwargs) 
         gl.TexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         gl.TexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         if (cubemap) {
-            int padded_row = (width * format.pixel_size + 3) & ~3;
+            int padded_row = (width * fmt.pixel_size + 3) & ~3;
             int stride = padded_row * height;
             for (int i = 0; i < 6; ++i) {
                 int face = GL_TEXTURE_CUBE_MAP_POSITIVE_X + i;
                 char * ptr = view.buf ? (char *)view.buf + stride * i : NULL;
-                gl.TexImage2D(face, 0, format.internal_format, width, height, 0, format.format, format.type, ptr);
+                gl.TexImage2D(face, 0, fmt.internal_format, width, height, 0, fmt.format, fmt.type, ptr);
             }
         } else if (array) {
-            gl.TexImage3D(target, 0, format.internal_format, width, height, array, 0, format.format, format.type, view.buf);
+            gl.TexImage3D(target, 0, fmt.internal_format, width, height, array, 0, fmt.format, fmt.type, view.buf);
         } else {
-            gl.TexImage2D(target, 0, format.internal_format, width, height, 0, format.format, format.type, view.buf);
+            gl.TexImage2D(target, 0, fmt.internal_format, width, height, 0, fmt.format, fmt.type, view.buf);
         }
     }
 
     ClearValue clear_value = {};
-    if (format.buffer == GL_DEPTH || format.buffer == GL_DEPTH_STENCIL) {
+    if (fmt.buffer == GL_DEPTH || fmt.buffer == GL_DEPTH_STENCIL) {
         clear_value.clear_floats[0] = 1.0f;
     }
 
@@ -1709,7 +1684,7 @@ Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * kwargs) 
     res->size = Py_BuildValue("(ii)", width, height);
     res->faces = PyDict_New();
     res->clear_value = clear_value;
-    res->format = format;
+    res->fmt = fmt;
     res->image = image;
     res->width = width;
     res->height = height;
@@ -1722,7 +1697,7 @@ Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * kwargs) 
 
     res->framebuffer = NULL;
     if (!cubemap && !array) {
-        if (format.color) {
+        if (fmt.color) {
             PyObject * face = PyObject_CallMethod((PyObject *)res, "face", NULL);
             PyObject * attachments = Py_BuildValue("((ii)(N)O)", width, height, face, Py_None);
             res->framebuffer = build_framebuffer(self, attachments);
@@ -1752,20 +1727,18 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         "uniforms",
         "depth",
         "stencil",
-        "blending",
-        "polygon_offset",
+        "blend",
         "framebuffer",
         "vertex_buffers",
         "index_buffer",
         "short_index",
-        "primitive_restart",
         "cull_face",
         "topology",
         "vertex_count",
         "instance_count",
         "first_vertex",
         "viewport",
-        "skip_validation",
+        "includes",
         NULL,
     };
 
@@ -1774,27 +1747,25 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     PyObject * layout = self->module_state->empty_tuple;
     PyObject * resources = self->module_state->empty_tuple;
     PyObject * uniforms = Py_None;
-    PyObject * depth = Py_True;
-    PyObject * stencil = Py_False;
-    PyObject * blending = Py_False;
-    PyObject * polygon_offset = Py_False;
-    PyObject * framebuffer_images = NULL;
+    PyObject * depth = Py_None;
+    PyObject * stencil = Py_None;
+    PyObject * blend = Py_None;
+    PyObject * framebuffer_images = self->module_state->empty_tuple;
     PyObject * vertex_buffers = self->module_state->empty_tuple;
     PyObject * index_buffer = Py_None;
     int short_index = false;
-    PyObject * primitive_restart = Py_True;
     PyObject * cull_face = self->module_state->str_none;
     int topology = GL_TRIANGLES;
     int vertex_count = 0;
     int instance_count = 1;
     int first_vertex = 0;
     PyObject * viewport = Py_None;
-    int skip_validation = false;
+    PyObject * includes = Py_None;
 
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
-        "|$O!O!OOOOOOOOOOpOOO&iiiOp",
+        "|O!O!OOOOOOOOOpOO&iiiOO",
         keywords,
         &PyUnicode_Type,
         &vertex_shader,
@@ -1805,13 +1776,11 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         &uniforms,
         &depth,
         &stencil,
-        &blending,
-        &polygon_offset,
+        &blend,
         &framebuffer_images,
         &vertex_buffers,
         &index_buffer,
         &short_index,
-        &primitive_restart,
         &cull_face,
         topology_converter,
         &topology,
@@ -1819,7 +1788,7 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         &instance_count,
         &first_vertex,
         &viewport,
-        &skip_validation
+        &includes
     );
 
     if (!args_ok) {
@@ -1927,23 +1896,21 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
         Py_DECREF(tuple);
     }
 
-    if (!skip_validation) {
-        PyObject * validate = PyObject_CallMethod(
-            self->module_state->helper,
-            "validate",
-            "NNNOOOO",
-            program_attributes,
-            program_uniforms,
-            program_uniform_buffers,
-            vertex_buffers,
-            layout,
-            resources,
-            self->limits
-        );
+    PyObject * validate = PyObject_CallMethod(
+        self->module_state->helper,
+        "validate",
+        "NNNOOOO",
+        program_attributes,
+        program_uniforms,
+        program_uniform_buffers,
+        vertex_buffers,
+        layout,
+        resources,
+        self->limits
+    );
 
-        if (!validate) {
-            return NULL;
-        }
+    if (!validate) {
+        return NULL;
     }
 
     int layout_count = layout != Py_None ? (int)PyList_Size(layout) : 0;
@@ -2003,13 +1970,11 @@ Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kw
     PyObject * settings = PyObject_CallMethod(
         self->module_state->helper,
         "settings",
-        "OOOOOON",
-        primitive_restart,
+        "OOOON",
         cull_face,
         depth,
         stencil,
-        blending,
-        polygon_offset,
+        blend,
         attachments
     );
 
@@ -2304,7 +2269,7 @@ PyObject * Buffer_meth_unmap(Buffer * self) {
 
 void clear_bound_image(Image * self) {
     const GLMethods & gl = self->ctx->gl;
-    switch (self->format.buffer) {
+    switch (self->fmt.buffer) {
         case GL_COLOR: {
             if ((self->ctx->current_clear_mask & 0xf) != 0xf) {
                 self->ctx->current_clear_mask |= 0xf;
@@ -2338,14 +2303,14 @@ void clear_bound_image(Image * self) {
             break;
         }
     }
-    if (self->format.clear_type == 'f') {
-        gl.ClearBufferfv(self->format.buffer, 0, self->clear_value.clear_floats);
-    } else if (self->format.clear_type == 'i') {
-        gl.ClearBufferiv(self->format.buffer, 0, self->clear_value.clear_ints);
-    } else if (self->format.clear_type == 'u') {
-        gl.ClearBufferuiv(self->format.buffer, 0, self->clear_value.clear_uints);
-    } else if (self->format.clear_type == 'x') {
-        gl.ClearBufferfi(self->format.buffer, 0, self->clear_value.clear_floats[0], self->clear_value.clear_ints[1]);
+    if (self->fmt.clear_type == 'f') {
+        gl.ClearBufferfv(self->fmt.buffer, 0, self->clear_value.clear_floats);
+    } else if (self->fmt.clear_type == 'i') {
+        gl.ClearBufferiv(self->fmt.buffer, 0, self->clear_value.clear_ints);
+    } else if (self->fmt.clear_type == 'u') {
+        gl.ClearBufferuiv(self->fmt.buffer, 0, self->clear_value.clear_uints);
+    } else if (self->fmt.clear_type == 'x') {
+        gl.ClearBufferfi(self->fmt.buffer, 0, self->clear_value.clear_floats[0], self->clear_value.clear_ints[1]);
     }
 }
 
@@ -2401,7 +2366,7 @@ PyObject * Image_meth_write(Image * self, PyObject * vargs, PyObject * kwargs) {
     const bool invalid_layer = invalid_layer_type || layer < 0 || layer >= (self->array ? self->array : 1) * (self->cubemap ? 6 : 1);
     const bool invalid_level = level < 0 || level > self->max_level;
     const bool layer_but_simple = !self->cubemap && !self->array && layer_arg != Py_None;
-    const bool invalid_type = !self->format.color || self->samples != 1;
+    const bool invalid_type = !self->fmt.color || self->samples != 1;
 
     if (offset_but_no_size || invalid_size || invalid_offset || invalid_layer || invalid_level || layer_but_simple || invalid_type) {
         PyBuffer_Release(&view);
@@ -2423,7 +2388,7 @@ PyObject * Image_meth_write(Image * self, PyObject * vargs, PyObject * kwargs) {
             PyErr_Format(PyExc_ValueError, "invalid level");
         } else if (layer_but_simple) {
             PyErr_Format(PyExc_TypeError, "the image is not layered");
-        } else if (!self->format.color) {
+        } else if (!self->fmt.color) {
             PyErr_Format(PyExc_TypeError, "cannot write to depth or stencil images");
         } else if (self->samples != 1) {
             PyErr_Format(PyExc_TypeError, "cannot write to multisampled images");
@@ -2431,7 +2396,7 @@ PyObject * Image_meth_write(Image * self, PyObject * vargs, PyObject * kwargs) {
         return NULL;
     }
 
-    int padded_row = (size.x * self->format.pixel_size + 3) & ~3;
+    int padded_row = (size.x * self->fmt.pixel_size + 3) & ~3;
     int expected_size = padded_row * size.y;
 
     if (layer_arg == Py_None) {
@@ -2449,25 +2414,25 @@ PyObject * Image_meth_write(Image * self, PyObject * vargs, PyObject * kwargs) {
     gl.ActiveTexture(self->ctx->default_texture_unit);
     gl.BindTexture(self->target, self->image);
     if (self->cubemap) {
-        int padded_row = (size.x * self->format.pixel_size + 3) & ~3;
+        int padded_row = (size.x * self->fmt.pixel_size + 3) & ~3;
         int stride = padded_row * size.y;
         if (layer_arg != Py_None) {
             int face = GL_TEXTURE_CUBE_MAP_POSITIVE_X + layer;
-            gl.TexSubImage2D(face, level, offset.x, offset.y, size.x, size.y, self->format.format, self->format.type, view.buf);
+            gl.TexSubImage2D(face, level, offset.x, offset.y, size.x, size.y, self->fmt.format, self->fmt.type, view.buf);
         } else {
             for (int i = 0; i < 6; ++i) {
                 int face = GL_TEXTURE_CUBE_MAP_POSITIVE_X + i;
-                gl.TexSubImage2D(face, level, offset.x, offset.y, size.x, size.y, self->format.format, self->format.type, (char *)view.buf + stride * i);
+                gl.TexSubImage2D(face, level, offset.x, offset.y, size.x, size.y, self->fmt.format, self->fmt.type, (char *)view.buf + stride * i);
             }
         }
     } else if (self->array) {
         if (layer_arg != Py_None) {
-            gl.TexSubImage3D(self->target, level, offset.x, offset.y, layer, size.x, size.y, 1, self->format.format, self->format.type, view.buf);
+            gl.TexSubImage3D(self->target, level, offset.x, offset.y, layer, size.x, size.y, 1, self->fmt.format, self->fmt.type, view.buf);
         } else {
-            gl.TexSubImage3D(self->target, level, offset.x, offset.y, 0, size.x, size.y, self->array, self->format.format, self->format.type, view.buf);
+            gl.TexSubImage3D(self->target, level, offset.x, offset.y, 0, size.x, size.y, self->array, self->fmt.format, self->fmt.type, view.buf);
         }
     } else {
-        gl.TexSubImage2D(self->target, level, offset.x, offset.y, size.x, size.y, self->format.format, self->format.type, view.buf);
+        gl.TexSubImage2D(self->target, level, offset.x, offset.y, size.x, size.y, self->fmt.format, self->fmt.type, view.buf);
     }
 
     PyBuffer_Release(&view);
@@ -2574,9 +2539,9 @@ PyObject * Image_meth_read(Image * self, PyObject * vargs, PyObject * kwargs) {
 
     const GLMethods & gl = self->ctx->gl;
 
-    PyObject * res = PyBytes_FromStringAndSize(NULL, (long long)size.x * size.y * self->format.pixel_size);
+    PyObject * res = PyBytes_FromStringAndSize(NULL, (long long)size.x * size.y * self->fmt.pixel_size);
     bind_framebuffer(self->ctx, self->framebuffer->obj);
-    gl.ReadPixels(offset.x, offset.y, size.x, size.y, self->format.format, self->format.type, PyBytes_AS_STRING(res));
+    gl.ReadPixels(offset.x, offset.y, size.x, size.y, self->fmt.format, self->fmt.type, PyBytes_AS_STRING(res));
     return res;
 }
 
@@ -2633,7 +2598,7 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
         source_viewport.height = self->height;
     }
 
-    const bool srgb = (srgb_arg == Py_None && self->format.internal_format == GL_SRGB8_ALPHA8) || srgb_arg == Py_True;
+    const bool srgb = (srgb_arg == Py_None && self->fmt.internal_format == GL_SRGB8_ALPHA8) || srgb_arg == Py_True;
     const bool flush = (flush_arg == Py_None && target_arg == Py_None) || flush_arg == Py_True;
 
     const bool invalid_target_viewport = invalid_target_viewport_type || (
@@ -2646,8 +2611,8 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
         source_viewport.x + source_viewport.width > self->width || source_viewport.y + source_viewport.height > self->height
     );
 
-    const bool invalid_target = target && (target->cubemap || target->array || !target->format.color || target->samples > 1);
-    const bool invalid_source = self->cubemap || self->array || !self->format.color;
+    const bool invalid_target = target && (target->cubemap || target->array || !target->fmt.color || target->samples > 1);
+    const bool invalid_source = self->cubemap || self->array || !self->fmt.color;
 
     const bool error = (
         invalid_target_type || invalid_srgb_parameter || invalid_flush_parameter ||
@@ -2674,13 +2639,13 @@ PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
             PyErr_Format(PyExc_TypeError, "cannot blit cubemap images");
         } else if (self->array) {
             PyErr_Format(PyExc_TypeError, "cannot blit array images");
-        } else if (!self->format.color) {
+        } else if (!self->fmt.color) {
             PyErr_Format(PyExc_TypeError, "cannot blit depth or stencil images");
         } else if (target && target->cubemap) {
             PyErr_Format(PyExc_TypeError, "cannot blit to cubemap images");
         } else if (target && target->array) {
             PyErr_Format(PyExc_TypeError, "cannot blit to array images");
-        } else if (target && !target->format.color) {
+        } else if (target && !target->fmt.color) {
             PyErr_Format(PyExc_TypeError, "cannot blit to depth or stencil images");
         } else if (target && target->samples > 1) {
             PyErr_Format(PyExc_TypeError, "cannot blit to multisampled images");
@@ -2752,10 +2717,10 @@ ImageFace * Image_meth_face(Image * self, PyObject * vargs, PyObject * kwargs) {
     res->layer = layer;
     res->level = level;
     res->samples = self->samples;
-    res->color = self->format.color;
+    res->flags = self->fmt.flags;
 
     res->framebuffer = NULL;
-    if (self->format.color) {
+    if (self->fmt.color) {
         PyObject * attachments = Py_BuildValue("((ii)(O)O)", width, height, res, Py_None);
         res->framebuffer = build_framebuffer(self->ctx, attachments);
         Py_DECREF(attachments);
@@ -2771,25 +2736,25 @@ ImageFace * Image_meth_face(Image * self, PyObject * vargs, PyObject * kwargs) {
 }
 
 PyObject * Image_get_clear_value(Image * self) {
-    if (self->format.clear_type == 'x') {
+    if (self->fmt.clear_type == 'x') {
         return Py_BuildValue("fi", self->clear_value.clear_floats[0], self->clear_value.clear_ints[1]);
     }
-    if (self->format.components == 1) {
-        if (self->format.clear_type == 'f') {
+    if (self->fmt.components == 1) {
+        if (self->fmt.clear_type == 'f') {
             return PyFloat_FromDouble(self->clear_value.clear_floats[0]);
-        } else if (self->format.clear_type == 'i') {
+        } else if (self->fmt.clear_type == 'i') {
             return PyLong_FromLong(self->clear_value.clear_ints[0]);
-        } else if (self->format.clear_type == 'u') {
+        } else if (self->fmt.clear_type == 'u') {
             return PyLong_FromUnsignedLong(self->clear_value.clear_uints[0]);
         }
     }
-    PyObject * res = PyTuple_New(self->format.components);
-    for (int i = 0; i < self->format.components; ++i) {
-        if (self->format.clear_type == 'f') {
+    PyObject * res = PyTuple_New(self->fmt.components);
+    for (int i = 0; i < self->fmt.components; ++i) {
+        if (self->fmt.clear_type == 'f') {
             PyTuple_SetItem(res, i, PyFloat_FromDouble(self->clear_value.clear_floats[i]));
-        } else if (self->format.clear_type == 'i') {
+        } else if (self->fmt.clear_type == 'i') {
             PyTuple_SetItem(res, i, PyLong_FromLong(self->clear_value.clear_ints[i]));
-        } else if (self->format.clear_type == 'u') {
+        } else if (self->fmt.clear_type == 'u') {
             PyTuple_SetItem(res, i, PyLong_FromUnsignedLong(self->clear_value.clear_uints[i]));
         }
     }
@@ -2798,20 +2763,20 @@ PyObject * Image_get_clear_value(Image * self) {
 
 int Image_set_clear_value(Image * self, PyObject * value) {
     ClearValue clear_value = {};
-    if (self->format.components == 1) {
-        if (self->format.clear_type == 'f' ? !PyFloat_CheckExact(value) : !PyLong_CheckExact(value)) {
-            if (self->format.clear_type == 'f') {
+    if (self->fmt.components == 1) {
+        if (self->fmt.clear_type == 'f' ? !PyFloat_CheckExact(value) : !PyLong_CheckExact(value)) {
+            if (self->fmt.clear_type == 'f') {
                 PyErr_Format(PyExc_TypeError, "the clear value must be a float");
             } else {
                 PyErr_Format(PyExc_TypeError, "the clear value must be an int");
             }
             return -1;
         }
-        if (self->format.clear_type == 'f') {
+        if (self->fmt.clear_type == 'f') {
             clear_value.clear_floats[0] = (float)PyFloat_AsDouble(value);
-        } else if (self->format.clear_type == 'i') {
+        } else if (self->fmt.clear_type == 'i') {
             clear_value.clear_ints[0] = PyLong_AsLong(value);
-        } else if (self->format.clear_type == 'u') {
+        } else if (self->fmt.clear_type == 'u') {
             clear_value.clear_uints[0] = PyLong_AsUnsignedLong(value);
         }
         self->clear_value = clear_value;
@@ -2827,25 +2792,25 @@ int Image_set_clear_value(Image * self, PyObject * value) {
     int size = (int)PySequence_Fast_GET_SIZE(values);
     PyObject ** seq = PySequence_Fast_ITEMS(values);
 
-    if (size != self->format.components) {
+    if (size != self->fmt.components) {
         Py_DECREF(values);
         PyErr_Format(PyExc_ValueError, "invalid clear value size");
         return -1;
     }
 
-    if (self->format.clear_type == 'f') {
-        for (int i = 0; i < self->format.components; ++i) {
+    if (self->fmt.clear_type == 'f') {
+        for (int i = 0; i < self->fmt.components; ++i) {
             clear_value.clear_floats[i] = (float)PyFloat_AsDouble(seq[i]);
         }
-    } else if (self->format.clear_type == 'i') {
-        for (int i = 0; i < self->format.components; ++i) {
+    } else if (self->fmt.clear_type == 'i') {
+        for (int i = 0; i < self->fmt.components; ++i) {
             clear_value.clear_ints[i] = PyLong_AsLong(seq[i]);
         }
-    } else if (self->format.clear_type == 'u') {
-        for (int i = 0; i < self->format.components; ++i) {
+    } else if (self->fmt.clear_type == 'u') {
+        for (int i = 0; i < self->fmt.components; ++i) {
             clear_value.clear_uints[i] = PyLong_AsUnsignedLong(seq[i]);
         }
-    } else if (self->format.clear_type == 'x') {
+    } else if (self->fmt.clear_type == 'x') {
         clear_value.clear_floats[0] = (float)PyFloat_AsDouble(seq[0]);
         clear_value.clear_ints[1] = PyLong_AsLong(seq[1]);
     }
@@ -3006,7 +2971,7 @@ PyObject * ImageFace_meth_blit(ImageFace * self, PyObject * vargs, PyObject * kw
         source_viewport.height = self->height;
     }
 
-    const bool srgb = (srgb_arg == Py_None && self->image->format.internal_format == GL_SRGB8_ALPHA8) || srgb_arg == Py_True;
+    const bool srgb = (srgb_arg == Py_None && self->image->fmt.internal_format == GL_SRGB8_ALPHA8) || srgb_arg == Py_True;
 
     const bool invalid_target_viewport = invalid_target_viewport_type || (
         target_viewport.x < 0 || target_viewport.y < 0 || target_viewport.width <= 0 || target_viewport.height <= 0 ||
@@ -3018,8 +2983,8 @@ PyObject * ImageFace_meth_blit(ImageFace * self, PyObject * vargs, PyObject * kw
         source_viewport.x + source_viewport.width > self->width || source_viewport.y + source_viewport.height > self->height
     );
 
-    const bool invalid_target = target->samples > 1 || !target->color;
-    const bool invalid_source = !self->color;
+    const bool invalid_target = target->samples > 1 || !(target->flags & 1);
+    const bool invalid_source = !(self->flags & 1);
 
     const bool error = (
         invalid_srgb_parameter || invalid_target_viewport ||
@@ -3258,7 +3223,7 @@ PyGetSetDef Image_getset[] = {
 PyMemberDef Image_members[] = {
     {"size", T_OBJECT_EX, offsetof(Image, size), READONLY, NULL},
     {"samples", T_INT, offsetof(Image, samples), READONLY, NULL},
-    {"color", T_BOOL, offsetof(Image, format.color), READONLY, NULL},
+    {"flags", T_INT, offsetof(Image, fmt.flags), READONLY},
     {},
 };
 
@@ -3293,7 +3258,7 @@ PyMemberDef ImageFace_members[] = {
     {"layer", T_INT, offsetof(ImageFace, layer), READONLY, NULL},
     {"level", T_INT, offsetof(ImageFace, level), READONLY, NULL},
     {"samples", T_INT, offsetof(ImageFace, samples), READONLY, NULL},
-    {"color", T_BOOL, offsetof(ImageFace, color), READONLY, NULL},
+    {"flags", T_INT, offsetof(ImageFace, flags), READONLY},
     {},
 };
 
