@@ -161,10 +161,23 @@ UNIFORM_PACKER = {
 }
 
 
+class DefaultLoader:
+    def __init__(self):
+        import ctypes
+        if hasattr(ctypes, 'WinDLL'):
+            lib = ctypes.WinDLL('Opengl32.dll')
+            proc = ctypes.cast(lib.wglGetProcAddress, ctypes.CFUNCTYPE(ctypes.c_ulonglong, ctypes.c_char_p))
+        else:
+            lib = ctypes.CDLL('libGL.so')
+            proc = ctypes.cast(lib.glXGetProcAddress, ctypes.CFUNCTYPE(ctypes.c_ulonglong, ctypes.c_char_p))
+        self.load_opengl_function = lambda name: proc(name.encode()) or ctypes.cast(lib[name], ctypes.c_void_p).value
+
+
 def loader(headless=False):
-    import glcontext
-    mode = 'standalone' if headless else 'detect'
-    return glcontext.default_backend()(glversion=330, mode=mode)
+    if headless:
+        import glcontext
+        return glcontext.default_backend()(glversion=450, mode='standalone')
+    return DefaultLoader()
 
 
 def calcsize(layout):

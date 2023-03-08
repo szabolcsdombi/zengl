@@ -64,7 +64,6 @@ setup(
         'graphics',
         'visualization',
     ],
-    install_requires=['glcontext'],
     extras_require={
         'examples': [
             'chull',
