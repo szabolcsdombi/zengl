@@ -797,6 +797,7 @@ struct Context {
     int frame_time;
     int default_texture_unit;
     int mapped_buffers;
+    int gles;
     Limits limits;
     GLMethods gl;
 };
@@ -1466,14 +1467,24 @@ static Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwar
         "glsl", gl.GetString(GL_SHADING_LANGUAGE_VERSION)
     );
 
+    PyObject * detect_gles = PyObject_CallMethod(module_state->helper, "detect_gles", "(O)", info_dict);
+    if (!detect_gles) {
+        return NULL;
+    }
+
+    int gles = PyObject_IsTrue(detect_gles);
+    Py_DECREF(detect_gles);
+
     int max_texture_image_units = 0;
     gl.GetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &max_texture_image_units);
     int default_texture_unit = GL_TEXTURE0 + max_texture_image_units - 1;
 
     gl.Enable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
-    gl.Enable(GL_PROGRAM_POINT_SIZE);
-    gl.Enable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-    gl.Enable(GL_FRAMEBUFFER_SRGB);
+    if (!gles) {
+        gl.Enable(GL_PROGRAM_POINT_SIZE);
+        gl.Enable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+        gl.Enable(GL_FRAMEBUFFER_SRGB);
+    }
 
     GLObject * default_framebuffer = PyObject_New(GLObject, module_state->GLObject_type);
     default_framebuffer->obj = 0;
@@ -1512,6 +1523,7 @@ static Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwar
     res->frame_time = 0;
     res->default_texture_unit = default_texture_unit;
     res->mapped_buffers = 0;
+    res->gles = gles;
     res->limits = limits;
     res->gl = gl;
     return res;
@@ -2064,9 +2076,11 @@ static PyObject * Context_meth_new_frame(Context * self, PyObject * args, PyObje
     }
 
     gl.Enable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
-    gl.Enable(GL_PROGRAM_POINT_SIZE);
-    gl.Enable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-    gl.Enable(GL_FRAMEBUFFER_SRGB);
+    if (!self->gles) {
+        gl.Enable(GL_PROGRAM_POINT_SIZE);
+        gl.Enable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+        gl.Enable(GL_FRAMEBUFFER_SRGB);
+    }
     Py_RETURN_NONE;
 }
 
@@ -2099,9 +2113,11 @@ static PyObject * Context_meth_end_frame(Context * self, PyObject * args, PyObje
         gl.Disable(GL_BLEND);
 
         gl.Disable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
-        gl.Disable(GL_PROGRAM_POINT_SIZE);
-        gl.Disable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-        gl.Disable(GL_FRAMEBUFFER_SRGB);
+        if (!self->gles) {
+            gl.Disable(GL_PROGRAM_POINT_SIZE);
+            gl.Disable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+            gl.Disable(GL_FRAMEBUFFER_SRGB);
+        }
     }
 
     if (self->frame_time_query_running) {

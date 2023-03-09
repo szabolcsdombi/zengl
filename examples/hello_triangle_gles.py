@@ -7,12 +7,12 @@ ctx = zengl.context()
 
 print('Vendor: {vendor} | Renderer: {renderer} | Version: {version} | GLSL: {glsl}'.format_map(ctx.info))
 
-image = ctx.image(window.size, 'rgba8unorm', samples=4)
+image = ctx.image(window.size, 'rgba8unorm-srgb', samples=4)
 image.clear_value = (1.0, 1.0, 1.0, 1.0)
 
 triangle = ctx.pipeline(
     vertex_shader='''
-        #version 310 es
+        #version 300 es
         precision highp float;
 
         out vec3 v_color;
@@ -35,7 +35,7 @@ triangle = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 310 es
+        #version 300 es
         precision highp float;
 
         in vec3 v_color;

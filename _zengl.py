@@ -180,6 +180,10 @@ def loader(headless=False):
     return DefaultLoader()
 
 
+def detect_gles(info):
+    return 'OpenGL ES' in info['version']
+
+
 def calcsize(layout):
     nodes = layout.split(' ')
     if nodes[-1] == '/i':
