@@ -152,7 +152,6 @@ typedef void * GLsync;
 #define GL_R8_SNORM 0x8F94
 #define GL_RG8_SNORM 0x8F95
 #define GL_RGBA8_SNORM 0x8F97
-#define GL_PRIMITIVE_RESTART 0x8F9D
 #define GL_UNIFORM_BUFFER 0x8A11
 #define GL_MAX_COMBINED_UNIFORM_BLOCKS 0x8A2E
 #define GL_MAX_UNIFORM_BUFFER_BINDINGS 0x8A2F
@@ -191,6 +190,7 @@ struct GLMethods {
     void (GLAPI * TexImage3D)(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void *pixels);
     void (GLAPI * TexSubImage3D)(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels);
     void (GLAPI * ActiveTexture)(GLenum texture);
+    void (GLAPI * BlendFuncSeparate)(GLenum sfactorRGB, GLenum dfactorRGB, GLenum sfactorAlpha, GLenum dfactorAlpha);
     void (GLAPI * GenQueries)(GLsizei n, GLuint *ids);
     void (GLAPI * BeginQuery)(GLenum target, GLuint id);
     void (GLAPI * EndQuery)(GLenum target);
@@ -201,6 +201,7 @@ struct GLMethods {
     void (GLAPI * BufferData)(GLenum target, GLsizeiptr size, const void *data, GLenum usage);
     void (GLAPI * BufferSubData)(GLenum target, GLintptr offset, GLsizeiptr size, const void *data);
     GLboolean (GLAPI * UnmapBuffer)(GLenum target);
+    void (GLAPI * BlendEquationSeparate)(GLenum modeRGB, GLenum modeAlpha);
     void (GLAPI * DrawBuffers)(GLsizei n, const GLenum *bufs);
     void (GLAPI * StencilOpSeparate)(GLenum face, GLenum sfail, GLenum dpfail, GLenum dppass);
     void (GLAPI * StencilFuncSeparate)(GLenum face, GLenum func, GLint ref, GLuint mask);
@@ -242,8 +243,6 @@ struct GLMethods {
     void (GLAPI * UniformMatrix4x2fv)(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
     void (GLAPI * UniformMatrix3x4fv)(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
     void (GLAPI * UniformMatrix4x3fv)(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-    void (GLAPI * Enablei)(GLenum target, GLuint index);
-    void (GLAPI * Disablei)(GLenum target, GLuint index);
     void (GLAPI * BindBufferRange)(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size);
     void (GLAPI * VertexAttribIPointer)(GLuint index, GLint size, GLenum type, GLsizei stride, const void *pointer);
     void (GLAPI * Uniform1uiv)(GLint location, GLsizei count, const GLuint *value);
@@ -285,8 +284,6 @@ struct GLMethods {
     void (GLAPI * SamplerParameteri)(GLuint sampler, GLenum pname, GLint param);
     void (GLAPI * SamplerParameterf)(GLuint sampler, GLenum pname, GLfloat param);
     void (GLAPI * VertexAttribDivisor)(GLuint index, GLuint divisor);
-    void (GLAPI * BlendEquationSeparatei)(GLuint buf, GLenum modeRGB, GLenum modeAlpha);
-    void (GLAPI * BlendFuncSeparatei)(GLuint buf, GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha);
 };
 
 struct VertexFormat {
@@ -574,6 +571,7 @@ static GLMethods load_gl(PyObject * loader) {
     load(TexImage3D);
     load(TexSubImage3D);
     load(ActiveTexture);
+    load(BlendFuncSeparate);
     load(GenQueries);
     load(BeginQuery);
     load(EndQuery);
@@ -584,6 +582,7 @@ static GLMethods load_gl(PyObject * loader) {
     load(BufferData);
     load(BufferSubData);
     load(UnmapBuffer);
+    load(BlendEquationSeparate);
     load(DrawBuffers);
     load(StencilOpSeparate);
     load(StencilFuncSeparate);
@@ -625,8 +624,6 @@ static GLMethods load_gl(PyObject * loader) {
     load(UniformMatrix4x2fv);
     load(UniformMatrix3x4fv);
     load(UniformMatrix4x3fv);
-    load(Enablei);
-    load(Disablei);
     load(BindBufferRange);
     load(VertexAttribIPointer);
     load(Uniform1uiv);
@@ -668,8 +665,6 @@ static GLMethods load_gl(PyObject * loader) {
     load(SamplerParameteri);
     load(SamplerParameterf);
     load(VertexAttribDivisor);
-    load(BlendEquationSeparatei);
-    load(BlendFuncSeparatei);
 
     #undef load
     #undef check
@@ -767,7 +762,7 @@ struct GlobalSettings {
     StencilSettings stencil_front;
     StencilSettings stencil_back;
     int blend_enabled;
-    BlendState blend[MAX_ATTACHMENTS];
+    BlendState blend;
 };
 
 struct Context {
@@ -912,15 +907,9 @@ static void bind_global_settings(Context * self, GlobalSettings * settings) {
         gl.Disable(GL_STENCIL_TEST);
     }
     if (settings->blend_enabled) {
-        for (int i = 0; i < settings->attachments; ++i) {
-            if (settings->blend[i].enable) {
-                gl.Enablei(GL_BLEND, i);
-            } else {
-                gl.Disablei(GL_BLEND, i);
-            }
-            gl.BlendEquationSeparatei(i, settings->blend[i].op_color, settings->blend[i].op_alpha);
-            gl.BlendFuncSeparatei(i, settings->blend[i].src_color, settings->blend[i].dst_color, settings->blend[i].src_alpha, settings->blend[i].dst_alpha);
-        }
+        gl.Enable(GL_BLEND);
+        gl.BlendEquationSeparate(settings->blend.op_color, settings->blend.op_alpha);
+        gl.BlendFuncSeparate(settings->blend.src_color, settings->blend.dst_color, settings->blend.src_alpha, settings->blend.dst_alpha);
     } else {
         gl.Disable(GL_BLEND);
     }
@@ -1136,7 +1125,12 @@ static GLObject * build_sampler(Context * self, PyObject * params) {
     gl.SamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, PyLong_AsLong(seq[1]));
     gl.SamplerParameterf(sampler, GL_TEXTURE_MIN_LOD, (float)PyFloat_AsDouble(seq[2]));
     gl.SamplerParameterf(sampler, GL_TEXTURE_MAX_LOD, (float)PyFloat_AsDouble(seq[3]));
-    gl.SamplerParameterf(sampler, GL_TEXTURE_LOD_BIAS, (float)PyFloat_AsDouble(seq[4]));
+
+    float lod_bias = (float)PyFloat_AsDouble(seq[4]);
+    if (lod_bias != 0.0f) {
+        gl.SamplerParameterf(sampler, GL_TEXTURE_LOD_BIAS, lod_bias);
+    }
+
     gl.SamplerParameteri(sampler, GL_TEXTURE_WRAP_S, PyLong_AsLong(seq[5]));
     gl.SamplerParameteri(sampler, GL_TEXTURE_WRAP_T, PyLong_AsLong(seq[6]));
     gl.SamplerParameteri(sampler, GL_TEXTURE_WRAP_R, PyLong_AsLong(seq[7]));
@@ -1256,15 +1250,13 @@ static GlobalSettings * build_global_settings(Context * self, PyObject * setting
     }
     res->blend_enabled = PyLong_AsLong(seq[it++]);
     if (res->blend_enabled) {
-        for (int i = 0; i < res->attachments; ++i) {
-            res->blend[i].enable = PyLong_AsLong(seq[it++]);
-            res->blend[i].op_color = PyLong_AsLong(seq[it++]);
-            res->blend[i].op_alpha = PyLong_AsLong(seq[it++]);
-            res->blend[i].src_color = PyLong_AsLong(seq[it++]);
-            res->blend[i].dst_color = PyLong_AsLong(seq[it++]);
-            res->blend[i].src_alpha = PyLong_AsLong(seq[it++]);
-            res->blend[i].dst_alpha = PyLong_AsLong(seq[it++]);
-        }
+        res->blend.enable = PyLong_AsLong(seq[it++]);
+        res->blend.op_color = PyLong_AsLong(seq[it++]);
+        res->blend.op_alpha = PyLong_AsLong(seq[it++]);
+        res->blend.src_color = PyLong_AsLong(seq[it++]);
+        res->blend.dst_color = PyLong_AsLong(seq[it++]);
+        res->blend.src_alpha = PyLong_AsLong(seq[it++]);
+        res->blend.dst_alpha = PyLong_AsLong(seq[it++]);
     }
 
     PyDict_SetItem(self->global_settings_cache, settings, (PyObject *)res);

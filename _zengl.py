@@ -332,16 +332,15 @@ def settings(cull_face, depth, stencil, blend, attachments):
 
     if blend is not None:
         res.append(True)
-        for obj in blend:
-            res.extend([
-                int(obj.get('enable', True)),
-                BLEND_FUNC[obj.get('op_color', 'add')],
-                BLEND_FUNC[obj.get('op_alpha', 'add')],
-                BLEND_CONSTANT[obj.get('src_color', 'one')],
-                BLEND_CONSTANT[obj.get('dst_color', 'zero')],
-                BLEND_CONSTANT[obj.get('src_alpha', 'one')],
-                BLEND_CONSTANT[obj.get('dst_alpha', 'zero')],
-            ])
+        res.extend([
+            int(blend.get('enable', True)),
+            BLEND_FUNC[blend.get('op_color', 'add')],
+            BLEND_FUNC[blend.get('op_alpha', 'add')],
+            BLEND_CONSTANT[blend.get('src_color', 'one')],
+            BLEND_CONSTANT[blend.get('dst_color', 'zero')],
+            BLEND_CONSTANT[blend.get('src_alpha', 'one')],
+            BLEND_CONSTANT[blend.get('dst_alpha', 'zero')],
+        ])
 
     else:
         res.append(False)

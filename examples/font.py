@@ -110,13 +110,11 @@ pipeline = ctx.pipeline(
             'mag_filter': 'nearest',
         },
     ],
-    blend=[
-        {
-            'enable': True,
-            'src_color': 'src_alpha',
-            'dst_color': 'one_minus_src_alpha',
-        },
-    ],
+    blend={
+        'enable': True,
+        'src_color': 'src_alpha',
+        'dst_color': 'one_minus_src_alpha',
+    },
     framebuffer=[image],
     topology='triangle_strip',
     vertex_buffers=zengl.bind(instance_buffer, '3f /i', 0),

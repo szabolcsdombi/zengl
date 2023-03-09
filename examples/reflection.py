@@ -159,15 +159,13 @@ monkey_shadow = ctx.pipeline(
             'buffer': uniform_buffer,
         },
     ],
-    blend=[
-        {
-            'enable': True,
-            'src_color': 'src_alpha',
-            'dst_color': 'one_minus_src_alpha',
-            'src_alpha': 'one',
-            'dst_alpha': 'zero',
-        },
-    ],
+    blend={
+        'enable': True,
+        'src_color': 'src_alpha',
+        'dst_color': 'one_minus_src_alpha',
+        'src_alpha': 'one',
+        'dst_alpha': 'zero',
+    },
     stencil={
         'test': True,
         'both': {
@@ -228,15 +226,13 @@ plane = ctx.pipeline(
             'buffer': uniform_buffer,
         },
     ],
-    blend=[
-        {
-            'enable': True,
-            'src_color': 'src_alpha',
-            'dst_color': 'one_minus_src_alpha',
-            'src_alpha': 'one',
-            'dst_alpha': 'zero',
-        },
-    ],
+    blend={
+        'enable': True,
+        'src_color': 'src_alpha',
+        'dst_color': 'one_minus_src_alpha',
+        'src_alpha': 'one',
+        'dst_alpha': 'zero',
+    },
     framebuffer=[image, depth],
     topology='triangle_strip',
     vertex_count=4,

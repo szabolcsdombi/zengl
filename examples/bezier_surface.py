@@ -576,13 +576,11 @@ points_pipeline_seethrough = ctx.pipeline(
         'write': False,
         'func': 'greater',
     },
-    blend=[
-        {
-            'enable': True,
-            'src_color': 'src_alpha',
-            'dst_color': 'one_minus_src_alpha',
-        },
-    ],
+    blend={
+        'enable': True,
+        'src_color': 'src_alpha',
+        'dst_color': 'one_minus_src_alpha',
+    },
     framebuffer=[image, depth],
     topology='triangles',
     cull_face='back',
@@ -716,13 +714,11 @@ lines_pipeline_seethrough = ctx.pipeline(
         'write': False,
         'func': 'greater',
     },
-    blend=[
-        {
-            'enable': True,
-            'src_color': 'src_alpha',
-            'dst_color': 'one_minus_src_alpha',
-        },
-    ],
+    blend={
+        'enable': True,
+        'src_color': 'src_alpha',
+        'dst_color': 'one_minus_src_alpha',
+    },
     framebuffer=[image, depth],
     topology='triangles',
     cull_face='back',

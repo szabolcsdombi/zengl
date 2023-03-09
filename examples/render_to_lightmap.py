@@ -131,13 +131,11 @@ texture_pipeline = ctx.pipeline(
             'compare_mode': 'ref_to_texture',
         },
     ],
-    blend=[
-        {
-            'enable': True,
-            'src_color': 'one',
-            'dst_color': 'one',
-        },
-    ],
+    blend={
+        'enable': True,
+        'src_color': 'one',
+        'dst_color': 'one',
+    },
     framebuffer=[temp_texture],
     topology='triangles',
     vertex_buffers=zengl.bind(vertex_buffer, '3f 2f', 0, 1),

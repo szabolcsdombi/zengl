@@ -67,13 +67,11 @@ triangle = ctx.pipeline(
             out_color = vec4(v_color, 0.7);
         }
     ''',
-    blend=[
-        {
-            'enable': True,
-            'src_color': 'src_alpha',
-            'dst_color': 'one_minus_src_alpha',
-        },
-    ],
+    blend={
+        'enable': True,
+        'src_color': 'src_alpha',
+        'dst_color': 'one_minus_src_alpha',
+    },
     framebuffer=[image],
     topology='points',
     vertex_buffers=[
