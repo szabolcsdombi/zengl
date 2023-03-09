@@ -1598,7 +1598,7 @@ static Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * k
     int array = 0;
     PyObject * texture = Py_None;
     int cubemap = false;
-    int levels = -1;
+    int levels = 1;
     int external = 0;
 
     int args_ok = PyArg_ParseTupleAndKeywords(
