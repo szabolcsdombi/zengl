@@ -2099,9 +2099,7 @@ static PyObject * Context_meth_end_frame(Context * self, PyObject * args, PyObje
         self->current_descriptor_set = NULL;
         self->current_global_settings = NULL;
 
-        // gl.BindBuffersRange(GL_UNIFORM_BUFFER, 0, self->limits.max_uniform_buffer_bindings, NULL, NULL, NULL);
-        // gl.BindTextures(0, self->limits.max_combined_texture_image_units, NULL);
-        // gl.BindSamplers(0, self->limits.max_combined_texture_image_units, NULL);
+        gl.ActiveTexture(GL_TEXTURE0);
 
         gl.Disable(GL_CULL_FACE);
         gl.Disable(GL_DEPTH_TEST);
