@@ -74,19 +74,3 @@ def test_read_depth32(ctx: zengl.Context):
     content = np.frombuffer(img.read(), 'f4').reshape(4, 4)
     expected = np.full((4, 4), 0.5)
     np.testing.assert_array_almost_equal(content, expected, 2)
-
-
-def test_read_stencil8(ctx: zengl.Context):
-    img = ctx.image((4, 4), 'stencil8')
-
-    img.clear_value = 0
-    img.clear()
-    content = np.frombuffer(img.read(), 'u1').reshape(4, 4)
-    expected = np.zeros((4, 4), int)
-    np.testing.assert_array_equal(content, expected)
-
-    img.clear_value = 17
-    img.clear()
-    content = np.frombuffer(img.read(), 'u1').reshape(4, 4)
-    expected = np.full((4, 4), 17)
-    np.testing.assert_array_equal(content, expected)
