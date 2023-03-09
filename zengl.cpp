@@ -46,7 +46,6 @@ typedef void * GLsync;
 #define GL_STENCIL_TEST 0x0B90
 #define GL_BLEND 0x0BE2
 #define GL_TEXTURE_2D 0x0DE1
-#define GL_TEXTURE_BORDER_COLOR 0x1004
 #define GL_BYTE 0x1400
 #define GL_UNSIGNED_BYTE 0x1401
 #define GL_SHORT 0x1402
@@ -70,12 +69,8 @@ typedef void * GLsync;
 #define GL_TEXTURE_MIN_FILTER 0x2801
 #define GL_TEXTURE_WRAP_S 0x2802
 #define GL_TEXTURE_WRAP_T 0x2803
-#define GL_POLYGON_OFFSET_POINT 0x2A01
-#define GL_POLYGON_OFFSET_LINE 0x2A02
-#define GL_POLYGON_OFFSET_FILL 0x8037
 #define GL_RGBA8 0x8058
 #define GL_TEXTURE_WRAP_R 0x8072
-#define GL_BGRA 0x80E1
 #define GL_TEXTURE_MIN_LOD 0x813A
 #define GL_TEXTURE_MAX_LOD 0x813B
 #define GL_TEXTURE_BASE_LEVEL 0x813C
@@ -96,8 +91,6 @@ typedef void * GLsync;
 #define GL_MAX_DRAW_BUFFERS 0x8824
 #define GL_MAX_VERTEX_ATTRIBS 0x8869
 #define GL_MAX_TEXTURE_IMAGE_UNITS 0x8872
-#define GL_FRAGMENT_SHADER 0x8B30
-#define GL_VERTEX_SHADER 0x8B31
 #define GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS 0x8B4D
 #define GL_COMPILE_STATUS 0x8B81
 #define GL_LINK_STATUS 0x8B82
@@ -191,7 +184,6 @@ struct GLMethods {
     void (GLAPI * GetIntegerv)(GLenum pname, GLint *data);
     const GLubyte *(GLAPI * GetString)(GLenum name);
     void (GLAPI * Viewport)(GLint x, GLint y, GLsizei width, GLsizei height);
-    void (GLAPI * PolygonOffset)(GLfloat factor, GLfloat units);
     void (GLAPI * TexSubImage2D)(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels);
     void (GLAPI * BindTexture)(GLenum target, GLuint texture);
     void (GLAPI * DeleteTextures)(GLsizei n, const GLuint *textures);
@@ -199,7 +191,6 @@ struct GLMethods {
     void (GLAPI * TexImage3D)(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void *pixels);
     void (GLAPI * TexSubImage3D)(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels);
     void (GLAPI * ActiveTexture)(GLenum texture);
-    void (GLAPI * BlendFuncSeparate)(GLenum sfactorRGB, GLenum dfactorRGB, GLenum sfactorAlpha, GLenum dfactorAlpha);
     void (GLAPI * GenQueries)(GLsizei n, GLuint *ids);
     void (GLAPI * BeginQuery)(GLenum target, GLuint id);
     void (GLAPI * EndQuery)(GLenum target);
@@ -210,7 +201,6 @@ struct GLMethods {
     void (GLAPI * BufferData)(GLenum target, GLsizeiptr size, const void *data, GLenum usage);
     void (GLAPI * BufferSubData)(GLenum target, GLintptr offset, GLsizeiptr size, const void *data);
     GLboolean (GLAPI * UnmapBuffer)(GLenum target);
-    void (GLAPI * BlendEquationSeparate)(GLenum modeRGB, GLenum modeAlpha);
     void (GLAPI * DrawBuffers)(GLsizei n, const GLenum *bufs);
     void (GLAPI * StencilOpSeparate)(GLenum face, GLenum sfail, GLenum dpfail, GLenum dppass);
     void (GLAPI * StencilFuncSeparate)(GLenum face, GLenum func, GLint ref, GLuint mask);
@@ -282,7 +272,6 @@ struct GLMethods {
     void (GLAPI * GenVertexArrays)(GLsizei n, GLuint *arrays);
     void (GLAPI * DrawArraysInstanced)(GLenum mode, GLint first, GLsizei count, GLsizei instancecount);
     void (GLAPI * DrawElementsInstanced)(GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount);
-    void (GLAPI * PrimitiveRestartIndex)(GLuint index);
     GLuint (GLAPI * GetUniformBlockIndex)(GLuint program, const GLchar *uniformBlockName);
     void (GLAPI * GetActiveUniformBlockiv)(GLuint program, GLuint uniformBlockIndex, GLenum pname, GLint *params);
     void (GLAPI * GetActiveUniformBlockName)(GLuint program, GLuint uniformBlockIndex, GLsizei bufSize, GLsizei *length, GLchar *uniformBlockName);
@@ -295,12 +284,9 @@ struct GLMethods {
     void (GLAPI * BindSampler)(GLuint unit, GLuint sampler);
     void (GLAPI * SamplerParameteri)(GLuint sampler, GLenum pname, GLint param);
     void (GLAPI * SamplerParameterf)(GLuint sampler, GLenum pname, GLfloat param);
-    void (GLAPI * SamplerParameterfv)(GLuint sampler, GLenum pname, const GLfloat *param);
     void (GLAPI * VertexAttribDivisor)(GLuint index, GLuint divisor);
     void (GLAPI * BlendEquationSeparatei)(GLuint buf, GLenum modeRGB, GLenum modeAlpha);
     void (GLAPI * BlendFuncSeparatei)(GLuint buf, GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha);
-    void (GLAPI * TexStorage2D)(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
-    void (GLAPI * TexStorage3D)(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
 };
 
 struct VertexFormat {
@@ -380,18 +366,6 @@ static int min(int a, int b) {
 
 static int max(int a, int b) {
     return a > b ? a : b;
-}
-
-// static bool is_uniform_variable(int t) {
-//     return (0x1404 <= t && t <= 0x8B5C) || (0x8B65 <= t && t <= 0x8B6A) || (0x8DC6 <= t && t <= 0x8DC8) || (0x8F46 <= t && t <= 0x8FFE);
-// }
-
-static bool is_uniform_sampler(int t) {
-    return (0x8B5D <= t && t <= 0x8B64) || (0x8DC0 <= t && t <= 0x8DC5) || (0x8DC9 <= t && t <= 0x8DD8) || (0x900C <= t && t <= 0x900F) || (0x9108 <= t && t <= 0x910D);
-}
-
-static bool is_uniform_image(int t) {
-    return 0x904C <= t && t <= 0x906C;
 }
 
 static VertexFormat get_vertex_format(const char * format) {
@@ -593,7 +567,6 @@ static GLMethods load_gl(PyObject * loader) {
     load(GetIntegerv);
     load(GetString);
     load(Viewport);
-    load(PolygonOffset);
     load(TexSubImage2D);
     load(BindTexture);
     load(DeleteTextures);
@@ -601,7 +574,6 @@ static GLMethods load_gl(PyObject * loader) {
     load(TexImage3D);
     load(TexSubImage3D);
     load(ActiveTexture);
-    load(BlendFuncSeparate);
     load(GenQueries);
     load(BeginQuery);
     load(EndQuery);
@@ -612,7 +584,6 @@ static GLMethods load_gl(PyObject * loader) {
     load(BufferData);
     load(BufferSubData);
     load(UnmapBuffer);
-    load(BlendEquationSeparate);
     load(DrawBuffers);
     load(StencilOpSeparate);
     load(StencilFuncSeparate);
@@ -684,7 +655,6 @@ static GLMethods load_gl(PyObject * loader) {
     load(GenVertexArrays);
     load(DrawArraysInstanced);
     load(DrawElementsInstanced);
-    load(PrimitiveRestartIndex);
     load(GetUniformBlockIndex);
     load(GetActiveUniformBlockiv);
     load(GetActiveUniformBlockName);
@@ -697,12 +667,9 @@ static GLMethods load_gl(PyObject * loader) {
     load(BindSampler);
     load(SamplerParameteri);
     load(SamplerParameterf);
-    load(SamplerParameterfv);
     load(VertexAttribDivisor);
     load(BlendEquationSeparatei);
     load(BlendFuncSeparatei);
-    load(TexStorage2D);
-    load(TexStorage3D);
 
     #undef load
     #undef check
