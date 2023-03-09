@@ -2508,17 +2508,12 @@ static PyObject * Image_meth_write(Image * self, PyObject * vargs, PyObject * kw
 
     gl.ActiveTexture(self->ctx->default_texture_unit);
     gl.BindTexture(self->target, self->image);
-    if (self->cubemap) {
+    if (self->cubemap || self->array) {
         if (layer_arg != Py_None) {
             gl.TexSubImage3D(self->target, level, offset.x, offset.y, layer, size.x, size.y, 1, self->fmt.format, self->fmt.type, view.buf);
         } else {
-            gl.TexSubImage3D(self->target, level, offset.x, offset.y, 0, size.x, size.y, 6, self->fmt.format, self->fmt.type, view.buf);
-        }
-    } else if (self->array) {
-        if (layer_arg != Py_None) {
-            gl.TexSubImage3D(self->target, level, offset.x, offset.y, layer, size.x, size.y, 1, self->fmt.format, self->fmt.type, view.buf);
-        } else {
-            gl.TexSubImage3D(self->target, level, offset.x, offset.y, 0, size.x, size.y, self->array, self->fmt.format, self->fmt.type, view.buf);
+            int layers = (self->array ? self->array : 1) * (self->cubemap ? 6 : 1);
+            gl.TexSubImage3D(self->target, level, offset.x, offset.y, 0, size.x, size.y, layers, self->fmt.format, self->fmt.type, view.buf);
         }
     } else {
         gl.TexSubImage2D(self->target, level, offset.x, offset.y, size.x, size.y, self->fmt.format, self->fmt.type, view.buf);
