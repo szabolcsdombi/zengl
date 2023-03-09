@@ -177,8 +177,7 @@ typedef void * GLsync;
 
 struct GLMethods {
     void (GLAPI * CullFace)(GLenum mode);
-    void (GLAPI * FrontFace)(GLenum mode);
-    void (GLAPI * LineWidth)(GLfloat width);
+    void (GLAPI * Clear)(GLbitfield mask);
     void (GLAPI * TexParameteri)(GLenum target, GLenum pname, GLint param);
     void (GLAPI * TexImage2D)(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels);
     void (GLAPI * DepthMask)(GLboolean flag);
@@ -580,8 +579,7 @@ static GLMethods load_gl(PyObject * loader) {
     #define load(name) *(void **)&res.name = load_opengl_function(loader, "gl" # name); check(name)
 
     load(CullFace);
-    load(FrontFace);
-    load(LineWidth);
+    load(Clear);
     load(TexParameteri);
     load(TexImage2D);
     load(DepthMask);
