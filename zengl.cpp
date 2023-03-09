@@ -2017,12 +2017,13 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObje
 }
 
 static PyObject * Context_meth_new_frame(Context * self, PyObject * args, PyObject * kwargs) {
-    static char * keywords[] = {"reset", "frame_time", NULL};
+    static char * keywords[] = {"reset", "clear", "frame_time", NULL};
 
     int reset = true;
+    int clear = true;
     int frame_time = false;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|pp", keywords, &reset, &frame_time)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|ppp", keywords, &reset, &clear, &frame_time)) {
         return NULL;
     }
 
@@ -2048,6 +2049,11 @@ static PyObject * Context_meth_new_frame(Context * self, PyObject * args, PyObje
         self->current_vertex_array = -1;
         self->current_depth_mask = 0;
         self->current_stencil_mask = 0;
+    }
+
+    if (clear) {
+        bind_framebuffer(self, 0);
+        gl.Clear(GL_COLOR_BUFFER_BIT);
     }
 
     if (frame_time) {
