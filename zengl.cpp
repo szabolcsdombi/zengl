@@ -2811,7 +2811,7 @@ static ImageFace * Image_meth_face(Image * self, PyObject * vargs, PyObject * kw
 
 static PyObject * Image_get_clear_value(Image * self, void * closure) {
     if (self->fmt.clear_type == 'x') {
-        return Py_BuildValue("fi", self->clear_value.clear_floats[0], self->clear_value.clear_ints[1]);
+        return Py_BuildValue("fI", self->clear_value.clear_floats[0], self->clear_value.clear_uints[1]);
     }
     if (self->fmt.components == 1) {
         if (self->fmt.clear_type == 'f') {
