@@ -496,8 +496,8 @@ static int topology_converter(PyObject * arg, int * value) {
 
 static int count_mipmaps(int width, int height) {
     int size = width > height ? width : height;
-    for (int i = 0; i < 32; ++i) {
-        if (size <= (1 << i)) {
+    for (int i = 1; i < 32; ++i) {
+        if (size < (1 << i)) {
             return i;
         }
     }
