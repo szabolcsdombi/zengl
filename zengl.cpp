@@ -783,6 +783,7 @@ struct Context {
     PyObject * program_cache;
     PyObject * shader_cache;
     PyObject * includes;
+    GLObject * default_framebuffer;
     PyObject * before_frame_callback;
     PyObject * after_frame_callback;
     PyObject * limits_dict;
@@ -804,7 +805,6 @@ struct Context {
     int frame_time;
     int default_texture_unit;
     int mapped_buffers;
-    int screen;
     Limits limits;
     GLMethods gl;
 };
@@ -1486,6 +1486,10 @@ static Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwar
     gl.Enable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
     gl.Enable(GL_FRAMEBUFFER_SRGB);
 
+    GLObject * default_framebuffer = PyObject_New(GLObject, module_state->GLObject_type);
+    default_framebuffer->obj = 0;
+    default_framebuffer->uses = 1;
+
     Context * res = PyObject_New(Context, module_state->Context_type);
     res->gc_prev = (GCHeader *)res;
     res->gc_next = (GCHeader *)res;
@@ -1494,10 +1498,11 @@ static Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwar
     res->global_settings_cache = PyDict_New();
     res->sampler_cache = PyDict_New();
     res->vertex_array_cache = PyDict_New();
-    res->framebuffer_cache = PyDict_New();
+    res->framebuffer_cache = Py_BuildValue("{OO}", Py_None, default_framebuffer);
     res->program_cache = PyDict_New();
     res->shader_cache = PyDict_New();
     res->includes = PyDict_New();
+    res->default_framebuffer = default_framebuffer;
     res->before_frame_callback = (PyObject *)new_ref(Py_None);
     res->after_frame_callback = (PyObject *)new_ref(Py_None);
     res->limits_dict = limits_dict;
@@ -1518,7 +1523,6 @@ static Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwar
     res->frame_time = 0;
     res->default_texture_unit = default_texture_unit;
     res->mapped_buffers = 0;
-    res->screen = 0;
     res->limits = limits;
     res->gl = gl;
     return res;
@@ -1813,7 +1817,7 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObje
     PyObject * depth = Py_None;
     PyObject * stencil = Py_None;
     PyObject * blend = Py_None;
-    PyObject * framebuffer_images = self->module_state->empty_tuple;
+    PyObject * framebuffer_attachments = NULL;
     PyObject * vertex_buffers = self->module_state->empty_tuple;
     PyObject * index_buffer = Py_None;
     int short_index = false;
@@ -1840,7 +1844,7 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObje
         &depth,
         &stencil,
         &blend,
-        &framebuffer_images,
+        &framebuffer_attachments,
         &vertex_buffers,
         &index_buffer,
         &short_index,
@@ -1858,12 +1862,12 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObje
         return NULL;
     }
 
-    if (!vertex_shader || !fragment_shader || !framebuffer_images) {
+    if (!vertex_shader || !fragment_shader || !framebuffer_attachments) {
         if (!vertex_shader) {
             PyErr_Format(PyExc_TypeError, "no vertex_shader was specified");
         } else if (!fragment_shader) {
             PyErr_Format(PyExc_TypeError, "no fragment_shader was specified");
-        } else if (!framebuffer_images) {
+        } else if (!framebuffer_attachments) {
             PyErr_Format(PyExc_TypeError, "no framebuffer was specified");
         }
         return NULL;
@@ -1917,7 +1921,7 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObje
         Py_DECREF(tuple);
     }
 
-    PyObject * attachments = PyObject_CallMethod(self->module_state->helper, "framebuffer_attachments", "(O)", framebuffer_images);
+    PyObject * attachments = PyObject_CallMethod(self->module_state->helper, "framebuffer_attachments", "(O)", framebuffer_attachments);
     if (!attachments) {
         return NULL;
     }
@@ -1925,12 +1929,11 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObje
     PyObject * validate = PyObject_CallMethod(
         self->module_state->helper,
         "validate",
-        "OOOOOO",
+        "OOOOO",
         program->extra,
         layout,
         resources,
         vertex_buffers,
-        PyTuple_GetItem(attachments, 1),
         self->limits_dict
     );
 
@@ -1956,7 +1959,7 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObje
     Viewport viewport_value = {};
     if (viewport != Py_None) {
         viewport_value = to_viewport(viewport);
-    } else {
+    } else if (attachments != Py_None) {
         PyObject * size = PyTuple_GetItem(attachments, 0);
         viewport_value.width = PyLong_AsLong(PyTuple_GetItem(size, 0));
         viewport_value.height = PyLong_AsLong(PyTuple_GetItem(size, 1));
@@ -2183,7 +2186,9 @@ static void release_framebuffer(Context * self, GLObject * framebuffer) {
         if (self->current_framebuffer == framebuffer->obj) {
             self->current_framebuffer = 0;
         }
-        self->gl.DeleteFramebuffers(1, (unsigned int *)&framebuffer->obj);
+        if (framebuffer->obj) {
+            self->gl.DeleteFramebuffers(1, (unsigned int *)&framebuffer->obj);
+        }
     }
 }
 
@@ -2283,6 +2288,20 @@ static PyObject * Context_meth_release(Context * self, PyObject * arg) {
         }
     }
     Py_RETURN_NONE;
+}
+
+static PyObject * Context_get_screen(Context * self, void * closure) {
+    return PyLong_FromLong(self->default_framebuffer->obj);
+}
+
+static int Context_set_screen(Context * self, PyObject * value, void * closure) {
+    if (!PyLong_CheckExact(value)) {
+        PyErr_Format(PyExc_TypeError, "the clear value must be an int");
+        return -1;
+    }
+
+    self->default_framebuffer->obj = PyLong_AsLong(value);
+    return 0;
 }
 
 static PyObject * Buffer_meth_write(Buffer * self, PyObject * vargs, PyObject * kwargs) {
@@ -2752,7 +2771,7 @@ static PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwa
         gl.Disable(GL_FRAMEBUFFER_SRGB);
     }
 
-    int target_framebuffer = target ? target->framebuffer->obj : self->ctx->screen;
+    int target_framebuffer = target ? target->framebuffer->obj : self->ctx->default_framebuffer->obj;
     gl.BindFramebuffer(GL_READ_FRAMEBUFFER, self->framebuffer->obj);
     gl.BindFramebuffer(GL_DRAW_FRAMEBUFFER, target_framebuffer);
     gl.BlitFramebuffer(
@@ -3089,7 +3108,7 @@ static PyObject * ImageFace_meth_blit(ImageFace * self, PyObject * vargs, PyObje
         gl.Disable(GL_FRAMEBUFFER_SRGB);
     }
 
-    int target_framebuffer = target ? target->framebuffer->obj : self->ctx->screen;
+    int target_framebuffer = target ? target->framebuffer->obj : self->ctx->default_framebuffer->obj;
     gl.BindFramebuffer(GL_READ_FRAMEBUFFER, self->framebuffer->obj);
     gl.BindFramebuffer(GL_DRAW_FRAMEBUFFER, target_framebuffer);
     gl.BlitFramebuffer(
@@ -3265,6 +3284,11 @@ static PyMethodDef Context_methods[] = {
     {},
 };
 
+static PyGetSetDef Context_getset[] = {
+    {"screen", (getter)Context_get_screen, (setter)Context_set_screen},
+    {},
+};
+
 static PyMemberDef Context_members[] = {
     {"includes", T_OBJECT, offsetof(Context, includes), READONLY},
     {"limits", T_OBJECT, offsetof(Context, limits_dict), READONLY},
@@ -3272,7 +3296,6 @@ static PyMemberDef Context_members[] = {
     {"before_frame", T_OBJECT, offsetof(Context, before_frame_callback), 0},
     {"after_frame", T_OBJECT, offsetof(Context, after_frame_callback), 0},
     {"frame_time", T_INT, offsetof(Context, frame_time), READONLY},
-    {"screen", T_INT, offsetof(Context, screen), 0},
     {},
 };
 
@@ -3348,6 +3371,7 @@ static PyMemberDef ImageFace_members[] = {
 
 static PyType_Slot Context_slots[] = {
     {Py_tp_methods, Context_methods},
+    {Py_tp_getset, Context_getset},
     {Py_tp_members, Context_members},
     {Py_tp_dealloc, (void *)Context_dealloc},
     {},

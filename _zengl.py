@@ -267,6 +267,8 @@ def resource_bindings(resources):
 
 
 def framebuffer_attachments(attachments):
+    if attachments is None:
+        return None
     attachments = [x.face() if hasattr(x, 'face') else x for x in attachments]
     size = attachments[0].size
     samples = attachments[0].samples
@@ -286,12 +288,16 @@ def framebuffer_attachments(attachments):
 
 
 def settings(cull_face, depth, stencil, blend, attachments):
-    res = [len(attachments[1]), CULL_FACE[cull_face]]
+    num_color_attachments = 1 if attachments is None else len(attachments[1])
+    has_depth = attachments is None or (attachments[2] is not None and attachments[2].flags & 2)
+    has_stencil = attachments is None or (attachments[2] is not None and attachments[2].flags & 4)
+
+    res = [num_color_attachments, CULL_FACE[cull_face]]
 
     if depth is None:
         depth = {}
 
-    if attachments[2] is not None and attachments[2].flags & 2:
+    if has_depth:
         res.extend([True, COMPARE_FUNC[depth.get('func', 'less')], bool(depth.get('write', True))])
 
     else:
@@ -300,7 +306,7 @@ def settings(cull_face, depth, stencil, blend, attachments):
     if stencil is None:
         stencil = {}
 
-    if attachments[2] is not None and attachments[2].flags & 4:
+    if has_stencil:
         front = stencil.get('front', stencil.get('both', {}))
         back = stencil.get('back', stencil.get('both', {}))
         res.extend([
@@ -417,7 +423,7 @@ def uniforms(interface, values):
     return list(values), data
 
 
-def validate(interface, layout, resources, vertex_buffers, color_attachments, limits):
+def validate(interface, layout, resources, vertex_buffers, limits):
     attributes, uniforms, uniform_buffers = interface
     attributes = [
         {
