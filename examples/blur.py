@@ -65,6 +65,12 @@ pipeline = ctx.pipeline(
             out_color = vec4(lum, lum, lum, 1.0);
         }
     ''',
+    layout=[
+        {
+            'name': 'Common',
+            'binding': 0,
+        },
+    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -120,6 +126,12 @@ def make_blur(src, dst, mode):
                 out_color = vec4(color, 1.0);
             }
         ''',
+        layout=[
+            {
+                'name': 'Texture',
+                'binding': 0,
+            },
+        ],
         resources=[
             {
                 'type': 'sampler',
