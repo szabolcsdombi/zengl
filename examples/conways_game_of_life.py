@@ -3,17 +3,19 @@ import zengl
 
 from window import Window
 
-window = Window((512, 512))
+window = Window()
+width, height = window.size
 ctx = zengl.context()
 
 image = ctx.image(window.size, 'rgba8unorm')
 temp = ctx.image(window.size, 'rgba8unorm')
 
-ctx.includes['size'] = 'ivec2 SIZE = ivec2(512);'
-
 scene = ctx.pipeline(
+    includes={
+        'size': f'ivec2 SIZE = ivec2({width, height});',
+    },
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         vec2 positions[3] = vec2[](
             vec2(-1.0, -1.0),
@@ -26,7 +28,7 @@ scene = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         uniform sampler2D Texture;
 
@@ -68,15 +70,11 @@ scene = ctx.pipeline(
     vertex_count=3,
 )
 
-cells = np.random.randint(0, 2, 512 * 512)
-image.write(np.array([
-    cells * 255,
-    cells * 255,
-    cells * 255,
-    cells * 255,
-]).T.astype('u1').tobytes())
+image.write((np.random.randint(0, 2, width * height, 'u1') * 255).repeat(4))
 
 while window.update():
+    ctx.new_frame()
     image.blit(temp)
     scene.render()
     temp.blit()
+    ctx.end_frame()

@@ -393,7 +393,7 @@ def clean_glsl_name(name):
 
 def uniforms(interface, values):
     data = bytearray()
-    uniform_map = {clean_glsl_name(obj['name']): obj for obj in interface if obj['type'] == 'uniform'}
+    uniform_map = {clean_glsl_name(obj['name']): obj for obj in interface[1]}
 
     for name, value in values.items():
         if name not in uniform_map:
@@ -417,84 +417,117 @@ def uniforms(interface, values):
     return list(values), data
 
 
-def validate(interface, layout, resources, vertex_buffers, attachments, limits):
-    pass
-    # errors = []
+def validate(interface, layout, resources, vertex_buffers, color_attachments, limits):
+    attributes, uniforms, uniform_buffers = interface
+    attributes = [
+        {
+            'name': obj['name'].replace('[0]', f'[{i:d}]'),
+            'location': obj['location'] + i if obj['location'] >= 0 else -1,
+        }
+        for obj in attributes for i in range(obj['size'])
+        if obj['name'] not in VERTEX_SHADER_BUILTINS
+    ]
+    uniforms = [
+        {
+            'name': obj['name'].replace('[0]', f'[{i}]'),
+            'location': obj['location'] + i if obj['location'] >= 0 else -1,
+        }
+        for obj in uniforms for i in range(obj['size'])
+        if obj['gltype'] not in UNIFORM_PACKER
+    ]
+    bound_attributes = set()
+    bound_uniforms = set()
+    bound_uniform_buffers = set()
+    uniform_binding_map = {}
+    uniform_buffer_binding_map = {}
+    attribute_map = {obj['location']: obj for obj in attributes}
+    uniform_map = {obj['name']: obj for obj in uniforms}
+    uniform_buffer_map = {obj['name']: obj for obj in uniform_buffers}
+    layout_map = {obj['name']: obj for obj in layout}
+    uniform_buffer_resources = {obj['binding']: obj for obj in resources if obj['type'] == 'uniform_buffer'}
+    sampler_resources = {obj['binding']: obj for obj in resources if obj['type'] == 'sampler'}
+    max_uniform_block_size = limits['max_uniform_block_size']
 
-    # unique = set((obj['type'], obj['binding']) for obj in resources)
-    # if len(resources) != len(unique):
-    #     for obj in resources:
-    #         key = (obj['type'], obj['binding'])
-    #         if key not in unique:
-    #             binding = obj['binding']
-    #             rtype = obj['type']
-    #             errors.append(f'Duplicate resource entry for "{rtype}" with binding = {binding}')
-    #         unique.discard(key)
+    for obj in uniform_buffers:
+        if obj['size'] > max_uniform_block_size:
+            raise ValueError(
+                f'Uniform buffer "{obj["name"]}" is too large, the maximum supported size is {max_uniform_block_size}'
+            )
 
-    # unique = set(obj['location'] for obj in vertex_buffers)
-    # if len(vertex_buffers) != len(unique):
-    #     for obj in vertex_buffers:
-    #         location = obj['location']
-    #         if location not in unique:
-    #             errors.append(f'Duplicate vertex attribute entry with location = {location}')
-    #         unique.discard(location)
+    for obj in vertex_buffers:
+        location = obj['location']
+        if location < 0:
+            continue
+        if location not in attribute_map:
+            raise ValueError(f'Invalid vertex attribute location {location}')
+        if location in bound_attributes:
+            name = attribute_map[location]['name']
+            raise ValueError(f'Duplicate vertex attribute binding for "{name}" at location {location}')
+        bound_attributes.add(location)
 
-    # expected = set(obj['location'] + i for obj in interface if obj['type'] == 'input' for i in range(obj['size']))
-    # provided = set(obj['location'] for obj in vertex_buffers)
+    for obj in attributes:
+        location = obj['location']
+        if location < 0:
+            continue
+        if location not in bound_attributes:
+            name = obj['name']
+            raise ValueError(f'Unbound vertex attribute "{name}" at location {location}')
 
-    # if expected ^ provided:
-    #     missing = expected - provided
-    #     extra = provided - expected
-    #     if missing:
-    #         for location in sorted(missing):
-    #             obj = next(obj for obj in interface if obj['type'] == 'input' and obj['location'] == location)
-    #             name = clean_glsl_name(obj['name'])
-    #             errors.append(f'Missing vertex buffer binding for "{name}" with location = {location}')
-    #     if extra:
-    #         for location in sorted(extra):
-    #             errors.append(f'Unknown vertex attribute with location = {location}')
+    for obj in layout:
+        name = obj['name']
+        binding = obj['binding']
+        if name in uniform_map:
+            uniform_binding_map[binding] = obj
+        elif name in uniform_buffer_map:
+            uniform_buffer_binding_map[binding] = obj
+        else:
+            raise ValueError(f'Cannot set layout binding for "{name}"')
 
-    # expected = set(obj['location'] + i for obj in interface if obj['type'] == 'output' for i in range(obj['size']))
-    # provided = set(range(len(attachments)))
-    # if expected ^ provided:
-    #     missing = expected - provided
-    #     extra = provided - expected
-    #     if missing:
-    #         for location in sorted(missing):
-    #             obj = next(obj for obj in interface if obj['type'] == 'output' and obj['location'] == location)
-    #             name = clean_glsl_name(obj['name'])
-    #             errors.append(f'Missing framebuffer attachment for "{name}" with location = {location}')
-    #     if extra:
-    #         for location in sorted(extra):
-    #             errors.append(f'Unknown framebuffer attachment with location = {location}')
+    for obj in uniforms:
+        name = obj['name']
+        location = obj['location']
+        if location < 0:
+            continue
+        if name not in layout_map:
+            raise ValueError(f'Missing layout binding for "{name}"')
+        binding = layout_map[name]['binding']
+        if binding not in sampler_resources:
+            raise ValueError(f'Missing resource for "{name}" with binding {binding}')
 
-    # expected = set(obj['binding'] for obj in interface if obj['type'] == 'uniform_buffer')
-    # provided = set(obj['binding'] for obj in resources if obj['type'] == 'uniform_buffer')
-    # if expected ^ provided:
-    #     missing = expected - provided
-    #     extra = provided - expected
-    #     if missing:
-    #         for binding in sorted(missing):
-    #             obj = next(obj for obj in interface if obj['type'] == 'uniform_buffer' and obj['binding'] == binding)
-    #             name = clean_glsl_name(obj['name'])
-    #             errors.append(f'Missing uniform buffer binding for "{name}" with binding = {binding}')
-    #     if extra:
-    #         for binding in sorted(extra):
-    #             errors.append(f'Unknown uniform buffer with binding = {binding}')
+    for obj in uniform_buffers:
+        name = obj['name']
+        if name not in layout_map:
+            raise ValueError(f'Missing layout binding for "{name}"')
+        binding = layout_map[name]['binding']
+        if binding not in uniform_buffer_resources:
+            raise ValueError(f'Missing resource for "{name}" with binding {binding}')
 
-    # expected = set(obj['binding'] + i for obj in interface if obj['type'] == 'sampler' for i in range(obj['size']))
-    # provided = set(obj['binding'] for obj in resources if obj['type'] == 'sampler')
-    # if expected ^ provided:
-    #     missing = expected - provided
-    #     extra = provided - expected
-    #     if missing:
-    #         for binding in sorted(missing):
-    #             obj = next(obj for obj in interface if obj['type'] == 'sampler' and obj['binding'] == binding)
-    #             name = clean_glsl_name(obj['name'])
-    #             errors.append(f'Missing sampler binding for "{name}" with binding = {binding}')
-    #     if extra:
-    #         for binding in sorted(extra):
-    #             errors.append(f'Unknown sampler with binding = {binding}')
-
-    # if errors:
-    #     raise ValueError('Program Validation Error\n\n' + '\n'.join(errors))
+    for obj in resources:
+        resource_type = obj['type']
+        binding = obj['binding']
+        if resource_type == 'uniform_buffer':
+            buffer = obj['buffer']
+            if binding not in uniform_buffer_binding_map:
+                raise ValueError(f'Uniform buffer binding {binding} does not exist')
+            name = uniform_buffer_binding_map[binding]['name']
+            if binding in bound_uniform_buffers:
+                raise ValueError(f'Duplicate uniform buffer binding for "{name}" with binding {binding}')
+            size = uniform_buffer_map[name]['size']
+            if buffer.size < size:
+                raise ValueError(
+                    f'Uniform buffer is too small {buffer.size} is less than '
+                    f'{size} for "{name}" with binding {binding}'
+                )
+            bound_uniform_buffers.add(binding)
+        elif resource_type == 'sampler':
+            image = obj['image']
+            if binding not in uniform_binding_map:
+                raise ValueError(f'Sampler binding {binding} does not exist')
+            name = uniform_binding_map[binding]['name']
+            if binding in bound_uniforms:
+                raise ValueError(f'Duplicate sampler binding for "{name}" with binding {binding}')
+            if image.samples != 1:
+                raise ValueError(f'Multisample images cannot be attached to "{name}" with binding {binding}')
+            bound_uniforms.add(binding)
+        else:
+            raise ValueError(f'Invalid resource type "{resource_type}"')

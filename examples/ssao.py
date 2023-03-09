@@ -154,8 +154,8 @@ ssao = ctx.pipeline(
             for (int i = 0; i < 16; i++) {
                 vec4 tmp = mvp * vec4(position + basis * points[i] * 0.08, 1.0);
                 vec2 uv = (tmp.xy / tmp.w) * 0.5 + 0.5;
-                vec3 sample = texture(Position, uv).rgb;
-                if (distance(sample, camera_pos.xyz) > distance(position, camera_pos.xyz) - 1e-2) {
+                vec3 pick = texture(Position, uv).rgb;
+                if (distance(pick, camera_pos.xyz) > distance(position, camera_pos.xyz) - 1e-2) {
                     lum += 1.0 / 16.0;
                 }
             }
@@ -204,6 +204,7 @@ ssao = ctx.pipeline(
 )
 
 while window.update():
+    ctx.new_frame()
     eye = (0.0 + math.sin(window.time) * 0.5, -4.0, 3.0)
     camera = zengl.camera(eye, (0.0, 0.0, 1.0), aspect=window.aspect, fov=45.0)
 
@@ -218,3 +219,4 @@ while window.update():
     depth.clear()
     ssao.render()
     image.blit()
+    ctx.end_frame()

@@ -21,11 +21,11 @@ def gen_sphere(radius, res=100):
 window = Window()
 ctx = zengl.context()
 
-image = ctx.image(window.size, 'rgba8unorm')
+image = ctx.image(window.size, 'rgba8unorm-srgb')
 
 vertex = ctx.image(window.size, 'rgba32float')
 normal = ctx.image(window.size, 'rgba32float')
-color = ctx.image(window.size, 'rgba8unorm')
+color = ctx.image(window.size, 'rgba8unorm-srgb')
 depth = ctx.image(window.size, 'depth24plus')
 color.clear_value = (0.2, 0.2, 0.2, 1.0)
 normal.clear_value = (0.0, 0.0, 0.0, 1.0)
@@ -40,7 +40,7 @@ uniform_buffer = ctx.buffer(size=64)
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -59,7 +59,7 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         in vec3 v_vertex;
         in vec3 v_normal;
@@ -96,7 +96,7 @@ pipeline = ctx.pipeline(
 
 lights = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -119,7 +119,7 @@ lights = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         uniform sampler2D Vertex;
         uniform sampler2D Normal;
@@ -189,18 +189,20 @@ lights = ctx.pipeline(
         *zengl.bind(light_vertex_buffer, '3f', 0),
         *zengl.bind(light_instance_buffer, '3f 1f 3f /i', 1, 2, 3),
     ],
-    blending={
-        'enable': 1,
-        'src_color': 'one',
-        'dst_color': 'one',
-    },
+    blend=[
+        {
+            'enable': 1,
+            'src_color': 'one',
+            'dst_color': 'one',
+        },
+    ],
     vertex_count=light_vertex_buffer.size // zengl.calcsize('3f'),
 )
 
 camera = zengl.camera((20.0, 0.0, 10.0), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
 uniform_buffer.write(camera)
 
-light_color = np.array([hls_to_rgb(x, 0.5, 0.5) for x in np.random.uniform(0.0, 1.0, 49)])
+light_color = np.array([hls_to_rgb(x, 0.3, 0.8) for x in np.random.uniform(0.0, 1.0, 49)])
 light_instances = np.array([
     np.tile(np.linspace(-9.0, 9.0, 7), 7),
     np.repeat(np.linspace(-9.0, 9.0, 7), 7),
@@ -216,6 +218,7 @@ radius1 = np.random.uniform(1.5, 3.0, 49)
 radius2 = np.random.uniform(1.5, 3.0, 49)
 
 while window.update():
+    ctx.new_frame()
     light_instances[:, 3] = (radius1 + radius2) / 2.0 + (radius1 - radius2) * np.sin(offset + window.time)
     light_instance_buffer.write(light_instances.tobytes())
     lights.instance_count = 49
@@ -224,3 +227,4 @@ while window.update():
     pipeline.render()
     lights.render()
     image.blit()
+    ctx.end_frame()

@@ -34,7 +34,7 @@ uniform_buffer = ctx.buffer(size=80)
 def crate_pipeline(source_image, target_image, target_depth):
     return ctx.pipeline(
         vertex_shader='''
-            #version 330
+            #version 330 core
 
             uniform Common {
                 mat4 mvp;
@@ -57,7 +57,7 @@ def crate_pipeline(source_image, target_image, target_depth):
             }
         ''',
         fragment_shader='''
-            #version 330
+            #version 330 core
 
             uniform Common {
                 mat4 mvp;
@@ -113,6 +113,7 @@ crate_3 = crate_pipeline(texture_2, texture_3, depth_3)
 crate_4 = crate_pipeline(texture_3, image, depth)
 
 while window.update():
+    ctx.new_frame()
     x, y = math.sin(window.time * 0.5) * 2.0, math.cos(window.time * 0.5) * 2.0
     camera = zengl.camera((x, y, 0.8), (0.0, 0.0, -0.15), aspect=window.aspect, fov=45.0)
 
@@ -136,3 +137,4 @@ while window.update():
     crate_4.render()
 
     image.blit()
+    ctx.end_frame()

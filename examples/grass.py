@@ -33,9 +33,9 @@ N = 200
 ctx.includes['N'] = f'const int N = {N};'
 ctx.includes['grass'] = grass_mesh()
 
-triangle = ctx.pipeline(
+pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         #include "N"
         #include "grass"
@@ -78,7 +78,7 @@ triangle = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         in vec2 v_data;
 
@@ -111,6 +111,7 @@ triangle = ctx.pipeline(
 )
 
 while window.update():
+    ctx.new_frame()
     x, y = math.sin(window.time * 0.2) * 12.0, math.cos(window.time * 0.2) * 12.0
     camera = zengl.camera((x, y, 4.0), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
 
@@ -119,5 +120,6 @@ while window.update():
 
     image.clear()
     depth.clear()
-    triangle.render()
+    pipeline.render()
     image.blit()
+    ctx.end_frame()

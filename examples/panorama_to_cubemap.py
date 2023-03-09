@@ -29,7 +29,7 @@ def face_pipeline(face):
 
     return ctx.pipeline(
         vertex_shader='''
-            #version 330
+            #version 330 core
 
             vec2 vertices[3] = vec2[](
                 vec2(-1.0, -1.0),
@@ -45,7 +45,7 @@ def face_pipeline(face):
             }
         ''',
         fragment_shader='''
-            #version 330
+            #version 330 core
 
             #include "uv_to_dir"
 
@@ -89,6 +89,8 @@ def face_pipeline(face):
 pipelines = [(i, face_pipeline(i)) for i in range(6)]
 
 for face, pipeline in pipelines:
+    ctx.new_frame()
     pipeline.render()
+    ctx.end_frame()
     img = Image.frombuffer('RGBA', image.size, image.read(), 'raw', 'RGBA', 0, -1)
     img.save(f'downloads/skybox_{face}.png')

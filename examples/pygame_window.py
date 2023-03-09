@@ -35,7 +35,7 @@ uniform_buffer = ctx.buffer(size=80)
 
 crate = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -58,7 +58,7 @@ crate = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -117,6 +117,7 @@ while running:
     x, y = math.sin(frames * 0.02) * 3.0, math.cos(frames * 0.02) * 3.0
     camera = zengl.camera((x, y, 1.5), (0.0, 0.0, 0.0), aspect=window_aspect, fov=45.0)
 
+    ctx.new_frame()
     uniform_buffer.write(camera)
     uniform_buffer.write(struct.pack('3f4x', x, y, 1.5), offset=64)
 
@@ -124,6 +125,7 @@ while running:
     depth.clear()
     crate.render()
     image.blit()
+    ctx.end_frame()
 
     pg.display.flip()
     pg.time.wait(10)

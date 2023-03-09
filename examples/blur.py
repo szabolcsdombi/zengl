@@ -34,9 +34,9 @@ vertex_buffer = ctx.buffer(model)
 
 uniform_buffer = ctx.buffer(size=80)
 
-monkey = ctx.pipeline(
+pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -53,7 +53,7 @@ monkey = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         in vec3 v_norm;
 
@@ -65,12 +65,6 @@ monkey = ctx.pipeline(
             out_color = vec4(lum, lum, lum, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -85,111 +79,75 @@ monkey = ctx.pipeline(
     vertex_count=vertex_buffer.size // zengl.calcsize('3f 3f'),
 )
 
-blur_x = ctx.pipeline(
-    vertex_shader='''
-        #version 330
 
-        vec2 positions[3] = vec2[](
-            vec2(-1.0, -1.0),
-            vec2(3.0, -1.0),
-            vec2(-1.0, 3.0)
-        );
+def make_blur(src, dst, mode):
+    return ctx.pipeline(
+        vertex_shader='''
+            #version 330 core
 
-        void main() {
-            gl_Position = vec4(positions[gl_VertexID], 0.0, 1.0);
-        }
-    ''',
-    fragment_shader='''
-        #version 330
+            vec2 positions[3] = vec2[](
+                vec2(-1.0, -1.0),
+                vec2(3.0, -1.0),
+                vec2(-1.0, 3.0)
+            );
 
-        uniform sampler2D Texture;
-
-        layout (location = 0) out vec4 out_color;
-
-        #include "kernel"
-
-        void main() {
-            vec3 color = vec3(0.0, 0.0, 0.0);
-            for (int i = 0; i < N; ++i) {
-                color += texelFetch(Texture, ivec2(gl_FragCoord.xy) + ivec2(i - N / 2, 0), 0).rgb * coeff[i];
+            void main() {
+                gl_Position = vec4(positions[gl_VertexID], 0.0, 1.0);
             }
-            out_color = vec4(color, 1.0);
-        }
-    ''',
-    layout=[
-        {
-            'name': 'Texture',
-            'binding': 0,
-        },
-    ],
-    resources=[
-        {
-            'type': 'sampler',
-            'binding': 0,
-            'image': image,
-        },
-    ],
-    framebuffer=[temp],
-    topology='triangles',
-    vertex_count=3,
-)
+        ''',
+        fragment_shader='''
+            #version 330 core
 
-blur_y = ctx.pipeline(
-    vertex_shader='''
-        #version 330
+            uniform int mode;
 
-        vec2 positions[3] = vec2[](
-            vec2(-1.0, -1.0),
-            vec2(3.0, -1.0),
-            vec2(-1.0, 3.0)
-        );
+            uniform sampler2D Texture;
 
-        void main() {
-            gl_Position = vec4(positions[gl_VertexID], 0.0, 1.0);
-        }
-    ''',
-    fragment_shader='''
-        #version 330
+            layout (location = 0) out vec4 out_color;
 
-        uniform sampler2D Texture;
+            #include "kernel"
 
-        layout (location = 0) out vec4 out_color;
-
-        #include "kernel"
-
-        void main() {
-            vec3 color = vec3(0.0, 0.0, 0.0);
-            for (int i = 0; i < N; ++i) {
-                color += texelFetch(Texture, ivec2(gl_FragCoord.xy) + ivec2(0, i - N / 2), 0).rgb * coeff[i];
+            void main() {
+                vec3 color = vec3(0.0, 0.0, 0.0);
+                if (mode == 0) {
+                    for (int i = 0; i < N; ++i) {
+                        color += texelFetch(Texture, ivec2(gl_FragCoord.xy) + ivec2(i - N / 2, 0), 0).rgb * coeff[i];
+                    }
+                } else {
+                    for (int i = 0; i < N; ++i) {
+                        color += texelFetch(Texture, ivec2(gl_FragCoord.xy) + ivec2(0, i - N / 2), 0).rgb * coeff[i];
+                    }
+                }
+                out_color = vec4(color, 1.0);
             }
-            out_color = vec4(color, 1.0);
-        }
-    ''',
-    layout=[
-        {
-            'name': 'Texture',
-            'binding': 0,
+        ''',
+        resources=[
+            {
+                'type': 'sampler',
+                'binding': 0,
+                'image': src,
+            },
+        ],
+        uniforms={
+            'mode': ['x', 'y'].index(mode),
         },
-    ],
-    resources=[
-        {
-            'type': 'sampler',
-            'binding': 0,
-            'image': temp,
-        },
-    ],
-    framebuffer=[output],
-    topology='triangles',
-    vertex_count=3,
-)
+        framebuffer=[dst],
+        topology='triangles',
+        vertex_count=3,
+    )
+
+
+blur_x = make_blur(image, temp, 'x')
+blur_y = make_blur(temp, output, 'y')
 
 camera = zengl.camera((3.0, 2.0, 2.0), (0.0, 0.0, 0.5), aspect=window.aspect, fov=45.0)
 uniform_buffer.write(camera)
 
 while window.update():
+    ctx.new_frame()
     image.clear()
     depth.clear()
-    monkey.render()
+    pipeline.render()
     blur_x.render()
     blur_y.render()
     output.blit()
+    ctx.end_frame()

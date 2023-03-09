@@ -24,7 +24,7 @@ temp_depth = ctx.image(size, 'depth24plus')
 
 shape = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -77,7 +77,7 @@ shape = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         uniform samplerCube Texture;
         in vec3 v_text;
@@ -125,7 +125,7 @@ def cubemap_face_pipeline(face):
     image_face = texture.face(layer=face)
     pipeline = ctx.pipeline(
         vertex_shader='''
-            #version 330
+            #version 330 core
 
             layout (std140) uniform Common {
                 mat4 mvp;
@@ -142,7 +142,7 @@ def cubemap_face_pipeline(face):
             }
         ''',
         fragment_shader='''
-            #version 330
+            #version 330 core
 
             in vec3 v_norm;
 
@@ -189,6 +189,7 @@ scene_uniform_buffer.write(b''.join([
 ]))
 
 while window.update():
+    ctx.new_frame()
 
     for face, pipeline in scene_pipelines:
         face.clear()
@@ -204,3 +205,4 @@ while window.update():
     depth.clear()
     shape.render()
     image.blit()
+    ctx.end_frame()

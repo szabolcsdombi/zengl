@@ -13,7 +13,7 @@ uniform_buffer = ctx.buffer(size=16)
 
 triangle = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             vec2 move;
@@ -40,7 +40,7 @@ triangle = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         in vec3 v_color;
 
@@ -69,6 +69,7 @@ triangle = ctx.pipeline(
 )
 
 while window.update():
+    ctx.new_frame()
     t = window.time
     z = np.frombuffer(uniform_buffer.map(), 'f4')
     z[:] = [
@@ -82,3 +83,4 @@ while window.update():
     image.clear()
     triangle.render()
     image.blit()
+    ctx.end_frame()

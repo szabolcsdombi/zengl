@@ -124,7 +124,7 @@ ctx.includes['qtransform'] = '''
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         #include "qtransform"
 
@@ -156,7 +156,7 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         in vec3 v_norm;
         in vec3 v_color;
@@ -235,8 +235,10 @@ while window.update():
     for i in range(7, loader.idx):
         bones[i, 0:3] = c[i], s[i], v[i]
         bones[i, 4:8] = vmath.rotate(rotation_axis[i], rotation_speed[i]) * vmath.quat(bones[i, 4:8])
+    ctx.new_frame()
     bone_buffer.write(bones)
     image.clear()
     depth.clear()
     pipeline.render()
     image.blit()
+    ctx.end_frame()

@@ -44,7 +44,7 @@ uniform_buffer = ctx.buffer(size=80)
 
 crate = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -67,7 +67,7 @@ crate = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -119,6 +119,7 @@ crate = ctx.pipeline(
 redraw_plot = cycle([True] + [False] * 15)
 
 while window.update():
+    ctx.new_frame()
     if next(redraw_plot):
         temp.seek(0)
         plot(window.time)
@@ -134,3 +135,4 @@ while window.update():
     depth.clear()
     crate.render()
     image.blit()
+    ctx.end_frame()

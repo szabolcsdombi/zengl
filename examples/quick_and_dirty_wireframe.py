@@ -17,9 +17,9 @@ vertex_buffer = ctx.buffer(model)
 
 uniform_buffer = ctx.buffer(size=64)
 
-monkey = ctx.pipeline(
+pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -36,7 +36,7 @@ monkey = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         in vec3 v_norm;
 
@@ -72,9 +72,11 @@ camera = zengl.camera((3.0, 2.0, 2.0), (0.0, 0.0, 0.5), aspect=window.aspect, fo
 uniform_buffer.write(camera)
 
 while window.update():
+    ctx.new_frame()
     image.clear()
     depth.clear()
     GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE)
-    monkey.render()
+    pipeline.render()
     GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
     image.blit()
+    ctx.end_frame()

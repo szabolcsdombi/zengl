@@ -9,7 +9,7 @@ image = ctx.image(size, 'r32float')
 
 triangle = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         vec2 positions[3] = vec2[](
             vec2(-1.0, -1.0),
@@ -22,7 +22,7 @@ triangle = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         layout (location = 0) out float out_value;
 
@@ -36,8 +36,10 @@ triangle = ctx.pipeline(
     vertex_count=3,
 )
 
+ctx.new_frame()
 image.clear()
 triangle.render()
+ctx.end_frame()
 
 plt.imshow(np.frombuffer(image.read(), 'f4').reshape(size))
 plt.show()

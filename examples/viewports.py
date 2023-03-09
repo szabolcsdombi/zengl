@@ -10,7 +10,7 @@ image.clear_value = (1.0, 1.0, 1.0, 1.0)
 
 triangle = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         out vec3 v_color;
 
@@ -32,7 +32,7 @@ triangle = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         in vec3 v_color;
 
@@ -48,6 +48,7 @@ triangle = ctx.pipeline(
 )
 
 while window.update():
+    ctx.new_frame()
     image.clear()
     triangle.viewport = (0, 0, 640, 360)
     triangle.render()
@@ -58,3 +59,4 @@ while window.update():
     triangle.viewport = (640, 360, 640, 360)
     triangle.render()
     image.blit()
+    ctx.end_frame()

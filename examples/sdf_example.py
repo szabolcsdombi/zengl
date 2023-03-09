@@ -58,7 +58,7 @@ uniform_buffer = ctx.buffer(size=80)
 
 model = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -75,7 +75,7 @@ model = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         in vec3 v_norm;
 
@@ -109,6 +109,7 @@ model = ctx.pipeline(
 )
 
 while window.update():
+    ctx.new_frame()
     x, y = math.sin(window.time * 0.5) * 2.5 * radius, math.cos(window.time * 0.5) * 2.5 * radius
     camera = zengl.camera((x, y, 1.5 * radius), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
 
@@ -118,3 +119,4 @@ while window.update():
     depth.clear()
     model.render()
     image.blit()
+    ctx.end_frame()

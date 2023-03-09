@@ -31,7 +31,7 @@ uniform_buffer = ctx.buffer(size=64)
 
 depth_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -46,7 +46,7 @@ depth_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         void main() {
         }
@@ -64,10 +64,6 @@ depth_pipeline = ctx.pipeline(
             'buffer': uniform_buffer,
         },
     ],
-    polygon_offset={
-        'factor': 1.0,
-        'units': 0.0,
-    },
     framebuffer=[temp_depth],
     topology='triangles',
     cull_face='back',
@@ -77,7 +73,7 @@ depth_pipeline = ctx.pipeline(
 
 texture_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         layout (location = 0) in vec3 in_vertex;
         layout (location = 1) in vec2 in_texcoord;
@@ -90,7 +86,7 @@ texture_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         #include "samples"
 
@@ -135,11 +131,13 @@ texture_pipeline = ctx.pipeline(
             'compare_mode': 'ref_to_texture',
         },
     ],
-    blending={
-        'enable': True,
-        'src_color': 'one',
-        'dst_color': 'one',
-    },
+    blend=[
+        {
+            'enable': True,
+            'src_color': 'one',
+            'dst_color': 'one',
+        },
+    ],
     framebuffer=[temp_texture],
     topology='triangles',
     vertex_buffers=zengl.bind(vertex_buffer, '3f 2f', 0, 1),
@@ -148,7 +146,7 @@ texture_pipeline = ctx.pipeline(
 
 fill_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         vec2 positions[3] = vec2[](
             vec2(-1.0, -1.0),
@@ -161,7 +159,7 @@ fill_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         uniform sampler2D Texture;
 
@@ -217,7 +215,7 @@ fill_pipeline = ctx.pipeline(
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -236,7 +234,7 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         uniform sampler2D Texture;
 
@@ -305,6 +303,7 @@ ao = np.frombuffer(texture.read(), 'f4').reshape(size, size)[::-1]
 Image.fromarray((ao * 255.0).astype('u1'), 'L').save('generated-ao-map.png')
 
 while window.update():
+    ctx.new_frame()
     x, y = np.sin(window.time * 0.5 + 1.0) * 5.0, np.cos(window.time * 0.5 + 1.0) * 5.0
     camera = zengl.camera((x, y, 1.5), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
     uniform_buffer.write(camera)
@@ -313,3 +312,4 @@ while window.update():
     depth.clear()
     pipeline.render()
     image.blit()
+    ctx.end_frame()

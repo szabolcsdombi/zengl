@@ -35,7 +35,7 @@ def create_shadow_pipeline(light_index, vertex_buffer, uniform_buffer, framebuff
     ctx.includes['light_index'] = f'const int light_index = {light_index};'
     return ctx.pipeline(
         vertex_shader='''
-            #version 330
+            #version 330 core
 
             #include "ubo"
             #include "light_index"
@@ -50,7 +50,7 @@ def create_shadow_pipeline(light_index, vertex_buffer, uniform_buffer, framebuff
             }
         ''',
         fragment_shader='''
-            #version 330
+            #version 330 core
 
             #include "ubo"
             #include "light_index"
@@ -87,7 +87,7 @@ def create_shadow_pipeline(light_index, vertex_buffer, uniform_buffer, framebuff
 def create_render_pipeline(vertex_buffer, uniform_buffer, framebuffer):
     return ctx.pipeline(
         vertex_shader='''
-            #version 330
+            #version 330 core
 
             #include "ubo"
 
@@ -104,7 +104,7 @@ def create_render_pipeline(vertex_buffer, uniform_buffer, framebuffer):
             }
         ''',
         fragment_shader='''
-            #version 330
+            #version 330 core
 
             #include "ubo"
 
@@ -237,6 +237,7 @@ uniform_buffer.write(struct.pack(
 ))
 
 while window.update():
+    ctx.new_frame()
     image.clear()
     depth.clear()
     for fbo in shadow_framebuffers:
@@ -248,3 +249,4 @@ while window.update():
 
     scene.render()
     image.blit()
+    ctx.end_frame()

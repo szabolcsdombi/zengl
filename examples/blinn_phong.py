@@ -22,7 +22,7 @@ material_uniform_buffer = ctx.buffer(size=112)
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -42,7 +42,7 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -137,6 +137,7 @@ material_uniform_buffer.write(struct.pack(
 ))
 
 while window.update():
+    ctx.new_frame()
     x, y = np.cos(window.time * 0.5) * 5.0, np.sin(window.time * 0.5) * 5.0
     camera = zengl.camera((x, y, 2.0), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
     uniform_buffer.write(camera + struct.pack('=3f4x', x, y, 2.0))
@@ -145,3 +146,4 @@ while window.update():
     depth.clear()
     pipeline.render()
     image.blit()
+    ctx.end_frame()

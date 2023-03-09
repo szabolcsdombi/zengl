@@ -19,7 +19,7 @@ uniform_buffer = ctx.buffer(size=64)
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -36,7 +36,7 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         in vec3 v_norm;
 
@@ -61,10 +61,6 @@ pipeline = ctx.pipeline(
             'buffer': uniform_buffer,
         },
     ],
-    polygon_offset={
-        'factor': 1.0,
-        'units': 0.0,
-    },
     framebuffer=[image, depth],
     topology='triangles',
     cull_face='back',
@@ -100,7 +96,7 @@ index_buffer = ctx.buffer(np.array([
 
 wireframe = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -113,11 +109,12 @@ wireframe = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         layout (location = 0) out vec4 out_color;
 
         void main() {
+            gl_FragDepth = gl_FragCoord.z - 1e-4;
             out_color = vec4(0.0, 0.0, 0.0, 1.0);
         }
     ''',
@@ -135,7 +132,6 @@ wireframe = ctx.pipeline(
         },
     ],
     framebuffer=[image, depth],
-    primitive_restart=True,
     topology='line_loop',
     vertex_buffers=zengl.bind(vertex_buffer, '3f 3f', 0, -1),
     index_buffer=index_buffer,
@@ -144,7 +140,7 @@ wireframe = ctx.pipeline(
 
 normals = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -166,7 +162,7 @@ normals = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         layout (location = 0) out vec4 out_color;
 
@@ -198,6 +194,7 @@ normals = ctx.pipeline(
 )
 
 while window.update():
+    ctx.new_frame()
     x, y = np.cos(window.time * 0.5) * 5.0, np.sin(window.time * 0.5) * 5.0
     camera = zengl.camera((x, y, 2.0), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
     uniform_buffer.write(camera)
@@ -208,3 +205,4 @@ while window.update():
     wireframe.render()
     normals.render()
     image.blit()
+    ctx.end_frame()

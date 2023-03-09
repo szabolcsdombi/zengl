@@ -48,7 +48,7 @@ ctx.includes['uniforms'] = '''
 
 canvas = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         vec2 positions[3] = vec2[](
             vec2(-1.0, -1.0),
@@ -61,7 +61,7 @@ canvas = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         #include "uniforms"
         #include "shadertoy"
@@ -95,6 +95,7 @@ last_time = window.time
 frame = 0
 
 while window.update():
+    ctx.new_frame()
     image.clear()
     uniform_buffer.write(ubo.pack(
         window.size[0], window.size[1], 0.0,
@@ -106,4 +107,5 @@ while window.update():
     ))
     canvas.render()
     image.blit()
+    ctx.end_frame()
     frame += 1

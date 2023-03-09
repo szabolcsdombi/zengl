@@ -33,7 +33,7 @@ ctx.includes['get_point'] = f'''
 
 simulate_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         vec2 positions[3] = vec2[](
             vec2(-1.0, -1.0),
@@ -46,7 +46,7 @@ simulate_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             vec2 cursor;
@@ -114,7 +114,7 @@ simulate_pipeline = ctx.pipeline(
 
 render_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         uniform sampler2D Points;
 
@@ -129,7 +129,7 @@ render_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         in vec3 v_color;
 
@@ -164,6 +164,7 @@ cx, cy = 0.0, 0.0
 while window.update():
     cx = cx * 0.95 + (window.mouse[0] / window.size[0] * 2.0 - 1.0) * 0.05
     cy = cy * 0.95 + (window.mouse[1] / window.size[1] * 2.0 - 1.0) * 0.05
+    ctx.new_frame()
     uniform_buffer.write(np.array([cx, cy, 0.0, 0.0], 'f4'))
     image.clear()
     simulate_pipeline.render()
@@ -171,3 +172,4 @@ while window.update():
     points[1].blit(points[0])
     points[2].blit(points[1])
     image.blit()
+    ctx.end_frame()

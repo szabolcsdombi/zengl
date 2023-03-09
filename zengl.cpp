@@ -1342,7 +1342,51 @@ static GLObject * compile_shader(Context * self, PyObject * pair) {
 }
 
 static PyObject * program_interface(Context * self, int program) {
-    Py_RETURN_NONE;
+    const GLMethods & gl = self->gl;
+
+    bind_program(self, program);
+
+    int num_attribs = 0;
+    int num_uniforms = 0;
+    int num_uniform_buffers = 0;
+    gl.GetProgramiv(program, GL_ACTIVE_ATTRIBUTES, &num_attribs);
+    gl.GetProgramiv(program, GL_ACTIVE_UNIFORMS, &num_uniforms);
+    gl.GetProgramiv(program, GL_ACTIVE_UNIFORM_BLOCKS, &num_uniform_buffers);
+
+    PyObject * attributes = PyList_New(num_attribs);
+    PyObject * uniforms = PyList_New(num_uniforms);
+    PyObject * uniform_buffers = PyList_New(num_uniform_buffers);
+
+    for (int i = 0; i < num_attribs; ++i) {
+        int size = 0;
+        int type = 0;
+        int length = 0;
+        char name[256] = {};
+        gl.GetActiveAttrib(program, i, 256, &length, &size, (unsigned *)&type, name);
+        int location = gl.GetAttribLocation(program, name);
+        PyList_SET_ITEM(attributes, i, Py_BuildValue("{sssisisi}", "name", name, "location", location, "gltype", type, "size", size));
+    }
+
+    for (int i = 0; i < num_uniforms; ++i) {
+        int size = 0;
+        int type = 0;
+        int length = 0;
+        char name[256] = {};
+        gl.GetActiveUniform(program, i, 256, &length, &size, (unsigned *)&type, name);
+        int location = gl.GetUniformLocation(program, name);
+        PyList_SET_ITEM(uniforms, i, Py_BuildValue("{sssisisi}", "name", name, "location", location, "gltype", type, "size", size));
+    }
+
+    for (int i = 0; i < num_uniform_buffers; ++i) {
+        int size = 0;
+        int length = 0;
+        char name[256] = {};
+        gl.GetActiveUniformBlockiv(program, i, GL_UNIFORM_BLOCK_DATA_SIZE, &size);
+        gl.GetActiveUniformBlockName(program, i, 256, &length, name);
+        PyList_SET_ITEM(uniform_buffers, i, Py_BuildValue("{sssi}", "name", name, "size", size));
+    }
+
+    return Py_BuildValue("(NNN)", attributes, uniforms, uniform_buffers);
 }
 
 static GLObject * compile_program(Context * self, PyObject * includes, PyObject * vert, PyObject * frag, PyObject * layout) {
@@ -1707,20 +1751,17 @@ static Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * k
         gl.TexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         gl.TexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         if (cubemap) {
-            gl.TexStorage2D(target, levels, fmt.internal_format, width, height);
-            if (view.buf) {
-                gl.TexSubImage3D(target, 0, 0, 0, 0, width, height, 6, fmt.format, fmt.type, view.buf);
+            int padded_row = (width * fmt.pixel_size + 3) & ~3;
+            int stride = padded_row * height;
+            for (int i = 0; i < 6; ++i) {
+                int face = GL_TEXTURE_CUBE_MAP_POSITIVE_X + i;
+                char * ptr = view.buf ? (char *)view.buf + stride * i : NULL;
+                gl.TexImage2D(face, 0, fmt.internal_format, width, height, 0, fmt.format, fmt.type, ptr);
             }
         } else if (array) {
-            gl.TexStorage3D(target, levels, fmt.internal_format, width, height, array);
-            if (view.buf) {
-                gl.TexSubImage3D(target, 0, 0, 0, 0, width, height, array, fmt.format, fmt.type, view.buf);
-            }
+            gl.TexImage3D(target, 0, fmt.internal_format, width, height, array, 0, fmt.format, fmt.type, view.buf);
         } else {
-            gl.TexStorage2D(target, levels, fmt.internal_format, width, height);
-            if (view.buf) {
-                gl.TexSubImage2D(target, 0, 0, 0, width, height, fmt.format, fmt.type, view.buf);
-            }
+            gl.TexImage2D(target, 0, fmt.internal_format, width, height, 0, fmt.format, fmt.type, view.buf);
         }
     }
 
@@ -2506,12 +2547,23 @@ static PyObject * Image_meth_write(Image * self, PyObject * vargs, PyObject * kw
 
     gl.ActiveTexture(self->ctx->default_texture_unit);
     gl.BindTexture(self->target, self->image);
-    if (self->cubemap || self->array) {
+    if (self->cubemap) {
+        int padded_row = (size.x * self->fmt.pixel_size + 3) & ~3;
+        int stride = padded_row * size.y;
+        if (layer_arg != Py_None) {
+            int face = GL_TEXTURE_CUBE_MAP_POSITIVE_X + layer;
+            gl.TexSubImage2D(face, level, offset.x, offset.y, size.x, size.y, self->fmt.format, self->fmt.type, view.buf);
+        } else {
+            for (int i = 0; i < 6; ++i) {
+                int face = GL_TEXTURE_CUBE_MAP_POSITIVE_X + i;
+                gl.TexSubImage2D(face, level, offset.x, offset.y, size.x, size.y, self->fmt.format, self->fmt.type, (char *)view.buf + stride * i);
+            }
+        }
+    } else if (self->array) {
         if (layer_arg != Py_None) {
             gl.TexSubImage3D(self->target, level, offset.x, offset.y, layer, size.x, size.y, 1, self->fmt.format, self->fmt.type, view.buf);
         } else {
-            int layers = (self->array ? self->array : 1) * (self->cubemap ? 6 : 1);
-            gl.TexSubImage3D(self->target, level, offset.x, offset.y, 0, size.x, size.y, layers, self->fmt.format, self->fmt.type, view.buf);
+            gl.TexSubImage3D(self->target, level, offset.x, offset.y, 0, size.x, size.y, self->array, self->fmt.format, self->fmt.type, view.buf);
         }
     } else {
         gl.TexSubImage2D(self->target, level, offset.x, offset.y, size.x, size.y, self->fmt.format, self->fmt.type, view.buf);

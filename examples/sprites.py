@@ -36,7 +36,7 @@ ctx.includes['screen_size'] = f'const vec2 screen_size = vec2({width}, {height})
 
 triangle = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         #include "screen_size"
 
@@ -62,7 +62,7 @@ triangle = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         in vec3 v_texcoord;
 
@@ -92,11 +92,13 @@ triangle = ctx.pipeline(
             'wrap_y': 'clamp_to_edge',
         },
     ],
-    blending={
-        'enable': True,
-        'src_color': 'src_alpha',
-        'dst_color': 'one_minus_src_alpha',
-    },
+    blend=[
+        {
+            'enable': True,
+            'src_color': 'src_alpha',
+            'dst_color': 'one_minus_src_alpha',
+        },
+    ],
     framebuffer=[image],
     topology='triangle_strip',
     vertex_buffers=zengl.bind(instance_buffer, '4f /i', 0),
@@ -107,6 +109,7 @@ triangle = ctx.pipeline(
 turn = np.random.uniform(-0.002, 0.002, count)
 
 while window.update():
+    ctx.new_frame()
     instance_data[:, 0] = (instance_data[:, 0] - np.sin(instance_data[:, 2]) * 0.2) % window.size[0]
     instance_data[:, 1] = (instance_data[:, 1] - np.cos(instance_data[:, 2]) * 0.2) % window.size[1]
     instance_data[:, 2] += turn
@@ -114,3 +117,4 @@ while window.update():
     image.clear()
     triangle.render()
     image.blit()
+    ctx.end_frame()

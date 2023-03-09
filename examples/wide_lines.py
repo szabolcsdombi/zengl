@@ -35,7 +35,7 @@ vertex_buffers = [
 def build_pipeline(vertex_buffer):
     return ctx.pipeline(
         vertex_shader='''
-            #version 330
+            #version 330 core
 
             layout (std140) uniform Common {
                 mat4 mvp;
@@ -48,7 +48,7 @@ def build_pipeline(vertex_buffer):
             }
         ''',
         fragment_shader='''
-            #version 330
+            #version 330 core
 
             layout (location = 0) out vec4 out_color;
 
@@ -82,6 +82,7 @@ camera = zengl.camera((0.0, -20.0, 0.0), (0.0, 0.0, 0.0), aspect=window.aspect, 
 uniform_buffer.write(camera)
 
 while window.update():
+    ctx.new_frame()
     image.clear()
     depth.clear()
     GL.glLineWidth(1.0)
@@ -91,3 +92,4 @@ while window.update():
     GL.glLineWidth(9.0)
     pipelines[2].render()
     image.blit()
+    ctx.end_frame()

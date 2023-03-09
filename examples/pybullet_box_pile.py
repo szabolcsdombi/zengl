@@ -53,7 +53,7 @@ ctx.includes['qtransform'] = '''
 
 crate = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         #include "qtransform"
 
@@ -80,7 +80,7 @@ crate = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -143,6 +143,7 @@ uniform_buffer.write(struct.pack('3f4x', 8.0, 6.0, 14.0), offset=64)
 while window.update():
     pb.stepSimulation()
 
+    ctx.new_frame()
     z = np.frombuffer(instance_buffer.map(), 'f4').reshape(-1, 8)
     for i, obj in enumerate(bullet_crates):
         pos, rot = pb.getBasePositionAndOrientation(obj)
@@ -155,3 +156,4 @@ while window.update():
     depth.clear()
     crate.render()
     image.blit()
+    ctx.end_frame()

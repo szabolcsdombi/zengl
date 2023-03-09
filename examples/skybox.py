@@ -33,7 +33,7 @@ texture = ctx.image(size, 'rgba8unorm', faces, cubemap=True)
 
 shape = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -87,7 +87,7 @@ shape = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         uniform samplerCube Texture;
         in vec3 v_text;
@@ -127,6 +127,7 @@ shape = ctx.pipeline(
 )
 
 while window.update():
+    ctx.new_frame()
     t = window.time * 0.5
     eye = (np.cos(t) * 5.0, np.sin(t) * 5.0, np.sin(t * 0.7) * 2.0)
     camera = zengl.camera(eye, (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
@@ -136,3 +137,4 @@ while window.update():
     depth.clear()
     shape.render()
     image.blit()
+    ctx.end_frame()

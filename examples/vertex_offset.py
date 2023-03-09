@@ -36,7 +36,7 @@ uniform_buffer = ctx.buffer(size=64)
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -53,7 +53,7 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         in vec3 v_norm;
 
@@ -92,6 +92,7 @@ uniform_buffer.write(camera)
 it = iter(cycle(np.clip(np.sin(np.linspace(0.0, 2.0 * np.pi, 180)) * 175 + 225, 50, 400).astype(int)))
 
 while window.update():
+    ctx.new_frame()
     image.clear()
     depth.clear()
     pipeline.render()
@@ -100,3 +101,4 @@ while window.update():
     pipeline.first_vertex = offset // vertex_size
     pipeline.vertex_count = size // vertex_size
     image.blit()
+    ctx.end_frame()

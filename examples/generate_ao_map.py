@@ -30,7 +30,7 @@ ctx.includes['size'] = f'const int size = {size};'
 
 texcoord_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -48,7 +48,7 @@ texcoord_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         #include "size"
 
@@ -111,7 +111,7 @@ Image.fromarray((ao.reshape(size, size) * 255.0).astype('u1'), 'L').save('genera
 
 render_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -131,7 +131,7 @@ render_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         uniform sampler2D Texture;
 
@@ -177,6 +177,7 @@ render_pipeline = ctx.pipeline(
 )
 
 while window.update():
+    ctx.new_frame()
     x, y = np.cos(window.time * 0.5) * 5.0, np.sin(window.time * 0.5) * 5.0
     camera = zengl.camera((x, y, 1.0), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
     uniform_buffer.write(camera)
@@ -184,3 +185,4 @@ while window.update():
     depth.clear()
     render_pipeline.render()
     image.blit()
+    ctx.end_frame()

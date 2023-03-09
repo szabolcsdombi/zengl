@@ -21,7 +21,7 @@ uniform_buffer = ctx.buffer(size=80)
 
 monkey = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -38,7 +38,7 @@ monkey = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         in vec3 v_norm;
 
@@ -72,7 +72,7 @@ monkey = ctx.pipeline(
 
 monkey_reflection = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -89,7 +89,7 @@ monkey_reflection = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         in vec3 v_norm;
 
@@ -123,7 +123,7 @@ monkey_reflection = ctx.pipeline(
 
 monkey_shadow = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -137,11 +137,12 @@ monkey_shadow = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         layout (location = 0) out vec4 out_color;
 
         void main() {
+            gl_FragDepth = gl_FragCoord.z - 1e-4;
             out_color = vec4(0.0, 0.0, 0.0, 0.3);
         }
     ''',
@@ -158,13 +159,15 @@ monkey_shadow = ctx.pipeline(
             'buffer': uniform_buffer,
         },
     ],
-    blending={
-        'enable': True,
-        'src_color': 'src_alpha',
-        'dst_color': 'one_minus_src_alpha',
-        'src_alpha': 'one',
-        'dst_alpha': 'zero',
-    },
+    blend=[
+        {
+            'enable': True,
+            'src_color': 'src_alpha',
+            'dst_color': 'one_minus_src_alpha',
+            'src_alpha': 'one',
+            'dst_alpha': 'zero',
+        },
+    ],
     stencil={
         'test': True,
         'both': {
@@ -186,7 +189,7 @@ monkey_shadow = ctx.pipeline(
 
 plane = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -204,7 +207,7 @@ plane = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         layout (location = 0) out vec4 out_color;
 
@@ -225,17 +228,15 @@ plane = ctx.pipeline(
             'buffer': uniform_buffer,
         },
     ],
-    polygon_offset={
-        'factor': 1.0,
-        'units': 0.0,
-    },
-    blending={
-        'enable': True,
-        'src_color': 'src_alpha',
-        'dst_color': 'one_minus_src_alpha',
-        'src_alpha': 'one',
-        'dst_alpha': 'zero',
-    },
+    blend=[
+        {
+            'enable': True,
+            'src_color': 'src_alpha',
+            'dst_color': 'one_minus_src_alpha',
+            'src_alpha': 'one',
+            'dst_alpha': 'zero',
+        },
+    ],
     framebuffer=[image, depth],
     topology='triangle_strip',
     vertex_count=4,
@@ -245,6 +246,7 @@ camera = zengl.camera((3.0, 2.0, 2.0), (0.0, 0.0, 0.5), aspect=window.aspect, fo
 uniform_buffer.write(camera)
 
 while window.update():
+    ctx.new_frame()
     x, y = math.sin(window.time * 0.5) * 5.0, math.cos(window.time * 0.5) * 5.0
     camera = zengl.camera((x, y, 2.0), (0.0, 0.0, 0.5), aspect=window.aspect, fov=45.0)
     uniform_buffer.write(camera)
@@ -256,3 +258,4 @@ while window.update():
     monkey_shadow.render()
     plane.render()
     image.blit()
+    ctx.end_frame()

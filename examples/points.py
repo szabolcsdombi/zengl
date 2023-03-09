@@ -43,7 +43,7 @@ color_buffer = ctx.buffer(np.array([
 
 triangle = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         layout (location = 0) in vec2 in_vert;
         layout (location = 1) in vec3 in_color;
@@ -57,7 +57,7 @@ triangle = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         in vec3 v_color;
 
@@ -67,11 +67,13 @@ triangle = ctx.pipeline(
             out_color = vec4(v_color, 0.7);
         }
     ''',
-    blending={
-        'enable': True,
-        'src_color': 'src_alpha',
-        'dst_color': 'one_minus_src_alpha',
-    },
+    blend=[
+        {
+            'enable': True,
+            'src_color': 'src_alpha',
+            'dst_color': 'one_minus_src_alpha',
+        },
+    ],
     framebuffer=[image],
     topology='points',
     vertex_buffers=[
@@ -82,8 +84,10 @@ triangle = ctx.pipeline(
 )
 
 while window.update():
+    ctx.new_frame()
     image.clear()
     ps.update()
     vertex_buffer.write(ps.get_buffer())
     triangle.render()
     image.blit()
+    ctx.end_frame()

@@ -70,7 +70,7 @@ ctx.includes['screen_size'] = f'const vec2 screen_size = vec2({width}, {height})
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         #include "screen_size"
 
@@ -93,7 +93,7 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         uniform sampler2DArray Texture;
 
@@ -130,6 +130,8 @@ pipeline = ctx.pipeline(
 )
 
 while window.update():
+    ctx.new_frame()
     image.clear()
     pipeline.render()
     image.blit()
+    ctx.end_frame()

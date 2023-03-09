@@ -6,7 +6,7 @@ from window import Window
 window = Window()
 ctx = zengl.context()
 
-image = ctx.image(window.size, 'rgba8unorm', samples=4)
+image = ctx.image(window.size, 'rgba8unorm-srgb', samples=4)
 depth = ctx.image(window.size, 'depth24plus', samples=4)
 image.clear_value = (0.0, 0.0, 0.0, 1.0)
 
@@ -85,7 +85,7 @@ boxgrid = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         in vec3 v_color;
 
@@ -116,6 +116,7 @@ boxgrid = ctx.pipeline(
 )
 
 while window.update():
+    ctx.new_frame()
     t = window.time * 0.5
     eye = (np.cos(t) * 5.0, np.sin(t) * 5.0, np.sin(t * 0.7) * 2.0)
     camera = zengl.camera(eye, (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
@@ -124,3 +125,4 @@ while window.update():
     depth.clear()
     boxgrid.render()
     image.blit()
+    ctx.end_frame()

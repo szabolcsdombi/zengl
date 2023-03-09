@@ -1,50 +1,57 @@
 import math
 import struct
-import zipfile
 
+import imgui
 import zengl
+from imgui.integrations.pyglet import create_renderer
 from objloader import Obj
 from PIL import Image
 
 import assets
 from window import Window
 
-pack = zipfile.ZipFile(assets.get('forest-panorama.zip'))
-
 window = Window()
+
+imgui.create_context()
+imgui.get_io().ini_file_name = b''
+impl = create_renderer(window._wnd)
+
 ctx = zengl.context()
 
 image = ctx.image(window.size, 'rgba8unorm', samples=4)
 depth = ctx.image(window.size, 'depth24plus', samples=4)
-image.clear_value = (0.2, 0.2, 0.2, 1.0)
+image.clear_value = (1.0, 1.0, 1.0, 1.0)
 
-img = Image.open(pack.open('forest.jpg')).convert('RGBA')  # https://polyhaven.com/a/phalzer_forest_01
-texture = ctx.image(img.size, 'rgba8unorm', img.tobytes())
-
-model = Obj.open(assets.get('blob.obj')).pack('vx vy vz nx ny nz')
+model = Obj.open(assets.get('box.obj')).pack('vx vy vz nx ny nz tx ty')
 vertex_buffer = ctx.buffer(model)
+
+img = Image.open(assets.get('crate.png')).convert('RGBA')
+texture = ctx.image(img.size, 'rgba8unorm', img.tobytes())
 
 uniform_buffer = ctx.buffer(size=80)
 
-pipeline = ctx.pipeline(
+crate = ctx.pipeline(
     vertex_shader='''
         #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
-            vec3 eye;
+            vec3 light;
         };
 
         layout (location = 0) in vec3 in_vert;
         layout (location = 1) in vec3 in_norm;
+        layout (location = 2) in vec2 in_text;
 
         out vec3 v_vert;
         out vec3 v_norm;
+        out vec2 v_text;
 
         void main() {
             gl_Position = mvp * vec4(in_vert, 1.0);
             v_vert = in_vert;
             v_norm = in_norm;
+            v_text = in_text;
         }
     ''',
     fragment_shader='''
@@ -52,26 +59,20 @@ pipeline = ctx.pipeline(
 
         layout (std140) uniform Common {
             mat4 mvp;
-            vec3 eye;
+            vec3 light;
         };
 
         uniform sampler2D Texture;
 
         in vec3 v_vert;
         in vec3 v_norm;
+        in vec2 v_text;
 
         layout (location = 0) out vec4 out_color;
 
-        float atan2(float y, float x) {
-            return x == 0.0 ? sign(y) * 3.1415 / 2 : atan(y, x);
-        }
-
         void main() {
-            vec3 ray = reflect(normalize(v_vert - eye), normalize(v_norm));
-            vec2 tex = vec2(atan2(ray.y, ray.x) / 3.1415, -ray.z);
-            float lum = dot(normalize(eye - v_vert), normalize(v_norm)) * 0.3 + 0.7;
-            vec3 color = texture(Texture, tex).rgb;
-            out_color = vec4(color * lum, 1.0);
+            float lum = clamp(dot(normalize(light - v_vert), normalize(v_norm)), 0.0, 1.0) * 0.6 + 0.4;
+            out_color = vec4(texture(Texture, v_text).rgb * lum, 1.0);
         }
     ''',
     layout=[
@@ -99,22 +100,25 @@ pipeline = ctx.pipeline(
     framebuffer=[image, depth],
     topology='triangles',
     cull_face='back',
-    vertex_buffers=zengl.bind(vertex_buffer, '3f 3f', 0, 1),
-    vertex_count=vertex_buffer.size // zengl.calcsize('3f 3f'),
+    vertex_buffers=zengl.bind(vertex_buffer, '3f 3f 2f', 0, 1, 2),
+    vertex_count=vertex_buffer.size // zengl.calcsize('3f 3f 2f'),
 )
 
-camera = zengl.camera((3.0, 2.0, 2.0), (0.0, 0.0, 0.5), aspect=window.aspect, fov=45.0)
-uniform_buffer.write(camera)
-
 while window.update():
+    x, y = math.sin(window.time * 0.5) * 3.0, math.cos(window.time * 0.5) * 3.0
+    camera = zengl.camera((x, y, 1.5), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
+
     ctx.new_frame()
-    x, y = math.sin(window.time * 0.5) * 5.0, math.cos(window.time * 0.5) * 5.0
-    camera = zengl.camera((x, y, 2.0), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
     uniform_buffer.write(camera)
-    uniform_buffer.write(struct.pack('3f4x', x, y, 2.0), offset=64)
+    uniform_buffer.write(struct.pack('3f4x', x, y, 1.5), offset=64)
 
     image.clear()
     depth.clear()
-    pipeline.render()
+    crate.render()
     image.blit()
     ctx.end_frame()
+
+    imgui.new_frame()
+    imgui.show_demo_window()
+    imgui.render()
+    impl.render(imgui.get_draw_data())

@@ -32,7 +32,7 @@ uniform_buffer = ctx.buffer(size=80)
 
 crate = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -56,7 +56,7 @@ crate = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -117,6 +117,7 @@ uniform_buffer.write(camera)
 uniform_buffer.write(struct.pack('3f4x', 3.0, 2.0, 1.5), offset=64)
 
 while window.update():
+    ctx.new_frame()
     z = np.frombuffer(instance_buffer.map(), 'f4').reshape(-1, 3)
     z[:, 2] += np.random.normal(0.0, 0.01, z.shape[0])
     instance_buffer.unmap()
@@ -125,3 +126,4 @@ while window.update():
     depth.clear()
     crate.render()
     image.blit()
+    ctx.end_frame()

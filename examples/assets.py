@@ -9,6 +9,18 @@ while not os.path.isfile(os.path.join(project_root, 'setup.py')):
     project_root = os.path.dirname(project_root)
 
 
+class Loader:
+    def __init__(self, filename, total_size):
+        print(f'Downloading {filename}')
+        self.bar = Bar('Progress', fill='-', suffix='%(percent)d%%', max=total_size)
+
+    def update(self, chunk_size):
+        self.bar.next(chunk_size)
+
+    def finish(self):
+        self.bar.finish()
+
+
 def get(filename):
     os.makedirs(os.path.join(project_root, 'downloads'), exist_ok=True)
     full_path = os.path.join(project_root, 'downloads', filename)
@@ -18,13 +30,12 @@ def get(filename):
         if not request.ok:
             raise Exception(request.text)
         total_size = int(request.headers.get('Content-Length'))
-        print(f'Downloading {filename}')
-        bar = Bar('Progress', fill='-', suffix='%(percent)d%%', max=total_size)
+        loader = Loader(filename, total_size)
         with open(full_path + '.temp', 'wb') as f:
             chunk_size = (total_size + 100 - 1) // 100
             for chunk in request.iter_content(chunk_size=chunk_size):
                 f.write(chunk)
-                bar.next(len(chunk))
+                loader.update(len(chunk))
         os.rename(full_path + '.temp', full_path)
-        bar.finish()
+        loader.finish()
     return full_path

@@ -11,14 +11,14 @@ image = ctx.image(window.size, 'rgba8unorm', samples=4)
 depth = ctx.image(window.size, 'depth24plus', samples=4)
 image.clear_value = (1.0, 1.0, 1.0, 1.0)
 
-texture = ctx.image((512, 512), 'rgba8unorm', np.repeat(gravel(), 4).tobytes())
+texture = ctx.image((512, 512), 'rgba8unorm', np.repeat(gravel(), 4).tobytes(), levels=5)
 texture.mipmaps()
 
 uniform_buffer = ctx.buffer(size=80)
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -44,7 +44,7 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         uniform sampler2D Texture;
 
@@ -92,7 +92,9 @@ camera = zengl.camera((0, 0, 1.0), (2.0, 2.0, 0.25), aspect=window.aspect, fov=4
 uniform_buffer.write(camera)
 
 while window.update():
+    ctx.new_frame()
     image.clear()
     depth.clear()
     pipeline.render()
     image.blit()
+    ctx.end_frame()

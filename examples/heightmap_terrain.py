@@ -64,7 +64,7 @@ ctx.includes['terrain_info'] = '''
 
 terrain = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         #include "terrain_info"
 
@@ -88,7 +88,7 @@ terrain = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         in vec3 v_normal;
         in vec2 v_texcoord;
@@ -145,7 +145,6 @@ terrain = ctx.pipeline(
         },
     ],
     framebuffer=[image, depth],
-    primitive_restart=True,
     topology='triangle_strip',
     cull_face='back',
     vertex_buffers=zengl.bind(vertex_buffer, '2i', 0),
@@ -154,6 +153,7 @@ terrain = ctx.pipeline(
 )
 
 while window.update():
+    ctx.new_frame()
     x, y = np.sin(window.time * 0.5) * 30.0, np.cos(window.time * 0.5) * 30.0
     camera = zengl.camera((x, y, 25.0), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
     uniform_buffer.write(camera)
@@ -162,3 +162,4 @@ while window.update():
     depth.clear()
     terrain.render()
     image.blit()
+    ctx.end_frame()

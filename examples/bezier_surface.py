@@ -128,7 +128,7 @@ ctx.includes['blinn_phong'] = '''
 
 surface_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         #include "common"
         #include "surface"
@@ -147,7 +147,7 @@ surface_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         #include "common"
         #include "blinn_phong"
@@ -165,16 +165,6 @@ surface_pipeline = ctx.pipeline(
             out_color = vec4(color, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-        {
-            'name': 'ControlPoints',
-            'binding': 1,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -187,10 +177,6 @@ surface_pipeline = ctx.pipeline(
             'buffer': control_points_buffer,
         },
     ],
-    polygon_offset={
-        'factor': 1.0,
-        'units': 0.0,
-    },
     framebuffer=[image, depth],
     topology='triangle_strip',
     cull_face='back',
@@ -201,7 +187,7 @@ surface_pipeline = ctx.pipeline(
 
 surface_wire_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         #include "common"
         #include "surface"
@@ -216,7 +202,7 @@ surface_wire_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         in vec3 v_vertex;
 
@@ -226,16 +212,6 @@ surface_wire_pipeline = ctx.pipeline(
             out_color = vec4(0.0, 0.0, 0.0, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-        {
-            'name': 'ControlPoints',
-            'binding': 1,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -258,7 +234,7 @@ surface_wire_pipeline = ctx.pipeline(
 
 points_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         #include "common"
         #include "surface"
@@ -332,7 +308,7 @@ points_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         #include "common"
 
@@ -346,16 +322,6 @@ points_pipeline = ctx.pipeline(
             out_color = vec4(color * lum, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-        {
-            'name': 'ControlPoints',
-            'binding': 1,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -377,7 +343,7 @@ points_pipeline = ctx.pipeline(
 
 lines_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         #include "common"
         #include "surface"
@@ -470,7 +436,7 @@ lines_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         #include "common"
 
@@ -484,16 +450,6 @@ lines_pipeline = ctx.pipeline(
             out_color = vec4(color * lum, 1.0);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-        {
-            'name': 'ControlPoints',
-            'binding': 1,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -515,7 +471,7 @@ lines_pipeline = ctx.pipeline(
 
 points_pipeline_seethrough = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         #include "common"
         #include "surface"
@@ -589,7 +545,7 @@ points_pipeline_seethrough = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         #include "common"
 
@@ -603,16 +559,6 @@ points_pipeline_seethrough = ctx.pipeline(
             out_color = vec4(color * lum, 0.05);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-        {
-            'name': 'ControlPoints',
-            'binding': 1,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -630,11 +576,13 @@ points_pipeline_seethrough = ctx.pipeline(
         'write': False,
         'func': 'greater',
     },
-    blending={
-        'enable': True,
-        'src_color': 'src_alpha',
-        'dst_color': 'one_minus_src_alpha',
-    },
+    blend=[
+        {
+            'enable': True,
+            'src_color': 'src_alpha',
+            'dst_color': 'one_minus_src_alpha',
+        },
+    ],
     framebuffer=[image, depth],
     topology='triangles',
     cull_face='back',
@@ -644,7 +592,7 @@ points_pipeline_seethrough = ctx.pipeline(
 
 lines_pipeline_seethrough = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         #include "common"
         #include "surface"
@@ -737,7 +685,7 @@ lines_pipeline_seethrough = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         #include "common"
 
@@ -751,16 +699,6 @@ lines_pipeline_seethrough = ctx.pipeline(
             out_color = vec4(color * lum, 0.05);
         }
     ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-        {
-            'name': 'ControlPoints',
-            'binding': 1,
-        },
-    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -778,11 +716,13 @@ lines_pipeline_seethrough = ctx.pipeline(
         'write': False,
         'func': 'greater',
     },
-    blending={
-        'enable': True,
-        'src_color': 'src_alpha',
-        'dst_color': 'one_minus_src_alpha',
-    },
+    blend=[
+        {
+            'enable': True,
+            'src_color': 'src_alpha',
+            'dst_color': 'one_minus_src_alpha',
+        },
+    ],
     framebuffer=[image, depth],
     topology='triangles',
     cull_face='back',
@@ -807,6 +747,7 @@ while window.update():
         np.zeros(16),
     ]).T
 
+    ctx.new_frame()
     control_points_buffer.write(pts.astype('f4').tobytes())
 
     x, y = np.sin(window.time * 0.5) * 3.0, np.cos(window.time * 0.5) * 3.0
@@ -822,3 +763,4 @@ while window.update():
     points_pipeline_seethrough.render()
     lines_pipeline_seethrough.render()
     image.blit()
+    ctx.end_frame()

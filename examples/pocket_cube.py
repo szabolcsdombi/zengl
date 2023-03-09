@@ -112,7 +112,7 @@ ctx.includes['qtransform'] = '''
 
 cube = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         #include "N"
         #include "qtransform"
@@ -148,7 +148,7 @@ cube = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         in vec3 v_vertex;
         in vec3 v_normal;
@@ -244,6 +244,7 @@ moves = [f'{sign}{axis}{level}' for sign in '+-' for axis in 'xyz' for level in 
 animation = Rotateions(rotations, np.random.choice(moves, 1000))
 
 while window.update():
+    ctx.new_frame()
     animation.update()
     rotation_buffer.write(rotations)
 
@@ -251,3 +252,4 @@ while window.update():
     depth.clear()
     cube.render()
     image.blit()
+    ctx.end_frame()

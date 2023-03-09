@@ -22,7 +22,7 @@ uniform_buffer = ctx.buffer(size=16)
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             vec2 scale;
@@ -39,7 +39,7 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         layout (location = 0) out vec4 out_color;
 
@@ -68,6 +68,7 @@ pipeline = ctx.pipeline(
 bar = Bar('Samples Passed:', fill='-')
 
 while window.update():
+    ctx.new_frame()
     image.clear()
     uniform_buffer.write(struct.pack('ff8x', np.sin(window.time), np.cos(window.time)))
     GL.glBeginQuery(GL.GL_SAMPLES_PASSED, query)
@@ -77,3 +78,4 @@ while window.update():
     bar.max = max(bar.max, query_result.value)
     bar.goto(query_result.value)
     image.blit()
+    ctx.end_frame()

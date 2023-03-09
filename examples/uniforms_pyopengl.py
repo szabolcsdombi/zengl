@@ -35,7 +35,7 @@ vertex_buffer = ctx.buffer(model)
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         uniform mat4 mvp;
 
@@ -50,7 +50,7 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         uniform vec3 color;
 
@@ -76,6 +76,7 @@ mvp = GL.glGetUniformLocation(program, 'mvp')
 color = GL.glGetUniformLocation(program, 'color')
 
 while window.update():
+    ctx.new_frame()
     x, y = math.sin(window.time * 0.5) * 3.0, math.cos(window.time * 0.5) * 3.0
     camera = zengl.camera((x, y, 1.5), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
     GL.glProgramUniformMatrix4fv(program, mvp, 1, False, camera)
@@ -86,3 +87,4 @@ while window.update():
     depth.clear()
     pipeline.render()
     image.blit()
+    ctx.end_frame()

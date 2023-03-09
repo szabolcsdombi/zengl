@@ -12,16 +12,16 @@ ctx = zengl.context()
 
 image = ctx.image(window.size, 'rgba8unorm-srgb', samples=4)
 depth = ctx.image(window.size, 'depth24plus', samples=4)
-image.clear_value = (0.2, 0.2, 0.2, 1.0)
+image.clear_value = (0.005, 0.005, 0.005, 1.0)
 
 model = gzip.decompress(open(assets.get('colormonkey.mesh.gz'), 'rb').read())
 vertex_buffer = ctx.buffer(model)
 
 uniform_buffer = ctx.buffer(size=80)
 
-monkey = ctx.pipeline(
+pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -42,7 +42,7 @@ monkey = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -87,11 +87,13 @@ monkey = ctx.pipeline(
 )
 
 while window.update():
+    ctx.new_frame()
     eye = (np.cos(window.time * 0.5) * 5.0, np.sin(window.time * 0.5) * 5.0, 1.0)
     camera = zengl.camera(eye, (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
     uniform_buffer.write(camera + struct.pack('fff4x', *eye))
 
     image.clear()
     depth.clear()
-    monkey.render()
+    pipeline.render()
     image.blit(srgb=True)
+    ctx.end_frame()

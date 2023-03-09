@@ -42,7 +42,7 @@ uniform_buffer = ctx.buffer(size=64)
 
 sphere = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -59,7 +59,7 @@ sphere = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -119,10 +119,12 @@ faces = [
 
 print('rendering')
 
+ctx.new_frame()
 for face, camera in faces:
     uniform_buffer.write(camera)
     sphere.render()
     img = Image.frombuffer('RGBA', image.size, image.read(), 'raw', 'RGBA', 0, -1)
     img.save(f'downloads/skybox_{face}.png')
+ctx.end_frame()
 
 print('done')

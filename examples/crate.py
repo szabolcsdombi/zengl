@@ -13,7 +13,7 @@ ctx = zengl.context()
 
 image = ctx.image(window.size, 'rgba8unorm', samples=4)
 depth = ctx.image(window.size, 'depth24plus', samples=4)
-image.clear_value = (1.0, 1.0, 1.0, 1.0)
+image.clear_value = (0.05, 0.05, 0.05, 1.0)
 
 model = Obj.open(assets.get('box.obj')).pack('vx vy vz nx ny nz tx ty')
 vertex_buffer = ctx.buffer(model)
@@ -25,7 +25,7 @@ uniform_buffer = ctx.buffer(size=80)
 
 crate = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -48,7 +48,7 @@ crate = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -101,6 +101,7 @@ while window.update():
     x, y = math.sin(window.time * 0.5) * 3.0, math.cos(window.time * 0.5) * 3.0
     camera = zengl.camera((x, y, 1.5), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
 
+    ctx.new_frame()
     uniform_buffer.write(camera)
     uniform_buffer.write(struct.pack('3f4x', x, y, 1.5), offset=64)
 
@@ -108,3 +109,4 @@ while window.update():
     depth.clear()
     crate.render()
     image.blit()
+    ctx.end_frame()

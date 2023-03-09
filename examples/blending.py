@@ -7,8 +7,8 @@ from window import Window
 
 window = Window()
 ctx = zengl.context()
-image = ctx.image(window.size, 'rgba8unorm', samples=4)
-image.clear_value = (1.0, 1.0, 1.0, 1.0)
+image = ctx.image(window.size, 'rgba8unorm-srgb', samples=4)
+image.clear_value = (0.0, 0.0, 0.0, 1.0)
 
 uniform_buffer = ctx.buffer(size=16)
 
@@ -25,7 +25,7 @@ vertex_buffer = ctx.buffer(np.array([
 
 triangle = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             vec2 scale;
@@ -45,7 +45,7 @@ triangle = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         in vec4 v_color;
 
@@ -68,11 +68,13 @@ triangle = ctx.pipeline(
             'buffer': uniform_buffer,
         },
     ],
-    blending={
-        'enable': True,
-        'src_color': 'src_alpha',
-        'dst_color': 'one_minus_src_alpha',
-    },
+    blend=[
+        {
+            'enable': True,
+            'src_color': 'src_alpha',
+            'dst_color': 'one_minus_src_alpha',
+        },
+    ],
     framebuffer=[image],
     topology='triangles',
     vertex_buffers=zengl.bind(vertex_buffer, '2f 4f', 0, 1),
@@ -81,7 +83,9 @@ triangle = ctx.pipeline(
 )
 
 while window.update():
+    ctx.new_frame()
     image.clear()
     uniform_buffer.write(struct.pack('3f4x', 0.5, 0.5 * window.aspect, window.time))
     triangle.render()
     image.blit()
+    ctx.end_frame()

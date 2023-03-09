@@ -42,7 +42,7 @@ ctx.includes['qtransform'] = '''
 
 shape = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         #include "qtransform"
 
@@ -64,7 +64,7 @@ shape = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         in vec3 v_norm;
 
@@ -107,9 +107,11 @@ while window.update():
     for blob in blobs:
         blob.update()
 
+    ctx.new_frame()
     instance_buffer.write(b''.join(blob.pack() for blob in blobs))
 
     image.clear()
     depth.clear()
     shape.render()
     image.blit()
+    ctx.end_frame()

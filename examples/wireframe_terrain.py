@@ -39,7 +39,7 @@ uniform_buffer = ctx.buffer(size=64)
 
 terrain = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -52,7 +52,7 @@ terrain = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         layout (location = 0) out vec4 out_color;
 
@@ -74,7 +74,6 @@ terrain = ctx.pipeline(
         },
     ],
     framebuffer=[image, depth],
-    primitive_restart=True,
     topology='line_strip',
     vertex_buffers=zengl.bind(vertex_buffer, '3f', 0),
     index_buffer=index_buffer,
@@ -85,7 +84,9 @@ camera = zengl.camera((3.0, 2.0, 2.0), (0.0, 0.0, 0.0), aspect=window.aspect, fo
 uniform_buffer.write(camera)
 
 while window.update():
+    ctx.new_frame()
     image.clear()
     depth.clear()
     terrain.render()
     image.blit()
+    ctx.end_frame()

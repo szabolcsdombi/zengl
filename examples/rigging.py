@@ -43,9 +43,9 @@ ctx.includes['qtransform'] = '''
     }
 '''
 
-monkey = ctx.pipeline(
+pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330
+        #version 330 core
 
         #include "common"
         #include "bones"
@@ -82,7 +82,7 @@ monkey = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330
+        #version 330 core
 
         in vec3 v_norm;
 
@@ -127,8 +127,10 @@ camera = zengl.camera((1.0, -2.0, 1.0), (0.0, 0.0, 0.5), aspect=window.aspect, f
 uniform_buffer.write(camera)
 
 while window.update():
+    ctx.new_frame()
     pose_buffer.write(next(pose_frame))
     image.clear()
     depth.clear()
-    monkey.render()
+    pipeline.render()
     image.blit()
+    ctx.end_frame()
