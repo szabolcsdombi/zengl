@@ -181,7 +181,7 @@ def loader(headless=False):
 
 
 def detect_gles(info):
-    return 'OpenGL ES' in info['version']
+    return info['version'].startswith('OpenGL ES') or info['version'].startswith('WebGL')
 
 
 def calcsize(layout):
