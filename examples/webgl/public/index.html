@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.22.1/full/pyodide.js"></script>
+<canvas id="canvas" width="640" height="360"></canvas>
+<br>
+<textarea id="code" rows="30" cols="120">
+</textarea>
+<br>
+<button id="execute">Execute</button>
+<script>
+  (async () => {
+    const res = await fetch('index.py');
+    document.getElementById('code').value = await res.text();
+  })();
+
+  const canvas = document.getElementById('canvas');
+  const gl = canvas.getContext('webgl2', { antialias: false });
+
+  let init = async () => {
+    let pyodide = await loadPyodide();
+    await pyodide.loadPackage('zengl.whl');
+    document.getElementById('execute').addEventListener('click', () => {
+      window.gl = gl;
+      pyodide.runPython(document.getElementById('code').value);
+    });
+  };
+  init();
+</script>
+</body>
+</html>
