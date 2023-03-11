@@ -1,4 +1,4 @@
-from typing import Any, Dict, Iterable, List, Literal, Tuple, TypedDict
+from typing import Any, Dict, Iterable, List, Literal, Protocol, Tuple, TypedDict
 
 CullFace = Literal['front', 'back', 'front_and_back', 'none']
 Topology = Literal['points', 'lines', 'line_loop', 'line_strip', 'triangles', 'triangle_strip', 'triangle_fan']
@@ -147,9 +147,8 @@ class ImageFace:
         source_viewport: Viewport | None = None, filter: bool = True, srgb: bool | None = None) -> None: ...
 
 
-class ContextLoader:
+class ContextLoader(Protocol):
     def load_opengl_function(name: str) -> int: ...
-    def load(name: str) -> int: ...
 
 
 class Buffer:
@@ -226,7 +225,7 @@ class Context:
     def reset(self) -> None: ...
 
 
-def context(loader: ContextLoader | Any | None = None) -> Context: ...
+def context(loader: ContextLoader | None = None) -> Context: ...
 def inspect(self, obj: Buffer | Image | Pipeline): ...
 def camera(
     eye: Vec3, target: Vec3, up: Vec3 = (0.0, 0.0, 1.0), *,
