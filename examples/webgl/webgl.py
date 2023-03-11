@@ -596,7 +596,7 @@ def webgl():
 
 class DefaultLoader:
     def __init__(self):
-        self.items = webgl()
+        DefaultLoader.items = webgl()
 
     def load_opengl_function(self, name):
         return self.items.get(name, (0, None))[0]
