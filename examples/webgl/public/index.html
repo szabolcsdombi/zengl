@@ -8,30 +8,25 @@
 </head>
 <body>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.22.1/full/pyodide.js"></script>
-<canvas id="canvas" width="640" height="360"></canvas>
-<br>
-<textarea id="code" rows="30" cols="120">
-</textarea>
-<br>
-<button id="execute">Execute</button>
 <script>
   (async () => {
+    const loadDependencies = async (pyodide) => {
+      await pyodide.loadPackage('zengl.whl');
+      const res = await fetch('webgl.py');
+      const code = await res.text();
+      pyodide.FS.writeFile('webgl.py', code);
+    };
+    const pyodide = await loadPyodide();
+    await loadDependencies(pyodide);
     const res = await fetch('index.py');
-    document.getElementById('code').value = await res.text();
+    const code = await res.text();
+    pyodide.runPython(code);
+    const frame = () => {
+      pyodide.runPython('render()');
+      requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
   })();
-
-  const canvas = document.getElementById('canvas');
-  const gl = canvas.getContext('webgl2', { antialias: false });
-
-  let init = async () => {
-    let pyodide = await loadPyodide();
-    await pyodide.loadPackage('zengl.whl');
-    document.getElementById('execute').addEventListener('click', () => {
-      window.gl = gl;
-      pyodide.runPython(document.getElementById('code').value);
-    });
-  };
-  init();
 </script>
 </body>
 </html>

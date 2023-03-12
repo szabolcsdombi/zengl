@@ -1,10 +1,12 @@
+import struct
 
+import webgl
 import zengl
 
-ctx = zengl.context()
-print(ctx.info, ctx.limits)
+window = webgl.PyodideCanvas()
+ctx = zengl.context(window)
 
-image = ctx.image((640, 360), 'rgba8unorm-srgb')
+image = ctx.image(window.size, 'rgba8unorm', texture=False)
 image.clear_value = (0.0, 0.0, 0.0, 1.0)
 
 pipeline = ctx.pipeline(
@@ -15,9 +17,9 @@ pipeline = ctx.pipeline(
         out vec3 v_color;
 
         vec2 positions[3] = vec2[](
-            vec2(0.0, 0.8),
-            vec2(-0.6, -0.8),
-            vec2(0.6, -0.8)
+            vec2(1.0, 0.0),
+            vec2(-0.5, -0.86),
+            vec2(-0.5, 0.86)
         );
 
         vec3 colors[3] = vec3[](
@@ -26,8 +28,12 @@ pipeline = ctx.pipeline(
             vec3(0.0, 0.0, 1.0)
         );
 
+        uniform float time;
+        uniform vec2 scale;
+
         void main() {
-            gl_Position = vec4(positions[gl_VertexID], 0.0, 1.0);
+            mat2 rot = mat2(cos(time), sin(time), -sin(time), cos(time));
+            gl_Position = vec4(rot * positions[gl_VertexID] * scale, 0.0, 1.0);
             v_color = colors[gl_VertexID];
         }
     ''',
@@ -41,15 +47,24 @@ pipeline = ctx.pipeline(
 
         void main() {
             out_color = vec4(v_color, 1.0);
+            out_color.rgb = pow(out_color.rgb, vec3(1.0 / 2.2));
         }
     ''',
     framebuffer=[image],
+    uniforms={
+        'time': 0.0,
+        'scale': (0.8 / window.aspect, 0.8),
+    },
     topology='triangles',
     vertex_count=3,
 )
 
-ctx.new_frame()
-image.clear()
-pipeline.render()
-image.blit()
-ctx.end_frame()
+
+def render():
+    ctx.new_frame()
+    image.clear()
+    pipeline.uniforms['time'][:] = struct.pack('f', window.time)
+    pipeline.render()
+    image.blit()
+    ctx.end_frame()
+    window.update()

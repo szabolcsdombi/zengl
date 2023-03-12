@@ -5,9 +5,8 @@ RUN git clone https://github.com/emscripten-core/emsdk.git &&\
     /emsdk/emsdk activate `pyodide config get emscripten_version`
 
 WORKDIR /zengl/
-COPY _zengl.py zengl.cpp setup.py pyproject.toml MANIFEST.in README.md LICENSE examples/webgl/webgl.py /zengl/
-RUN sed -i -r '/(packages|package_data|include_package_data)=/d' setup.py && cat webgl.py >> _zengl.py
-RUN echo 'source /emsdk/emsdk_env.sh && pyodide build' | bash
+COPY _zengl.py zengl.cpp setup.py pyproject.toml MANIFEST.in README.md LICENSE /zengl/
+RUN echo 'source /emsdk/emsdk_env.sh && ZENGL_NO_STUBS=yes pyodide build' | bash
 
 WORKDIR /web/
 RUN cp /zengl/dist/*.whl /web/zengl.whl

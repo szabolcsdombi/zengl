@@ -1,10 +1,11 @@
-def webgl():
-    import ctypes
-    from itertools import count
+import ctypes
+from itertools import count
 
-    import js
+import js
+from pyodide.ffi import create_proxy
 
-    gl = js.gl
+
+def webgl(gl):
     glstr = {}
     glid = iter(count(1))
     glo = {0: None}
@@ -594,9 +595,26 @@ def webgl():
     }
 
 
-class DefaultLoader:
-    def __init__(self):
-        DefaultLoader.items = webgl()
+class PyodideCanvas:
+    def __init__(self, size=(1280, 720)):
+        self.size = size
+        self.aspect = self.size[0] / self.size[1]
+        self.canvas = js.document.createElement('canvas')
+        self.canvas.width, self.canvas.height = size
+        self.gl = self.canvas.getContext('webgl2', js.JSON.parse('{"antialias": false}'))
+        self.mouse = (0, 0)
+
+        def mousemove(evt):
+            self.mouse = (evt.x, evt.y)
+
+        js.document.body.appendChild(self.canvas)
+        self.canvas.addEventListener('mousemove', create_proxy(mousemove))
+        # js.window.gl = self.gl
+        self.webgl = webgl(self.gl)
+        self.time = 0.0
+
+    def update(self):
+        self.time += 1.0 / 60.0
 
     def load_opengl_function(self, name):
-        return self.items.get(name, (0, None))[0]
+        return self.webgl.get(name, (0, None))[0]
