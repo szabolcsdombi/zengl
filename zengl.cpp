@@ -767,6 +767,7 @@ struct Context {
     GCHeader * gc_prev;
     GCHeader * gc_next;
     ModuleState * module_state;
+    PyObject * loader;
     PyObject * descriptor_set_cache;
     PyObject * global_settings_cache;
     PyObject * sampler_cache;
@@ -1429,7 +1430,6 @@ static Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwar
     }
 
     GLMethods gl = load_gl(loader);
-    Py_DECREF(loader);
 
     if (PyErr_Occurred()) {
         return NULL;
@@ -1494,6 +1494,7 @@ static Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwar
     res->gc_prev = (GCHeader *)res;
     res->gc_next = (GCHeader *)res;
     res->module_state = module_state;
+    res->loader = loader;
     res->descriptor_set_cache = PyDict_New();
     res->global_settings_cache = PyDict_New();
     res->sampler_cache = PyDict_New();
