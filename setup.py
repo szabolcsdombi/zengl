@@ -5,7 +5,12 @@ from setuptools import Extension, setup
 
 extra_compile_args = []
 extra_link_args = []
-stubs = {}
+
+stubs = {
+    'packages': ['zengl-stubs'],
+    'package_data': {'zengl-stubs': ['__init__.pyi']},
+    'include_package_data': True,
+}
 
 if sys.platform.startswith('linux'):
     extra_compile_args = ['-fpermissive', '-Wno-write-strings', '-Wno-narrowing']
@@ -18,11 +23,7 @@ if os.getenv('ZENGL_COVERAGE'):
     extra_link_args += ['-O0', '--coverage']
 
 if os.getenv('ZENGL_NO_STUBS'):
-    stubs = {
-        'packages': ['zengl-stubs'],
-        'package_data': {'zengl-stubs': ['__init__.pyi']},
-        'include_package_data': True,
-    }
+    stubs = {}
 
 ext = Extension(
     name='zengl',
