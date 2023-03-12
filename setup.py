@@ -5,6 +5,7 @@ from setuptools import Extension, setup
 
 extra_compile_args = []
 extra_link_args = []
+stubs = {}
 
 if sys.platform.startswith('linux'):
     extra_compile_args = ['-fpermissive', '-Wno-write-strings', '-Wno-narrowing']
@@ -15,6 +16,13 @@ if sys.platform.startswith('darwin'):
 if os.getenv('ZENGL_COVERAGE'):
     extra_compile_args += ['-O0', '--coverage']
     extra_link_args += ['-O0', '--coverage']
+
+if os.getenv('ZENGL_NO_STUBS'):
+    stubs = {
+        'packages': ['zengl-stubs'],
+        'package_data': {'zengl-stubs': ['__init__.pyi']},
+        'include_package_data': True,
+    }
 
 ext = Extension(
     name='zengl',
@@ -32,9 +40,6 @@ setup(
     version='1.10.2',
     ext_modules=[ext],
     py_modules=['_zengl'],
-    packages=['zengl-stubs'],
-    package_data={'zengl-stubs': ['__init__.pyi']},
-    include_package_data=True,
     license='MIT',
     python_requires='>=3.6',
     platforms=['any'],
@@ -64,4 +69,5 @@ setup(
         'graphics',
         'visualization',
     ],
+    **stubs,
 )
