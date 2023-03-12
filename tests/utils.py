@@ -1,4 +1,3 @@
-import os
 import textwrap
 
 from OpenGL import GL
