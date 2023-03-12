@@ -80,8 +80,3 @@ def assert_gl_error(hint=''):
     name = info['name']
     description = info['description']
     assert False, f'{hint}\nglGetError() = {error} | {name}\n{description}'
-
-
-def glsl(name):
-    with open(os.path.normpath(os.path.join(os.path.abspath(__file__), '../glsl', name))) as f:
-        return f.read()
