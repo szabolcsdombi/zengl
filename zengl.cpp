@@ -1203,6 +1203,8 @@ static DescriptorSet * build_descriptor_set(Context * self, PyObject * bindings)
     res->uniform_buffers = build_descriptor_set_buffers(self, PyTuple_GetItem(bindings, 0));
     res->samplers = build_descriptor_set_samplers(self, PyTuple_GetItem(bindings, 1));
     res->uses = 1;
+
+    PyDict_SetItem(self->descriptor_set_cache, bindings, (PyObject *)res);
     return res;
 }
 
