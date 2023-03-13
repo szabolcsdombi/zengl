@@ -266,8 +266,11 @@ def webgl(gl):
         length[0] = len(msg)
 
     def glGetUniformLocation(program: GLuint, name: GLchar_star):
+        res = gl.getUniformLocation(glo[program], ctypes.cast(name, ctypes.c_char_p).value.decode())
+        if not res:
+            return -1
         location = next(glid)
-        glo[location] = gl.getUniformLocation(glo[program], ctypes.cast(name, ctypes.c_char_p).value.decode())
+        glo[location] = res
         return location
 
     def glLinkProgram(program: GLuint):
