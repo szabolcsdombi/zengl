@@ -467,10 +467,10 @@ def webgl(gl):
         gl.bindSampler(unit, glo[sampler])
 
     def glSamplerParameteri(sampler: GLuint, pname: GLenum, param: GLint):
-        gl.samplerParameteri(sampler, pname, param)
+        gl.samplerParameteri(glo[sampler], pname, param)
 
     def glSamplerParameterf(sampler: GLuint, pname: GLenum, param: GLfloat):
-        gl.samplerParameterf(sampler, pname, param)
+        gl.samplerParameterf(glo[sampler], pname, param)
 
     def glVertexAttribDivisor(index: GLuint, divisor: GLuint):
         gl.vertexAttribDivisor(index, divisor)
