@@ -395,7 +395,7 @@ def flatten(iterable):
 
 
 def clean_glsl_name(name):
-    if name.endswith('[0]') and name['size'] > 1:
+    if name.endswith('[0]'):
         return name[:-3]
     return name
 
