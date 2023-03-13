@@ -47,6 +47,11 @@ Viewport = Tuple[int, int, int, int]
 Bytes = bytes | Any
 
 
+class LayoutBinding(TypedDict, total=False):
+    name: str
+    binding: int
+
+
 class BufferResource(TypedDict, total=False):
     type: Literal['uniform_buffer']
     binding: int
@@ -194,6 +199,7 @@ class Context:
         self,
         vertex_shader: str = ...,
         fragment_shader: str = ...,
+        layout: Iterable[LayoutBinding] = (),
         resources: Iterable[BufferResource | SamplerResource] = (),
         uniforms: Dict[str, Any] | None = None,
         depth: DepthSettings | None = None,
