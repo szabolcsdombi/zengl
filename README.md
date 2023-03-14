@@ -21,7 +21,8 @@ what we render. The window does not have to be multisample, and it requires no d
 ## Examples
 
 ```
-pip install zengl[examples]
+pip install -r examples/requirements.txt
+python examples/example_browser.py
 ```
 
 #### [grass.py](https://github.com/szabolcsdombi/zengl/blob/main/examples/grass.py)
