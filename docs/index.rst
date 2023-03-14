@@ -100,6 +100,29 @@ ZenGL does not implement OpenGL function loading. glcontext is used when no alte
 
     ctx = zengl.context(zengl.loader(headless=True))
 
+**Rendering**
+
+.. py:method:: Context.new_frame(reset: bool = True, frame_time: bool = False)
+
+**reset**
+    | A boolean to clear ZenGL internals assuming OpenGL global state.
+
+**frame_time**
+    | A boolean to start a query with ``GL_TIME_ELAPSED``.
+    | The :py:attr:`Context.frame_time` is set by :py:meth:`Context.end_frame`.
+
+.. py:method:: Context.end_frame(clean: bool = True, flush: bool = True, sync: bool = False)
+
+**clean**
+    | A boolean to unset OpenGL object bindings managed by ZenGL.
+    | The values are not restored from any previous states, they are set to zero.
+
+**flush**
+    | A boolean to call ``glFlush``.
+
+**sync**
+    | A boolean to wait for a ``glFenceSync``.
+
 Buffer
 ------
 
@@ -243,10 +266,6 @@ Image
     | A boolean to enable linear to srgb conversion.
     | By default it is None and it means False except for srgb source images.
 
-**flush**
-    | A boolean to enable flush after blitting.
-    | By default it is None and it means False for image targets and True for blitting to the default framebuffer.
-
 .. py:method:: Image.clear()
 
 Clear the image with the :py:attr:`Image.clear_value`
@@ -340,8 +359,8 @@ Pipeline
 **stencil**
     | The stencil settings
 
-**blending**
-    | The blending settings
+**blend**
+    | The blend settings
 
 **polygon_offset**
     | The polygon offset
@@ -378,10 +397,6 @@ Pipeline
     | When this flag is False the ``GL_UNSIGNED_INT`` is used.
     | The default value is False.
 
-**primitive_restart**
-    | A boolean to enable the primitive restart index. The default primitive restart index is -1.
-    | The default value is True.
-
 **cull_face**
     | A string representing the cull face. It must be ``'front'``, ``'back'`` or ``'none'``
     | The default value is ``'none'``
@@ -413,9 +428,6 @@ Pipeline
 **viewport**
     | The render viewport, defined as tuples of four ints in (x, y, width, height) format.
     | The default is the full size of the framebuffer.
-
-**skip_validation**
-    | You know better. You are on your own.
 
 .. py:attribute:: Pipeline.vertex_count
 
@@ -612,6 +624,11 @@ Utils
 - max_draw_buffers
 - max_samples
 
+.. py:attribute:: Context.frame_time
+
+| An int representing the time elapsed between the :py:meth:`Context.new_frame` and :py:meth:`Context.end_frame`.
+| The value is in nanoseconds and it is zero if the frame_time was not enabled.
+
 .. py:method:: zengl.camera(eye, target, up, fov, aspect, near, far, size, clip) -> bytes
 
 | Returns a Model-View-Projection matrix for uniform buffers.
@@ -642,7 +659,6 @@ ZenGL format         internal format       format             type
 r8unorm              GL_R8                 GL_RED             GL_UNSIGNED_BYTE
 rg8unorm             GL_RG8                GL_RG              GL_UNSIGNED_BYTE
 rgba8unorm           GL_RGBA8              GL_RGBA            GL_UNSIGNED_BYTE
-bgra8unorm           GL_RGBA8              GL_BGRA            GL_UNSIGNED_BYTE
 r8snorm              GL_R8_SNORM           GL_RED             GL_UNSIGNED_BYTE
 rg8snorm             GL_RG8_SNORM          GL_RG              GL_UNSIGNED_BYTE
 rgba8snorm           GL_RGBA8_SNORM        GL_RGBA            GL_UNSIGNED_BYTE
@@ -671,8 +687,6 @@ r32float             GL_R32F               GL_RED             GL_FLOAT
 rg32float            GL_RG32F              GL_RG              GL_FLOAT
 rgba32float          GL_RGBA32F            GL_RGBA            GL_FLOAT
 rgba8unorm-srgb      GL_RGBA8              GL_RGBA            GL_UNSIGNED_BYTE
-bgra8unorm-srgb      GL_RGBA8              GL_BGRA            GL_UNSIGNED_BYTE
-stencil8             GL_STENCIL_INDEX8     GL_STENCIL_INDEX   GL_UNSIGNED_BYTE
 depth16unorm         GL_DEPTH_COMPONENT16  GL_DEPTH_COMPONENT GL_UNSIGNED_SHORT
 depth24plus          GL_DEPTH_COMPONENT24  GL_DEPTH_COMPONENT GL_UNSIGNED_INT
 depth24plus-stencil8 GL_DEPTH_COMPONENT24  GL_DEPTH_COMPONENT GL_UNSIGNED_INT
