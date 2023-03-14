@@ -6,7 +6,7 @@ RUN git clone https://github.com/emscripten-core/emsdk.git &&\
 
 WORKDIR /zengl/
 COPY _zengl.py zengl.cpp setup.py pyproject.toml MANIFEST.in README.md LICENSE /zengl/
-RUN echo 'source /emsdk/emsdk_env.sh && ZENGL_NO_STUBS=yes pyodide build' | bash
+RUN echo 'source /emsdk/emsdk_env.sh && ZENGL_NO_STUBS=yes pyodide build --exports PyInit_zengl' | bash
 
 WORKDIR /web/
 RUN cp /zengl/dist/*.whl /web/zengl.whl
