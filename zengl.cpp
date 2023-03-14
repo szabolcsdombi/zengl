@@ -3230,6 +3230,7 @@ static PyObject * meth_camera(PyObject * self, PyObject * args, PyObject * kwarg
 }
 
 static void Context_dealloc(Context * self) {
+    Py_DECREF(self->loader);
     Py_DECREF(self->descriptor_set_cache);
     Py_DECREF(self->global_settings_cache);
     Py_DECREF(self->sampler_cache);
@@ -3238,6 +3239,9 @@ static void Context_dealloc(Context * self) {
     Py_DECREF(self->program_cache);
     Py_DECREF(self->shader_cache);
     Py_DECREF(self->includes);
+    Py_DECREF(self->default_framebuffer);
+    Py_DECREF(self->before_frame_callback);
+    Py_DECREF(self->after_frame_callback);
     Py_DECREF(self->limits_dict);
     Py_DECREF(self->info_dict);
     Py_TYPE(self)->tp_free(self);
