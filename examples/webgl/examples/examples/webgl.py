@@ -1,8 +1,8 @@
 import ctypes
+import json
 from itertools import count
 
 import js
-# from pyodide.ffi import create_proxy
 
 
 def webgl(gl):
@@ -47,10 +47,9 @@ def webgl(gl):
 
     def glTexImage2D(target: GLenum, level: GLint, internalformat: GLint, width: GLsizei, height: GLsizei, border: GLint, format: GLenum, type: GLenum, pixels: void_star):
         size = width * height * 4
+        data = None
         if pixels:
             data = js.Uint8Array.new(ctypes.cast(pixels, ctypes.POINTER(ctypes.c_ubyte * size)).contents)
-        else:
-            data = js.Uint8Array.new(bytearray(size))
         gl.texImage2D(target, level, internalformat, width, height, border, format, type, data)
 
     def glDepthMask(flag: GLboolean):
@@ -92,10 +91,7 @@ def webgl(gl):
 
     def glTexSubImage2D(target: GLenum, level: GLint, xoffset: GLint, yoffset: GLint, width: GLsizei, height: GLsizei, format: GLenum, type: GLenum, pixels: void_star):
         size = width * height * 4
-        if pixels:
-            data = js.Uint8Array.new(ctypes.cast(pixels, ctypes.POINTER(ctypes.c_ubyte * size)).contents)
-        else:
-            data = js.Uint8Array.new(bytearray(size))
+        data = js.Uint8Array.new(ctypes.cast(pixels, ctypes.POINTER(ctypes.c_ubyte * size)).contents)
         gl.texSubImage2D(target, level, xoffset, yoffset, width, height, format, type, data)
 
     def glBindTexture(target: GLenum, texture: GLuint):
@@ -111,18 +107,14 @@ def webgl(gl):
 
     def glTexImage3D(target: GLenum, level: GLint, internalformat: GLint, width: GLsizei, height: GLsizei, depth: GLsizei, border: GLint, format: GLenum, type: GLenum, pixels: void_star):
         size = width * height * depth * 4
+        data = None
         if pixels:
             data = js.Uint8Array.new(ctypes.cast(pixels, ctypes.POINTER(ctypes.c_ubyte * size)).contents)
-        else:
-            data = js.Uint8Array.new(bytearray(size))
         gl.texImage3D(target, level, internalformat, width, height, depth, border, format, type, data)
 
     def glTexSubImage3D(target: GLenum, level: GLint, xoffset: GLint, yoffset: GLint, zoffset: GLint, width: GLsizei, height: GLsizei, depth: GLsizei, format: GLenum, type: GLenum, pixels: void_star):
         size = width * height * depth * 4
-        if pixels:
-            data = js.Uint8Array.new(ctypes.cast(pixels, ctypes.POINTER(ctypes.c_ubyte * size)).contents)
-        else:
-            data = js.Uint8Array.new(bytearray(size))
+        data = js.Uint8Array.new(ctypes.cast(pixels, ctypes.POINTER(ctypes.c_ubyte * size)).contents)
         gl.texSubImage3D(target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, data)
 
     def glActiveTexture(texture: GLenum):
@@ -157,10 +149,9 @@ def webgl(gl):
         glo[buffers[0]] = gl.createBuffer()
 
     def glBufferData(target: GLenum, size: GLsizeiptr, data: void_star, usage: GLenum):
+        content = size
         if data:
             content = js.Uint8Array.new(ctypes.cast(data, ctypes.POINTER(ctypes.c_ubyte * size)).contents)
-        else:
-            content = js.Uint8Array.new(bytearray(size))
         gl.bufferData(target, content, usage)
 
     def glBufferSubData(target: GLenum, offset: GLintptr, size: GLsizeiptr, data: void_star):
@@ -603,15 +594,17 @@ class Canvas:
         self.canvas = js.document.getElementById('zengl-canvas')
         self.size = self.canvas.width, self.canvas.height
         self.aspect = self.size[0] / self.size[1]
-        self.gl = self.canvas.getContext('webgl2', js.JSON.parse('{"antialias": false}'))
-        self.mouse = (0, 0)
-
-        # def mousemove(evt):
-        #     self.mouse = (evt.x, evt.y)
-
-        # self.canvas.addEventListener('mousemove', create_proxy(mousemove))
-        # js.window.gl = self.gl
+        self.gl = self.canvas.getContext('webgl2', js.JSON.parse(json.dumps(dict(
+            alpha=False,
+            depth=False,
+            stencil=False,
+            antialias=False,
+            premultipliedAlpha=False,
+            preserveDrawingBuffer=False,
+            powerPreference='high-performance',
+        ))))
         self.webgl = webgl(self.gl)
+        self.mouse = (0, 0)
         self.time = 0.0
 
     def update(self):

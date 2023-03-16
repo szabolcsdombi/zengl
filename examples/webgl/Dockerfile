@@ -4,10 +4,13 @@ RUN git clone https://github.com/emscripten-core/emsdk.git &&\
     /emsdk/emsdk install `pyodide config get emscripten_version` &&\
     /emsdk/emsdk activate `pyodide config get emscripten_version`
 
+RUN wget -q https://f003.backblazeb2.com/file/zengl-data/examples/web-example-assets.tar.gz
+
 COPY _zengl.py zengl.cpp setup.py pyproject.toml MANIFEST.in README.md LICENSE /zengl/
 RUN echo 'source /emsdk/emsdk_env.sh && ZENGL_NO_STUBS=yes pyodide build /zengl/ --exports PyInit_zengl' | bash
 
 COPY examples/webgl/examples /examples/
+RUN tar -zxf web-example-assets.tar.gz -C /examples/examples/
 RUN echo 'source /emsdk/emsdk_env.sh && pyodide build /examples/' | bash
 
 WORKDIR /web/

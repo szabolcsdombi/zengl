@@ -5,11 +5,16 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/png" href="favicon.png">
-  <title>Document</title>
+  <title>ZenGL Examples</title>
 </head>
 <body>
 <canvas id="zengl-canvas" width="1280" height="720"></canvas>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.22.1/full/pyodide.js"></script>
+<ul>
+  <li><a href="?example=triangle">Triangle</a></li>
+  <li><a href="?example=crate">Crate</a></li>
+  <li><a href="?example=food">Food</a></li>
+</ul>
 <script>
   (async () => {
     const pyodide = await loadPyodide();
@@ -17,7 +22,8 @@
       'zengl-1.11.0-cp310-cp310-emscripten_3_1_27_wasm32.whl',
       'examples-0.1.0-py3-none-any.whl',
     ]);
-    pyodide.runPython('from examples.hello_web_triangle import render');
+    const example = window.location.href.split('?example=')[1] || 'triangle';
+    pyodide.runPython(`from examples.${example} import render`);
     const frame = () => {
       pyodide.runPython('render()');
       requestAnimationFrame(frame);
