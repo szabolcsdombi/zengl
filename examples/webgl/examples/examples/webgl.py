@@ -2,7 +2,7 @@ import ctypes
 from itertools import count
 
 import js
-from pyodide.ffi import create_proxy
+# from pyodide.ffi import create_proxy
 
 
 def webgl(gl):
@@ -598,20 +598,18 @@ def webgl(gl):
     }
 
 
-class PyodideCanvas:
-    def __init__(self, size=(1280, 720)):
-        self.size = size
+class Canvas:
+    def __init__(self):
+        self.canvas = js.document.getElementById('zengl-canvas')
+        self.size = self.canvas.width, self.canvas.height
         self.aspect = self.size[0] / self.size[1]
-        self.canvas = js.document.createElement('canvas')
-        self.canvas.width, self.canvas.height = size
         self.gl = self.canvas.getContext('webgl2', js.JSON.parse('{"antialias": false}'))
         self.mouse = (0, 0)
 
-        def mousemove(evt):
-            self.mouse = (evt.x, evt.y)
+        # def mousemove(evt):
+        #     self.mouse = (evt.x, evt.y)
 
-        js.document.body.appendChild(self.canvas)
-        self.canvas.addEventListener('mousemove', create_proxy(mousemove))
+        # self.canvas.addEventListener('mousemove', create_proxy(mousemove))
         # js.window.gl = self.gl
         self.webgl = webgl(self.gl)
         self.time = 0.0

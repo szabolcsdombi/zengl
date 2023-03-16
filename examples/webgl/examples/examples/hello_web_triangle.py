@@ -1,9 +1,10 @@
 import struct
 
-import webgl
 import zengl
 
-window = webgl.PyodideCanvas()
+from . import webgl
+
+window = webgl.Canvas()
 ctx = zengl.context(window)
 
 image = ctx.image(window.size, 'rgba8unorm', texture=False)

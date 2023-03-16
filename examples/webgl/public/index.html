@@ -8,20 +8,16 @@
   <title>Document</title>
 </head>
 <body>
+<canvas id="zengl-canvas" width="1280" height="720"></canvas>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.22.1/full/pyodide.js"></script>
 <script>
   (async () => {
-    const loadDependencies = async (pyodide) => {
-      await pyodide.loadPackage('zengl.whl');
-      const res = await fetch('webgl.py');
-      const code = await res.text();
-      pyodide.FS.writeFile('webgl.py', code);
-    };
     const pyodide = await loadPyodide();
-    await loadDependencies(pyodide);
-    const res = await fetch('index.py');
-    const code = await res.text();
-    pyodide.runPython(code);
+    await pyodide.loadPackage([
+      'zengl-1.11.0-cp310-cp310-emscripten_3_1_27_wasm32.whl',
+      'examples-0.1.0-py3-none-any.whl',
+    ]);
+    pyodide.runPython('from examples.hello_web_triangle import render');
     const frame = () => {
       pyodide.runPython('render()');
       requestAnimationFrame(frame);
