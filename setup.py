@@ -44,7 +44,7 @@ setup(
     license='MIT',
     python_requires='>=3.6',
     platforms=['any'],
-    description='Compact Python OpenGL rendering library',
+    description='Self-Contained OpenGL Rendering Pipelines for Python',
     long_description=long_description,
     long_description_content_type='text/markdown',
     author='Szabolcs Dombi',
