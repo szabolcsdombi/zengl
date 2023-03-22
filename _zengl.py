@@ -237,7 +237,9 @@ def bind(buffer, layout, *attributes):
 def vertex_array_bindings(vertex_buffers, index_buffer):
     res = [index_buffer]
     for obj in vertex_buffers:
-        res.extend([obj['buffer'], obj['location'], obj['offset'], obj['stride'], STEP[obj['step']], obj['format']])
+        buffer = obj['buffer']
+        if buffer is not None:
+            res.extend([buffer, obj['location'], obj['offset'], obj['stride'], STEP[obj['step']], obj['format']])
     return tuple(res)
 
 
