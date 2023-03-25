@@ -508,7 +508,7 @@ static void * new_ref(void * obj) {
     return obj;
 }
 
-static bool is_int_pair(PyObject * obj) {
+static int is_int_pair(PyObject * obj) {
     return (
         PySequence_Check(obj) && PySequence_Size(obj) == 2 &&
         PyLong_CheckExact(PySequence_GetItem(obj, 0)) &&
@@ -516,7 +516,7 @@ static bool is_int_pair(PyObject * obj) {
     );
 }
 
-static bool is_viewport(PyObject * obj) {
+static int is_viewport(PyObject * obj) {
     return (
         PySequence_Check(obj) && PySequence_Size(obj) == 4 &&
         PyLong_CheckExact(PySequence_GetItem(obj, 0)) &&
@@ -1580,27 +1580,23 @@ static Buffer * Context_meth_buffer(Context * self, PyObject * vargs, PyObject *
         }
     }
 
-    const bool invalid_size_type = size_arg != Py_None && !PyLong_CheckExact(size_arg);
+    if (size_arg != Py_None && !PyLong_CheckExact(size_arg)) {
+        PyErr_Format(PyExc_TypeError, "the size must be an int");
+        return NULL;
+    }
+
+    if (data != Py_None && size_arg != Py_None) {
+        PyErr_Format(PyExc_ValueError, "data and size are exclusive");
+        return NULL;
+    }
 
     int size = (int)view.len;
-    if (size_arg != Py_None && !invalid_size_type) {
+    if (size_arg != Py_None) {
         size = PyLong_AsLong(size_arg);
     }
 
-    const bool data_but_size = data != Py_None && size_arg != Py_None;
-    const bool invalid_size = size <= 0;
-
-    if (invalid_size_type || invalid_size || data_but_size) {
-        if (invalid_size_type) {
-            PyErr_Format(PyExc_TypeError, "the size must be an int");
-        } else if (invalid_size) {
-            PyErr_Format(PyExc_ValueError, "invalid size");
-        } else if (data_but_size) {
-            PyErr_Format(PyExc_ValueError, "data and size are exclusive");
-        }
-        if (data != Py_None) {
-            PyBuffer_Release(&view);
-        }
+    if (size <= 0) {
+        PyErr_Format(PyExc_ValueError, "invalid size");
         return NULL;
     }
 
@@ -1670,42 +1666,49 @@ static Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * k
 
     const GLMethods * const gl = &self->gl;
 
-    if (levels < 0) {
-        levels = count_mipmaps(width, height);
+    int max_levels = count_mipmaps(width, height);
+    if (levels <= 0) {
+        levels = max_levels;
     }
 
-    const bool invalid_texture_parameter = texture != Py_True && texture != Py_False && texture != Py_None;
-    const bool samples_but_texture = samples > 1 && texture == Py_True;
-    const bool invalid_samples = samples < 1 || (samples & (samples - 1)) || samples > 16;
-    const bool invalid_array = array < 0;
-    const bool cubemap_array = cubemap && array;
-    const bool cubemap_or_array_renderbuffer = (array || cubemap) && (samples > 1 || texture == Py_False);
-    const bool data_and_renderbuffer = data != Py_None && (samples > 1 || texture == Py_False);
-
-    if (invalid_texture_parameter || samples_but_texture || invalid_samples || invalid_array || cubemap_array || cubemap_or_array_renderbuffer || data_and_renderbuffer) {
-        if (invalid_texture_parameter) {
-            PyErr_Format(PyExc_TypeError, "invalid texture parameter");
-        } else if (samples_but_texture) {
-            PyErr_Format(PyExc_TypeError, "for multisampled images texture must be False");
-        } else if (invalid_samples) {
-            PyErr_Format(PyExc_ValueError, "samples must be 1, 2, 4, 8 or 16");
-        } else if (invalid_array) {
-            PyErr_Format(PyExc_ValueError, "array must not be negative");
-        } else if (cubemap_array) {
-            PyErr_Format(PyExc_TypeError, "cubemap arrays are not supported");
-        } else if (array && samples > 1) {
-            PyErr_Format(PyExc_TypeError, "multisampled array images are not supported");
-        } else if (cubemap && samples > 1) {
-            PyErr_Format(PyExc_TypeError, "multisampled cubemap images are not supported");
-        } else if (array && texture == Py_False) {
-            PyErr_Format(PyExc_TypeError, "for array images texture must be True");
-        } else if (cubemap && texture == Py_False) {
-            PyErr_Format(PyExc_TypeError, "for cubemap images texture must be True");
-        } else if (data_and_renderbuffer && samples > 1) {
-            PyErr_Format(PyExc_ValueError, "cannot write to multisampled images");
-        } else if (data_and_renderbuffer && texture == Py_False) {
-            PyErr_Format(PyExc_ValueError, "cannot write to renderbuffers");
-        }
+    if (texture != Py_True && texture != Py_False && texture != Py_None) {
+        PyErr_Format(PyExc_TypeError, "invalid texture parameter");
+        return NULL;
+    }
+    if (samples > 1 && texture == Py_True) {
+        PyErr_Format(PyExc_TypeError, "for multisampled images texture must be False");
+        return NULL;
+    }
+    if (samples < 1 || (samples & (samples - 1)) || samples > 16) {
+        PyErr_Format(PyExc_ValueError, "samples must be 1, 2, 4, 8 or 16");
+        return NULL;
+    }
+    if (array < 0) {
+        PyErr_Format(PyExc_ValueError, "array must not be negative");
+        return NULL;
+    }
+    if (levels > max_levels) {
+        PyErr_Format(PyExc_ValueError, "too many levels");
+        return NULL;
+    }
+    if (cubemap && array) {
+        PyErr_Format(PyExc_TypeError, "cubemap arrays are not supported");
+        return NULL;
+    }
+    if (samples > 1 && (array || cubemap)) {
+        PyErr_Format(PyExc_TypeError, "multisampled array or cubemap images are not supported");
+        return NULL;
+    }
+    if (texture == Py_False && (array || cubemap)) {
+        PyErr_Format(PyExc_TypeError, "for array or cubemap images texture must be True");
+        return NULL;
+    }
+    if (data != Py_None && samples > 1) {
+        PyErr_Format(PyExc_ValueError, "cannot write to multisampled images");
+        return NULL;
+    }
+    if (data != Py_None && texture == Py_False) {
+        PyErr_Format(PyExc_ValueError, "cannot write to renderbuffers");
         return NULL;
     }
 
@@ -1891,17 +1894,18 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObje
         return NULL;
     }
 
-    if (!vertex_shader || !fragment_shader || !framebuffer_attachments) {
-        if (!vertex_shader) {
-            PyErr_Format(PyExc_TypeError, "no vertex_shader was specified");
-        } else if (!fragment_shader) {
-            PyErr_Format(PyExc_TypeError, "no fragment_shader was specified");
-        } else if (!framebuffer_attachments) {
-            PyErr_Format(PyExc_TypeError, "no framebuffer was specified");
-        }
+    if (!vertex_shader) {
+        PyErr_Format(PyExc_TypeError, "no vertex_shader was specified");
         return NULL;
     }
-
+    if (!fragment_shader) {
+        PyErr_Format(PyExc_TypeError, "no fragment_shader was specified");
+        return NULL;
+    }
+    if (!framebuffer_attachments) {
+        PyErr_Format(PyExc_TypeError, "no framebuffer was specified");
+        return NULL;
+    }
     if (viewport != Py_None && !is_viewport(viewport)) {
         PyErr_Format(PyExc_TypeError, "the viewport must be a tuple of 4 ints");
         return NULL;
@@ -2351,19 +2355,16 @@ static PyObject * Buffer_meth_write(Buffer * self, PyObject * vargs, PyObject * 
         return NULL;
     }
 
-    const bool already_mapped = self->mapped;
-    const bool invalid_offset = offset < 0 || offset > self->size;
-    const bool invalid_size = (int)view.len + offset > self->size;
-
-    if (already_mapped || invalid_offset || invalid_size) {
-        PyBuffer_Release(&view);
-        if (already_mapped) {
-            PyErr_Format(PyExc_RuntimeError, "already mapped");
-        } else if (invalid_offset) {
-            PyErr_Format(PyExc_ValueError, "invalid offset");
-        } else if (invalid_size) {
-            PyErr_Format(PyExc_ValueError, "invalid size");
-        }
+    if (self->mapped) {
+        PyErr_Format(PyExc_RuntimeError, "already mapped");
+        return NULL;
+    }
+    if (offset < 0 || offset > self->size) {
+        PyErr_Format(PyExc_ValueError, "invalid offset");
+        return NULL;
+    }
+    if ((int)view.len + offset > self->size) {
+        PyErr_Format(PyExc_ValueError, "invalid size");
         return NULL;
     }
 
@@ -2392,36 +2393,41 @@ static PyObject * Buffer_meth_map(Buffer * self, PyObject * vargs, PyObject * kw
     int size = self->size;
     int offset = 0;
 
-    const bool invalid_size_type = size_arg != Py_None && !PyLong_CheckExact(size_arg);
-    const bool invalid_offset_type = offset_arg != Py_None && !PyLong_CheckExact(offset_arg);
+    if (size_arg != Py_None && !PyLong_CheckExact(size_arg)) {
+        PyErr_Format(PyExc_TypeError, "the size must be an int or None");
+        return NULL;
+    }
 
-    if (size_arg != Py_None && !invalid_size_type) {
+    if (offset_arg != Py_None && !PyLong_CheckExact(offset_arg)) {
+        PyErr_Format(PyExc_TypeError, "the offset must be an int or None");
+        return NULL;
+    }
+
+    if (size_arg != Py_None) {
         size = PyLong_AsLong(size_arg);
     }
 
-    if (offset_arg != Py_None && !invalid_offset_type) {
+    if (offset_arg != Py_None) {
         offset = PyLong_AsLong(offset_arg);
     }
 
-    const bool already_mapped = self->mapped;
-    const bool offset_but_no_size = size_arg == Py_None && offset_arg != Py_None;
-    const bool invalid_size = invalid_size_type || size <= 0 || size > self->size;
-    const bool invalid_offset = invalid_offset_type || offset < 0 || offset + size > self->size;
+    if (self->mapped) {
+        PyErr_Format(PyExc_RuntimeError, "already mapped");
+        return NULL;
+    }
 
-    if (already_mapped || offset_but_no_size || invalid_size || invalid_offset) {
-        if (already_mapped) {
-            PyErr_Format(PyExc_RuntimeError, "already mapped");
-        } else if (offset_but_no_size) {
-            PyErr_Format(PyExc_ValueError, "the size is required when the offset is not None");
-        } else if (invalid_size_type) {
-            PyErr_Format(PyExc_TypeError, "the size must be an int or None");
-        } else if (invalid_offset_type) {
-            PyErr_Format(PyExc_TypeError, "the offset must be an int or None");
-        } else if (invalid_size) {
-            PyErr_Format(PyExc_ValueError, "invalid size");
-        } else if (invalid_offset) {
-            PyErr_Format(PyExc_ValueError, "invalid offset");
-        }
+    if (size_arg == Py_None && offset_arg != Py_None) {
+        PyErr_Format(PyExc_ValueError, "the size is required when the offset is not None");
+        return NULL;
+    }
+
+    if (size <= 0 || size > self->size) {
+        PyErr_Format(PyExc_ValueError, "invalid size");
+        return NULL;
+    }
+
+    if (offset < 0 || offset + size > self->size) {
+        PyErr_Format(PyExc_ValueError, "invalid offset");
         return NULL;
     }
 
@@ -2448,8 +2454,8 @@ static PyObject * Buffer_meth_unmap(Buffer * self, PyObject * args) {
 
 static void clear_bound_image(Image * self) {
     const GLMethods * const gl = &self->ctx->gl;
-    const bool depth_mask = self->ctx->current_depth_mask != 1 && (self->fmt->buffer == GL_DEPTH || self->fmt->buffer == GL_DEPTH_STENCIL);
-    const bool stencil_mask = self->ctx->current_stencil_mask != 0xff && (self->fmt->buffer == GL_STENCIL || self->fmt->buffer == GL_DEPTH_STENCIL);
+    const int depth_mask = self->ctx->current_depth_mask != 1 && (self->fmt->buffer == GL_DEPTH || self->fmt->buffer == GL_DEPTH_STENCIL);
+    const int stencil_mask = self->ctx->current_stencil_mask != 0xff && (self->fmt->buffer == GL_STENCIL || self->fmt->buffer == GL_DEPTH_STENCIL);
     if (depth_mask) {
         gl->DepthMask(1);
         self->ctx->current_depth_mask = 1;
@@ -2496,58 +2502,73 @@ static PyObject * Image_meth_write(Image * self, PyObject * vargs, PyObject * kw
     IntPair offset = {};
     int layer = 0;
 
-    const bool invalid_size_type = size_arg != Py_None && !is_int_pair(size_arg);
-    const bool invalid_offset_type = offset_arg != Py_None && !is_int_pair(offset_arg);
-    const bool invalid_layer_type = layer_arg != Py_None && !PyLong_CheckExact(layer_arg);
+    if (size_arg != Py_None && !is_int_pair(size_arg)) {
+        PyErr_Format(PyExc_TypeError, "the size must be a tuple of 2 ints");
+        return NULL;
+    }
 
-    if (size_arg != Py_None && !invalid_size_type) {
+    if (offset_arg != Py_None && !is_int_pair(offset_arg)) {
+        PyErr_Format(PyExc_TypeError, "the offset must be a tuple of 2 ints");
+        return NULL;
+    }
+
+    if (layer_arg != Py_None && !PyLong_CheckExact(layer_arg)) {
+        PyErr_Format(PyExc_TypeError, "the layer must be an int or None");
+        return NULL;
+    }
+
+    if (size_arg != Py_None) {
         size = to_int_pair(size_arg);
     } else {
         size.x = max(self->width >> level, 1);
         size.y = max(self->height >> level, 1);
     }
 
-    if (offset_arg != Py_None && !invalid_offset_type) {
+    if (offset_arg != Py_None) {
         offset = to_int_pair(offset_arg);
     }
 
-    if (layer_arg != Py_None && !invalid_layer_type) {
+    if (layer_arg != Py_None) {
         layer = PyLong_AsLong(layer_arg);
     }
 
-    const bool offset_but_no_size = size_arg == Py_None && offset_arg != Py_None;
-    const bool invalid_size = invalid_size_type || size.x <= 0 || size.y <= 0 || size.x > self->width || size.y > self->height;
-    const bool invalid_offset = invalid_offset_type || offset.x < 0 || offset.y < 0 || size.x + offset.x > self->width || size.y + offset.y > self->height;
-    const bool invalid_layer = invalid_layer_type || layer < 0 || layer >= (self->array ? self->array : 1) * (self->cubemap ? 6 : 1);
-    const bool invalid_level = level < 0 || level > self->max_level;
-    const bool layer_but_simple = !self->cubemap && !self->array && layer_arg != Py_None;
-    const bool invalid_type = !self->fmt->color || self->samples != 1;
+    if (size_arg == Py_None && offset_arg != Py_None) {
+        PyErr_Format(PyExc_ValueError, "the size is required when the offset is not None");
+        return NULL;
+    }
 
-    if (offset_but_no_size || invalid_size || invalid_offset || invalid_layer || invalid_level || layer_but_simple || invalid_type) {
-        PyBuffer_Release(&view);
-        if (offset_but_no_size) {
-            PyErr_Format(PyExc_ValueError, "the size is required when the offset is not None");
-        } else if (invalid_size_type) {
-            PyErr_Format(PyExc_TypeError, "the size must be a tuple of 2 ints");
-        } else if (invalid_offset_type) {
-            PyErr_Format(PyExc_TypeError, "the offset must be a tuple of 2 ints");
-        } else if (invalid_layer_type) {
-            PyErr_Format(PyExc_TypeError, "the layer must be an int or None");
-        } else if (invalid_size) {
-            PyErr_Format(PyExc_ValueError, "invalid size");
-        } else if (invalid_offset) {
-            PyErr_Format(PyExc_ValueError, "invalid offset");
-        } else if (invalid_layer) {
-            PyErr_Format(PyExc_ValueError, "invalid layer");
-        } else if (invalid_level) {
-            PyErr_Format(PyExc_ValueError, "invalid level");
-        } else if (layer_but_simple) {
-            PyErr_Format(PyExc_TypeError, "the image is not layered");
-        } else if (!self->fmt->color) {
-            PyErr_Format(PyExc_TypeError, "cannot write to depth or stencil images");
-        } else if (self->samples != 1) {
-            PyErr_Format(PyExc_TypeError, "cannot write to multisampled images");
-        }
+    if (size.x <= 0 || size.y <= 0 || size.x > self->width || size.y > self->height) {
+        PyErr_Format(PyExc_ValueError, "invalid size");
+        return NULL;
+    }
+
+    if (offset.x < 0 || offset.y < 0 || size.x + offset.x > self->width || size.y + offset.y > self->height) {
+        PyErr_Format(PyExc_ValueError, "invalid offset");
+        return NULL;
+    }
+
+    if (layer < 0 || layer >= (self->array ? self->array : 1) * (self->cubemap ? 6 : 1)) {
+        PyErr_Format(PyExc_ValueError, "invalid layer");
+        return NULL;
+    }
+
+    if (level < 0 || level > self->max_level) {
+        PyErr_Format(PyExc_ValueError, "invalid level");
+        return NULL;
+    }
+
+    if (!self->cubemap && !self->array && layer_arg != Py_None) {
+        PyErr_Format(PyExc_TypeError, "the image is not layered");
+        return NULL;
+    }
+
+    if (!self->fmt->color) {
+        PyErr_Format(PyExc_TypeError, "cannot write to depth or stencil images");
+        return NULL;
+    }
+
+    if (self->samples != 1) {
+        PyErr_Format(PyExc_TypeError, "cannot write to multisampled images");
         return NULL;
     }
 
@@ -2559,7 +2580,6 @@ static PyObject * Image_meth_write(Image * self, PyObject * vargs, PyObject * kw
     }
 
     if ((int)view.len != expected_size) {
-        PyBuffer_Release(&view);
         PyErr_Format(PyExc_ValueError, "invalid data size, expected %d, got %d", expected_size, (int)view.len);
         return NULL;
     }
@@ -2606,24 +2626,23 @@ static PyObject * Image_meth_mipmaps(Image * self, PyObject * vargs, PyObject * 
 
     int max_levels = count_mipmaps(self->width, self->height);
 
-    const bool invalid_levels_type = levels_arg != Py_None && !PyLong_CheckExact(levels_arg);
+    if (levels_arg != Py_None && !PyLong_CheckExact(levels_arg)) {
+        PyErr_Format(PyExc_TypeError, "levels must be an int");
+        return NULL;
+    }
 
     int levels = max_levels - base;
-    if (levels_arg != Py_None && !invalid_levels_type) {
+    if (levels_arg != Py_None) {
         levels = PyLong_AsLong(levels_arg);
     }
 
-    const bool invalid_base = base < 0 || base >= max_levels;
-    const bool invalid_levels = levels <= 0 || base + levels > max_levels;
+    if (base < 0 || base >= max_levels) {
+        PyErr_Format(PyExc_ValueError, "invalid base");
+        return NULL;
+    }
 
-    if (invalid_levels_type || invalid_base || invalid_levels) {
-        if (invalid_levels_type) {
-            PyErr_Format(PyExc_TypeError, "levels must be an int");
-        } else if (invalid_base) {
-            PyErr_Format(PyExc_ValueError, "invalid base");
-        } else if (invalid_levels) {
-            PyErr_Format(PyExc_ValueError, "invalid levels");
-        }
+    if (levels <= 0 || base + levels > max_levels) {
+        PyErr_Format(PyExc_ValueError, "invalid levels");
         return NULL;
     }
 
@@ -2652,43 +2671,54 @@ static PyObject * Image_meth_read(Image * self, PyObject * vargs, PyObject * kwa
     IntPair size = {};
     IntPair offset = {};
 
-    const bool invalid_size_type = size_arg != Py_None && !is_int_pair(size_arg);
-    const bool invalid_offset_type = offset_arg != Py_None && !is_int_pair(offset_arg);
+    if (size_arg != Py_None && !is_int_pair(size_arg)) {
+        PyErr_Format(PyExc_TypeError, "the size must be a tuple of 2 ints");
+        return NULL;
+    }
 
-    if (size_arg != Py_None && !invalid_size_type) {
+    if (offset_arg != Py_None && !is_int_pair(offset_arg)) {
+        PyErr_Format(PyExc_TypeError, "the offset must be a tuple of 2 ints");
+        return NULL;
+    }
+
+    if (size_arg != Py_None) {
         size = to_int_pair(size_arg);
     } else {
         size.x = self->width;
         size.y = self->height;
     }
 
-    if (offset_arg != Py_None && !invalid_offset_type) {
+    if (offset_arg != Py_None) {
         offset = to_int_pair(offset_arg);
     }
 
-    const bool offset_but_no_size = size_arg == Py_None && offset_arg != Py_None;
-    const bool invalid_size = invalid_size_type || size.x <= 0 || size.y <= 0 || size.x > self->width || size.y > self->height;
-    const bool invalid_offset = invalid_offset_type || offset.x < 0 || offset.y < 0 || size.x + offset.x > self->width || size.y + offset.y > self->height;
-    const bool invalid_type = self->cubemap || self->array || self->samples != 1;
+    if (size_arg == Py_None && offset_arg != Py_None) {
+        PyErr_Format(PyExc_ValueError, "the size is required when the offset is not None");
+        return NULL;
+    }
 
-    if (offset_but_no_size || invalid_size || invalid_offset || invalid_type) {
-        if (offset_but_no_size) {
-            PyErr_Format(PyExc_ValueError, "the size is required when the offset is not None");
-        } else if (invalid_size_type) {
-            PyErr_Format(PyExc_TypeError, "the size must be a tuple of 2 ints");
-        } else if (invalid_offset_type) {
-            PyErr_Format(PyExc_TypeError, "the offset must be a tuple of 2 ints");
-        } else if (invalid_size) {
-            PyErr_Format(PyExc_ValueError, "invalid size");
-        } else if (invalid_offset) {
-            PyErr_Format(PyExc_ValueError, "invalid offset");
-        } else if (self->cubemap) {
-            PyErr_Format(PyExc_TypeError, "cannot read cubemap images");
-        } else if (self->array) {
-            PyErr_Format(PyExc_TypeError, "cannot read array images");
-        } else if (self->samples != 1) {
-            PyErr_Format(PyExc_TypeError, "multisampled images must be blit to a non multisampled image before read");
-        }
+    if (size.x <= 0 || size.y <= 0 || size.x > self->width || size.y > self->height) {
+        PyErr_Format(PyExc_ValueError, "invalid size");
+        return NULL;
+    }
+
+    if (offset.x < 0 || offset.y < 0 || size.x + offset.x > self->width || size.y + offset.y > self->height) {
+        PyErr_Format(PyExc_ValueError, "invalid offset");
+        return NULL;
+    }
+
+    if (self->cubemap) {
+        PyErr_Format(PyExc_TypeError, "cannot read cubemap images");
+        return NULL;
+    }
+
+    if (self->array) {
+        PyErr_Format(PyExc_TypeError, "cannot read array images");
+        return NULL;
+    }
+
+    if (self->samples != 1) {
+        PyErr_Format(PyExc_TypeError, "multisampled images must be blit to a non multisampled image before read");
         return NULL;
     }
 
@@ -2725,80 +2755,89 @@ static PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwa
         return NULL;
     }
 
-    const bool invalid_target_type = target_arg != Py_None && Py_TYPE(target_arg) != self->ctx->module_state->Image_type;
-    const bool invalid_srgb_parameter = srgb_arg != Py_True && srgb_arg != Py_False && srgb_arg != Py_None;
-
-    Image * target = target_arg != Py_None && !invalid_target_type ? (Image *)target_arg : NULL;
-
-    Viewport target_viewport = {};
-    Viewport source_viewport = {};
-
-    const bool invalid_target_viewport_type = target_viewport_arg != Py_None && !is_viewport(target_viewport_arg);
-    const bool invalid_source_viewport_type = source_viewport_arg != Py_None && !is_viewport(source_viewport_arg);
-
-    if (target_viewport_arg != Py_None && !invalid_target_viewport_type) {
-        target_viewport = to_viewport(target_viewport_arg);
-    } else {
-        target_viewport.width = target ? target->width : self->width;
-        target_viewport.height = target ? target->height : self->height;
+    if (target_arg != Py_None && Py_TYPE(target_arg) != self->ctx->module_state->Image_type) {
+        PyErr_Format(PyExc_TypeError, "target must be an Image or None");
+        return NULL;
     }
 
-    if (source_viewport_arg != Py_None && !invalid_source_viewport_type) {
-        source_viewport = to_viewport(source_viewport_arg);
-    } else {
-        source_viewport.width = self->width;
-        source_viewport.height = self->height;
+    if (srgb_arg != Py_True && srgb_arg != Py_False && srgb_arg != Py_None) {
+        PyErr_Format(PyExc_TypeError, "invalid srgb parameter");
+        return NULL;
     }
 
-    const bool srgb = (srgb_arg == Py_None && self->fmt->internal_format == GL_SRGB8_ALPHA8) || srgb_arg == Py_True;
+    Image * target = target_arg != Py_None ? (Image *)target_arg : NULL;
 
-    const bool invalid_target_viewport = invalid_target_viewport_type || (
-        target_viewport.x < 0 || target_viewport.y < 0 || target_viewport.width <= 0 || target_viewport.height <= 0 ||
-        (target && (target_viewport.x + target_viewport.width > target->width || target_viewport.y + target_viewport.height > target->height))
-    );
+    Viewport tv = {};
+    Viewport sv = {};
 
-    const bool invalid_source_viewport = invalid_source_viewport_type || (
-        source_viewport.x < 0 || source_viewport.y < 0 || source_viewport.width <= 0 || source_viewport.height <= 0 ||
-        source_viewport.x + source_viewport.width > self->width || source_viewport.y + source_viewport.height > self->height
-    );
+    if (target_viewport_arg != Py_None && !is_viewport(target_viewport_arg)) {
+        PyErr_Format(PyExc_TypeError, "the target viewport must be a tuple of 4 ints");
+        return NULL;
+    }
 
-    const bool invalid_target = target && (target->cubemap || target->array || !target->fmt->color || target->samples > 1);
-    const bool invalid_source = self->cubemap || self->array || !self->fmt->color;
+    if (source_viewport_arg != Py_None && !is_viewport(source_viewport_arg)) {
+        PyErr_Format(PyExc_TypeError, "the source viewport must be a tuple of 4 ints");
+        return NULL;
+    }
 
-    const bool error = (
-        invalid_target_type || invalid_srgb_parameter || invalid_target_viewport_type ||
-        invalid_source_viewport_type || invalid_target_viewport || invalid_source_viewport ||
-        invalid_target || invalid_source
-    );
+    if (target_viewport_arg != Py_None) {
+        tv = to_viewport(target_viewport_arg);
+    } else {
+        tv.width = target ? target->width : self->width;
+        tv.height = target ? target->height : self->height;
+    }
 
-    if (error) {
-        if (invalid_target_type) {
-            PyErr_Format(PyExc_TypeError, "target must be an Image or None");
-        } else if (invalid_srgb_parameter) {
-            PyErr_Format(PyExc_TypeError, "invalid srgb parameter");
-        } else if (invalid_target_viewport_type) {
-            PyErr_Format(PyExc_TypeError, "the target viewport must be a tuple of 4 ints");
-        } else if (invalid_source_viewport_type) {
-            PyErr_Format(PyExc_TypeError, "the source viewport must be a tuple of 4 ints");
-        } else if (invalid_target_viewport) {
-            PyErr_Format(PyExc_ValueError, "the target viewport is out of range");
-        } else if (invalid_source_viewport) {
-            PyErr_Format(PyExc_ValueError, "the source viewport is out of range");
-        } else if (self->cubemap) {
-            PyErr_Format(PyExc_TypeError, "cannot blit cubemap images");
-        } else if (self->array) {
-            PyErr_Format(PyExc_TypeError, "cannot blit array images");
-        } else if (!self->fmt->color) {
-            PyErr_Format(PyExc_TypeError, "cannot blit depth or stencil images");
-        } else if (target && target->cubemap) {
-            PyErr_Format(PyExc_TypeError, "cannot blit to cubemap images");
-        } else if (target && target->array) {
-            PyErr_Format(PyExc_TypeError, "cannot blit to array images");
-        } else if (target && !target->fmt->color) {
-            PyErr_Format(PyExc_TypeError, "cannot blit to depth or stencil images");
-        } else if (target && target->samples > 1) {
-            PyErr_Format(PyExc_TypeError, "cannot blit to multisampled images");
-        }
+    if (source_viewport_arg != Py_None) {
+        sv = to_viewport(source_viewport_arg);
+    } else {
+        sv.width = self->width;
+        sv.height = self->height;
+    }
+
+    const int srgb = (srgb_arg == Py_None && self->fmt->internal_format == GL_SRGB8_ALPHA8) || srgb_arg == Py_True;
+
+    if (tv.x < 0 || tv.y < 0 || tv.width <= 0 || tv.height <= 0 || (target && (tv.x + tv.width > target->width || tv.y + tv.height > target->height))) {
+        PyErr_Format(PyExc_ValueError, "the target viewport is out of range");
+        return NULL;
+    }
+
+    if (sv.x < 0 || sv.y < 0 || sv.width <= 0 || sv.height <= 0 || sv.x + sv.width > self->width || sv.y + sv.height > self->height) {
+        PyErr_Format(PyExc_ValueError, "the source viewport is out of range");
+        return NULL;
+    }
+
+    if (self->cubemap) {
+        PyErr_Format(PyExc_TypeError, "cannot blit cubemap images");
+        return NULL;
+    }
+
+    if (self->array) {
+        PyErr_Format(PyExc_TypeError, "cannot blit array images");
+        return NULL;
+    }
+
+    if (!self->fmt->color) {
+        PyErr_Format(PyExc_TypeError, "cannot blit depth or stencil images");
+        return NULL;
+    }
+
+    if (target && target->cubemap) {
+        PyErr_Format(PyExc_TypeError, "cannot blit to cubemap images");
+        return NULL;
+    }
+
+    if (target && target->array) {
+        PyErr_Format(PyExc_TypeError, "cannot blit to array images");
+        return NULL;
+    }
+
+    if (target && !target->fmt->color) {
+        PyErr_Format(PyExc_TypeError, "cannot blit to depth or stencil images");
+        return NULL;
+    }
+
+    if (target && target->samples > 1) {
+        PyErr_Format(PyExc_TypeError, "cannot blit to multisampled images");
         return NULL;
     }
 
@@ -2812,8 +2851,8 @@ static PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwa
     gl->BindFramebuffer(GL_READ_FRAMEBUFFER, self->framebuffer->obj);
     gl->BindFramebuffer(GL_DRAW_FRAMEBUFFER, target_framebuffer);
     gl->BlitFramebuffer(
-        source_viewport.x, source_viewport.y, source_viewport.x + source_viewport.width, source_viewport.y + source_viewport.height,
-        target_viewport.x, target_viewport.y, target_viewport.x + target_viewport.width, target_viewport.y + target_viewport.height,
+        sv.x, sv.y, sv.x + sv.width, sv.y + sv.height,
+        tv.x, tv.y, tv.x + tv.width, tv.y + tv.height,
         GL_COLOR_BUFFER_BIT, filter ? GL_LINEAR : GL_NEAREST
     );
     self->ctx->current_framebuffer = -1;
@@ -2909,12 +2948,12 @@ static PyObject * Image_get_clear_value(Image * self, void * closure) {
 static int Image_set_clear_value(Image * self, PyObject * value, void * closure) {
     ClearValue clear_value = {};
     if (self->fmt->components == 1) {
-        if (self->fmt->clear_type == 'f' ? !PyFloat_CheckExact(value) : !PyLong_CheckExact(value)) {
-            if (self->fmt->clear_type == 'f') {
-                PyErr_Format(PyExc_TypeError, "the clear value must be a float");
-            } else {
-                PyErr_Format(PyExc_TypeError, "the clear value must be an int");
-            }
+        if (self->fmt->clear_type == 'f' && !PyFloat_CheckExact(value)) {
+            PyErr_Format(PyExc_TypeError, "the clear value must be a float");
+            return -1;
+        }
+        if (self->fmt->clear_type == 'i' && !PyLong_CheckExact(value)) {
+            PyErr_Format(PyExc_TypeError, "the clear value must be an int");
             return -1;
         }
         if (self->fmt->clear_type == 'f') {
@@ -3070,7 +3109,7 @@ static PyObject * ImageFace_meth_clear(ImageFace * self, PyObject * args) {
 static PyObject * ImageFace_meth_blit(ImageFace * self, PyObject * vargs, PyObject * kwargs) {
     static char * keywords[] = {"target", "target_viewport", "source_viewport", "filter", "srgb", NULL};
 
-    ImageFace * target = NULL;
+    PyObject * target_arg = Py_None;
     PyObject * target_viewport_arg = Py_None;
     PyObject * source_viewport_arg = Py_None;
     int filter = true;
@@ -3079,10 +3118,9 @@ static PyObject * ImageFace_meth_blit(ImageFace * self, PyObject * vargs, PyObje
     int args_ok = PyArg_ParseTupleAndKeywords(
         vargs,
         kwargs,
-        "O!|OOpO",
+        "|OOOpO",
         keywords,
-        self->image->ctx->module_state->ImageFace_type,
-        &target,
+        &target_arg,
         &target_viewport_arg,
         &source_viewport_arg,
         &filter,
@@ -3093,53 +3131,73 @@ static PyObject * ImageFace_meth_blit(ImageFace * self, PyObject * vargs, PyObje
         return NULL;
     }
 
-    const bool invalid_srgb_parameter = srgb_arg != Py_True && srgb_arg != Py_False && srgb_arg != Py_None;
-
-    Viewport target_viewport = {};
-    Viewport source_viewport = {};
-
-    const bool invalid_target_viewport_type = target_viewport_arg != Py_None && !is_viewport(target_viewport_arg);
-    const bool invalid_source_viewport_type = source_viewport_arg != Py_None && !is_viewport(source_viewport_arg);
-
-    if (target_viewport_arg != Py_None && !invalid_target_viewport_type) {
-        target_viewport = to_viewport(target_viewport_arg);
-    } else {
-        target_viewport.width = target ? target->width : self->width;
-        target_viewport.height = target ? target->height : self->height;
-    }
-
-    if (source_viewport_arg != Py_None && !invalid_source_viewport_type) {
-        source_viewport = to_viewport(source_viewport_arg);
-    } else {
-        source_viewport.width = self->width;
-        source_viewport.height = self->height;
-    }
-
-    const bool srgb = (srgb_arg == Py_None && self->image->fmt->internal_format == GL_SRGB8_ALPHA8) || srgb_arg == Py_True;
-
-    const bool invalid_target_viewport = invalid_target_viewport_type || (
-        target_viewport.x < 0 || target_viewport.y < 0 || target_viewport.width <= 0 || target_viewport.height <= 0 ||
-        (target && (target_viewport.x + target_viewport.width > target->width || target_viewport.y + target_viewport.height > target->height))
-    );
-
-    const bool invalid_source_viewport = invalid_source_viewport_type || (
-        source_viewport.x < 0 || source_viewport.y < 0 || source_viewport.width <= 0 || source_viewport.height <= 0 ||
-        source_viewport.x + source_viewport.width > self->width || source_viewport.y + source_viewport.height > self->height
-    );
-
-    const bool invalid_target = target->samples > 1 || !(target->flags & 1);
-    const bool invalid_source = !(self->flags & 1);
-
-    const bool error = (
-        invalid_srgb_parameter || invalid_target_viewport ||
-        invalid_source_viewport || invalid_target || invalid_source
-    );
-
-    if (error) {
+    if (target_arg != Py_None && Py_TYPE(target_arg) != self->ctx->module_state->ImageFace_type) {
+        PyErr_Format(PyExc_TypeError, "target must be an ImageFace or None");
         return NULL;
     }
 
-    const GLMethods * const gl = &self->image->ctx->gl;
+    if (srgb_arg != Py_True && srgb_arg != Py_False && srgb_arg != Py_None) {
+        PyErr_Format(PyExc_TypeError, "invalid srgb parameter");
+        return NULL;
+    }
+
+    ImageFace * target = target_arg != Py_None ? (ImageFace *)target_arg : NULL;
+
+    Viewport tv = {};
+    Viewport sv = {};
+
+    if (target_viewport_arg != Py_None && !is_viewport(target_viewport_arg)) {
+        PyErr_Format(PyExc_TypeError, "the target viewport must be a tuple of 4 ints");
+        return NULL;
+    }
+
+    if (source_viewport_arg != Py_None && !is_viewport(source_viewport_arg)) {
+        PyErr_Format(PyExc_TypeError, "the source viewport must be a tuple of 4 ints");
+        return NULL;
+    }
+
+    if (target_viewport_arg != Py_None) {
+        tv = to_viewport(target_viewport_arg);
+    } else {
+        tv.width = target ? target->width : self->width;
+        tv.height = target ? target->height : self->height;
+    }
+
+    if (source_viewport_arg != Py_None) {
+        sv = to_viewport(source_viewport_arg);
+    } else {
+        sv.width = self->width;
+        sv.height = self->height;
+    }
+
+    const int srgb = (srgb_arg == Py_None && self->image->fmt->internal_format == GL_SRGB8_ALPHA8) || srgb_arg == Py_True;
+
+    if (tv.x < 0 || tv.y < 0 || tv.width <= 0 || tv.height <= 0 || (target && (tv.x + tv.width > target->width || tv.y + tv.height > target->height))) {
+        PyErr_Format(PyExc_ValueError, "the target viewport is out of range");
+        return NULL;
+    }
+
+    if (sv.x < 0 || sv.y < 0 || sv.width <= 0 || sv.height <= 0 || sv.x + sv.width > self->width || sv.y + sv.height > self->height) {
+        PyErr_Format(PyExc_ValueError, "the source viewport is out of range");
+        return NULL;
+    }
+
+    if (!self->image->fmt->color) {
+        PyErr_Format(PyExc_TypeError, "cannot blit depth or stencil images");
+        return NULL;
+    }
+
+    if (target && !target->image->fmt->color) {
+        PyErr_Format(PyExc_TypeError, "cannot blit to depth or stencil images");
+        return NULL;
+    }
+
+    if (target && target->image->samples > 1) {
+        PyErr_Format(PyExc_TypeError, "cannot blit to multisampled images");
+        return NULL;
+    }
+
+    const GLMethods * const gl = &self->ctx->gl;
 
     if (!srgb) {
         gl->Disable(GL_FRAMEBUFFER_SRGB);
@@ -3149,8 +3207,8 @@ static PyObject * ImageFace_meth_blit(ImageFace * self, PyObject * vargs, PyObje
     gl->BindFramebuffer(GL_READ_FRAMEBUFFER, self->framebuffer->obj);
     gl->BindFramebuffer(GL_DRAW_FRAMEBUFFER, target_framebuffer);
     gl->BlitFramebuffer(
-        source_viewport.x, source_viewport.y, source_viewport.x + source_viewport.width, source_viewport.y + source_viewport.height,
-        target_viewport.x, target_viewport.y, target_viewport.x + target_viewport.width, target_viewport.y + target_viewport.height,
+        sv.x, sv.y, sv.x + sv.width, sv.y + sv.height,
+        tv.x, tv.y, tv.x + tv.width, tv.y + tv.height,
         GL_COLOR_BUFFER_BIT, filter ? GL_LINEAR : GL_NEAREST
     );
     self->ctx->current_framebuffer = -1;
