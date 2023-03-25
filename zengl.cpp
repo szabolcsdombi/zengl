@@ -357,12 +357,8 @@ struct IntPair {
     int y;
 };
 
-static int min(int a, int b) {
-    return a < b ? a : b;
-}
-
-static int max(int a, int b) {
-    return a > b ? a : b;
+static int least_one(int value) {
+    return value > 1 ? value : 1;
 }
 
 static const int num_vertex_formats = 30;
@@ -1540,8 +1536,13 @@ static Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwar
     gl->GetIntegerv(GL_MAX_DRAW_BUFFERS, &res->limits.max_draw_buffers);
     gl->GetIntegerv(GL_MAX_SAMPLES, &res->limits.max_samples);
 
-    res->limits.max_uniform_buffer_bindings = min(res->limits.max_uniform_buffer_bindings, MAX_UNIFORM_BUFFER_BINDINGS);
-    res->limits.max_combined_texture_image_units = min(res->limits.max_combined_texture_image_units, MAX_SAMPLER_BINDINGS);
+    if (res->limits.max_uniform_buffer_bindings > MAX_UNIFORM_BUFFER_BINDINGS) {
+        res->limits.max_uniform_buffer_bindings = MAX_UNIFORM_BUFFER_BINDINGS;
+    }
+
+    if (res->limits.max_combined_texture_image_units > MAX_SAMPLER_BINDINGS) {
+        res->limits.max_combined_texture_image_units = MAX_SAMPLER_BINDINGS;
+    }
 
     res->limits_dict = Py_BuildValue(
         "{sisisisisisisi}",
@@ -2551,8 +2552,8 @@ static PyObject * Image_meth_write(Image * self, PyObject * vargs, PyObject * kw
     if (size_arg != Py_None) {
         size = to_int_pair(size_arg);
     } else {
-        size.x = max(self->width >> level, 1);
-        size.y = max(self->height >> level, 1);
+        size.x = least_one(self->width >> level);
+        size.y = least_one(self->height >> level);
     }
 
     if (offset_arg != Py_None) {
@@ -2933,8 +2934,8 @@ static ImageFace * Image_meth_face(Image * self, PyObject * vargs, PyObject * kw
         return cache;
     }
 
-    int width = max(self->width >> level, 1);
-    int height = max(self->height >> level, 1);
+    int width = least_one(self->width >> level);
+    int height = least_one(self->height >> level);
 
     ImageFace * res = PyObject_New(ImageFace, self->ctx->module_state->ImageFace_type);
     res->gc_prev = self->gc_prev;
