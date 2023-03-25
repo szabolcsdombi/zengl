@@ -2369,6 +2369,17 @@ static PyObject * Context_meth_release(Context * self, PyObject * arg) {
     Py_RETURN_NONE;
 }
 
+static PyObject * Context_meth_gc(Context * self, PyObject * arg) {
+    PyObject * res = PyList_New(0);
+    GCHeader * it = self->gc_next;
+    while (it != (GCHeader *)self) {
+        GCHeader * next = it->gc_next;
+        PyList_Append(res, (PyObject *)it);
+        it = next;
+    }
+    return res;
+}
+
 static PyObject * Context_get_screen(Context * self, void * closure) {
     return PyLong_FromLong(self->default_framebuffer->obj);
 }
@@ -3457,6 +3468,7 @@ static PyMethodDef Context_methods[] = {
     {"new_frame", (PyCFunction)Context_meth_new_frame, METH_VARARGS | METH_KEYWORDS},
     {"end_frame", (PyCFunction)Context_meth_end_frame, METH_VARARGS | METH_KEYWORDS},
     {"release", (PyCFunction)Context_meth_release, METH_O},
+    {"gc", (PyCFunction)Context_meth_gc, METH_NOARGS},
     {NULL},
 };
 
