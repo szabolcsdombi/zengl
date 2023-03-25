@@ -10,6 +10,8 @@ def ctx():
         from glcontext import headless
         devices = headless.devices()
         headless.init(device=next(x['device'] for x in devices if 'EGL_MESA_device_software' in x['extensions']))
-        return zengl.context(headless)
+        ctx = zengl.context(headless)
     else:
-        return zengl.context(zengl.loader(headless=True))
+        ctx = zengl.context(zengl.loader(headless=True))
+    yield ctx
+    ctx.release('all')

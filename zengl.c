@@ -894,8 +894,6 @@ typedef struct Pipeline {
 
 typedef struct ImageFace {
     PyObject_HEAD
-    GCHeader * gc_prev;
-    GCHeader * gc_next;
     Context * ctx;
     Image * image;
     GLObject * framebuffer;
@@ -1651,7 +1649,9 @@ static Buffer * Context_meth_buffer(Context * self, PyObject * vargs, PyObject *
     res->gc_next = (GCHeader *)self;
     res->gc_prev->gc_next = (GCHeader *)res;
     res->gc_next->gc_prev = (GCHeader *)res;
-    res->ctx = (Context *)new_ref(self);
+    Py_INCREF(res);
+
+    res->ctx = self;
     res->buffer = buffer;
     res->size = size;
     res->dynamic = dynamic;
@@ -1664,7 +1664,6 @@ static Buffer * Context_meth_buffer(Context * self, PyObject * vargs, PyObject *
         }
     }
 
-    Py_INCREF(res);
     return res;
 }
 
@@ -1797,7 +1796,9 @@ static Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * k
     res->gc_next = (GCHeader *)self;
     res->gc_prev->gc_next = (GCHeader *)res;
     res->gc_next->gc_prev = (GCHeader *)res;
-    res->ctx = (Context *)new_ref(self);
+    Py_INCREF(res);
+
+    res->ctx = self;
     res->size = Py_BuildValue("(ii)", width, height);
     res->format = (PyObject *)new_ref(format);
     res->faces = PyDict_New();
@@ -1842,7 +1843,6 @@ static Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * k
         }
     }
 
-    Py_INCREF(res);
     return res;
 }
 
@@ -2073,7 +2073,9 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObje
     res->gc_next = (GCHeader *)self;
     res->gc_prev->gc_next = (GCHeader *)res;
     res->gc_next->gc_prev = (GCHeader *)res;
-    res->ctx = (Context *)new_ref(self);
+    Py_INCREF(res);
+
+    res->ctx = self;
     res->framebuffer = framebuffer;
     res->vertex_array = vertex_array;
     res->program = program;
@@ -2088,7 +2090,6 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObje
     res->viewport = viewport_value;
     res->descriptor_set = descriptor_set;
     res->global_settings = global_settings;
-    Py_INCREF(res);
     return res;
 }
 
@@ -2312,9 +2313,10 @@ static PyObject * Context_meth_release(Context * self, PyObject * arg) {
             PyObject * value = NULL;
             Py_ssize_t pos = 0;
             while (PyDict_Next(image->faces, &pos, &key, &value)) {
-                release_framebuffer(self, (GLObject *)value);
+                ImageFace * face = (ImageFace *)value;
+                release_framebuffer(self, face->framebuffer);
             }
-            PyDict_Clear(self->shader_cache);
+            PyDict_Clear(image->faces);
         }
         if (image->renderbuffer) {
             gl->DeleteRenderbuffers(1, (unsigned int *)&image->image);
@@ -2333,7 +2335,6 @@ static PyObject * Context_meth_release(Context * self, PyObject * arg) {
         release_vertex_array(self, pipeline->vertex_array);
         if (pipeline->uniform_data) {
             PyMem_Free(pipeline->uniform_data);
-            Py_DECREF(pipeline->uniform_map);
         }
         Py_DECREF(pipeline);
     } else if (PyUnicode_CheckExact(arg) && !PyUnicode_CompareWithASCIIString(arg, "shader_cache")) {
@@ -2953,12 +2954,8 @@ static ImageFace * Image_meth_face(Image * self, PyObject * vargs, PyObject * kw
     int height = least_one(self->height >> level);
 
     ImageFace * res = PyObject_New(ImageFace, self->ctx->module_state->ImageFace_type);
-    res->gc_prev = self->gc_prev;
-    res->gc_next = (GCHeader *)self;
-    res->gc_prev->gc_next = (GCHeader *)res;
-    res->gc_next->gc_prev = (GCHeader *)res;
-    res->ctx = (Context *)new_ref(self->ctx);
-    res->image = (Image *)new_ref(self);
+    res->ctx = self->ctx;
+    res->image = self;
     res->size = Py_BuildValue("(ii)", width, height);
     res->width = width;
     res->height = height;
@@ -3412,25 +3409,28 @@ static void Context_dealloc(Context * self) {
 }
 
 static void Buffer_dealloc(Buffer * self) {
-    Py_DECREF(self->ctx);
     Py_TYPE(self)->tp_free(self);
 }
 
 static void Image_dealloc(Image * self) {
-    Py_DECREF(self->ctx);
-    Py_DECREF(self->framebuffer);
-    Py_DECREF(self->faces);
     Py_DECREF(self->size);
+    Py_DECREF(self->format);
+    if (self->framebuffer) {
+        Py_DECREF(self->framebuffer);
+    }
+    Py_DECREF(self->faces);
     Py_TYPE(self)->tp_free(self);
 }
 
 static void Pipeline_dealloc(Pipeline * self) {
-    Py_DECREF(self->ctx);
     Py_DECREF(self->descriptor_set);
     Py_DECREF(self->global_settings);
     Py_DECREF(self->framebuffer);
-    Py_DECREF(self->program);
     Py_DECREF(self->vertex_array);
+    Py_DECREF(self->program);
+    if (self->uniform_map) {
+        Py_DECREF(self->uniform_map);
+    }
     Py_TYPE(self)->tp_free(self);
 }
 
