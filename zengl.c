@@ -1607,6 +1607,11 @@ static Buffer * Context_meth_buffer(Context * self, PyObject * vargs, PyObject *
         return NULL;
     }
 
+    if (data == Py_None && size_arg == Py_None) {
+        PyErr_Format(PyExc_ValueError, "data or size is required");
+        return NULL;
+    }
+
     if (data != Py_None && size_arg != Py_None) {
         PyErr_Format(PyExc_ValueError, "data and size are exclusive");
         return NULL;
@@ -1627,6 +1632,10 @@ static Buffer * Context_meth_buffer(Context * self, PyObject * vargs, PyObject *
             return NULL;
         }
         size = (int)PyMemoryView_GET_BUFFER(data)->len;
+        if (size == 0) {
+            PyErr_Format(PyExc_ValueError, "invalid size");
+            return NULL;
+        }
     }
 
     int buffer = 0;
