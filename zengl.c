@@ -3156,7 +3156,7 @@ static PyObject * meth_inspect(PyObject * self, PyObject * arg) {
     } else if (Py_TYPE(arg) == module_state->Pipeline_type) {
         Pipeline * pipeline = (Pipeline *)arg;
         return Py_BuildValue(
-            "{sssNsNsisisi}",
+            "{sssOsNsisisi}",
             "type", "pipeline",
             "interface", pipeline->program->extra,
             "resources", inspect_descriptor_set(pipeline->descriptor_set),
