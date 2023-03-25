@@ -724,7 +724,6 @@ typedef struct ModuleState {
     PyObject * helper;
     PyObject * empty_tuple;
     PyObject * str_none;
-    PyObject * float_one;
     PyTypeObject * Context_type;
     PyTypeObject * Buffer_type;
     PyTypeObject * Image_type;
@@ -3617,7 +3616,6 @@ static int module_exec(PyObject * self) {
 
     state->empty_tuple = PyTuple_New(0);
     state->str_none = PyUnicode_FromString("none");
-    state->float_one = PyFloat_FromDouble(1.0);
     state->Context_type = (PyTypeObject *)PyType_FromSpec(&Context_spec);
     state->Buffer_type = (PyTypeObject *)PyType_FromSpec(&Buffer_spec);
     state->Image_type = (PyTypeObject *)PyType_FromSpec(&Image_spec);
@@ -3660,7 +3658,6 @@ static void module_free(PyObject * self) {
     }
     Py_DECREF(state->empty_tuple);
     Py_DECREF(state->str_none);
-    Py_DECREF(state->float_one);
     Py_DECREF(state->Context_type);
     Py_DECREF(state->Buffer_type);
     Py_DECREF(state->Image_type);
