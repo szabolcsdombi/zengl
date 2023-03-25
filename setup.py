@@ -27,7 +27,7 @@ if os.getenv('ZENGL_NO_STUBS'):
 
 ext = Extension(
     name='zengl',
-    sources=['zengl.cpp'],
+    sources=['zengl.c'],
     extra_compile_args=extra_compile_args,
     extra_link_args=extra_link_args,
 )

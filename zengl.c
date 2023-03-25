@@ -19,6 +19,9 @@ typedef signed long int GLintptr;
 typedef signed long int GLsizeiptr;
 #endif
 
+#define true 1
+#define false 0
+
 typedef unsigned int GLenum;
 typedef float GLfloat;
 typedef int GLint;
@@ -165,7 +168,7 @@ typedef void * GLsync;
 #define GL_PRIMITIVE_RESTART_FIXED_INDEX 0x8D69
 #define GL_TEXTURE_MAX_ANISOTROPY 0x84FE
 
-struct GLMethods {
+typedef struct GLMethods {
     void (GLAPI * CullFace)(GLenum mode);
     void (GLAPI * Clear)(GLbitfield mask);
     void (GLAPI * TexParameteri)(GLenum target, GLenum pname, GLint param);
@@ -282,17 +285,17 @@ struct GLMethods {
     void (GLAPI * SamplerParameteri)(GLuint sampler, GLenum pname, GLint param);
     void (GLAPI * SamplerParameterf)(GLuint sampler, GLenum pname, GLfloat param);
     void (GLAPI * VertexAttribDivisor)(GLuint index, GLuint divisor);
-};
+} GLMethods;
 
-struct VertexFormat {
+typedef struct VertexFormat {
     const char * name;
     int type;
     int size;
     int normalize;
     int integer;
-};
+} VertexFormat;
 
-struct ImageFormat {
+typedef struct ImageFormat {
     const char * name;
     int internal_format;
     int format;
@@ -303,21 +306,21 @@ struct ImageFormat {
     int color;
     int clear_type;
     int flags;
-};
+} ImageFormat;
 
-struct UniformBufferBinding {
+typedef struct UniformBufferBinding {
     int buffer;
     int offset;
     int size;
-};
+} UniformBufferBinding;
 
-struct SamplerBinding {
+typedef struct SamplerBinding {
     int sampler;
     int target;
     int image;
-};
+} SamplerBinding;
 
-struct UniformBinding {
+typedef struct UniformBinding {
     int values;
     int location;
     int count;
@@ -327,9 +330,9 @@ struct UniformBinding {
         unsigned uint_values[1];
         float float_values[1];
     };
-};
+} UniformBinding;
 
-struct StencilSettings {
+typedef struct StencilSettings {
     int fail_op;
     int pass_op;
     int depth_fail_op;
@@ -337,25 +340,25 @@ struct StencilSettings {
     int compare_mask;
     int write_mask;
     int reference;
-};
+} StencilSettings;
 
-struct Viewport {
+typedef struct Viewport {
     int x;
     int y;
     int width;
     int height;
-};
+} Viewport;
 
-union ClearValue {
+typedef union ClearValue {
     float clear_floats[4];
     int clear_ints[4];
     unsigned int clear_uints[4];
-};
+} ClearValue;
 
-struct IntPair {
+typedef struct IntPair {
     int x;
     int y;
-};
+} IntPair;
 
 static int least_one(int value) {
     return value > 1 ? value : 1;
@@ -710,7 +713,7 @@ static void load_gl(GLMethods * gl, PyObject * loader) {
     Py_DECREF(missing);
 }
 
-struct Limits {
+typedef struct Limits {
     int max_uniform_buffer_bindings;
     int max_uniform_block_size;
     int max_combined_uniform_blocks;
@@ -718,9 +721,9 @@ struct Limits {
     int max_vertex_attribs;
     int max_draw_buffers;
     int max_samples;
-};
+} Limits;
 
-struct ModuleState {
+typedef struct ModuleState {
     PyObject * helper;
     PyObject * empty_tuple;
     PyObject * str_none;
@@ -733,46 +736,46 @@ struct ModuleState {
     PyTypeObject * DescriptorSet_type;
     PyTypeObject * GlobalSettings_type;
     PyTypeObject * GLObject_type;
-};
+} ModuleState;
 
-struct GCHeader {
+typedef struct GCHeader {
     PyObject_HEAD
-    GCHeader * gc_prev;
-    GCHeader * gc_next;
-};
+    struct GCHeader * gc_prev;
+    struct GCHeader * gc_next;
+} GCHeader;
 
-struct GLObject {
+typedef struct GLObject {
     PyObject_HEAD
     int uses;
     int obj;
     PyObject * extra;
-};
+} GLObject;
 
-struct DescriptorSetBuffers {
+typedef struct DescriptorSetBuffers {
     int buffer_count;
     unsigned buffers[MAX_UNIFORM_BUFFER_BINDINGS];
     GLsizeiptr buffer_offsets[MAX_UNIFORM_BUFFER_BINDINGS];
     GLsizeiptr buffer_sizes[MAX_UNIFORM_BUFFER_BINDINGS];
     PyObject * buffer_refs[MAX_UNIFORM_BUFFER_BINDINGS];
-};
+} DescriptorSetBuffers;
 
-struct DescriptorSetSamplers {
+typedef struct DescriptorSetSamplers {
     int sampler_count;
     unsigned samplers[MAX_SAMPLER_BINDINGS];
     unsigned textures[MAX_SAMPLER_BINDINGS];
     unsigned targets[MAX_SAMPLER_BINDINGS];
     PyObject * sampler_refs[MAX_SAMPLER_BINDINGS];
     PyObject * texture_refs[MAX_SAMPLER_BINDINGS];
-};
+} DescriptorSetSamplers;
 
-struct DescriptorSet {
+typedef struct DescriptorSet {
     PyObject_HEAD
     int uses;
     DescriptorSetBuffers uniform_buffers;
     DescriptorSetSamplers samplers;
-};
+} DescriptorSet;
 
-struct BlendState {
+typedef struct BlendState {
     int enable;
     int op_color;
     int op_alpha;
@@ -780,9 +783,9 @@ struct BlendState {
     int dst_color;
     int src_alpha;
     int dst_alpha;
-};
+} BlendState;
 
-struct GlobalSettings {
+typedef struct GlobalSettings {
     PyObject_HEAD
     int uses;
     int attachments;
@@ -795,9 +798,9 @@ struct GlobalSettings {
     StencilSettings stencil_back;
     int blend_enabled;
     BlendState blend;
-};
+} GlobalSettings;
 
-struct Context {
+typedef struct Context {
     PyObject_HEAD
     GCHeader * gc_prev;
     GCHeader * gc_next;
@@ -836,9 +839,9 @@ struct Context {
     int gles;
     Limits limits;
     GLMethods gl;
-};
+} Context;
 
-struct Buffer {
+typedef struct Buffer {
     PyObject_HEAD
     GCHeader * gc_prev;
     GCHeader * gc_next;
@@ -847,9 +850,9 @@ struct Buffer {
     int size;
     int dynamic;
     int mapped;
-};
+} Buffer;
 
-struct Image {
+typedef struct Image {
     PyObject_HEAD
     GCHeader * gc_prev;
     GCHeader * gc_next;
@@ -869,9 +872,9 @@ struct Image {
     int target;
     int renderbuffer;
     int max_level;
-};
+} Image;
 
-struct Pipeline {
+typedef struct Pipeline {
     PyObject_HEAD
     GCHeader * gc_prev;
     GCHeader * gc_next;
@@ -891,9 +894,9 @@ struct Pipeline {
     int index_type;
     int index_size;
     Viewport viewport;
-};
+} Pipeline;
 
-struct ImageFace {
+typedef struct ImageFace {
     PyObject_HEAD
     GCHeader * gc_prev;
     GCHeader * gc_next;
@@ -907,7 +910,7 @@ struct ImageFace {
     int level;
     int samples;
     int flags;
-};
+} ImageFace;
 
 static void bind_global_settings(Context * self, GlobalSettings * settings) {
     const GLMethods * const gl = &self->gl;
@@ -3277,24 +3280,36 @@ static PyObject * ImageFace_meth_blit(ImageFace * self, PyObject * vargs, PyObje
     Py_RETURN_NONE;
 }
 
-struct vec3 {
+typedef struct vec3 {
     double x, y, z;
-};
+} vec3;
 
-static vec3 operator - (const vec3 & a, const vec3 & b) {
-    return {a.x - b.x, a.y - b.y, a.z - b.z};
+static vec3 sub(const vec3 a, const vec3 b) {
+    vec3 res;
+    res.x = a.x - b.x;
+    res.y = a.y - b.y;
+    res.z = a.z - b.z;
+    return res;
 }
 
-static vec3 normalize(const vec3 & a) {
+static vec3 normalize(const vec3 a) {
     const double l = sqrt(a.x * a.x + a.y * a.y + a.z * a.z);
-    return {a.x / l, a.y / l, a.z / l};
+    vec3 res;
+    res.x = a.x / l;
+    res.y = a.y / l;
+    res.z = a.z / l;
+    return res;
 }
 
-static vec3 cross(const vec3 & a, const vec3 & b) {
-    return {a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x};
+static vec3 cross(const vec3 a, const vec3 b) {
+    vec3 res;
+    res.x = a.y * b.z - a.z * b.y;
+    res.y = a.z * b.x - a.x * b.z;
+    res.z = a.x * b.y - a.y * b.x;
+    return res;
 }
 
-static double dot(const vec3 & a, const vec3 & b) {
+static double dot(const vec3 a, const vec3 b) {
     return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 
@@ -3337,7 +3352,7 @@ static PyObject * meth_camera(PyObject * self, PyObject * args, PyObject * kwarg
         return NULL;
     }
 
-    const vec3 f = normalize(target - eye);
+    const vec3 f = normalize(sub(target, eye));
     const vec3 s = normalize(cross(f, up));
     const vec3 u = cross(s, f);
     const vec3 t = {-dot(s, eye), -dot(u, eye), -dot(f, eye)};
@@ -3654,6 +3669,6 @@ static PyModuleDef module_def = {
     PyModuleDef_HEAD_INIT, "zengl", NULL, sizeof(ModuleState), module_methods, module_slots, NULL, NULL, (freefunc)module_free,
 };
 
-extern "C" PyObject * PyInit_zengl() {
+extern PyObject * PyInit_zengl() {
     return PyModuleDef_Init(&module_def);
 }
