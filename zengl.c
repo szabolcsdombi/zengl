@@ -19,9 +19,6 @@ typedef signed long int GLintptr;
 typedef signed long int GLsizeiptr;
 #endif
 
-#define true 1
-#define false 0
-
 typedef unsigned int GLenum;
 typedef float GLfloat;
 typedef int GLint;
@@ -366,75 +363,75 @@ static int least_one(int value) {
 
 static const int num_vertex_formats = 30;
 static const VertexFormat vertex_formats[] = {
-    {"uint8x2", GL_UNSIGNED_BYTE, 2, false, true},
-    {"uint8x4", GL_UNSIGNED_BYTE, 4, false, true},
-    {"sint8x2", GL_BYTE, 2, false, true},
-    {"sint8x4", GL_BYTE, 4, false, true},
-    {"unorm8x2", GL_UNSIGNED_BYTE, 2, true, false},
-    {"unorm8x4", GL_UNSIGNED_BYTE, 4, true, false},
-    {"snorm8x2", GL_BYTE, 2, true, false},
-    {"snorm8x4", GL_BYTE, 4, true, false},
-    {"uint16x2", GL_UNSIGNED_SHORT, 2, false, true},
-    {"uint16x4", GL_UNSIGNED_SHORT, 4, false, true},
-    {"sint16x2", GL_SHORT, 2, false, true},
-    {"sint16x4", GL_SHORT, 4, false, true},
-    {"unorm16x2", GL_UNSIGNED_SHORT, 2, true, false},
-    {"unorm16x4", GL_UNSIGNED_SHORT, 4, true, false},
-    {"snorm16x2", GL_SHORT, 2, true, false},
-    {"snorm16x4", GL_SHORT, 4, true, false},
-    {"float16x2", GL_HALF_FLOAT, 2, false, false},
-    {"float16x4", GL_HALF_FLOAT, 4, false, false},
-    {"float32", GL_FLOAT, 1, false, false},
-    {"float32x2", GL_FLOAT, 2, false, false},
-    {"float32x3", GL_FLOAT, 3, false, false},
-    {"float32x4", GL_FLOAT, 4, false, false},
-    {"uint32", GL_UNSIGNED_INT, 1, false, true},
-    {"uint32x2", GL_UNSIGNED_INT, 2, false, true},
-    {"uint32x3", GL_UNSIGNED_INT, 3, false, true},
-    {"uint32x4", GL_UNSIGNED_INT, 4, false, true},
-    {"sint32", GL_INT, 1, false, true},
-    {"sint32x2", GL_INT, 2, false, true},
-    {"sint32x3", GL_INT, 3, false, true},
-    {"sint32x4", GL_INT, 4, false, true},
+    {"uint8x2", GL_UNSIGNED_BYTE, 2, 0, 1},
+    {"uint8x4", GL_UNSIGNED_BYTE, 4, 0, 1},
+    {"sint8x2", GL_BYTE, 2, 0, 1},
+    {"sint8x4", GL_BYTE, 4, 0, 1},
+    {"unorm8x2", GL_UNSIGNED_BYTE, 2, 1, 0},
+    {"unorm8x4", GL_UNSIGNED_BYTE, 4, 1, 0},
+    {"snorm8x2", GL_BYTE, 2, 1, 0},
+    {"snorm8x4", GL_BYTE, 4, 1, 0},
+    {"uint16x2", GL_UNSIGNED_SHORT, 2, 0, 1},
+    {"uint16x4", GL_UNSIGNED_SHORT, 4, 0, 1},
+    {"sint16x2", GL_SHORT, 2, 0, 1},
+    {"sint16x4", GL_SHORT, 4, 0, 1},
+    {"unorm16x2", GL_UNSIGNED_SHORT, 2, 1, 0},
+    {"unorm16x4", GL_UNSIGNED_SHORT, 4, 1, 0},
+    {"snorm16x2", GL_SHORT, 2, 1, 0},
+    {"snorm16x4", GL_SHORT, 4, 1, 0},
+    {"float16x2", GL_HALF_FLOAT, 2, 0, 0},
+    {"float16x4", GL_HALF_FLOAT, 4, 0, 0},
+    {"float32", GL_FLOAT, 1, 0, 0},
+    {"float32x2", GL_FLOAT, 2, 0, 0},
+    {"float32x3", GL_FLOAT, 3, 0, 0},
+    {"float32x4", GL_FLOAT, 4, 0, 0},
+    {"uint32", GL_UNSIGNED_INT, 1, 0, 1},
+    {"uint32x2", GL_UNSIGNED_INT, 2, 0, 1},
+    {"uint32x3", GL_UNSIGNED_INT, 3, 0, 1},
+    {"uint32x4", GL_UNSIGNED_INT, 4, 0, 1},
+    {"sint32", GL_INT, 1, 0, 1},
+    {"sint32x2", GL_INT, 2, 0, 1},
+    {"sint32x3", GL_INT, 3, 0, 1},
+    {"sint32x4", GL_INT, 4, 0, 1},
 };
 
 static const int num_image_formats = 35;
 static const ImageFormat image_formats[] = {
-    {"r8unorm", GL_R8, GL_RED, GL_UNSIGNED_BYTE, 1, 1, GL_COLOR, true, 'f', 1},
-    {"rg8unorm", GL_RG8, GL_RG, GL_UNSIGNED_BYTE, 2, 2, GL_COLOR, true, 'f', 1},
-    {"rgba8unorm", GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 4, 4, GL_COLOR, true, 'f', 1},
-    {"r8snorm", GL_R8_SNORM, GL_RED, GL_UNSIGNED_BYTE, 1, 1, GL_COLOR, true, 'f', 1},
-    {"rg8snorm", GL_RG8_SNORM, GL_RG, GL_UNSIGNED_BYTE, 2, 2, GL_COLOR, true, 'f', 1},
-    {"rgba8snorm", GL_RGBA8_SNORM, GL_RGBA, GL_UNSIGNED_BYTE, 4, 4, GL_COLOR, true, 'f', 1},
-    {"r8uint", GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, 1, 1, GL_COLOR, true, 'u', 1},
-    {"rg8uint", GL_RG8UI, GL_RG_INTEGER, GL_UNSIGNED_BYTE, 2, 2, GL_COLOR, true, 'u', 1},
-    {"rgba8uint", GL_RGBA8UI, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, 4, 4, GL_COLOR, true, 'u', 1},
-    {"r16uint", GL_R16UI, GL_RED_INTEGER, GL_UNSIGNED_SHORT, 1, 2, GL_COLOR, true, 'u', 1},
-    {"rg16uint", GL_RG16UI, GL_RG_INTEGER, GL_UNSIGNED_SHORT, 2, 4, GL_COLOR, true, 'u', 1},
-    {"rgba16uint", GL_RGBA16UI, GL_RGBA_INTEGER, GL_UNSIGNED_SHORT, 4, 8, GL_COLOR, true, 'u', 1},
-    {"r32uint", GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, 1, 4, GL_COLOR, true, 'u', 1},
-    {"rg32uint", GL_RG32UI, GL_RG_INTEGER, GL_UNSIGNED_INT, 2, 8, GL_COLOR, true, 'u', 1},
-    {"rgba32uint", GL_RGBA32UI, GL_RGBA_INTEGER, GL_UNSIGNED_INT, 4, 16, GL_COLOR, true, 'u', 1},
-    {"r8sint", GL_R8I, GL_RED_INTEGER, GL_BYTE, 1, 1, GL_COLOR, true, 'i', 1},
-    {"rg8sint", GL_RG8I, GL_RG_INTEGER, GL_BYTE, 2, 2, GL_COLOR, true, 'i', 1},
-    {"rgba8sint", GL_RGBA8I, GL_RGBA_INTEGER, GL_BYTE, 4, 4, GL_COLOR, true, 'i', 1},
-    {"r16sint", GL_R16I, GL_RED_INTEGER, GL_SHORT, 1, 2, GL_COLOR, true, 'i', 1},
-    {"rg16sint", GL_RG16I, GL_RG_INTEGER, GL_SHORT, 2, 4, GL_COLOR, true, 'i', 1},
-    {"rgba16sint", GL_RGBA16I, GL_RGBA_INTEGER, GL_SHORT, 4, 8, GL_COLOR, true, 'i', 1},
-    {"r32sint", GL_R32I, GL_RED_INTEGER, GL_INT, 1, 4, GL_COLOR, true, 'i', 1},
-    {"rg32sint", GL_RG32I, GL_RG_INTEGER, GL_INT, 2, 8, GL_COLOR, true, 'i', 1},
-    {"rgba32sint", GL_RGBA32I, GL_RGBA_INTEGER, GL_INT, 4, 16, GL_COLOR, true, 'i', 1},
-    {"r16float", GL_R16F, GL_RED, GL_FLOAT, 1, 2, GL_COLOR, true, 'f', 1},
-    {"rg16float", GL_RG16F, GL_RG, GL_FLOAT, 2, 4, GL_COLOR, true, 'f', 1},
-    {"rgba16float", GL_RGBA16F, GL_RGBA, GL_FLOAT, 4, 8, GL_COLOR, true, 'f', 1},
-    {"r32float", GL_R32F, GL_RED, GL_FLOAT, 1, 4, GL_COLOR, true, 'f', 1},
-    {"rg32float", GL_RG32F, GL_RG, GL_FLOAT, 2, 8, GL_COLOR, true, 'f', 1},
-    {"rgba32float", GL_RGBA32F, GL_RGBA, GL_FLOAT, 4, 16, GL_COLOR, true, 'f', 1},
-    {"rgba8unorm-srgb", GL_SRGB8_ALPHA8, GL_RGBA, GL_UNSIGNED_BYTE, 4, 4, GL_COLOR, true, 'f', 1},
-    {"depth16unorm", GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, 1, 2, GL_DEPTH, false, 'f', 2},
-    {"depth24plus", GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, 1, 4, GL_DEPTH, false, 'f', 2},
-    {"depth24plus-stencil8", GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 2, 4, GL_DEPTH_STENCIL, false, 'x', 6},
-    {"depth32float", GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, 1, 4, GL_DEPTH, false, 'f', 2},
+    {"r8unorm", GL_R8, GL_RED, GL_UNSIGNED_BYTE, 1, 1, GL_COLOR, 1, 'f', 1},
+    {"rg8unorm", GL_RG8, GL_RG, GL_UNSIGNED_BYTE, 2, 2, GL_COLOR, 1, 'f', 1},
+    {"rgba8unorm", GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 4, 4, GL_COLOR, 1, 'f', 1},
+    {"r8snorm", GL_R8_SNORM, GL_RED, GL_UNSIGNED_BYTE, 1, 1, GL_COLOR, 1, 'f', 1},
+    {"rg8snorm", GL_RG8_SNORM, GL_RG, GL_UNSIGNED_BYTE, 2, 2, GL_COLOR, 1, 'f', 1},
+    {"rgba8snorm", GL_RGBA8_SNORM, GL_RGBA, GL_UNSIGNED_BYTE, 4, 4, GL_COLOR, 1, 'f', 1},
+    {"r8uint", GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, 1, 1, GL_COLOR, 1, 'u', 1},
+    {"rg8uint", GL_RG8UI, GL_RG_INTEGER, GL_UNSIGNED_BYTE, 2, 2, GL_COLOR, 1, 'u', 1},
+    {"rgba8uint", GL_RGBA8UI, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, 4, 4, GL_COLOR, 1, 'u', 1},
+    {"r16uint", GL_R16UI, GL_RED_INTEGER, GL_UNSIGNED_SHORT, 1, 2, GL_COLOR, 1, 'u', 1},
+    {"rg16uint", GL_RG16UI, GL_RG_INTEGER, GL_UNSIGNED_SHORT, 2, 4, GL_COLOR, 1, 'u', 1},
+    {"rgba16uint", GL_RGBA16UI, GL_RGBA_INTEGER, GL_UNSIGNED_SHORT, 4, 8, GL_COLOR, 1, 'u', 1},
+    {"r32uint", GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, 1, 4, GL_COLOR, 1, 'u', 1},
+    {"rg32uint", GL_RG32UI, GL_RG_INTEGER, GL_UNSIGNED_INT, 2, 8, GL_COLOR, 1, 'u', 1},
+    {"rgba32uint", GL_RGBA32UI, GL_RGBA_INTEGER, GL_UNSIGNED_INT, 4, 16, GL_COLOR, 1, 'u', 1},
+    {"r8sint", GL_R8I, GL_RED_INTEGER, GL_BYTE, 1, 1, GL_COLOR, 1, 'i', 1},
+    {"rg8sint", GL_RG8I, GL_RG_INTEGER, GL_BYTE, 2, 2, GL_COLOR, 1, 'i', 1},
+    {"rgba8sint", GL_RGBA8I, GL_RGBA_INTEGER, GL_BYTE, 4, 4, GL_COLOR, 1, 'i', 1},
+    {"r16sint", GL_R16I, GL_RED_INTEGER, GL_SHORT, 1, 2, GL_COLOR, 1, 'i', 1},
+    {"rg16sint", GL_RG16I, GL_RG_INTEGER, GL_SHORT, 2, 4, GL_COLOR, 1, 'i', 1},
+    {"rgba16sint", GL_RGBA16I, GL_RGBA_INTEGER, GL_SHORT, 4, 8, GL_COLOR, 1, 'i', 1},
+    {"r32sint", GL_R32I, GL_RED_INTEGER, GL_INT, 1, 4, GL_COLOR, 1, 'i', 1},
+    {"rg32sint", GL_RG32I, GL_RG_INTEGER, GL_INT, 2, 8, GL_COLOR, 1, 'i', 1},
+    {"rgba32sint", GL_RGBA32I, GL_RGBA_INTEGER, GL_INT, 4, 16, GL_COLOR, 1, 'i', 1},
+    {"r16float", GL_R16F, GL_RED, GL_FLOAT, 1, 2, GL_COLOR, 1, 'f', 1},
+    {"rg16float", GL_RG16F, GL_RG, GL_FLOAT, 2, 4, GL_COLOR, 1, 'f', 1},
+    {"rgba16float", GL_RGBA16F, GL_RGBA, GL_FLOAT, 4, 8, GL_COLOR, 1, 'f', 1},
+    {"r32float", GL_R32F, GL_RED, GL_FLOAT, 1, 4, GL_COLOR, 1, 'f', 1},
+    {"rg32float", GL_RG32F, GL_RG, GL_FLOAT, 2, 8, GL_COLOR, 1, 'f', 1},
+    {"rgba32float", GL_RGBA32F, GL_RGBA, GL_FLOAT, 4, 16, GL_COLOR, 1, 'f', 1},
+    {"rgba8unorm-srgb", GL_SRGB8_ALPHA8, GL_RGBA, GL_UNSIGNED_BYTE, 4, 4, GL_COLOR, 1, 'f', 1},
+    {"depth16unorm", GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, 1, 2, GL_DEPTH, 0, 'f', 2},
+    {"depth24plus", GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, 1, 4, GL_DEPTH, 0, 'f', 2},
+    {"depth24plus-stencil8", GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 2, 4, GL_DEPTH_STENCIL, 0, 'x', 6},
+    {"depth32float", GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, 1, 4, GL_DEPTH, 0, 'f', 2},
 };
 
 static const VertexFormat * get_vertex_format(const char * format) {
@@ -1066,7 +1063,7 @@ static GLObject * build_framebuffer(Context * self, PyObject * attachments) {
 static void bind_uniforms(Context * self, char * data) {
     const GLMethods * const gl = &self->gl;
     int offset = 0;
-    while (true) {
+    while (1) {
         UniformBinding * header = (UniformBinding *)(data + offset);
         if (header->type == 0) {
             break;
@@ -1088,15 +1085,15 @@ static void bind_uniforms(Context * self, char * data) {
             case 0x8B50: gl->Uniform2fv(header->location, header->count, header->float_values); break;
             case 0x8B51: gl->Uniform3fv(header->location, header->count, header->float_values); break;
             case 0x8B52: gl->Uniform4fv(header->location, header->count, header->float_values); break;
-            case 0x8B5A: gl->UniformMatrix2fv(header->location, header->count, false, header->float_values); break;
-            case 0x8B65: gl->UniformMatrix2x3fv(header->location, header->count, false, header->float_values); break;
-            case 0x8B66: gl->UniformMatrix2x4fv(header->location, header->count, false, header->float_values); break;
-            case 0x8B67: gl->UniformMatrix3x2fv(header->location, header->count, false, header->float_values); break;
-            case 0x8B5B: gl->UniformMatrix3fv(header->location, header->count, false, header->float_values); break;
-            case 0x8B68: gl->UniformMatrix3x4fv(header->location, header->count, false, header->float_values); break;
-            case 0x8B69: gl->UniformMatrix4x2fv(header->location, header->count, false, header->float_values); break;
-            case 0x8B6A: gl->UniformMatrix4x3fv(header->location, header->count, false, header->float_values); break;
-            case 0x8B5C: gl->UniformMatrix4fv(header->location, header->count, false, header->float_values); break;
+            case 0x8B5A: gl->UniformMatrix2fv(header->location, header->count, 0, header->float_values); break;
+            case 0x8B65: gl->UniformMatrix2x3fv(header->location, header->count, 0, header->float_values); break;
+            case 0x8B66: gl->UniformMatrix2x4fv(header->location, header->count, 0, header->float_values); break;
+            case 0x8B67: gl->UniformMatrix3x2fv(header->location, header->count, 0, header->float_values); break;
+            case 0x8B5B: gl->UniformMatrix3fv(header->location, header->count, 0, header->float_values); break;
+            case 0x8B68: gl->UniformMatrix3x4fv(header->location, header->count, 0, header->float_values); break;
+            case 0x8B69: gl->UniformMatrix4x2fv(header->location, header->count, 0, header->float_values); break;
+            case 0x8B6A: gl->UniformMatrix4x3fv(header->location, header->count, 0, header->float_values); break;
+            case 0x8B5C: gl->UniformMatrix4fv(header->location, header->count, 0, header->float_values); break;
         }
         offset += header->values * 4 + 16;
     }
@@ -1329,7 +1326,7 @@ static GLObject * compile_shader(Context * self, PyObject * pair) {
     gl->ShaderSource(shader, 1, &src, NULL);
     gl->CompileShader(shader);
 
-    int shader_compiled = false;
+    int shader_compiled = 0;
     gl->GetShaderiv(shader, GL_COMPILE_STATUS, &shader_compiled);
 
     if (!shader_compiled) {
@@ -1437,7 +1434,7 @@ static GLObject * compile_program(Context * self, PyObject * includes, PyObject 
     gl->AttachShader(program, fragment_shader_obj);
     gl->LinkProgram(program);
 
-    int linked = false;
+    int linked = 0;
     gl->GetProgramiv(program, GL_LINK_STATUS, &linked);
 
     if (!linked) {
@@ -1506,9 +1503,9 @@ static Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwar
     res->info_dict = NULL;
     res->current_descriptor_set = NULL;
     res->current_global_settings = NULL;
-    res->is_mask_default = false;
-    res->is_stencil_default = false;
-    res->is_blend_default = false;
+    res->is_mask_default = 0;
+    res->is_stencil_default = 0;
+    res->is_blend_default = 0;
     res->current_viewport.x = 0;
     res->current_viewport.y = 0;
     res->current_viewport.width = 0;
@@ -1519,11 +1516,11 @@ static Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwar
     res->current_depth_mask = 0;
     res->current_stencil_mask = 0;
     res->frame_time_query = 0;
-    res->frame_time_query_running = false;
+    res->frame_time_query_running = 0;
     res->frame_time = 0;
     res->default_texture_unit = 0;
     res->mapped_buffers = 0;
-    res->gles = false;
+    res->gles = 0;
 
     load_gl(&res->gl, loader);
 
@@ -1596,7 +1593,7 @@ static Buffer * Context_meth_buffer(Context * self, PyObject * vargs, PyObject *
 
     PyObject * data = Py_None;
     PyObject * size_arg = Py_None;
-    int dynamic = true;
+    int dynamic = 1;
     int external = 0;
 
     if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "|O$Opi", keywords, &data, &size_arg, &dynamic, &external)) {
@@ -1650,7 +1647,7 @@ static Buffer * Context_meth_buffer(Context * self, PyObject * vargs, PyObject *
     res->buffer = buffer;
     res->size = size;
     res->dynamic = dynamic;
-    res->mapped = false;
+    res->mapped = 0;
 
     if (data != Py_None) {
         Py_XDECREF(PyObject_CallMethod((PyObject *)res, "write", "N", data));
@@ -1673,7 +1670,7 @@ static Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * k
     int samples = 1;
     int array = 0;
     PyObject * texture = Py_None;
-    int cubemap = false;
+    int cubemap = 0;
     int levels = 1;
     int external = 0;
 
@@ -1876,7 +1873,7 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObje
     PyObject * framebuffer_attachments = NULL;
     PyObject * vertex_buffers = self->module_state->empty_tuple;
     PyObject * index_buffer = Py_None;
-    int short_index = false;
+    int short_index = 0;
     PyObject * cull_face = self->module_state->str_none;
     int topology = GL_TRIANGLES;
     int vertex_count = 0;
@@ -1961,7 +1958,7 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObje
         int offset = 0;
         int idx = 0;
 
-        while (true) {
+        while (1) {
             UniformBinding * header = (UniformBinding *)(uniform_data + offset);
             if (header->type == 0) {
                 break;
@@ -2090,9 +2087,9 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObje
 static PyObject * Context_meth_new_frame(Context * self, PyObject * args, PyObject * kwargs) {
     static char * keywords[] = {"reset", "clear", "frame_time", NULL};
 
-    int reset = true;
-    int clear = true;
-    int frame_time = false;
+    int reset = 1;
+    int clear = 1;
+    int frame_time = 0;
 
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|ppp", keywords, &reset, &clear, &frame_time)) {
         return NULL;
@@ -2111,9 +2108,9 @@ static PyObject * Context_meth_new_frame(Context * self, PyObject * args, PyObje
     if (reset) {
         self->current_descriptor_set = NULL;
         self->current_global_settings = NULL;
-        self->is_stencil_default = false;
-        self->is_mask_default = false;
-        self->is_blend_default = false;
+        self->is_stencil_default = 0;
+        self->is_mask_default = 0;
+        self->is_blend_default = 0;
         self->current_viewport.x = -1;
         self->current_viewport.y = -1;
         self->current_viewport.width = -1;
@@ -2135,7 +2132,7 @@ static PyObject * Context_meth_new_frame(Context * self, PyObject * args, PyObje
             gl->GenQueries(1, (unsigned *)&self->frame_time_query);
         }
         gl->BeginQuery(GL_TIME_ELAPSED, self->frame_time_query);
-        self->frame_time_query_running = true;
+        self->frame_time_query_running = 1;
         self->frame_time = 0;
     }
 
@@ -2151,9 +2148,9 @@ static PyObject * Context_meth_new_frame(Context * self, PyObject * args, PyObje
 static PyObject * Context_meth_end_frame(Context * self, PyObject * args, PyObject * kwargs) {
     static char * keywords[] = {"clean", "flush", "sync", NULL};
 
-    int clean = true;
-    int flush = true;
-    int sync = false;
+    int clean = 1;
+    int flush = 1;
+    int sync = 0;
 
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|ppp", keywords, &clean, &flush, &sync)) {
         return NULL;
@@ -2187,7 +2184,7 @@ static PyObject * Context_meth_end_frame(Context * self, PyObject * args, PyObje
     if (self->frame_time_query_running) {
         gl->EndQuery(GL_TIME_ELAPSED);
         gl->GetQueryObjectuiv(self->frame_time_query, GL_QUERY_RESULT, (unsigned *)&self->frame_time);
-        self->frame_time_query_running = false;
+        self->frame_time_query_running = 0;
     } else {
         self->frame_time = 0;
     }
@@ -2425,7 +2422,7 @@ static PyObject * Buffer_meth_map(Buffer * self, PyObject * vargs, PyObject * kw
 
     PyObject * size_arg = Py_None;
     PyObject * offset_arg = Py_None;
-    int discard = false;
+    int discard = 0;
 
     if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "|OOp", keywords, &size_arg, &offset_arg, &discard)) {
         return NULL;
@@ -2474,7 +2471,7 @@ static PyObject * Buffer_meth_map(Buffer * self, PyObject * vargs, PyObject * kw
 
     const GLMethods * const gl = &self->ctx->gl;
 
-    self->mapped = true;
+    self->mapped = 1;
     self->ctx->mapped_buffers += 1;
     const int access = discard ? GL_MAP_READ_BIT | GL_MAP_WRITE_BIT : GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_WRITE_BIT;
     gl->BindBuffer(GL_ARRAY_BUFFER, self->buffer);
@@ -2485,7 +2482,7 @@ static PyObject * Buffer_meth_map(Buffer * self, PyObject * vargs, PyObject * kw
 static PyObject * Buffer_meth_unmap(Buffer * self, PyObject * args) {
     const GLMethods * const gl = &self->ctx->gl;
     if (self->mapped) {
-        self->mapped = false;
+        self->mapped = 0;
         self->ctx->mapped_buffers -= 1;
         gl->BindBuffer(GL_ARRAY_BUFFER, self->buffer);
         gl->UnmapBuffer(GL_ARRAY_BUFFER);
@@ -2790,7 +2787,7 @@ static PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwa
     PyObject * target_arg = Py_None;
     PyObject * target_viewport_arg = Py_None;
     PyObject * source_viewport_arg = Py_None;
-    int filter = true;
+    int filter = 1;
     PyObject * srgb_arg = Py_None;
 
     int args_ok = PyArg_ParseTupleAndKeywords(
@@ -3168,7 +3165,7 @@ static PyObject * ImageFace_meth_blit(ImageFace * self, PyObject * vargs, PyObje
     PyObject * target_arg = Py_None;
     PyObject * target_viewport_arg = Py_None;
     PyObject * source_viewport_arg = Py_None;
-    int filter = true;
+    int filter = 1;
     PyObject * srgb_arg = Py_None;
 
     int args_ok = PyArg_ParseTupleAndKeywords(
@@ -3324,7 +3321,7 @@ static PyObject * meth_camera(PyObject * self, PyObject * args, PyObject * kwarg
     double znear = 0.1;
     double zfar = 1000.0;
     double size = 1.0;
-    int clip = false;
+    int clip = 0;
 
     int args_ok = PyArg_ParseTupleAndKeywords(
         args,
