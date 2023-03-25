@@ -2227,10 +2227,12 @@ static void release_descriptor_set(Context * self, DescriptorSet * set) {
     if (!set->uses) {
         for (int i = 0; i < set->samplers.sampler_count; ++i) {
             GLObject * sampler = (GLObject *)set->samplers.sampler_refs[i];
-            sampler->uses -= 1;
-            if (!sampler->uses) {
-                remove_dict_value(self->sampler_cache, (PyObject *)sampler);
-                gl->DeleteSamplers(1, (unsigned int *)&sampler->obj);
+            if (sampler) {
+                sampler->uses -= 1;
+                if (!sampler->uses) {
+                    remove_dict_value(self->sampler_cache, (PyObject *)sampler);
+                    gl->DeleteSamplers(1, (unsigned int *)&sampler->obj);
+                }
             }
         }
         for (int i = 0; i < set->uniform_buffers.buffer_count; ++i) {
