@@ -6,7 +6,7 @@ RUN git clone https://github.com/emscripten-core/emsdk.git &&\
 
 RUN wget -q https://f003.backblazeb2.com/file/zengl-data/examples/web-example-assets.tar.gz
 
-COPY _zengl.py zengl.cpp setup.py pyproject.toml MANIFEST.in README.md LICENSE /zengl/
+COPY _zengl.py zengl.c setup.py pyproject.toml MANIFEST.in README.md LICENSE /zengl/
 RUN echo 'source /emsdk/emsdk_env.sh && ZENGL_NO_STUBS=yes pyodide build /zengl/ --exports PyInit_zengl' | bash
 
 COPY examples/webgl/examples /examples/
