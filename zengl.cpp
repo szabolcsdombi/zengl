@@ -1000,7 +1000,8 @@ static void bind_descriptor_set(Context * self, DescriptorSet * set) {
 }
 
 static GLObject * build_framebuffer(Context * self, PyObject * attachments) {
-    if (GLObject * cache = (GLObject *)PyDict_GetItem(self->framebuffer_cache, attachments)) {
+    GLObject * cache = (GLObject *)PyDict_GetItem(self->framebuffer_cache, attachments);
+    if (cache) {
         cache->uses += 1;
         Py_INCREF(cache);
         return cache;
@@ -1099,7 +1100,8 @@ static void bind_uniforms(Context * self, char * data) {
 }
 
 static GLObject * build_vertex_array(Context * self, PyObject * bindings) {
-    if (GLObject * cache = (GLObject *)PyDict_GetItem(self->vertex_array_cache, bindings)) {
+    GLObject * cache = (GLObject *)PyDict_GetItem(self->vertex_array_cache, bindings);
+    if (cache) {
         cache->uses += 1;
         Py_INCREF(cache);
         return cache;
@@ -1150,7 +1152,8 @@ static GLObject * build_vertex_array(Context * self, PyObject * bindings) {
 }
 
 static GLObject * build_sampler(Context * self, PyObject * params) {
-    if (GLObject * cache = (GLObject *)PyDict_GetItem(self->sampler_cache, params)) {
+    GLObject * cache = (GLObject *)PyDict_GetItem(self->sampler_cache, params);
+    if (cache) {
         cache->uses += 1;
         Py_INCREF(cache);
         return cache;
@@ -1237,7 +1240,8 @@ static DescriptorSetSamplers build_descriptor_set_samplers(Context * self, PyObj
 }
 
 static DescriptorSet * build_descriptor_set(Context * self, PyObject * bindings) {
-    if (DescriptorSet * cache = (DescriptorSet *)PyDict_GetItem(self->descriptor_set_cache, bindings)) {
+    DescriptorSet * cache = (DescriptorSet *)PyDict_GetItem(self->descriptor_set_cache, bindings);
+    if (cache) {
         cache->uses += 1;
         Py_INCREF(cache);
         return cache;
@@ -1253,7 +1257,8 @@ static DescriptorSet * build_descriptor_set(Context * self, PyObject * bindings)
 }
 
 static GlobalSettings * build_global_settings(Context * self, PyObject * settings) {
-    if (GlobalSettings * cache = (GlobalSettings *)PyDict_GetItem(self->global_settings_cache, settings)) {
+    GlobalSettings * cache = (GlobalSettings *)PyDict_GetItem(self->global_settings_cache, settings);
+    if (cache) {
         cache->uses += 1;
         Py_INCREF(cache);
         return cache;
@@ -1309,7 +1314,8 @@ static GlobalSettings * build_global_settings(Context * self, PyObject * setting
 }
 
 static GLObject * compile_shader(Context * self, PyObject * pair) {
-    if (GLObject * cache = (GLObject *)PyDict_GetItem(self->shader_cache, pair)) {
+    GLObject * cache = (GLObject *)PyDict_GetItem(self->shader_cache, pair);
+    if (cache) {
         cache->uses += 1;
         Py_INCREF(cache);
         return cache;
@@ -1401,7 +1407,8 @@ static GLObject * compile_program(Context * self, PyObject * includes, PyObject 
         return NULL;
     }
 
-    if (GLObject * cache = (GLObject *)PyDict_GetItem(self->program_cache, tup)) {
+    GLObject * cache = (GLObject *)PyDict_GetItem(self->program_cache, tup);
+    if (cache) {
         cache->uses += 1;
         Py_INCREF(cache);
         return cache;
