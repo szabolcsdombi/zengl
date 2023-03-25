@@ -3653,19 +3653,18 @@ static PyMethodDef module_methods[] = {
 
 static void module_free(PyObject * self) {
     ModuleState * state = (ModuleState *)PyModule_GetState(self);
-    if (!state) {
-        return;
+    if (state) {
+        Py_DECREF(state->empty_tuple);
+        Py_DECREF(state->str_none);
+        Py_DECREF(state->Context_type);
+        Py_DECREF(state->Buffer_type);
+        Py_DECREF(state->Image_type);
+        Py_DECREF(state->Pipeline_type);
+        Py_DECREF(state->ImageFace_type);
+        Py_DECREF(state->DescriptorSet_type);
+        Py_DECREF(state->GlobalSettings_type);
+        Py_DECREF(state->GLObject_type);
     }
-    Py_DECREF(state->empty_tuple);
-    Py_DECREF(state->str_none);
-    Py_DECREF(state->Context_type);
-    Py_DECREF(state->Buffer_type);
-    Py_DECREF(state->Image_type);
-    Py_DECREF(state->Pipeline_type);
-    Py_DECREF(state->ImageFace_type);
-    Py_DECREF(state->DescriptorSet_type);
-    Py_DECREF(state->GlobalSettings_type);
-    Py_DECREF(state->GLObject_type);
 }
 
 static PyModuleDef module_def = {
