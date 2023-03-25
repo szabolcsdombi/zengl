@@ -1052,6 +1052,7 @@ static GLObject * build_framebuffer(Context * self, PyObject * attachments) {
     GLObject * res = PyObject_New(GLObject, self->module_state->GLObject_type);
     res->obj = framebuffer;
     res->uses = 1;
+    res->extra = NULL;
 
     PyDict_SetItem(self->framebuffer_cache, attachments, (PyObject *)res);
     return res;
@@ -1143,6 +1144,7 @@ static GLObject * build_vertex_array(Context * self, PyObject * bindings) {
     GLObject * res = PyObject_New(GLObject, self->module_state->GLObject_type);
     res->obj = vertex_array;
     res->uses = 1;
+    res->extra = NULL;
 
     PyDict_SetItem(self->vertex_array_cache, bindings, (PyObject *)res);
     return res;
@@ -3459,6 +3461,9 @@ static void GlobalSettings_dealloc(GlobalSettings * self) {
 }
 
 static void GLObject_dealloc(GLObject * self) {
+    if (self->extra) {
+        Py_DECREF(self->extra);
+    }
     Py_TYPE(self)->tp_free(self);
 }
 
