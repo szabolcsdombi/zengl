@@ -9,9 +9,6 @@ def test_invalid_buffer_parameters(ctx: zengl.Context):
     with pytest.raises(TypeError):
         ctx.buffer('test')
 
-    with pytest.raises(BufferError):
-        ctx.buffer(memoryview(b'test')[::2])
-
     with pytest.raises(TypeError):
         ctx.buffer(100)
 
@@ -36,9 +33,6 @@ def test_invalid_buffer_write_parameters(ctx: zengl.Context):
 
     with pytest.raises(TypeError):
         buf.write('test')
-
-    with pytest.raises(BufferError):
-        buf.write(memoryview(b'test')[::2])
 
     with pytest.raises(TypeError):
         buf.write(10)

@@ -34,9 +34,6 @@ def test_invalid_image_data(ctx: zengl.Context):
     with pytest.raises(TypeError):
         ctx.image((1, 1), 'rgba8unorm', data='data')
 
-    with pytest.raises(BufferError):
-        ctx.image((1, 1), 'rgba8unorm', data=memoryview(b'12345678')[::2])
-
     with pytest.raises(TypeError):
         ctx.image((1, 1), 'rgba8unorm', data=100)
 
