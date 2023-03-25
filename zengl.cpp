@@ -2935,7 +2935,8 @@ static ImageFace * Image_meth_face(Image * self, PyObject * vargs, PyObject * kw
     }
 
     PyObject * key = Py_BuildValue("(ii)", layer, level);
-    if (ImageFace * cache = (ImageFace *)PyDict_GetItem(self->faces, key)) {
+    ImageFace * cache = (ImageFace *)PyDict_GetItem(self->faces, key);
+    if (cache) {
         Py_DECREF(key);
         Py_INCREF(cache);
         return cache;
