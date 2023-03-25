@@ -2300,7 +2300,7 @@ static PyObject * Context_meth_release(Context * self, PyObject * arg) {
         buffer->gc_prev->gc_next = buffer->gc_next;
         buffer->gc_next->gc_prev = buffer->gc_prev;
         gl->DeleteBuffers(1, (unsigned int *)&buffer->buffer);
-        Py_DECREF(arg);
+        Py_DECREF(buffer);
     } else if (Py_TYPE(arg) == self->module_state->Image_type) {
         Image * image = (Image *)arg;
         image->gc_prev->gc_next = image->gc_next;
@@ -2323,7 +2323,7 @@ static PyObject * Context_meth_release(Context * self, PyObject * arg) {
         } else {
             gl->DeleteTextures(1, (unsigned int *)&image->image);
         }
-        Py_DECREF(arg);
+        Py_DECREF(image);
     } else if (Py_TYPE(arg) == self->module_state->Pipeline_type) {
         Pipeline * pipeline = (Pipeline *)arg;
         pipeline->gc_prev->gc_next = pipeline->gc_next;
@@ -2975,7 +2975,6 @@ static ImageFace * Image_meth_face(Image * self, PyObject * vargs, PyObject * kw
     res->samples = self->samples;
     res->flags = self->fmt->flags;
 
-    res->framebuffer = NULL;
     if (self->fmt->color) {
         PyObject * attachments = Py_BuildValue("((ii)(O)O)", width, height, res, Py_None);
         res->framebuffer = build_framebuffer(self->ctx, attachments);
@@ -3446,6 +3445,8 @@ static void Pipeline_dealloc(Pipeline * self) {
 }
 
 static void ImageFace_dealloc(ImageFace * self) {
+    Py_DECREF(self->framebuffer);
+    Py_DECREF(self->size);
     Py_TYPE(self)->tp_free(self);
 }
 
