@@ -1279,24 +1279,20 @@ static GlobalSettings * build_global_settings(Context * self, PyObject * setting
     }
     res->stencil_enabled = PyObject_IsTrue(seq[it++]);
     if (res->stencil_enabled) {
-        res->stencil_front = {
-            PyLong_AsLong(seq[it++]),
-            PyLong_AsLong(seq[it++]),
-            PyLong_AsLong(seq[it++]),
-            PyLong_AsLong(seq[it++]),
-            PyLong_AsLong(seq[it++]),
-            PyLong_AsLong(seq[it++]),
-            PyLong_AsLong(seq[it++]),
-        };
-        res->stencil_back = {
-            PyLong_AsLong(seq[it++]),
-            PyLong_AsLong(seq[it++]),
-            PyLong_AsLong(seq[it++]),
-            PyLong_AsLong(seq[it++]),
-            PyLong_AsLong(seq[it++]),
-            PyLong_AsLong(seq[it++]),
-            PyLong_AsLong(seq[it++]),
-        };
+        res->stencil_front.fail_op = PyLong_AsLong(seq[it++]);
+        res->stencil_front.pass_op = PyLong_AsLong(seq[it++]);
+        res->stencil_front.depth_fail_op = PyLong_AsLong(seq[it++]);
+        res->stencil_front.compare_op = PyLong_AsLong(seq[it++]);
+        res->stencil_front.compare_mask = PyLong_AsLong(seq[it++]);
+        res->stencil_front.write_mask = PyLong_AsLong(seq[it++]);
+        res->stencil_front.reference = PyLong_AsLong(seq[it++]);
+        res->stencil_back.fail_op = PyLong_AsLong(seq[it++]);
+        res->stencil_back.pass_op = PyLong_AsLong(seq[it++]);
+        res->stencil_back.depth_fail_op = PyLong_AsLong(seq[it++]);
+        res->stencil_back.compare_op = PyLong_AsLong(seq[it++]);
+        res->stencil_back.compare_mask = PyLong_AsLong(seq[it++]);
+        res->stencil_back.write_mask = PyLong_AsLong(seq[it++]);
+        res->stencil_back.reference = PyLong_AsLong(seq[it++]);
     }
     res->blend_enabled = PyLong_AsLong(seq[it++]);
     if (res->blend_enabled) {
@@ -2115,7 +2111,10 @@ static PyObject * Context_meth_new_frame(Context * self, PyObject * args, PyObje
         self->is_stencil_default = false;
         self->is_mask_default = false;
         self->is_blend_default = false;
-        self->current_viewport = {-1, -1, -1, -1};
+        self->current_viewport.x = -1;
+        self->current_viewport.y = -1;
+        self->current_viewport.width = -1;
+        self->current_viewport.height = -1;
         self->current_framebuffer = -1;
         self->current_program = -1;
         self->current_vertex_array = -1;
