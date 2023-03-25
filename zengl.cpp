@@ -508,6 +508,27 @@ static void * new_ref(void * obj) {
     return obj;
 }
 
+PyObject * contiguous(PyObject * data) {
+    PyObject * mem = PyMemoryView_FromObject(data);
+    if (!mem) {
+        return NULL;
+    }
+
+    if (PyBuffer_IsContiguous(PyMemoryView_GET_BUFFER(mem), 'C')) {
+        return mem;
+    }
+
+    PyObject * bytes = PyObject_Bytes(mem);
+    Py_XDECREF(mem);
+    if (!bytes) {
+        return NULL;
+    }
+
+    PyObject * res = PyMemoryView_FromObject(bytes);
+    Py_XDECREF(bytes);
+    return res;
+}
+
 static int is_int_pair(PyObject * obj) {
     return (
         PySequence_Check(obj) && PySequence_Size(obj) == 2 &&
@@ -2349,10 +2370,10 @@ static int Context_set_screen(Context * self, PyObject * value, void * closure) 
 static PyObject * Buffer_meth_write(Buffer * self, PyObject * vargs, PyObject * kwargs) {
     static char * keywords[] = {"data", "offset", NULL};
 
-    Py_buffer view;
+    PyObject * data;
     int offset = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "y*|i", keywords, &view, &offset)) {
+    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "O|i", keywords, &data, &offset)) {
         return NULL;
     }
 
@@ -2360,23 +2381,32 @@ static PyObject * Buffer_meth_write(Buffer * self, PyObject * vargs, PyObject * 
         PyErr_Format(PyExc_RuntimeError, "already mapped");
         return NULL;
     }
+
     if (offset < 0 || offset > self->size) {
         PyErr_Format(PyExc_ValueError, "invalid offset");
         return NULL;
     }
-    if ((int)view.len + offset > self->size) {
+
+    PyObject * mem = contiguous(data);
+    if (!mem) {
+        return NULL;
+    }
+
+    Py_buffer * view = PyMemoryView_GET_BUFFER(mem);
+
+    if ((int)view->len + offset > self->size) {
         PyErr_Format(PyExc_ValueError, "invalid size");
         return NULL;
     }
 
     const GLMethods * const gl = &self->ctx->gl;
 
-    if (view.len) {
+    if (view->len) {
         gl->BindBuffer(GL_ARRAY_BUFFER, self->buffer);
-        gl->BufferSubData(GL_ARRAY_BUFFER, offset, (int)view.len, view.buf);
+        gl->BufferSubData(GL_ARRAY_BUFFER, offset, (int)view->len, view->buf);
     }
 
-    PyBuffer_Release(&view);
+    Py_DECREF(mem);
     Py_RETURN_NONE;
 }
 
@@ -2489,13 +2519,13 @@ static PyObject * Image_meth_clear(Image * self, PyObject * args) {
 static PyObject * Image_meth_write(Image * self, PyObject * vargs, PyObject * kwargs) {
     static char * keywords[] = {"data", "size", "offset", "layer", "level", NULL};
 
-    Py_buffer view;
+    PyObject * data;
     PyObject * size_arg = Py_None;
     PyObject * offset_arg = Py_None;
     PyObject * layer_arg = Py_None;
     int level = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "y*|OOOi", keywords, &view, &size_arg, &offset_arg, &layer_arg, &level)) {
+    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "O|OOOi", keywords, &data, &size_arg, &offset_arg, &layer_arg, &level)) {
         return NULL;
     }
 
@@ -2583,8 +2613,15 @@ static PyObject * Image_meth_write(Image * self, PyObject * vargs, PyObject * kw
         expected_size *= (self->array ? self->array : 1) * (self->cubemap ? 6 : 1);
     }
 
-    if ((int)view.len != expected_size) {
-        PyErr_Format(PyExc_ValueError, "invalid data size, expected %d, got %d", expected_size, (int)view.len);
+    PyObject * mem = contiguous(data);
+    if (!mem) {
+        return NULL;
+    }
+
+    Py_buffer * view = PyMemoryView_GET_BUFFER(mem);
+
+    if ((int)view->len != expected_size) {
+        PyErr_Format(PyExc_ValueError, "invalid data size, expected %d, got %d", expected_size, (int)view->len);
         return NULL;
     }
 
@@ -2597,24 +2634,24 @@ static PyObject * Image_meth_write(Image * self, PyObject * vargs, PyObject * kw
         int stride = padded_row * size.y;
         if (layer_arg != Py_None) {
             int face = GL_TEXTURE_CUBE_MAP_POSITIVE_X + layer;
-            gl->TexSubImage2D(face, level, offset.x, offset.y, size.x, size.y, self->fmt->format, self->fmt->type, view.buf);
+            gl->TexSubImage2D(face, level, offset.x, offset.y, size.x, size.y, self->fmt->format, self->fmt->type, view->buf);
         } else {
             for (int i = 0; i < 6; ++i) {
                 int face = GL_TEXTURE_CUBE_MAP_POSITIVE_X + i;
-                gl->TexSubImage2D(face, level, offset.x, offset.y, size.x, size.y, self->fmt->format, self->fmt->type, (char *)view.buf + stride * i);
+                gl->TexSubImage2D(face, level, offset.x, offset.y, size.x, size.y, self->fmt->format, self->fmt->type, (char *)view->buf + stride * i);
             }
         }
     } else if (self->array) {
         if (layer_arg != Py_None) {
-            gl->TexSubImage3D(self->target, level, offset.x, offset.y, layer, size.x, size.y, 1, self->fmt->format, self->fmt->type, view.buf);
+            gl->TexSubImage3D(self->target, level, offset.x, offset.y, layer, size.x, size.y, 1, self->fmt->format, self->fmt->type, view->buf);
         } else {
-            gl->TexSubImage3D(self->target, level, offset.x, offset.y, 0, size.x, size.y, self->array, self->fmt->format, self->fmt->type, view.buf);
+            gl->TexSubImage3D(self->target, level, offset.x, offset.y, 0, size.x, size.y, self->array, self->fmt->format, self->fmt->type, view->buf);
         }
     } else {
-        gl->TexSubImage2D(self->target, level, offset.x, offset.y, size.x, size.y, self->fmt->format, self->fmt->type, view.buf);
+        gl->TexSubImage2D(self->target, level, offset.x, offset.y, size.x, size.y, self->fmt->format, self->fmt->type, view->buf);
     }
 
-    PyBuffer_Release(&view);
+    Py_DECREF(mem);
     Py_RETURN_NONE;
 }
 
