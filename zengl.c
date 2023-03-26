@@ -2725,6 +2725,8 @@ static PyObject * Image_meth_mipmaps(Image * self, PyObject * vargs, PyObject * 
     gl->TexParameteri(self->target, GL_TEXTURE_BASE_LEVEL, base);
     gl->TexParameteri(self->target, GL_TEXTURE_MAX_LEVEL, base + levels);
     gl->GenerateMipmap(self->target);
+    gl->TexParameteri(self->target, GL_TEXTURE_BASE_LEVEL, 0);
+    gl->TexParameteri(self->target, GL_TEXTURE_MAX_LEVEL, self->max_level);
     Py_RETURN_NONE;
 }
 
