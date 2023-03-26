@@ -1780,8 +1780,6 @@ static Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * k
         gl->TexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         gl->TexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         if (cubemap) {
-            int padded_row = (width * fmt->pixel_size + 3) & ~3;
-            int stride = padded_row * height;
             for (int i = 0; i < 6; ++i) {
                 int face = GL_TEXTURE_CUBE_MAP_POSITIVE_X + i;
                 gl->TexImage2D(face, 0, fmt->internal_format, width, height, 0, fmt->format, fmt->type, NULL);
