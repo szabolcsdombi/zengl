@@ -48,15 +48,15 @@ def test(ctx: zengl.Context):
     pipeline_3 = make_pipeline(ctx, [image, depth], (0, 32, 32, 32), (0.0, 1.0, 0.0))
     pipeline_4 = make_pipeline(ctx, [image], (32, 0, 32, 32), (0.0, 0.0, 1.0))
 
-    inspect_1 = zengl.inspect(pipeline_1)
-    inspect_2 = zengl.inspect(pipeline_2)
-    inspect_3 = zengl.inspect(pipeline_3)
-    inspect_4 = zengl.inspect(pipeline_4)
+    info_1 = zengl.inspect(pipeline_1)
+    info_2 = zengl.inspect(pipeline_2)
+    info_3 = zengl.inspect(pipeline_3)
+    info_4 = zengl.inspect(pipeline_4)
 
-    assert inspect_1['vertex_array'] == inspect_2['vertex_array'] == inspect_3['vertex_array'] == inspect_4['vertex_array']
+    assert info_1['vertex_array'] == info_2['vertex_array'] == info_3['vertex_array'] == info_4['vertex_array']
 
-    assert inspect_1['framebuffer'] == inspect_2['framebuffer'] == inspect_3['framebuffer']
-    assert inspect_1['framebuffer'] != inspect_4['framebuffer']
+    assert info_1['framebuffer'] == info_2['framebuffer'] == info_3['framebuffer']
+    assert info_1['framebuffer'] != info_4['framebuffer']
 
-    assert inspect_1['program'] == inspect_2['program'] == inspect_4['program']
-    assert inspect_1['program'] != inspect_3['program']
+    assert info_1['program'] == info_2['program'] == info_4['program']
+    assert info_1['program'] != info_3['program']
