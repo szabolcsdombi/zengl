@@ -2953,7 +2953,13 @@ static ImageFace * Image_meth_face(Image * self, PyObject * vargs, PyObject * kw
         return NULL;
     }
 
-    if (layer < 0 || layer >= (self->array ? self->array : 1) * (self->cubemap ? 6 : 1) || level > self->max_level) {
+    if (layer < 0 || layer >= (self->array ? self->array : 1) * (self->cubemap ? 6 : 1)) {
+        PyErr_Format(PyExc_ValueError, "invalid layer");
+        return NULL;
+    }
+
+    if (level > self->max_level) {
+        PyErr_Format(PyExc_ValueError, "invalid level");
         return NULL;
     }
 
