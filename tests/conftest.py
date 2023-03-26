@@ -15,3 +15,5 @@ def ctx():
         ctx = zengl.context(zengl.loader(headless=True))
     yield ctx
     ctx.release('all')
+    ctx.release('shader_cache')
+    assert len(ctx.gc()) == 0
