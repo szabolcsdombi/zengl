@@ -2881,6 +2881,7 @@ static PyObject * Image_meth_mipmaps(Image * self, PyObject * args) {
     gl->ActiveTexture(self->ctx->default_texture_unit);
     gl->BindTexture(self->target, self->image);
     gl->GenerateMipmap(self->target);
+    self->max_level = count_mipmaps(self->width, self->height);
     Py_RETURN_NONE;
 }
 
