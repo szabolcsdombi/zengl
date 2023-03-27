@@ -38,7 +38,6 @@ triangle = ctx.pipeline(
         }
     ''',
     stencil={
-        'test': True,
         'front': {
             'fail_op': 'replace',
             'pass_op': 'replace',
