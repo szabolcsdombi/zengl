@@ -1602,11 +1602,6 @@ static PyObject * blit_image_face(ImageFace * src, PyObject * dst, PyObject * sr
 }
 
 static PyObject * read_image_face(ImageFace * src, PyObject * size_arg, PyObject * offset_arg) {
-    if (src->image->samples > 1) {
-        PyErr_Format(PyExc_TypeError, "cannot read multisampled images");
-        return NULL;
-    }
-
     if (size_arg == Py_None && offset_arg != Py_None) {
         PyErr_Format(PyExc_ValueError, "the size is required when the offset is not None");
         return NULL;
@@ -1632,6 +1627,31 @@ static PyObject * read_image_face(ImageFace * src, PyObject * size_arg, PyObject
     if (offset.x < 0 || offset.y < 0 || size.x + offset.x > src->width || size.y + offset.y > src->height) {
         PyErr_Format(PyExc_ValueError, "invalid offset");
         return NULL;
+    }
+
+    if (src->image->samples > 1) {
+        PyObject * temp = PyObject_CallMethod((PyObject *)src->image->ctx, "image", "((ii)O)", size.x, size.y, src->image->format);
+        if (!temp) {
+            return NULL;
+        }
+
+        PyObject * blit = PyObject_CallMethod((PyObject *)src, "blit", "(O(iiii)(iiii))", temp, 0, 0, size.x, size.y, offset.x, offset.y, size.x, size.y);
+        if (!blit) {
+            return NULL;
+        }
+        Py_DECREF(blit);
+
+        PyObject * res = PyObject_CallMethod(temp, "read", NULL);
+        if (!res) {
+            return NULL;
+        }
+
+        PyObject * release = PyObject_CallMethod((PyObject *)src->image->ctx, "release", "(N)", temp);
+        if (!release) {
+            return NULL;
+        }
+        Py_DECREF(release);
+        return res;
     }
 
     const GLMethods * const gl = &src->image->ctx->gl;
