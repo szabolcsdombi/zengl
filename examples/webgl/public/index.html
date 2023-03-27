@@ -19,7 +19,7 @@
   (async () => {
     const pyodide = await loadPyodide();
     await pyodide.loadPackage([
-      'zengl-1.11.0-cp310-cp310-emscripten_3_1_27_wasm32.whl',
+      'zengl-1.12.0-cp310-cp310-emscripten_3_1_27_wasm32.whl',
       'examples-0.1.0-py3-none-any.whl',
     ]);
     const example = window.location.href.split('?example=')[1] || 'triangle';

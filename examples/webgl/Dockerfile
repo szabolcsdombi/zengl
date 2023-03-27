@@ -14,7 +14,7 @@ RUN tar -zxf web-example-assets.tar.gz -C /examples/examples/
 RUN echo 'source /emsdk/emsdk_env.sh && pyodide build /examples/' | bash
 
 WORKDIR /web/
-RUN cp /zengl/dist/zengl-1.11.0-cp310-cp310-emscripten_3_1_27_wasm32.whl /web/
+RUN cp /zengl/dist/zengl-1.12.0-cp310-cp310-emscripten_3_1_27_wasm32.whl /web/
 RUN cp /examples/dist/examples-0.1.0-py3-none-any.whl /web/
 COPY examples/webgl/public/* /web/
 CMD python -m http.server --bind 0.0.0.0 8000
