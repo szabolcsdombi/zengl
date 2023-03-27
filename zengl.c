@@ -1682,12 +1682,12 @@ static PyObject * read_image_face(ImageFace * src, PyObject * size_arg, PyObject
     return res;
 }
 
-static Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwargs) {
+static Context * meth_context(PyObject * self, PyObject * args, PyObject * kwargs) {
     static char * keywords[] = {"loader", NULL};
 
     PyObject * loader = Py_None;
 
-    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "|O", keywords, &loader)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O", keywords, &loader)) {
         return NULL;
     }
 
@@ -1812,7 +1812,7 @@ static Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwar
     return res;
 }
 
-static Buffer * Context_meth_buffer(Context * self, PyObject * vargs, PyObject * kwargs) {
+static Buffer * Context_meth_buffer(Context * self, PyObject * args, PyObject * kwargs) {
     static char * keywords[] = {"data", "size", "dynamic", "external", NULL};
 
     PyObject * data = Py_None;
@@ -1820,7 +1820,7 @@ static Buffer * Context_meth_buffer(Context * self, PyObject * vargs, PyObject *
     int dynamic = 1;
     int external = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "|O$Opi", keywords, &data, &size_arg, &dynamic, &external)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O$Opi", keywords, &data, &size_arg, &dynamic, &external)) {
         return NULL;
     }
 
@@ -1894,7 +1894,7 @@ static Buffer * Context_meth_buffer(Context * self, PyObject * vargs, PyObject *
     return res;
 }
 
-static Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * kwargs) {
+static Image * Context_meth_image(Context * self, PyObject * args, PyObject * kwargs) {
     static char * keywords[] = {"size", "format", "data", "samples", "array", "levels", "texture", "cubemap", "external", NULL};
 
     int width;
@@ -1909,7 +1909,7 @@ static Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * k
     int external = 0;
 
     int args_ok = PyArg_ParseTupleAndKeywords(
-        vargs,
+        args,
         kwargs,
         "(ii)O!|OiiiOpi",
         keywords,
@@ -2064,7 +2064,7 @@ static Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * k
     return res;
 }
 
-static Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObject * kwargs) {
+static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObject * kwargs) {
     static char * keywords[] = {
         "vertex_shader",
         "fragment_shader",
@@ -2109,7 +2109,7 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * vargs, PyObje
     PyObject * includes = Py_None;
 
     int args_ok = PyArg_ParseTupleAndKeywords(
-        vargs,
+        args,
         kwargs,
         "|O!O!OOOOOOOOOpOO&iiiOO",
         keywords,
@@ -2611,13 +2611,13 @@ static int Context_set_screen(Context * self, PyObject * value, void * closure) 
     return 0;
 }
 
-static PyObject * Buffer_meth_write(Buffer * self, PyObject * vargs, PyObject * kwargs) {
+static PyObject * Buffer_meth_write(Buffer * self, PyObject * args, PyObject * kwargs) {
     static char * keywords[] = {"data", "offset", NULL};
 
     PyObject * data;
     int offset = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "O|i", keywords, &data, &offset)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|i", keywords, &data, &offset)) {
         return NULL;
     }
 
@@ -2654,14 +2654,14 @@ static PyObject * Buffer_meth_write(Buffer * self, PyObject * vargs, PyObject * 
     Py_RETURN_NONE;
 }
 
-static PyObject * Buffer_meth_map(Buffer * self, PyObject * vargs, PyObject * kwargs) {
+static PyObject * Buffer_meth_map(Buffer * self, PyObject * args, PyObject * kwargs) {
     static char * keywords[] = {"size", "offset", "discard", NULL};
 
     PyObject * size_arg = Py_None;
     PyObject * offset_arg = Py_None;
     int discard = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "|OOp", keywords, &size_arg, &offset_arg, &discard)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|OOp", keywords, &size_arg, &offset_arg, &discard)) {
         return NULL;
     }
 
@@ -2737,7 +2737,7 @@ static PyObject * Image_meth_clear(Image * self, PyObject * args) {
     Py_RETURN_NONE;
 }
 
-static PyObject * Image_meth_write(Image * self, PyObject * vargs, PyObject * kwargs) {
+static PyObject * Image_meth_write(Image * self, PyObject * args, PyObject * kwargs) {
     static char * keywords[] = {"data", "size", "offset", "layer", "level", NULL};
 
     PyObject * data;
@@ -2746,7 +2746,7 @@ static PyObject * Image_meth_write(Image * self, PyObject * vargs, PyObject * kw
     PyObject * layer_arg = Py_None;
     int level = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "O|OOOi", keywords, &data, &size_arg, &offset_arg, &layer_arg, &level)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|OOOi", keywords, &data, &size_arg, &offset_arg, &layer_arg, &level)) {
         return NULL;
     }
 
@@ -2884,13 +2884,13 @@ static PyObject * Image_meth_mipmaps(Image * self, PyObject * args) {
     Py_RETURN_NONE;
 }
 
-static PyObject * Image_meth_read(Image * self, PyObject * vargs, PyObject * kwargs) {
+static PyObject * Image_meth_read(Image * self, PyObject * args, PyObject * kwargs) {
     static char * keywords[] = {"size", "offset", NULL};
 
     PyObject * size_arg = Py_None;
     PyObject * offset_arg = Py_None;
 
-    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "|OO", keywords, &size_arg, &offset_arg)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|OO", keywords, &size_arg, &offset_arg)) {
         return NULL;
     }
 
@@ -2920,13 +2920,13 @@ static PyObject * Image_meth_blit(Image * self, PyObject * args, PyObject * kwar
     return blit_image_face(src, target, source_viewport, target_viewport, filter, srgb);
 }
 
-static ImageFace * Image_meth_face(Image * self, PyObject * vargs, PyObject * kwargs) {
+static ImageFace * Image_meth_face(Image * self, PyObject * args, PyObject * kwargs) {
     static char * keywords[] = {"layer", "level", NULL};
 
     int layer = 0;
     int level = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "|ii", keywords, &layer, &level)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|ii", keywords, &layer, &level)) {
         return NULL;
     }
 
@@ -3132,13 +3132,13 @@ static PyObject * ImageFace_meth_clear(ImageFace * self, PyObject * args) {
     Py_RETURN_NONE;
 }
 
-static PyObject * ImageFace_meth_read(ImageFace * self, PyObject * vargs, PyObject * kwargs) {
+static PyObject * ImageFace_meth_read(ImageFace * self, PyObject * args, PyObject * kwargs) {
     static char * keywords[] = {"size", "offset", NULL};
 
     PyObject * size_arg = Py_None;
     PyObject * offset_arg = Py_None;
 
-    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "|OO", keywords, &size_arg, &offset_arg)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|OO", keywords, &size_arg, &offset_arg)) {
         return NULL;
     }
 
