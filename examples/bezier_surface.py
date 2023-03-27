@@ -8,7 +8,7 @@ from window import Window
 window = Window()
 ctx = zengl.context()
 
-image = ctx.image(window.size, 'rgba8unorm-srgb', samples=4)
+image = ctx.image(window.size, 'rgba8unorm', samples=4)
 depth = ctx.image(window.size, 'depth24plus', samples=4)
 image.clear_value = (0.01, 0.01, 0.01, 1.0)
 
@@ -162,9 +162,19 @@ surface_pipeline = ctx.pipeline(
                 v_vertex, v_normal, eye_pos.xyz, light_pos.xyz, 16.0,
                 vec3(0.0, 0.01, 0.05), vec3(0.0, 0.1, 0.5), vec3(1.0, 1.0, 1.0), vec3(1.0, 1.0, 1.0), 60.0
             );
-            out_color = vec4(color, 1.0);
+            out_color = vec4(pow(color, vec3(1.0 / 2.2)), 1.0);
         }
     ''',
+    layout=[
+        {
+            'name': 'Common',
+            'binding': 0,
+        },
+        {
+            'name': 'ControlPoints',
+            'binding': 1,
+        },
+    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -210,8 +220,19 @@ surface_wire_pipeline = ctx.pipeline(
 
         void main() {
             out_color = vec4(0.0, 0.0, 0.0, 1.0);
+            gl_FragDepth = gl_FragCoord.z - 1e-4;
         }
     ''',
+    layout=[
+        {
+            'name': 'Common',
+            'binding': 0,
+        },
+        {
+            'name': 'ControlPoints',
+            'binding': 1,
+        },
+    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -319,9 +340,19 @@ points_pipeline = ctx.pipeline(
         void main() {
             vec3 color = vec3(1.0, 0.0, 0.0);
             float lum = dot(normalize(eye_pos.xyz), normalize(v_normal)) * 0.7 + 0.3;
-            out_color = vec4(color * lum, 1.0);
+            out_color = vec4(pow(color * lum, vec3(1.0 / 2.2)), 1.0);
         }
     ''',
+    layout=[
+        {
+            'name': 'Common',
+            'binding': 0,
+        },
+        {
+            'name': 'ControlPoints',
+            'binding': 1,
+        },
+    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -447,9 +478,19 @@ lines_pipeline = ctx.pipeline(
         void main() {
             vec3 color = vec3(1.0, 0.5, 0.0);
             float lum = dot(normalize(eye_pos.xyz), normalize(v_normal)) * 0.7 + 0.3;
-            out_color = vec4(color * lum, 1.0);
+            out_color = vec4(pow(color * lum, vec3(1.0 / 2.2)), 1.0);
         }
     ''',
+    layout=[
+        {
+            'name': 'Common',
+            'binding': 0,
+        },
+        {
+            'name': 'ControlPoints',
+            'binding': 1,
+        },
+    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -556,9 +597,19 @@ points_pipeline_seethrough = ctx.pipeline(
         void main() {
             vec3 color = vec3(1.0, 0.0, 0.0);
             float lum = dot(normalize(eye_pos.xyz), normalize(v_normal)) * 0.7 + 0.3;
-            out_color = vec4(color * lum, 0.05);
+            out_color = vec4(pow(color * lum, vec3(1.0 / 2.2)), 0.05);
         }
     ''',
+    layout=[
+        {
+            'name': 'Common',
+            'binding': 0,
+        },
+        {
+            'name': 'ControlPoints',
+            'binding': 1,
+        },
+    ],
     resources=[
         {
             'type': 'uniform_buffer',
@@ -694,9 +745,19 @@ lines_pipeline_seethrough = ctx.pipeline(
         void main() {
             vec3 color = vec3(1.0, 0.5, 0.0);
             float lum = dot(normalize(eye_pos.xyz), normalize(v_normal)) * 0.7 + 0.3;
-            out_color = vec4(color * lum, 0.05);
+            out_color = vec4(pow(color * lum, vec3(1.0 / 2.2)), 0.05);
         }
     ''',
+    layout=[
+        {
+            'name': 'Common',
+            'binding': 0,
+        },
+        {
+            'name': 'ControlPoints',
+            'binding': 1,
+        },
+    ],
     resources=[
         {
             'type': 'uniform_buffer',
