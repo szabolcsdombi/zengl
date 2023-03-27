@@ -2838,8 +2838,19 @@ static PyObject * Image_meth_read(Image * self, PyObject * args, PyObject * kwar
     }
 
     if (self->array || self->cubemap) {
-        PyErr_Format(PyExc_TypeError, "cannot read whole cubemap or array images");
-        return NULL;
+        PyObject * chunks = PyTuple_New(self->layer_count);
+        for (int i = 0; i < self->layer_count; ++i) {
+            ImageFace * src = (ImageFace *)PyTuple_GetItem(self->layers, i);
+            PyObject * chunk = read_image_face(src, size_arg, offset_arg);
+            if (!chunk) {
+                return NULL;
+            }
+            PyTuple_SetItem(chunks, i, chunk);
+        }
+        PyObject * sep = PyBytes_FromStringAndSize(NULL, 0);
+        PyObject * res = PyObject_CallMethod(sep, "join", "(N)", chunks);
+        Py_DECREF(sep);
+        return res;
     }
 
     ImageFace * src = (ImageFace *)PyTuple_GetItem(self->layers, 0);

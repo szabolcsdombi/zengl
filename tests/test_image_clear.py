@@ -44,6 +44,7 @@ def test_invalid_image_clear_cubemap(ctx: zengl.Context):
     assert img.face(3).read() == b'\xff\x00\x00\xff' * 256
     assert img.face(4).read() == b'\xff\x00\x00\xff' * 256
     assert img.face(5).read() == b'\xff\x00\x00\xff' * 256
+    assert img.read() == b'\xff\x00\x00\xff' * 256 * 6
 
 
 def test_invalid_image_clear_array(ctx: zengl.Context):
@@ -54,3 +55,4 @@ def test_invalid_image_clear_array(ctx: zengl.Context):
     assert img.face(1).read() == b'\xff\x00\x00\xff' * 256
     assert img.face(2).read() == b'\xff\x00\x00\xff' * 256
     assert img.face(3).read() == b'\xff\x00\x00\xff' * 256
+    assert img.read() == b'\xff\x00\x00\xff' * 256 * 4
