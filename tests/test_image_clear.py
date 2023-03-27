@@ -36,12 +36,22 @@ def test_image_clear_integers(ctx: zengl.Context):
 
 
 def test_invalid_image_clear_cubemap(ctx: zengl.Context):
-    img = ctx.image((64, 64), 'rgba8unorm', cubemap=True)
-    with pytest.raises(TypeError):
-        img.clear()
+    img = ctx.image((16, 16), 'rgba8unorm', cubemap=True)
+    img.clear_value = (1.0, 0.0, 0.0, 1.0)
+    img.clear()
+    assert img.face(0).read() == b'\xff\x00\x00\xff' * 256
+    assert img.face(1).read() == b'\xff\x00\x00\xff' * 256
+    assert img.face(2).read() == b'\xff\x00\x00\xff' * 256
+    assert img.face(3).read() == b'\xff\x00\x00\xff' * 256
+    assert img.face(4).read() == b'\xff\x00\x00\xff' * 256
+    assert img.face(5).read() == b'\xff\x00\x00\xff' * 256
 
 
 def test_invalid_image_clear_array(ctx: zengl.Context):
-    img = ctx.image((4, 4), 'rgba8unorm', array=4)
-    with pytest.raises(TypeError):
-        img.clear()
+    img = ctx.image((16, 16), 'rgba8unorm', array=4)
+    img.clear_value = (1.0, 0.0, 0.0, 1.0)
+    img.clear()
+    assert img.face(0).read() == b'\xff\x00\x00\xff' * 256
+    assert img.face(1).read() == b'\xff\x00\x00\xff' * 256
+    assert img.face(2).read() == b'\xff\x00\x00\xff' * 256
+    assert img.face(3).read() == b'\xff\x00\x00\xff' * 256

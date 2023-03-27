@@ -75,8 +75,12 @@ def test_inspect_renderbuffer(ctx: zengl.Context):
     image = ctx.image((64, 64), 'rgba8unorm', samples=4)
     inspect = zengl.inspect(image)
 
-    assert inspect['type'] == 'renderbuffer'
+    assert inspect['type'] == 'image'
     assert isinstance(inspect['renderbuffer'], int)
+
+    inspect = zengl.inspect(image.face(0))
+
+    assert inspect['type'] == 'image_face'
     assert isinstance(inspect['framebuffer'], int)
 
 
@@ -84,8 +88,12 @@ def test_inspect_texture(ctx: zengl.Context):
     image = ctx.image((64, 64), 'rgba8unorm')
     inspect = zengl.inspect(image)
 
-    assert inspect['type'] == 'texture'
+    assert inspect['type'] == 'image'
     assert isinstance(inspect['texture'], int)
+
+    inspect = zengl.inspect(image.face(0))
+
+    assert inspect['type'] == 'image_face'
     assert isinstance(inspect['framebuffer'], int)
 
 
