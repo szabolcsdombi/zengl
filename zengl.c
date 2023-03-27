@@ -855,10 +855,10 @@ typedef struct Image {
     Context * ctx;
     PyObject * size;
     PyObject * format;
-    GLObject * framebuffer;
     PyObject * faces;
-    ClearValue clear_value;
+    PyObject * layers;
     const ImageFormat * fmt;
+    ClearValue clear_value;
     int image;
     int width;
     int height;
@@ -867,6 +867,7 @@ typedef struct Image {
     int cubemap;
     int target;
     int renderbuffer;
+    int layer_count;
     int max_level;
 } Image;
 
@@ -1457,6 +1458,215 @@ static GLObject * compile_program(Context * self, PyObject * includes, PyObject 
     return res;
 }
 
+static ImageFace * build_image_face(Image * self, PyObject * key) {
+    ImageFace * cache = (ImageFace *)PyDict_GetItem(self->faces, key);
+    if (cache) {
+        Py_INCREF(cache);
+        return cache;
+    }
+
+    int layer = PyLong_AsLong(PyTuple_GetItem(key, 0));
+    int level = PyLong_AsLong(PyTuple_GetItem(key, 1));
+
+    int width = least_one(self->width >> level);
+    int height = least_one(self->height >> level);
+
+    ImageFace * res = PyObject_New(ImageFace, self->ctx->module_state->ImageFace_type);
+    res->ctx = self->ctx;
+    res->image = self;
+    res->size = Py_BuildValue("(ii)", width, height);
+    res->width = width;
+    res->height = height;
+    res->layer = layer;
+    res->level = level;
+    res->samples = self->samples;
+    res->flags = self->fmt->flags;
+
+    if (self->fmt->color) {
+        PyObject * attachments = Py_BuildValue("((ii)(O)O)", width, height, res, Py_None);
+        res->framebuffer = build_framebuffer(self->ctx, attachments);
+        Py_DECREF(attachments);
+    } else {
+        PyObject * attachments = Py_BuildValue("((ii)()O)", width, height, res);
+        res->framebuffer = build_framebuffer(self->ctx, attachments);
+        Py_DECREF(attachments);
+    }
+
+    PyDict_SetItem(self->faces, key, (PyObject *)res);
+    return res;
+}
+
+static void clear_bound_image(Image * self) {
+    const GLMethods * const gl = &self->ctx->gl;
+    const int depth_mask = self->ctx->current_depth_mask != 1 && (self->fmt->buffer == GL_DEPTH || self->fmt->buffer == GL_DEPTH_STENCIL);
+    const int stencil_mask = self->ctx->current_stencil_mask != 0xff && (self->fmt->buffer == GL_STENCIL || self->fmt->buffer == GL_DEPTH_STENCIL);
+    if (depth_mask) {
+        gl->DepthMask(1);
+        self->ctx->current_depth_mask = 1;
+    }
+    if (stencil_mask) {
+        gl->StencilMaskSeparate(GL_FRONT, 0xff);
+        self->ctx->current_stencil_mask = 0xff;
+    }
+    if (self->fmt->clear_type == 'f') {
+        gl->ClearBufferfv(self->fmt->buffer, 0, self->clear_value.clear_floats);
+    } else if (self->fmt->clear_type == 'i') {
+        gl->ClearBufferiv(self->fmt->buffer, 0, self->clear_value.clear_ints);
+    } else if (self->fmt->clear_type == 'u') {
+        gl->ClearBufferuiv(self->fmt->buffer, 0, self->clear_value.clear_uints);
+    } else if (self->fmt->clear_type == 'x') {
+        gl->ClearBufferfi(self->fmt->buffer, 0, self->clear_value.clear_floats[0], self->clear_value.clear_ints[1]);
+    }
+}
+
+static PyObject * blit_image_face(ImageFace * src, PyObject * dst, PyObject * src_viewport, PyObject * dst_viewport, int filter, PyObject * srgb) {
+    if (Py_TYPE(dst) == src->image->ctx->module_state->Image_type) {
+        dst = PyTuple_GetItem(((Image *)dst)->layers, 0);
+    }
+
+    if (dst != Py_None && Py_TYPE(dst) != src->image->ctx->module_state->ImageFace_type) {
+        PyErr_Format(PyExc_TypeError, "target must be an Image or ImageFace or None");
+        return NULL;
+    }
+
+    ImageFace * target = dst != Py_None ? (ImageFace *)dst : NULL;
+
+    if (dst_viewport != Py_None && !is_viewport(dst_viewport)) {
+        PyErr_Format(PyExc_TypeError, "the target viewport must be a tuple of 4 ints");
+        return NULL;
+    }
+
+    if (src_viewport != Py_None && !is_viewport(src_viewport)) {
+        PyErr_Format(PyExc_TypeError, "the source viewport must be a tuple of 4 ints");
+        return NULL;
+    }
+
+    Viewport tv;
+    Viewport sv;
+
+    if (dst_viewport != Py_None) {
+        tv = to_viewport(dst_viewport);
+    } else {
+        tv.x = 0;
+        tv.y = 0;
+        tv.width = target ? target->width : src->width;
+        tv.height = target ? target->height : src->height;
+    }
+
+    if (src_viewport != Py_None) {
+        sv = to_viewport(src_viewport);
+    } else {
+        sv.x = 0;
+        sv.y = 0;
+        sv.width = src->width;
+        sv.height = src->height;
+    }
+
+    if (srgb == Py_None) {
+        srgb == Py_None && src->image->fmt->internal_format != GL_SRGB8_ALPHA8;
+    }
+
+    const int disable_srgb = !PyObject_IsTrue(srgb);
+
+    if (tv.x < 0 || tv.y < 0 || tv.width <= 0 || tv.height <= 0 || (target && (tv.x + tv.width > target->width || tv.y + tv.height > target->height))) {
+        PyErr_Format(PyExc_ValueError, "the target viewport is out of range");
+        return NULL;
+    }
+
+    if (sv.x < 0 || sv.y < 0 || sv.width <= 0 || sv.height <= 0 || sv.x + sv.width > src->width || sv.y + sv.height > src->height) {
+        PyErr_Format(PyExc_ValueError, "the source viewport is out of range");
+        return NULL;
+    }
+
+    if (!src->image->fmt->color) {
+        PyErr_Format(PyExc_TypeError, "cannot blit depth or stencil images");
+        return NULL;
+    }
+
+    if (target && !target->image->fmt->color) {
+        PyErr_Format(PyExc_TypeError, "cannot blit to depth or stencil images");
+        return NULL;
+    }
+
+    if (target && target->image->samples > 1) {
+        PyErr_Format(PyExc_TypeError, "cannot blit to multisampled images");
+        return NULL;
+    }
+
+    const GLMethods * const gl = &src->ctx->gl;
+
+    if (disable_srgb) {
+        gl->Disable(GL_FRAMEBUFFER_SRGB);
+    }
+
+    int target_framebuffer = target ? target->framebuffer->obj : src->ctx->default_framebuffer->obj;
+    gl->BindFramebuffer(GL_READ_FRAMEBUFFER, src->framebuffer->obj);
+    gl->BindFramebuffer(GL_DRAW_FRAMEBUFFER, target_framebuffer);
+    gl->BlitFramebuffer(
+        sv.x, sv.y, sv.x + sv.width, sv.y + sv.height,
+        tv.x, tv.y, tv.x + tv.width, tv.y + tv.height,
+        GL_COLOR_BUFFER_BIT, filter ? GL_LINEAR : GL_NEAREST
+    );
+    src->image->ctx->current_framebuffer = -1;
+
+    if (disable_srgb) {
+        gl->Enable(GL_FRAMEBUFFER_SRGB);
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyObject * read_image_face(ImageFace * src, PyObject * size_arg, PyObject * offset_arg) {
+    IntPair size;
+    IntPair offset;
+
+    if (size_arg != Py_None && !is_int_pair(size_arg)) {
+        PyErr_Format(PyExc_TypeError, "the size must be a tuple of 2 ints");
+        return NULL;
+    }
+
+    if (offset_arg != Py_None && !is_int_pair(offset_arg)) {
+        PyErr_Format(PyExc_TypeError, "the offset must be a tuple of 2 ints");
+        return NULL;
+    }
+
+    if (size_arg != Py_None) {
+        size = to_int_pair(size_arg);
+    } else {
+        size.x = src->width;
+        size.y = src->height;
+    }
+
+    if (offset_arg != Py_None) {
+        offset = to_int_pair(offset_arg);
+    } else {
+        offset.x = 0;
+        offset.y = 0;
+    }
+
+    if (size_arg == Py_None && offset_arg != Py_None) {
+        PyErr_Format(PyExc_ValueError, "the size is required when the offset is not None");
+        return NULL;
+    }
+
+    if (size.x <= 0 || size.y <= 0 || size.x > src->width || size.y > src->height) {
+        PyErr_Format(PyExc_ValueError, "invalid size");
+        return NULL;
+    }
+
+    if (offset.x < 0 || offset.y < 0 || size.x + offset.x > src->width || size.y + offset.y > src->height) {
+        PyErr_Format(PyExc_ValueError, "invalid offset");
+        return NULL;
+    }
+
+    const GLMethods * const gl = &src->image->ctx->gl;
+
+    PyObject * res = PyBytes_FromStringAndSize(NULL, (long long)size.x * size.y * src->image->fmt->pixel_size);
+    bind_framebuffer(src->ctx, src->framebuffer->obj);
+    gl->ReadPixels(offset.x, offset.y, size.x, size.y, src->image->fmt->format, src->image->fmt->type, PyBytes_AS_STRING(res));
+    return res;
+}
+
 static Context * meth_context(PyObject * self, PyObject * vargs, PyObject * kwargs) {
     static char * keywords[] = {"loader", NULL};
 
@@ -1802,11 +2012,11 @@ static Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * k
     res->size = Py_BuildValue("(ii)", width, height);
     res->format = (PyObject *)new_ref(format);
     res->faces = PyDict_New();
+    res->fmt = fmt;
     res->clear_value.clear_ints[0] = 0;
     res->clear_value.clear_ints[1] = 0;
     res->clear_value.clear_ints[2] = 0;
     res->clear_value.clear_ints[3] = 0;
-    res->fmt = fmt;
     res->image = image;
     res->width = width;
     res->height = height;
@@ -1815,25 +2025,18 @@ static Image * Context_meth_image(Context * self, PyObject * vargs, PyObject * k
     res->cubemap = cubemap;
     res->target = target;
     res->renderbuffer = renderbuffer;
+    res->layer_count = (array ? array : 1) * (cubemap ? 6 : 1);
     res->max_level = 0;
 
     if (fmt->buffer == GL_DEPTH || fmt->buffer == GL_DEPTH_STENCIL) {
         res->clear_value.clear_floats[0] = 1.0f;
     }
 
-    res->framebuffer = NULL;
-    if (!cubemap && !array) {
-        if (fmt->color) {
-            PyObject * face = PyObject_CallMethod((PyObject *)res, "face", NULL);
-            PyObject * attachments = Py_BuildValue("((ii)(N)O)", width, height, face, Py_None);
-            res->framebuffer = build_framebuffer(self, attachments);
-            Py_DECREF(attachments);
-        } else {
-            PyObject * face = PyObject_CallMethod((PyObject *)res, "face", NULL);
-            PyObject * attachments = Py_BuildValue("((ii)()N)", width, height, face);
-            res->framebuffer = build_framebuffer(self, attachments);
-            Py_DECREF(attachments);
-        }
+    res->layers = PyTuple_New(res->layer_count);
+    for (int i = 0; i < res->layer_count; ++i) {
+        PyObject * key = Py_BuildValue("(ii)", i, 0);
+        PyTuple_SetItem(res->layers, i, (PyObject *)build_image_face(res, key));
+        Py_DECREF(key);
     }
 
     if (data != Py_None) {
@@ -2307,9 +2510,6 @@ static PyObject * Context_meth_release(Context * self, PyObject * arg) {
         Image * image = (Image *)arg;
         image->gc_prev->gc_next = image->gc_next;
         image->gc_next->gc_prev = image->gc_prev;
-        if (image->framebuffer) {
-            release_framebuffer(self, image->framebuffer);
-        }
         if (image->faces) {
             PyObject * key = NULL;
             PyObject * value = NULL;
@@ -2512,36 +2712,13 @@ static PyObject * Buffer_meth_unmap(Buffer * self, PyObject * args) {
     Py_RETURN_NONE;
 }
 
-static void clear_bound_image(Image * self) {
-    const GLMethods * const gl = &self->ctx->gl;
-    const int depth_mask = self->ctx->current_depth_mask != 1 && (self->fmt->buffer == GL_DEPTH || self->fmt->buffer == GL_DEPTH_STENCIL);
-    const int stencil_mask = self->ctx->current_stencil_mask != 0xff && (self->fmt->buffer == GL_STENCIL || self->fmt->buffer == GL_DEPTH_STENCIL);
-    if (depth_mask) {
-        gl->DepthMask(1);
-        self->ctx->current_depth_mask = 1;
-    }
-    if (stencil_mask) {
-        gl->StencilMaskSeparate(GL_FRONT, 0xff);
-        self->ctx->current_stencil_mask = 0xff;
-    }
-    if (self->fmt->clear_type == 'f') {
-        gl->ClearBufferfv(self->fmt->buffer, 0, self->clear_value.clear_floats);
-    } else if (self->fmt->clear_type == 'i') {
-        gl->ClearBufferiv(self->fmt->buffer, 0, self->clear_value.clear_ints);
-    } else if (self->fmt->clear_type == 'u') {
-        gl->ClearBufferuiv(self->fmt->buffer, 0, self->clear_value.clear_uints);
-    } else if (self->fmt->clear_type == 'x') {
-        gl->ClearBufferfi(self->fmt->buffer, 0, self->clear_value.clear_floats[0], self->clear_value.clear_ints[1]);
-    }
-}
-
 static PyObject * Image_meth_clear(Image * self, PyObject * args) {
-    if (!self->framebuffer) {
-        PyErr_Format(PyExc_TypeError, "cannot clear cubemap or array textures");
-        return NULL;
+    const int count = (int)PyTuple_Size(self->layers);
+    for (int i = 0; i < count; ++i) {
+        ImageFace * face = (ImageFace *)PyTuple_GetItem(self->layers, i);
+        bind_framebuffer(self->ctx, face->framebuffer->obj);
+        clear_bound_image(self);
     }
-    bind_framebuffer(self->ctx, self->framebuffer->obj);
-    clear_bound_image(self);
     Py_RETURN_NONE;
 }
 
@@ -2610,7 +2787,7 @@ static PyObject * Image_meth_write(Image * self, PyObject * vargs, PyObject * kw
         return NULL;
     }
 
-    if (layer < 0 || layer >= (self->array ? self->array : 1) * (self->cubemap ? 6 : 1)) {
+    if (layer < 0 || layer >= self->layer_count) {
         PyErr_Format(PyExc_ValueError, "invalid layer");
         return NULL;
     }
@@ -2639,7 +2816,7 @@ static PyObject * Image_meth_write(Image * self, PyObject * vargs, PyObject * kw
     int expected_size = padded_row * size.y;
 
     if (layer_arg == Py_None) {
-        expected_size *= (self->array ? self->array : 1) * (self->cubemap ? 6 : 1);
+        expected_size *= self->layer_count;
     }
 
     PyObject * mem = contiguous(data);
@@ -2740,207 +2917,25 @@ static PyObject * Image_meth_read(Image * self, PyObject * vargs, PyObject * kwa
         return NULL;
     }
 
-    IntPair size;
-    IntPair offset;
-
-    if (size_arg != Py_None && !is_int_pair(size_arg)) {
-        PyErr_Format(PyExc_TypeError, "the size must be a tuple of 2 ints");
-        return NULL;
-    }
-
-    if (offset_arg != Py_None && !is_int_pair(offset_arg)) {
-        PyErr_Format(PyExc_TypeError, "the offset must be a tuple of 2 ints");
-        return NULL;
-    }
-
-    if (size_arg != Py_None) {
-        size = to_int_pair(size_arg);
-    } else {
-        size.x = self->width;
-        size.y = self->height;
-    }
-
-    if (offset_arg != Py_None) {
-        offset = to_int_pair(offset_arg);
-    } else {
-        offset.x = 0;
-        offset.y = 0;
-    }
-
-    if (size_arg == Py_None && offset_arg != Py_None) {
-        PyErr_Format(PyExc_ValueError, "the size is required when the offset is not None");
-        return NULL;
-    }
-
-    if (size.x <= 0 || size.y <= 0 || size.x > self->width || size.y > self->height) {
-        PyErr_Format(PyExc_ValueError, "invalid size");
-        return NULL;
-    }
-
-    if (offset.x < 0 || offset.y < 0 || size.x + offset.x > self->width || size.y + offset.y > self->height) {
-        PyErr_Format(PyExc_ValueError, "invalid offset");
-        return NULL;
-    }
-
-    if (self->cubemap) {
-        PyErr_Format(PyExc_TypeError, "cannot read cubemap images");
-        return NULL;
-    }
-
-    if (self->array) {
-        PyErr_Format(PyExc_TypeError, "cannot read array images");
-        return NULL;
-    }
-
-    if (self->samples != 1) {
-        PyErr_Format(PyExc_TypeError, "multisampled images must be blit to a non multisampled image before read");
-        return NULL;
-    }
-
-    const GLMethods * const gl = &self->ctx->gl;
-
-    PyObject * res = PyBytes_FromStringAndSize(NULL, (long long)size.x * size.y * self->fmt->pixel_size);
-    bind_framebuffer(self->ctx, self->framebuffer->obj);
-    gl->ReadPixels(offset.x, offset.y, size.x, size.y, self->fmt->format, self->fmt->type, PyBytes_AS_STRING(res));
-    return res;
+    ImageFace * src = (ImageFace *)PyTuple_GetItem(self->layers, 0);
+    return read_image_face(src, size_arg, offset_arg);
 }
 
-static PyObject * Image_meth_blit(Image * self, PyObject * vargs, PyObject * kwargs) {
+static PyObject * Image_meth_blit(Image * self, PyObject * args, PyObject * kwargs) {
     static char * keywords[] = {"target", "target_viewport", "source_viewport", "filter", "srgb", NULL};
 
-    PyObject * target_arg = Py_None;
-    PyObject * target_viewport_arg = Py_None;
-    PyObject * source_viewport_arg = Py_None;
+    PyObject * target = Py_None;
+    PyObject * target_viewport = Py_None;
+    PyObject * source_viewport = Py_None;
     int filter = 1;
-    PyObject * srgb_arg = Py_None;
+    PyObject * srgb = Py_None;
 
-    int args_ok = PyArg_ParseTupleAndKeywords(
-        vargs,
-        kwargs,
-        "|OOOpO",
-        keywords,
-        &target_arg,
-        &target_viewport_arg,
-        &source_viewport_arg,
-        &filter,
-        &srgb_arg
-    );
-
-    if (!args_ok) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|OOOpO", keywords, &target, &target_viewport, &source_viewport, &filter, &srgb)) {
         return NULL;
     }
 
-    if (target_arg != Py_None && Py_TYPE(target_arg) != self->ctx->module_state->Image_type) {
-        PyErr_Format(PyExc_TypeError, "target must be an Image or None");
-        return NULL;
-    }
-
-    if (srgb_arg != Py_True && srgb_arg != Py_False && srgb_arg != Py_None) {
-        PyErr_Format(PyExc_TypeError, "invalid srgb parameter");
-        return NULL;
-    }
-
-    Image * target = target_arg != Py_None ? (Image *)target_arg : NULL;
-
-    if (target_viewport_arg != Py_None && !is_viewport(target_viewport_arg)) {
-        PyErr_Format(PyExc_TypeError, "the target viewport must be a tuple of 4 ints");
-        return NULL;
-    }
-
-    if (source_viewport_arg != Py_None && !is_viewport(source_viewport_arg)) {
-        PyErr_Format(PyExc_TypeError, "the source viewport must be a tuple of 4 ints");
-        return NULL;
-    }
-
-    Viewport tv;
-    Viewport sv;
-
-    if (target_viewport_arg != Py_None) {
-        tv = to_viewport(target_viewport_arg);
-    } else {
-        tv.x = 0;
-        tv.y = 0;
-        tv.width = target ? target->width : self->width;
-        tv.height = target ? target->height : self->height;
-    }
-
-    if (source_viewport_arg != Py_None) {
-        sv = to_viewport(source_viewport_arg);
-    } else {
-        sv.x = 0;
-        sv.y = 0;
-        sv.width = self->width;
-        sv.height = self->height;
-    }
-
-    const int srgb = (srgb_arg == Py_None && self->fmt->internal_format == GL_SRGB8_ALPHA8) || srgb_arg == Py_True;
-
-    if (tv.x < 0 || tv.y < 0 || tv.width <= 0 || tv.height <= 0 || (target && (tv.x + tv.width > target->width || tv.y + tv.height > target->height))) {
-        PyErr_Format(PyExc_ValueError, "the target viewport is out of range");
-        return NULL;
-    }
-
-    if (sv.x < 0 || sv.y < 0 || sv.width <= 0 || sv.height <= 0 || sv.x + sv.width > self->width || sv.y + sv.height > self->height) {
-        PyErr_Format(PyExc_ValueError, "the source viewport is out of range");
-        return NULL;
-    }
-
-    if (self->cubemap) {
-        PyErr_Format(PyExc_TypeError, "cannot blit cubemap images");
-        return NULL;
-    }
-
-    if (self->array) {
-        PyErr_Format(PyExc_TypeError, "cannot blit array images");
-        return NULL;
-    }
-
-    if (!self->fmt->color) {
-        PyErr_Format(PyExc_TypeError, "cannot blit depth or stencil images");
-        return NULL;
-    }
-
-    if (target && target->cubemap) {
-        PyErr_Format(PyExc_TypeError, "cannot blit to cubemap images");
-        return NULL;
-    }
-
-    if (target && target->array) {
-        PyErr_Format(PyExc_TypeError, "cannot blit to array images");
-        return NULL;
-    }
-
-    if (target && !target->fmt->color) {
-        PyErr_Format(PyExc_TypeError, "cannot blit to depth or stencil images");
-        return NULL;
-    }
-
-    if (target && target->samples > 1) {
-        PyErr_Format(PyExc_TypeError, "cannot blit to multisampled images");
-        return NULL;
-    }
-
-    const GLMethods * const gl = &self->ctx->gl;
-
-    if (!srgb) {
-        gl->Disable(GL_FRAMEBUFFER_SRGB);
-    }
-
-    int target_framebuffer = target ? target->framebuffer->obj : self->ctx->default_framebuffer->obj;
-    gl->BindFramebuffer(GL_READ_FRAMEBUFFER, self->framebuffer->obj);
-    gl->BindFramebuffer(GL_DRAW_FRAMEBUFFER, target_framebuffer);
-    gl->BlitFramebuffer(
-        sv.x, sv.y, sv.x + sv.width, sv.y + sv.height,
-        tv.x, tv.y, tv.x + tv.width, tv.y + tv.height,
-        GL_COLOR_BUFFER_BIT, filter ? GL_LINEAR : GL_NEAREST
-    );
-    self->ctx->current_framebuffer = -1;
-
-    if (!srgb) {
-        gl->Enable(GL_FRAMEBUFFER_SRGB);
-    }
-
-    Py_RETURN_NONE;
+    ImageFace * src = (ImageFace *)PyTuple_GetItem(self->layers, 0);
+    return blit_image_face(src, target, source_viewport, target_viewport, filter, srgb);
 }
 
 static ImageFace * Image_meth_face(Image * self, PyObject * vargs, PyObject * kwargs) {
@@ -2953,7 +2948,7 @@ static ImageFace * Image_meth_face(Image * self, PyObject * vargs, PyObject * kw
         return NULL;
     }
 
-    if (layer < 0 || layer >= (self->array ? self->array : 1) * (self->cubemap ? 6 : 1)) {
+    if (layer < 0 || layer >= self->layer_count) {
         PyErr_Format(PyExc_ValueError, "invalid layer");
         return NULL;
     }
@@ -2964,38 +2959,7 @@ static ImageFace * Image_meth_face(Image * self, PyObject * vargs, PyObject * kw
     }
 
     PyObject * key = Py_BuildValue("(ii)", layer, level);
-    ImageFace * cache = (ImageFace *)PyDict_GetItem(self->faces, key);
-    if (cache) {
-        Py_DECREF(key);
-        Py_INCREF(cache);
-        return cache;
-    }
-
-    int width = least_one(self->width >> level);
-    int height = least_one(self->height >> level);
-
-    ImageFace * res = PyObject_New(ImageFace, self->ctx->module_state->ImageFace_type);
-    res->ctx = self->ctx;
-    res->image = self;
-    res->size = Py_BuildValue("(ii)", width, height);
-    res->width = width;
-    res->height = height;
-    res->layer = layer;
-    res->level = level;
-    res->samples = self->samples;
-    res->flags = self->fmt->flags;
-
-    if (self->fmt->color) {
-        PyObject * attachments = Py_BuildValue("((ii)(O)O)", width, height, res, Py_None);
-        res->framebuffer = build_framebuffer(self->ctx, attachments);
-        Py_DECREF(attachments);
-    } else {
-        PyObject * attachments = Py_BuildValue("((ii)()O)", width, height, res);
-        res->framebuffer = build_framebuffer(self->ctx, attachments);
-        Py_DECREF(attachments);
-    }
-
-    PyDict_SetItem(self->faces, key, (PyObject *)res);
+    ImageFace * res = build_image_face(self, key);
     Py_DECREF(key);
     return res;
 }
@@ -3161,8 +3125,10 @@ static PyObject * meth_inspect(PyObject * self, PyObject * arg) {
     } else if (Py_TYPE(arg) == module_state->Image_type) {
         Image * image = (Image *)arg;
         const char * gltype = image->renderbuffer ? "renderbuffer" : "texture";
-        int framebuffer = image->framebuffer ? image->framebuffer->obj : -1;
-        return Py_BuildValue("{sssisi}", "type", gltype, gltype, image->image, "framebuffer", framebuffer);
+        return Py_BuildValue("{sssi}", "type", "image", gltype, image->image);
+    } else if (Py_TYPE(arg) == module_state->ImageFace_type) {
+        ImageFace * face = (ImageFace *)arg;
+        return Py_BuildValue("{sssi}", "type", "image_face", "framebuffer", face->framebuffer->obj);
     } else if (Py_TYPE(arg) == module_state->Pipeline_type) {
         Pipeline * pipeline = (Pipeline *)arg;
         return Py_BuildValue(
@@ -3184,122 +3150,33 @@ static PyObject * ImageFace_meth_clear(ImageFace * self, PyObject * args) {
     Py_RETURN_NONE;
 }
 
-static PyObject * ImageFace_meth_blit(ImageFace * self, PyObject * vargs, PyObject * kwargs) {
+static PyObject * ImageFace_meth_read(ImageFace * self, PyObject * vargs, PyObject * kwargs) {
+    static char * keywords[] = {"size", "offset", NULL};
+
+    PyObject * size_arg = Py_None;
+    PyObject * offset_arg = Py_None;
+
+    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "|OO", keywords, &size_arg, &offset_arg)) {
+        return NULL;
+    }
+
+    return read_image_face(self, size_arg, offset_arg);
+}
+
+static PyObject * ImageFace_meth_blit(ImageFace * self, PyObject * args, PyObject * kwargs) {
     static char * keywords[] = {"target", "target_viewport", "source_viewport", "filter", "srgb", NULL};
 
-    PyObject * target_arg = Py_None;
-    PyObject * target_viewport_arg = Py_None;
-    PyObject * source_viewport_arg = Py_None;
+    PyObject * target = Py_None;
+    PyObject * target_viewport = Py_None;
+    PyObject * source_viewport = Py_None;
     int filter = 1;
-    PyObject * srgb_arg = Py_None;
+    PyObject * srgb = Py_None;
 
-    int args_ok = PyArg_ParseTupleAndKeywords(
-        vargs,
-        kwargs,
-        "|OOOpO",
-        keywords,
-        &target_arg,
-        &target_viewport_arg,
-        &source_viewport_arg,
-        &filter,
-        &srgb_arg
-    );
-
-    if (!args_ok) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|OOOpO", keywords, &target, &target_viewport, &source_viewport, &filter, &srgb)) {
         return NULL;
     }
 
-    if (target_arg != Py_None && Py_TYPE(target_arg) != self->ctx->module_state->ImageFace_type) {
-        PyErr_Format(PyExc_TypeError, "target must be an ImageFace or None");
-        return NULL;
-    }
-
-    if (srgb_arg != Py_True && srgb_arg != Py_False && srgb_arg != Py_None) {
-        PyErr_Format(PyExc_TypeError, "invalid srgb parameter");
-        return NULL;
-    }
-
-    ImageFace * target = target_arg != Py_None ? (ImageFace *)target_arg : NULL;
-
-    if (target_viewport_arg != Py_None && !is_viewport(target_viewport_arg)) {
-        PyErr_Format(PyExc_TypeError, "the target viewport must be a tuple of 4 ints");
-        return NULL;
-    }
-
-    if (source_viewport_arg != Py_None && !is_viewport(source_viewport_arg)) {
-        PyErr_Format(PyExc_TypeError, "the source viewport must be a tuple of 4 ints");
-        return NULL;
-    }
-
-    Viewport tv;
-    Viewport sv;
-
-    if (target_viewport_arg != Py_None) {
-        tv = to_viewport(target_viewport_arg);
-    } else {
-        tv.x = 0;
-        tv.y = 0;
-        tv.width = target ? target->width : self->width;
-        tv.height = target ? target->height : self->height;
-    }
-
-    if (source_viewport_arg != Py_None) {
-        sv = to_viewport(source_viewport_arg);
-    } else {
-        sv.x = 0;
-        sv.y = 0;
-        sv.width = self->width;
-        sv.height = self->height;
-    }
-
-    const int srgb = (srgb_arg == Py_None && self->image->fmt->internal_format == GL_SRGB8_ALPHA8) || srgb_arg == Py_True;
-
-    if (tv.x < 0 || tv.y < 0 || tv.width <= 0 || tv.height <= 0 || (target && (tv.x + tv.width > target->width || tv.y + tv.height > target->height))) {
-        PyErr_Format(PyExc_ValueError, "the target viewport is out of range");
-        return NULL;
-    }
-
-    if (sv.x < 0 || sv.y < 0 || sv.width <= 0 || sv.height <= 0 || sv.x + sv.width > self->width || sv.y + sv.height > self->height) {
-        PyErr_Format(PyExc_ValueError, "the source viewport is out of range");
-        return NULL;
-    }
-
-    if (!self->image->fmt->color) {
-        PyErr_Format(PyExc_TypeError, "cannot blit depth or stencil images");
-        return NULL;
-    }
-
-    if (target && !target->image->fmt->color) {
-        PyErr_Format(PyExc_TypeError, "cannot blit to depth or stencil images");
-        return NULL;
-    }
-
-    if (target && target->image->samples > 1) {
-        PyErr_Format(PyExc_TypeError, "cannot blit to multisampled images");
-        return NULL;
-    }
-
-    const GLMethods * const gl = &self->ctx->gl;
-
-    if (!srgb) {
-        gl->Disable(GL_FRAMEBUFFER_SRGB);
-    }
-
-    int target_framebuffer = target ? target->framebuffer->obj : self->ctx->default_framebuffer->obj;
-    gl->BindFramebuffer(GL_READ_FRAMEBUFFER, self->framebuffer->obj);
-    gl->BindFramebuffer(GL_DRAW_FRAMEBUFFER, target_framebuffer);
-    gl->BlitFramebuffer(
-        sv.x, sv.y, sv.x + sv.width, sv.y + sv.height,
-        tv.x, tv.y, tv.x + tv.width, tv.y + tv.height,
-        GL_COLOR_BUFFER_BIT, filter ? GL_LINEAR : GL_NEAREST
-    );
-    self->ctx->current_framebuffer = -1;
-
-    if (!srgb) {
-        gl->Enable(GL_FRAMEBUFFER_SRGB);
-    }
-
-    Py_RETURN_NONE;
+    return blit_image_face(self, target, source_viewport, target_viewport, filter, srgb);
 }
 
 typedef struct vec3 {
@@ -3435,9 +3312,6 @@ static void Buffer_dealloc(Buffer * self) {
 static void Image_dealloc(Image * self) {
     Py_DECREF(self->size);
     Py_DECREF(self->format);
-    if (self->framebuffer) {
-        Py_DECREF(self->framebuffer);
-    }
     Py_DECREF(self->faces);
     Py_TYPE(self)->tp_free(self);
 }
@@ -3556,6 +3430,7 @@ static PyMemberDef Pipeline_members[] = {
 
 static PyMethodDef ImageFace_methods[] = {
     {"clear", (PyCFunction)ImageFace_meth_clear, METH_NOARGS},
+    {"read", (PyCFunction)ImageFace_meth_read, METH_VARARGS | METH_KEYWORDS},
     {"blit", (PyCFunction)ImageFace_meth_blit, METH_VARARGS | METH_KEYWORDS},
     {NULL},
 };
