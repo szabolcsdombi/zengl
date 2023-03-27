@@ -3333,6 +3333,7 @@ static void Image_dealloc(Image * self) {
     Py_DECREF(self->size);
     Py_DECREF(self->format);
     Py_DECREF(self->faces);
+    Py_DECREF(self->layers);
     Py_TYPE(self)->tp_free(self);
 }
 
