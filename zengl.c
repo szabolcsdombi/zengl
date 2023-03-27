@@ -862,7 +862,7 @@ typedef struct Image {
     int target;
     int renderbuffer;
     int layer_count;
-    int max_level;
+    int level_count;
 } Image;
 
 typedef struct Pipeline {
@@ -1964,15 +1964,17 @@ static Image * Context_meth_image(Context * self, PyObject * args, PyObject * kw
         gl->BindTexture(target, image);
         gl->TexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         gl->TexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        if (cubemap) {
-            for (int i = 0; i < 6; ++i) {
-                int face = GL_TEXTURE_CUBE_MAP_POSITIVE_X + i;
-                gl->TexImage2D(face, 0, fmt->internal_format, width, height, 0, fmt->format, fmt->type, NULL);
+        for (int level = 0; level < levels; ++level) {
+            if (cubemap) {
+                for (int i = 0; i < 6; ++i) {
+                    int face = GL_TEXTURE_CUBE_MAP_POSITIVE_X + i;
+                    gl->TexImage2D(face, level, fmt->internal_format, width, height, 0, fmt->format, fmt->type, NULL);
+                }
+            } else if (array) {
+                gl->TexImage3D(target, level, fmt->internal_format, width, height, array, 0, fmt->format, fmt->type, NULL);
+            } else {
+                gl->TexImage2D(target, level, fmt->internal_format, width, height, 0, fmt->format, fmt->type, NULL);
             }
-        } else if (array) {
-            gl->TexImage3D(target, 0, fmt->internal_format, width, height, array, 0, fmt->format, fmt->type, NULL);
-        } else {
-            gl->TexImage2D(target, 0, fmt->internal_format, width, height, 0, fmt->format, fmt->type, NULL);
         }
     }
 
@@ -2001,7 +2003,7 @@ static Image * Context_meth_image(Context * self, PyObject * args, PyObject * kw
     res->target = target;
     res->renderbuffer = renderbuffer;
     res->layer_count = (array ? array : 1) * (cubemap ? 6 : 1);
-    res->max_level = 0;
+    res->level_count = levels;
 
     if (fmt->buffer == GL_DEPTH || fmt->buffer == GL_DEPTH_STENCIL) {
         res->clear_value.clear_floats[0] = 1.0f;
@@ -2748,7 +2750,7 @@ static PyObject * Image_meth_write(Image * self, PyObject * args, PyObject * kwa
         return NULL;
     }
 
-    if (level < 0 || level > self->max_level) {
+    if (level < 0 || level > self->level_count) {
         PyErr_Format(PyExc_ValueError, "invalid level");
         return NULL;
     }
@@ -2822,7 +2824,6 @@ static PyObject * Image_meth_mipmaps(Image * self, PyObject * args) {
     gl->ActiveTexture(self->ctx->default_texture_unit);
     gl->BindTexture(self->target, self->image);
     gl->GenerateMipmap(self->target);
-    self->max_level = count_mipmaps(self->width, self->height);
     Py_RETURN_NONE;
 }
 
@@ -2877,7 +2878,7 @@ static ImageFace * Image_meth_face(Image * self, PyObject * args, PyObject * kwa
         return NULL;
     }
 
-    if (level > self->max_level) {
+    if (level > self->level_count) {
         PyErr_Format(PyExc_ValueError, "invalid level");
         return NULL;
     }
