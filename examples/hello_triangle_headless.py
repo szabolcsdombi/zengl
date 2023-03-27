@@ -3,10 +3,11 @@ from PIL import Image
 
 ctx = zengl.context(zengl.loader(headless=True))
 
-size = (256, 256)
-image = ctx.image(size, 'rgba8unorm', samples=1)
+size = (1280, 720)
+image = ctx.image(size, 'rgba8unorm', samples=4)
+image.clear_value = (0.05, 0.05, 0.05, 1.0)
 
-triangle = ctx.pipeline(
+pipeline = ctx.pipeline(
     vertex_shader='''
         #version 330 core
 
@@ -37,7 +38,7 @@ triangle = ctx.pipeline(
         layout (location = 0) out vec4 out_color;
 
         void main() {
-            out_color = vec4(v_color, 1.0);
+            out_color = vec4(pow(v_color, vec3(1.0 / 2.2)), 1.0);
         }
     ''',
     framebuffer=[image],
@@ -46,9 +47,9 @@ triangle = ctx.pipeline(
 )
 
 ctx.new_frame()
-image.clear_value = (1.0, 1.0, 1.0, 1.0)
 image.clear()
-triangle.render()
+pipeline.render()
 ctx.end_frame()
 
-Image.frombuffer('RGBA', size, image.read(), 'raw', 'RGBA', 0, -1).save('hello.png')
+img = Image.frombuffer('RGBA', size, image.read(), 'raw', 'RGBA', 0, -1)
+img.save('hello.png')
