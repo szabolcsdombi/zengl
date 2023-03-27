@@ -2,7 +2,7 @@ project = 'zengl'
 copyright = '2022, Szabolcs Dombi'
 author = 'Szabolcs Dombi'
 
-release = '1.11.0'
+release = '1.12.0'
 
 extensions = []
 templates_path = []

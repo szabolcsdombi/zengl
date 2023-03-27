@@ -5,18 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-# [main](https://github.com/szabolcsdombi/zengl/compare/1.11.0...main)
+# [main](https://github.com/szabolcsdombi/zengl/compare/1.12.0...main)
+
+# [1.12.0](https://github.com/szabolcsdombi/zengl/compare/1.11.0...1.12.0)
+
+- Changed `Image.blit()` to support `ImageFace` objects
+- Changed `ImageFace.blit()` to support `Image` objects
+- Implemented `Image.read()` and `ImageFace.read()` for cubemap and array images
+- Implemented `Image.read()` and `ImageFace.read()` for multisampled images
+- Implemented init time mipmap level allocation
+- Removed the arguments of the `Image.mipmaps` method
+- Added support for unbound vertex attributes
 
 # [1.11.0](https://github.com/szabolcsdombi/zengl/compare/1.10.2...1.11.0)
 
-- Implemented the `Context.new_frame()`and `Context.end_frame()` methods
+- Implemented the `Context.new_frame()` and `Context.end_frame()` methods
 - Removed the flush parameter from `Image.blit` method
 - Changed the `Context.pipeline()` blending parameter to blend
 - Removed the skip_validation, primitive_restart, color_mask parameters from the `Context.pipeline()` method
 - Primitive restart default index is enabled by default
 - Changed the `Context.info` tuple to a dictionary
 - Removed `glcontext` dependency for windowed rendering
-- Added `zengl.__version__` string
+- Implemented `zengl.__version__` string
 
 # [1.10.2](https://github.com/szabolcsdombi/zengl/compare/1.10.1...1.10.2)
 
