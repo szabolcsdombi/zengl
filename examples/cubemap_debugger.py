@@ -109,6 +109,12 @@ cube = ctx.pipeline(
             out_color = vec4(texture(Texture, v_vertex).rgb, 1.0);
         }
     ''',
+    layout=[
+        {
+            'name': 'Texture',
+            'binding': 0,
+        },
+    ],
     resources=[
         {
             'type': 'sampler',
@@ -185,6 +191,12 @@ flat = ctx.pipeline(
             }
         }
     ''',
+    layout=[
+        {
+            'name': 'Texture',
+            'binding': 0,
+        },
+    ],
     resources=[
         {
             'type': 'sampler',
