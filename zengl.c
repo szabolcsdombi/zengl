@@ -1521,7 +1521,12 @@ static void clear_bound_image(Image * self) {
 
 static PyObject * blit_image_face(ImageFace * src, PyObject * dst, PyObject * src_viewport, PyObject * dst_viewport, int filter, PyObject * srgb) {
     if (Py_TYPE(dst) == src->image->ctx->module_state->Image_type) {
-        dst = PyTuple_GetItem(((Image *)dst)->layers, 0);
+        Image * image = (Image *)dst;
+        if (image->array || image->cubemap) {
+            PyErr_Format(PyExc_TypeError, "cannot blit to whole cubemap or array images");
+            return NULL;
+        }
+        dst = PyTuple_GetItem(image->layers, 0);
     }
 
     if (dst != Py_None && Py_TYPE(dst) != src->image->ctx->module_state->ImageFace_type) {
@@ -1530,6 +1535,11 @@ static PyObject * blit_image_face(ImageFace * src, PyObject * dst, PyObject * sr
     }
 
     ImageFace * target = dst != Py_None ? (ImageFace *)dst : NULL;
+
+    if (target && target->image->samples > 1) {
+        PyErr_Format(PyExc_TypeError, "cannot blit to multisampled images");
+        return NULL;
+    }
 
     if (dst_viewport != Py_None && !is_viewport(dst_viewport)) {
         PyErr_Format(PyExc_TypeError, "the target viewport must be a tuple of 4 ints");
@@ -1617,6 +1627,11 @@ static PyObject * blit_image_face(ImageFace * src, PyObject * dst, PyObject * sr
 }
 
 static PyObject * read_image_face(ImageFace * src, PyObject * size_arg, PyObject * offset_arg) {
+    if (src->image->samples > 1) {
+        PyErr_Format(PyExc_TypeError, "cannot read multisampled images");
+        return NULL;
+    }
+
     IntPair size;
     IntPair offset;
 
@@ -2914,6 +2929,11 @@ static PyObject * Image_meth_read(Image * self, PyObject * vargs, PyObject * kwa
     PyObject * offset_arg = Py_None;
 
     if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "|OO", keywords, &size_arg, &offset_arg)) {
+        return NULL;
+    }
+
+    if (self->array || self->cubemap) {
+        PyErr_Format(PyExc_TypeError, "cannot read whole cubemap or array images");
         return NULL;
     }
 
