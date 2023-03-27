@@ -1573,7 +1573,7 @@ static PyObject * blit_image_face(ImageFace * src, PyObject * dst, PyObject * sr
     }
 
     if (srgb == Py_None) {
-        srgb == Py_None && src->image->fmt->internal_format != GL_SRGB8_ALPHA8;
+        srgb = src->image->fmt->internal_format == GL_SRGB8_ALPHA8 ? Py_True : Py_False;
     }
 
     const int disable_srgb = !PyObject_IsTrue(srgb);
