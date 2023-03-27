@@ -2876,49 +2876,11 @@ static PyObject * Image_meth_write(Image * self, PyObject * vargs, PyObject * kw
     Py_RETURN_NONE;
 }
 
-static PyObject * Image_meth_mipmaps(Image * self, PyObject * vargs, PyObject * kwargs) {
-    static char * keywords[] = {"base", "levels", NULL};
-
-    int base = 0;
-    PyObject * levels_arg = Py_None;
-
-    if (!PyArg_ParseTupleAndKeywords(vargs, kwargs, "|iO", keywords, &base, &levels_arg)) {
-        return NULL;
-    }
-
-    int max_levels = count_mipmaps(self->width, self->height);
-
-    if (levels_arg != Py_None && !PyLong_CheckExact(levels_arg)) {
-        PyErr_Format(PyExc_TypeError, "levels must be an int");
-        return NULL;
-    }
-
-    int levels = max_levels - base;
-    if (levels_arg != Py_None) {
-        levels = PyLong_AsLong(levels_arg);
-    }
-
-    if (base < 0 || base >= max_levels) {
-        PyErr_Format(PyExc_ValueError, "invalid base");
-        return NULL;
-    }
-
-    if (levels <= 0 || base + levels > max_levels) {
-        PyErr_Format(PyExc_ValueError, "invalid levels");
-        return NULL;
-    }
-
-    if (self->max_level < base + levels) {
-        self->max_level = base + levels;
-    }
-
+static PyObject * Image_meth_mipmaps(Image * self, PyObject * args) {
     const GLMethods * const gl = &self->ctx->gl;
+    gl->ActiveTexture(self->ctx->default_texture_unit);
     gl->BindTexture(self->target, self->image);
-    gl->TexParameteri(self->target, GL_TEXTURE_BASE_LEVEL, base);
-    gl->TexParameteri(self->target, GL_TEXTURE_MAX_LEVEL, base + levels);
     gl->GenerateMipmap(self->target);
-    gl->TexParameteri(self->target, GL_TEXTURE_BASE_LEVEL, 0);
-    gl->TexParameteri(self->target, GL_TEXTURE_MAX_LEVEL, self->max_level);
     Py_RETURN_NONE;
 }
 
@@ -3412,7 +3374,7 @@ static PyMethodDef Image_methods[] = {
     {"clear", (PyCFunction)Image_meth_clear, METH_NOARGS},
     {"write", (PyCFunction)Image_meth_write, METH_VARARGS | METH_KEYWORDS},
     {"read", (PyCFunction)Image_meth_read, METH_VARARGS | METH_KEYWORDS},
-    {"mipmaps", (PyCFunction)Image_meth_mipmaps, METH_VARARGS | METH_KEYWORDS},
+    {"mipmaps", (PyCFunction)Image_meth_mipmaps, METH_NOARGS},
     {"blit", (PyCFunction)Image_meth_blit, METH_VARARGS | METH_KEYWORDS},
     {"face", (PyCFunction)Image_meth_face, METH_VARARGS | METH_KEYWORDS},
     {NULL},
