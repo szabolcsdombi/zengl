@@ -29,15 +29,14 @@
 
     const canvas = document.getElementById('zengl-canvas');
     const gl = canvas.getContext('webgl2', {
-      // alpha: false,
-      // depth: false,
-      // stencil: false,
+      alpha: false,
+      depth: false,
+      stencil: false,
       antialias: false,
-      // premultipliedAlpha: false,
-      // preserveDrawingBuffer: false,
-      // powerPreference: 'high-performance',
+      premultipliedAlpha: false,
+      preserveDrawingBuffer: false,
+      powerPreference: 'high-performance',
     });
-    gl.clearColor(0.0, 0.0, 1.0, 1.0);
 
     const zenglSymbols = (wasm, gl) => {
       const glo = new Map();
@@ -45,87 +44,66 @@
       glo[0] = null;
       return {
         zengl_glCullFace(mode) {
-          // console.log('glCullFace', mode);
           gl.cullFace(mode);
         },
         zengl_glClear(mask) {
-          // console.log('glClear', mask);
           gl.clear(mask);
         },
         zengl_glTexParameteri(target, pname, param) {
-          // console.log('glTexParameteri', target, pname, param);
           gl.texParameteri(target, pname, param);
         },
         zengl_glTexImage2D(target, level, internalformat, width, height, border, format, type, pixels) {
-          // console.log('glTexImage2D', target, level, internalformat, width, height, border, format, type, pixels);
           gl.texImage2D(target, level, internalformat, width, height, border, format, type, null);
         },
         zengl_glDepthMask(flag) {
-          // console.log('glDepthMask', flag);
           gl.depthMask(flag);
         },
         zengl_glDisable(cap) {
-          // console.log('glDisable', cap);
           if (cap !== 0x8D69 && cap !== 0x8642 && cap !== 0x884F && cap !== 0x8DB9) {
             gl.disable(cap);
           }
         },
         zengl_glEnable(cap) {
-          // console.log('glEnable', cap);
           if (cap !== 0x8D69 && cap !== 0x8642 && cap !== 0x884F && cap !== 0x8DB9) {
             gl.enable(cap);
           }
         },
         zengl_glFlush() {
-          // console.log('glFlush');
           gl.flush();
         },
         zengl_glDepthFunc(func) {
-          // console.log('glDepthFunc', func);
           gl.depthFunc(func);
         },
         zengl_glReadBuffer(src) {
-          // console.log('glReadBuffer', src);
           gl.readBuffer(src);
         },
         zengl_glReadPixels(x, y, width, height, format, type, pixels) {
           console.log('glReadPixels', x, y, width, height, format, type, pixels);
         },
         zengl_glGetError() {
-          // console.log('glGetError');
           return gl.getError();
         },
         zengl_glGetIntegerv(pname, data) {
-          // console.log('glGetIntegerv', pname, data);
           wasm.HEAP32[data / 4] = gl.getParameter(pname);
         },
         zengl_glGetString(name) {
-          // console.log('glGetString', name);
           return wasm.stringToNewUTF8(gl.getParameter(name));
-          // console.log(gl.getParameter(name));
-          // ptr = wasm._malloc(256);
-          // wasm.HEAP8[ptr] = 0;
-          // return ptr;
         },
         zengl_glViewport(x, y, width, height) {
-          // console.log('glViewport', x, y, width, height);
           gl.viewport(x, y, width, height);
         },
         zengl_glTexSubImage2D(target, level, xoffset, yoffset, width, height, format, type, pixels) {
           console.log('glTexSubImage2D', target, level, xoffset, yoffset, width, height, format, type, pixels);
         },
         zengl_glBindTexture(target, texture) {
-          // console.log('glBindTexture', target, texture);
           gl.bindTexture(target, glo[texture]);
         },
         zengl_glDeleteTextures(n, textures) {
-          // console.log('glDeleteTextures', n, textures);
           const texture = wasm.HEAP32[textures / 4];
           gl.deleteTexture(glo[texture]);
           glo.delete(texture);
         },
         zengl_glGenTextures(n, textures) {
-          // console.log('glGenTextures', n, textures);
           const texture = glid++;
           glo[texture] = gl.createTexture();
           wasm.HEAP32[textures / 4] = texture;
@@ -137,113 +115,89 @@
           console.log('glTexSubImage3D', target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels);
         },
         zengl_glActiveTexture(texture) {
-          // console.log('glActiveTexture', texture);
           gl.activeTexture(texture);
         },
         zengl_glBlendFuncSeparate(sfactorRGB, dfactorRGB, sfactorAlpha, dfactorAlpha) {
-          // console.log('glBlendFuncSeparate', sfactorRGB, dfactorRGB, sfactorAlpha, dfactorAlpha);
           gl.blendFuncSeparate(sfactorRGB, dfactorRGB, sfactorAlpha, dfactorAlpha);
         },
         zengl_glGenQueries(n, ids) {
-          // console.log('glGenQueries', n, ids);
           // gl.getExtension('EXT_disjoint_timer_query');
           const query = glid++;
           glo[query] = gl.createQuery();
           wasm.HEAP32[ids / 4] = query;
         },
         zengl_glBeginQuery(target, id) {
-          // console.log('glBeginQuery', target, id);
         },
         zengl_glEndQuery(target) {
-          // console.log('glEndQuery', target);
         },
         zengl_glGetQueryObjectuiv(id, pname, params) {
-          // console.log('glGetQueryObjectuiv', id, pname, params);
           wasm.HEAP32[params / 4] = 0;
         },
         zengl_glBindBuffer(target, buffer) {
-          // console.log('glBindBuffer', target, buffer);
           gl.bindBuffer(target, glo[buffer]);
         },
         zengl_glDeleteBuffers(n, buffers) {
-          // console.log('glDeleteBuffers', n, buffers);
           const buffer = wasm.HEAP32[buffers / 4];
           gl.deleteBuffer(glo[buffer]);
           glo.delete(buffer);
         },
         zengl_glGenBuffers(n, buffers) {
-          // console.log('glGenBuffers', n, buffers);
           const buffer = glid++;
           glo[buffer] = gl.createBuffer();
           wasm.HEAP32[buffers / 4] = buffer;
         },
         zengl_glBufferData(target, size, data, usage) {
-          // console.log('glBufferData', target, size, data, usage);
           gl.bufferData(target, content, usage);
         },
         zengl_glBufferSubData(target, offset, size, data) {
           console.log('glBufferSubData', target, offset, size, data);
         },
         zengl_glUnmapBuffer(target) {
-          // console.log('glUnmapBuffer', target);
           return 0;
         },
         zengl_glBlendEquationSeparate(modeRGB, modeAlpha) {
-          // console.log('glBlendEquationSeparate', modeRGB, modeAlpha);
           gl.blendEquationSeparate(modeRGB, modeAlpha);
         },
         zengl_glDrawBuffers(n, bufs) {
-          // console.log('glDrawBuffers', n, bufs);
           gl.drawBuffers(wasm.HEAP32.slice(bufs / 4, bufs / 4 + n));
         },
         zengl_glStencilOpSeparate(face, sfail, dpfail, dppass) {
-          // console.log('glStencilOpSeparate', face, sfail, dpfail, dppass);
           gl.stencilOpSeparate(face, sfail, dpfail, dppass);
         },
         zengl_glStencilFuncSeparate(face, func, ref, mask) {
-          // console.log('glStencilFuncSeparate', face, func, ref, mask);
           gl.stencilFuncSeparate(face, func, ref, mask);
         },
         zengl_glStencilMaskSeparate(face, mask) {
-          // console.log('glStencilMaskSeparate', face, mask);
           gl.stencilMaskSeparate(face, mask);
         },
         zengl_glAttachShader(program, shader) {
-          // console.log('glAttachShader', program, shader);
           gl.attachShader(glo[program], glo[shader]);
         },
         zengl_glCompileShader(shader) {
-          // console.log('glCompileShader', shader);
           gl.compileShader(glo[shader]);
         },
         zengl_glCreateProgram() {
-          // console.log('glCreateProgram');
           const program = glid++;
           glo[program] = gl.createProgram();
           return program;
         },
         zengl_glCreateShader(type) {
-          // console.log('glCreateShader', type);
           const shader = glid++;
           glo[shader] = gl.createShader(type);
           return shader;
         },
         zengl_glDeleteProgram(program) {
-          // console.log('glDeleteProgram', program);
           gl.deleteProgram(glo[program]);
           glo.delete(program);
         },
         zengl_glDeleteShader(shader) {
-          // console.log('glDeleteShader', shader);
           gl.deleteShader(glo[shader]);
           glo.delete(shader);
         },
         zengl_glEnableVertexAttribArray(index) {
-          // console.log('glEnableVertexAttribArray', index);
           gl.enableVertexAttribArray(index);
         },
         zengl_glGetActiveAttrib(program, index, bufSize, length, size, type, name) {
-          // console.log('glGetActiveAttrib', program, index, bufSize, length, size, type, name);
           const info = gl.getActiveAttrib(glo[program], index);
           wasm.stringToAscii(info.name, name);
           wasm.HEAP32[length / 4] = info.name.length;
@@ -251,7 +205,6 @@
           wasm.HEAP32[type / 4] = info.type;
         },
         zengl_glGetActiveUniform(program, index, bufSize, length, size, type, name) {
-          // console.log('glGetActiveUniform', program, index, bufSize, length, size, type, name);
           const info = gl.getActiveUniform(glo[program], index);
           wasm.stringToAscii(info.name, name);
           wasm.HEAP32[length / 4] = info.name.length;
@@ -259,11 +212,9 @@
           wasm.HEAP32[type / 4] = info.type;
         },
         zengl_glGetAttribLocation(program, name) {
-          // console.log('glGetAttribLocation', program, name);
           return gl.getAttribLocation(glo[program], wasm.UTF8ToString(name));
         },
         zengl_glGetProgramiv(program, pname, params) {
-          // console.log('glGetProgramiv', program, pname, params);
           if (pname === 0x8B84) {
             wasm.HEAP32[params / 4] = gl.getProgramInfoLog(glo[program]).length;
           } else {
@@ -271,12 +222,10 @@
           }
         },
         zengl_glGetProgramInfoLog(program, bufSize, length, infoLog) {
-          // console.log('glGetProgramInfoLog', program, bufSize, length, infoLog);
           const log = wasm.stringToNewUTF8(gl.getProgramInfoLog(glo[program]));
           wasm._strcpy(infoLog, log);
         },
         zengl_glGetShaderiv(shader, pname, params) {
-          // console.log('glGetShaderiv', shader, pname, params);
           if (pname === 0x8B84) {
             wasm.HEAP32[params / 4] = gl.getShaderInfoLog(glo[shader]).length;
           } else {
@@ -284,12 +233,10 @@
           }
         },
         zengl_glGetShaderInfoLog(shader, bufSize, length, infoLog) {
-          // console.log('glGetShaderInfoLog', shader, bufSize, length, infoLog);
           const log = wasm.stringToNewUTF8(gl.getShaderInfoLog(glo[shader]));
           wasm._strcpy(infoLog, log);
         },
         zengl_glGetUniformLocation(program, name) {
-          // console.log('glGetUniformLocation', program, name);
           const uniform = gl.getUniformLocation(glo[program], wasm.UTF8ToString(name));
           if (uniform !== null) {
             const location = glid++;
@@ -299,273 +246,211 @@
           return -1;
         },
         zengl_glLinkProgram(program) {
-          // console.log('glLinkProgram', program);
           gl.linkProgram(glo[program]);
         },
         zengl_glShaderSource(shader, count, string, length) {
-          // console.log('glShaderSource', shader, count, string, length);
           gl.shaderSource(glo[shader], wasm.UTF8ToString(wasm.HEAP32[string / 4]));
         },
         zengl_glUseProgram(program) {
-          // console.log('glUseProgram', program);
           gl.useProgram(glo[program]);
         },
         zengl_glUniform1i(location, v0) {
-          // console.log('glUniform1i', location, v0);
           gl.uniform1i(glo[location], v0);
         },
         zengl_glUniform1fv(location, count, value) {
-          // console.log('glUniform1fv', location, count, value);
           gl.uniform1fv(glo[location], wasm.HEAPF32.slice(value / 4, value / 4 + count));
         },
         zengl_glUniform2fv(location, count, value) {
-          // console.log('glUniform2fv', location, count, value);
           gl.uniform2fv(glo[location], wasm.HEAPF32.slice(value / 4, value / 4 + count * 2));
         },
         zengl_glUniform3fv(location, count, value) {
-          // console.log('glUniform3fv', location, count, value);
           gl.uniform3fv(glo[location], wasm.HEAPF32.slice(value / 4, value / 4 + count * 3));
         },
         zengl_glUniform4fv(location, count, value) {
-          // console.log('glUniform4fv', location, count, value);
           gl.uniform4fv(glo[location], wasm.HEAPF32.slice(value / 4, value / 4 + count * 4));
         },
         zengl_glUniform1iv(location, count, value) {
-          // console.log('glUniform1iv', location, count, value);
           gl.uniform1iv(glo[location], wasm.HEAP32.slice(value / 4, value / 4 + count));
         },
         zengl_glUniform2iv(location, count, value) {
-          // console.log('glUniform2iv', location, count, value);
           gl.uniform2iv(glo[location], wasm.HEAP32.slice(value / 4, value / 4 + count * 2));
         },
         zengl_glUniform3iv(location, count, value) {
-          // console.log('glUniform3iv', location, count, value);
           gl.uniform3iv(glo[location], wasm.HEAP32.slice(value / 4, value / 4 + count * 3));
         },
         zengl_glUniform4iv(location, count, value) {
-          // console.log('glUniform4iv', location, count, value);
           gl.uniform4iv(glo[location], wasm.HEAP32.slice(value / 4, value / 4 + count * 4));
         },
         zengl_glUniformMatrix2fv(location, count, transpose, value) {
-          // console.log('glUniformMatrix2fv', location, count, transpose, value);
           gl.uniformMatrix2fv(glo[location], wasm.HEAPF32.slice(value / 4, value / 4 + count * 4));
         },
         zengl_glUniformMatrix3fv(location, count, transpose, value) {
-          // console.log('glUniformMatrix3fv', location, count, transpose, value);
           gl.uniformMatrix3fv(glo[location], wasm.HEAPF32.slice(value / 4, value / 4 + count * 9));
         },
         zengl_glUniformMatrix4fv(location, count, transpose, value) {
-          // console.log('glUniformMatrix4fv', location, count, transpose, value);
           gl.uniformMatrix4fv(glo[location], wasm.HEAPF32.slice(value / 4, value / 4 + count * 16));
         },
         zengl_glVertexAttribPointer(index, size, type, normalized, stride, pointer) {
-          // console.log('glVertexAttribPointer', index, size, type, normalized, stride, pointer);
           gl.vertexAttribPointer(index, size, type, normalized, stride, pointer);
         },
         zengl_glUniformMatrix2x3fv(location, count, transpose, value) {
-          // console.log('glUniformMatrix2x3fv', location, count, transpose, value);
           gl.uniformMatrix2x3fv(glo[location], wasm.HEAPF32.slice(value / 4, value / 4 + count * 6));
         },
         zengl_glUniformMatrix3x2fv(location, count, transpose, value) {
-          // console.log('glUniformMatrix3x2fv', location, count, transpose, value);
           gl.uniformMatrix3x2fv(glo[location], wasm.HEAPF32.slice(value / 4, value / 4 + count * 6));
         },
         zengl_glUniformMatrix2x4fv(location, count, transpose, value) {
-          // console.log('glUniformMatrix2x4fv', location, count, transpose, value);
           gl.uniformMatrix2x4fv(glo[location], wasm.HEAPF32.slice(value / 4, value / 4 + count * 8));
         },
         zengl_glUniformMatrix4x2fv(location, count, transpose, value) {
-          // console.log('glUniformMatrix4x2fv', location, count, transpose, value);
           gl.uniformMatrix4x2fv(glo[location], wasm.HEAPF32.slice(value / 4, value / 4 + count * 8));
         },
         zengl_glUniformMatrix3x4fv(location, count, transpose, value) {
-          // console.log('glUniformMatrix3x4fv', location, count, transpose, value);
           gl.uniformMatrix3x4fv(glo[location], wasm.HEAPF32.slice(value / 4, value / 4 + count * 12));
         },
         zengl_glUniformMatrix4x3fv(location, count, transpose, value) {
-          // console.log('glUniformMatrix4x3fv', location, count, transpose, value);
           gl.uniformMatrix4x3fv(glo[location], wasm.HEAPF32.slice(value / 4, value / 4 + count * 12));
         },
         zengl_glBindBufferRange(target, index, buffer, offset, size) {
-          // console.log('glBindBufferRange', target, index, buffer, offset, size);
           gl.bindBufferRange(target, index, glo[buffer], offset, size);
         },
         zengl_glVertexAttribIPointer(index, size, type, stride, pointer) {
-          // console.log('glVertexAttribIPointer', index, size, type, stride, pointer);
           gl.vertexAttribIPointer(index, size, type, stride, pointer);
         },
         zengl_glUniform1uiv(location, count, value) {
-          // console.log('glUniform1uiv', location, count, value);
           gl.uniform1uiv(glo[location], wasm.HEAPU32.slice(value / 4, value / 4 + count));
         },
         zengl_glUniform2uiv(location, count, value) {
-          // console.log('glUniform2uiv', location, count, value);
           gl.uniform2uiv(glo[location], wasm.HEAPU32.slice(value / 4, value / 4 + count * 2));
         },
         zengl_glUniform3uiv(location, count, value) {
-          // console.log('glUniform3uiv', location, count, value);
           gl.uniform3uiv(glo[location], wasm.HEAPU32.slice(value / 4, value / 4 + count * 3));
         },
         zengl_glUniform4uiv(location, count, value) {
-          // console.log('glUniform4uiv', location, count, value);
           gl.uniform4uiv(glo[location], wasm.HEAPU32.slice(value / 4, value / 4 + count * 4));
         },
         zengl_glClearBufferiv(buffer, drawbuffer, value) {
-          // console.log('glClearBufferiv', buffer, drawbuffer, value);
           gl.clearBufferiv(buffer, drawbuffer, wasm.HEAP32.slice(value / 4, value / 4 + 4));
         },
         zengl_glClearBufferuiv(buffer, drawbuffer, value) {
-          // console.log('glClearBufferuiv', buffer, drawbuffer, value);
           gl.clearBufferuiv(buffer, drawbuffer, wasm.HEAPU32.slice(value / 4, value / 4 + 4));
         },
         zengl_glClearBufferfv(buffer, drawbuffer, value) {
-          // console.log('glClearBufferfv', buffer, drawbuffer, value);
           gl.clearBufferfv(buffer, drawbuffer, wasm.HEAPF32.slice(value / 4, value / 4 + 4));
         },
         zengl_glClearBufferfi(buffer, drawbuffer, depth, stencil) {
-          // console.log('glClearBufferfi', buffer, drawbuffer, depth, stencil);
           gl.clearBufferfi(buffer, drawbuffer, depth, stencil);
         },
         zengl_glBindRenderbuffer(target, renderbuffer) {
-          // console.log('glBindRenderbuffer', target, renderbuffer);
           gl.bindRenderbuffer(target, glo[renderbuffer]);
         },
         zengl_glDeleteRenderbuffers(n, renderbuffers) {
-          // console.log('glDeleteRenderbuffers', n, renderbuffers);
           const renderbuffer = wasm.HEAP32[renderbuffers / 4];
           gl.deleteRenderbuffer(glo[renderbuffer]);
           glo.delete(renderbuffer);
         },
         zengl_glGenRenderbuffers(n, renderbuffers) {
-          // console.log('glGenRenderbuffers', n, renderbuffers);
           const renderbuffer = glid++;
           glo[renderbuffer] = gl.createRenderbuffer();
           wasm.HEAP32[renderbuffers / 4] = renderbuffer;
         },
         zengl_glBindFramebuffer(target, framebuffer) {
-          // console.log('glBindFramebuffer', target, framebuffer);
           gl.bindFramebuffer(target, glo[framebuffer]);
         },
         zengl_glDeleteFramebuffers(n, framebuffers) {
-          // console.log('glDeleteFramebuffers', n, framebuffers);
           const framebuffer = wasm.HEAP32[framebuffers / 4];
           gl.deleteFramebuffer(glo[framebuffer]);
           glo.delete(framebuffer);
         },
         zengl_glGenFramebuffers(n, framebuffers) {
-          // console.log('glGenFramebuffers', n, framebuffers);
           const framebuffer = glid++;
           glo[framebuffer] = gl.createFramebuffer();
           wasm.HEAP32[framebuffers / 4] = framebuffer;
         },
         zengl_glFramebufferTexture2D(target, attachment, textarget, texture, level) {
-          // console.log('glFramebufferTexture2D', target, attachment, textarget, texture, level);
           gl.framebufferTexture2D(target, attachment, textarget, glo[texture], level);
         },
         zengl_glFramebufferRenderbuffer(target, attachment, renderbuffertarget, renderbuffer) {
-          // console.log('glFramebufferRenderbuffer', target, attachment, renderbuffertarget, renderbuffer);
           gl.framebufferRenderbuffer(target, attachment, renderbuffertarget, glo[renderbuffer]);
         },
         zengl_glGenerateMipmap(target) {
-          // console.log('glGenerateMipmap', target);
           gl.generateMipmap(target);
         },
         zengl_glBlitFramebuffer(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter) {
-          // console.log('glBlitFramebuffer', srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);
           gl.blitFramebuffer(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);
         },
         zengl_glRenderbufferStorageMultisample(target, samples, internalformat, width, height) {
-          // console.log('glRenderbufferStorageMultisample', target, samples, internalformat, width, height);
           gl.renderbufferStorageMultisample(target, samples, internalformat, width, height);
         },
         zengl_glFramebufferTextureLayer(target, attachment, texture, level, layer) {
-          // console.log('glFramebufferTextureLayer', target, attachment, texture, level, layer);
           gl.framebufferTextureLayer(target, attachment, texture, level, layer);
         },
         zengl_glMapBufferRange(target, offset, length, access) {
-          // console.log('glMapBufferRange', target, offset, length, access);
           return 0;
         },
         zengl_glBindVertexArray(array) {
-          // console.log('glBindVertexArray', array);
           gl.bindVertexArray(glo[array]);
         },
         zengl_glDeleteVertexArrays(n, arrays) {
-          // console.log('glDeleteVertexArrays', n, arrays);
           const array = wasm.HEAP32[arrays / 4];
           gl.deleteVertexArray(glo[array]);
           glo.delete(array);
         },
         zengl_glGenVertexArrays(n, arrays) {
-          // console.log('glGenVertexArrays', n, arrays);
           const array = glid++;
           glo[array] = gl.createVertexArray();
           wasm.HEAP32[arrays / 4] = array;
         },
         zengl_glDrawArraysInstanced(mode, first, count, instancecount) {
-          // console.log('glDrawArraysInstanced', mode, first, count, instancecount);
           gl.drawArraysInstanced(mode, first, count, instancecount);
         },
         zengl_glDrawElementsInstanced(mode, count, type, indices, instancecount) {
-          // console.log('glDrawElementsInstanced', mode, count, type, indices, instancecount);
           gl.drawElementsInstanced(mode, count, type, indices, instancecount);
         },
         zengl_glGetUniformBlockIndex(program, uniformBlockName) {
-          // console.log('glGetUniformBlockIndex', program, uniformBlockName);
           return gl.getUniformBlockIndex(glo[program], wasm.UTF8ToString(uniformBlockName));
         },
         zengl_glGetActiveUniformBlockiv(program, uniformBlockIndex, pname, params) {
-          // console.log('glGetActiveUniformBlockiv', program, uniformBlockIndex, pname, params);
           wasm.HEAP32[params / 4] = gl.getActiveUniformBlockParameter(glo[program], uniformBlockIndex, pname);
         },
         zengl_glGetActiveUniformBlockName(program, uniformBlockIndex, bufSize, length, uniformBlockName) {
           console.log('glGetActiveUniformBlockName', program, uniformBlockIndex, bufSize, length, uniformBlockName);
         },
         zengl_glUniformBlockBinding(program, uniformBlockIndex, uniformBlockBinding) {
-          // console.log('glUniformBlockBinding', program, uniformBlockIndex, uniformBlockBinding);
           gl.uniformBlockBinding(glo[program], uniformBlockIndex, uniformBlockBinding);
         },
         zengl_glFenceSync(condition, flags) {
-          // console.log('glFenceSync', condition, flags);
           const sync = glid++;
           glo[sync] = gl.fenceSync(condition, flags);
           return sync;
         },
         zengl_glDeleteSync(sync) {
-          // console.log('glDeleteSync', sync);
           gl.deleteSync(glo[sync]);
           glo.delete(sync);
         },
         zengl_glClientWaitSync(sync, flags, timeout) {
-          // console.log('glClientWaitSync', sync, flags, timeout);
           gl.clientWaitSync(sync, flags, timeout);
         },
         zengl_glGenSamplers(count, samplers) {
-          // console.log('glGenSamplers', count, samplers);
           const sampler = glid++;
           glo[sampler] = gl.createSampler();
           wasm.HEAP32[samplers / 4] = sampler;
         },
         zengl_glDeleteSamplers(count, samplers) {
-          // console.log('glDeleteSamplers', count, samplers);
           const sampler = wasm.HEAP32[samplers / 4];
           gl.deleteSampler(glo[sampler]);
           glo.delete(sampler);
         },
         zengl_glBindSampler(unit, sampler) {
-          // console.log('glBindSampler', unit, sampler);
           gl.bindSampler(unit, glo[sampler]);
         },
         zengl_glSamplerParameteri(sampler, pname, param) {
-          // console.log('glSamplerParameteri', sampler, pname, param);
           gl.samplerParameteri(glo[sampler], pname, param);
         },
         zengl_glSamplerParameterf(sampler, pname, param) {
-          // console.log('glSamplerParameterf', sampler, pname, param);
           gl.samplerParameterf(glo[sampler], pname, param);
         },
         zengl_glVertexAttribDivisor(index, divisor) {
-          // console.log('glVertexAttribDivisor', index, divisor);
           gl.vertexAttribDivisor(index, divisor);
         },
       };
@@ -573,69 +458,6 @@
 
     pyodide._module.mergeLibSymbols(zenglSymbols(pyodide._module, gl));
 
-    // pyodide.runPython(`
-    //   import struct
-
-    //   import zengl
-    //   import webgl
-
-    //   ctx = zengl.context(webgl)
-    //   print(ctx.info, ctx.limits)
-
-    //   pipeline = ctx.pipeline(
-    //       vertex_shader='''
-    //           #version 300 es
-    //           precision highp float;
-
-    //           out vec3 v_color;
-
-    //           vec2 positions[3] = vec2[](
-    //               vec2(1.0, 0.0),
-    //               vec2(-0.5, -0.86),
-    //               vec2(-0.5, 0.86)
-    //           );
-
-    //           vec3 colors[3] = vec3[](
-    //               vec3(1.0, 0.0, 0.0),
-    //               vec3(0.0, 1.0, 0.0),
-    //               vec3(0.0, 0.0, 1.0)
-    //           );
-
-    //           uniform float time;
-    //           uniform vec2 scale;
-
-    //           void main() {
-    //               mat2 rot = mat2(cos(time), sin(time), -sin(time), cos(time));
-    //               gl_Position = vec4(rot * positions[gl_VertexID] * scale, 0.0, 1.0);
-    //               v_color = colors[gl_VertexID];
-    //           }
-    //       ''',
-    //       fragment_shader='''
-    //           #version 300 es
-    //           precision highp float;
-
-    //           in vec3 v_color;
-
-    //           layout (location = 0) out vec4 out_color;
-
-    //           void main() {
-    //               out_color = vec4(v_color, 1.0);
-    //               out_color.rgb = pow(out_color.rgb, vec3(1.0 / 2.2));
-    //           }
-    //       ''',
-    //       framebuffer=None,
-    //       viewport=(0, 0, 1280, 720),
-    //       uniforms={
-    //           'time': 0.0,
-    //           'scale': (0.8 * 9.0 / 16.0, 0.8),
-    //       },
-    //       topology='triangles',
-    //       vertex_count=3,
-    //   )
-    //   ctx.new_frame()
-    //   pipeline.render()
-    //   ctx.end_frame()
-    // `);
     const example = window.location.href.split('?example=')[1] || 'triangle';
     pyodide.runPython(`from examples.${example} import render`);
     const frame = () => {
