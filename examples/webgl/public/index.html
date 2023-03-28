@@ -93,7 +93,13 @@
           gl.viewport(x, y, width, height);
         },
         zengl_glTexSubImage2D(target, level, xoffset, yoffset, width, height, format, type, pixels) {
-          console.log('glTexSubImage2D', target, level, xoffset, yoffset, width, height, format, type, pixels);
+          if (type === 0x1401) {
+            const size = width * height * 4;
+            const data = wasm.HEAPU8.slice(pixels, pixels + size);
+            gl.texSubImage2D(target, level, xoffset, yoffset, width, height, format, type, data);
+          } else {
+            console.log('glTexSubImage2D', target, level, xoffset, yoffset, width, height, format, type, pixels);
+          }
         },
         zengl_glBindTexture(target, texture) {
           gl.bindTexture(target, glo[texture]);
@@ -147,10 +153,10 @@
           wasm.HEAP32[buffers / 4] = buffer;
         },
         zengl_glBufferData(target, size, data, usage) {
-          gl.bufferData(target, content, usage);
+          gl.bufferData(target, size, usage);
         },
         zengl_glBufferSubData(target, offset, size, data) {
-          console.log('glBufferSubData', target, offset, size, data);
+          gl.bufferSubData(target, offset, wasm.HEAPU8.slice(data, data + size));
         },
         zengl_glUnmapBuffer(target) {
           return 0;
@@ -414,7 +420,7 @@
           wasm.HEAP32[params / 4] = gl.getActiveUniformBlockParameter(glo[program], uniformBlockIndex, pname);
         },
         zengl_glGetActiveUniformBlockName(program, uniformBlockIndex, bufSize, length, uniformBlockName) {
-          console.log('glGetActiveUniformBlockName', program, uniformBlockIndex, bufSize, length, uniformBlockName);
+          wasm.stringToAscii(gl.getActiveUniformBlockName(glo[program], uniformBlockIndex), uniformBlockName);
         },
         zengl_glUniformBlockBinding(program, uniformBlockIndex, uniformBlockBinding) {
           gl.uniformBlockBinding(glo[program], uniformBlockIndex, uniformBlockBinding);

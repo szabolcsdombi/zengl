@@ -2,14 +2,18 @@ import math
 import struct
 
 import zengl
+import webgl
 
-from . import assets, webgl
+window_size = (1280, 720)
+window_aspect = window_size[0] / window_size[1]
+window_time = 0.0
 
-window = webgl.Canvas()
-ctx = zengl.context(window)
+from . import assets
 
-image = ctx.image(window.size, 'rgba8unorm', texture=False)
-depth = ctx.image(window.size, 'depth24plus', texture=False)
+ctx = zengl.context(webgl)
+
+image = ctx.image(window_size, 'rgba8unorm', texture=False)
+depth = ctx.image(window_size, 'depth24plus', texture=False)
 image.clear_value = (0.05, 0.05, 0.05, 1.0)
 
 vertex_buffer = ctx.buffer(open(assets.get('cube-model.bin'), 'rb').read())
@@ -95,8 +99,10 @@ crate = ctx.pipeline(
 
 
 def render():
-    x, y = math.sin(window.time * 0.5) * 3.0, math.cos(window.time * 0.5) * 3.0
-    camera = zengl.camera((x, y, 1.5), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
+    global window_time
+    window_time += 1.0 / 60.0
+    x, y = math.sin(window_time * 0.5) * 3.0, math.cos(window_time * 0.5) * 3.0
+    camera = zengl.camera((x, y, 1.5), (0.0, 0.0, 0.0), aspect=window_aspect, fov=45.0)
 
     ctx.new_frame()
     uniform_buffer.write(camera)
@@ -107,4 +113,3 @@ def render():
     crate.render()
     image.blit()
     ctx.end_frame()
-    window.update()
