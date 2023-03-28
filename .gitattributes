@@ -2,6 +2,7 @@
 examples/** linguist-documentation=false
 **/Dockerfile linguist-detectable=false
 *.html linguist-detectable=false
+*.js linguist-detectable=false
 *.vert linguist-detectable=false
 *.frag linguist-detectable=false
 *.glsl linguist-detectable=false
