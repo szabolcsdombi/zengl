@@ -275,34 +275,34 @@ const zenglSymbols = (wasm) => {
       gl.uniform4iv(glo[location], wasm.HEAP32.subarray(value / 4, value / 4 + count * 4));
     },
     zengl_glUniformMatrix2fv(location, count, transpose, value) {
-      gl.uniformMatrix2fv(glo[location], wasm.HEAPF32.subarray(value / 4, value / 4 + count * 4));
+      gl.uniformMatrix2fv(glo[location], transpose, transpose, wasm.HEAPF32.subarray(value / 4, value / 4 + count * 4));
     },
     zengl_glUniformMatrix3fv(location, count, transpose, value) {
-      gl.uniformMatrix3fv(glo[location], wasm.HEAPF32.subarray(value / 4, value / 4 + count * 9));
+      gl.uniformMatrix3fv(glo[location], transpose, wasm.HEAPF32.subarray(value / 4, value / 4 + count * 9));
     },
     zengl_glUniformMatrix4fv(location, count, transpose, value) {
-      gl.uniformMatrix4fv(glo[location], wasm.HEAPF32.subarray(value / 4, value / 4 + count * 16));
+      gl.uniformMatrix4fv(glo[location], transpose, wasm.HEAPF32.subarray(value / 4, value / 4 + count * 16));
     },
     zengl_glVertexAttribPointer(index, size, type, normalized, stride, pointer) {
       gl.vertexAttribPointer(index, size, type, normalized, stride, pointer);
     },
     zengl_glUniformMatrix2x3fv(location, count, transpose, value) {
-      gl.uniformMatrix2x3fv(glo[location], wasm.HEAPF32.subarray(value / 4, value / 4 + count * 6));
+      gl.uniformMatrix2x3fv(glo[location], transpose, wasm.HEAPF32.subarray(value / 4, value / 4 + count * 6));
     },
     zengl_glUniformMatrix3x2fv(location, count, transpose, value) {
-      gl.uniformMatrix3x2fv(glo[location], wasm.HEAPF32.subarray(value / 4, value / 4 + count * 6));
+      gl.uniformMatrix3x2fv(glo[location], transpose, wasm.HEAPF32.subarray(value / 4, value / 4 + count * 6));
     },
     zengl_glUniformMatrix2x4fv(location, count, transpose, value) {
-      gl.uniformMatrix2x4fv(glo[location], wasm.HEAPF32.subarray(value / 4, value / 4 + count * 8));
+      gl.uniformMatrix2x4fv(glo[location], transpose, wasm.HEAPF32.subarray(value / 4, value / 4 + count * 8));
     },
     zengl_glUniformMatrix4x2fv(location, count, transpose, value) {
-      gl.uniformMatrix4x2fv(glo[location], wasm.HEAPF32.subarray(value / 4, value / 4 + count * 8));
+      gl.uniformMatrix4x2fv(glo[location], transpose, wasm.HEAPF32.subarray(value / 4, value / 4 + count * 8));
     },
     zengl_glUniformMatrix3x4fv(location, count, transpose, value) {
-      gl.uniformMatrix3x4fv(glo[location], wasm.HEAPF32.subarray(value / 4, value / 4 + count * 12));
+      gl.uniformMatrix3x4fv(glo[location], transpose, wasm.HEAPF32.subarray(value / 4, value / 4 + count * 12));
     },
     zengl_glUniformMatrix4x3fv(location, count, transpose, value) {
-      gl.uniformMatrix4x3fv(glo[location], wasm.HEAPF32.subarray(value / 4, value / 4 + count * 12));
+      gl.uniformMatrix4x3fv(glo[location], transpose, wasm.HEAPF32.subarray(value / 4, value / 4 + count * 12));
     },
     zengl_glBindBufferRange(target, index, buffer, offset, size) {
       gl.bindBufferRange(target, index, glo[buffer], offset, size);
