@@ -3,14 +3,12 @@ import struct
 import zengl
 import webgl
 
-window_size = (1280, 720)
-window_aspect = window_size[0] / window_size[1]
-window_time = 0.0
+window = webgl.window()
 
-ctx = zengl.context(webgl)
+ctx = zengl.context(window)
 print(ctx.info, ctx.limits)
 
-image = ctx.image(window_size, 'rgba8unorm', texture=False)
+image = ctx.image(window.size, 'rgba8unorm', texture=False)
 image.clear_value = (0.0, 0.0, 0.0, 1.0)
 
 pipeline = ctx.pipeline(
@@ -57,7 +55,7 @@ pipeline = ctx.pipeline(
     framebuffer=[image],
     uniforms={
         'time': 0.0,
-        'scale': (0.8 / window_aspect, 0.8),
+        'scale': (0.8 / window.aspect, 0.8),
     },
     topology='triangles',
     vertex_count=3,
@@ -67,11 +65,10 @@ print(zengl.inspect(pipeline))
 
 
 def render():
-    global window_time
-    window_time += 1.0 / 60.0
+    window.update()
     ctx.new_frame()
     image.clear()
-    pipeline.uniforms['time'][:] = struct.pack('f', window_time)
+    pipeline.uniforms['time'][:] = struct.pack('f', window.time)
     pipeline.render()
     image.blit()
     ctx.end_frame()

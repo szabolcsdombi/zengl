@@ -5,13 +5,10 @@ from math import cos, pi, sin, sqrt
 import zengl
 import webgl
 
-window_size = (1280, 720)
-window_aspect = window_size[0] / window_size[1]
-window_time = 0.0
-
 from . import assets
 
-ctx = zengl.context(webgl)
+window = webgl.window()
+ctx = zengl.context(window)
 
 
 def random_rotation():
@@ -50,8 +47,8 @@ def axisangle(axis, angle):
     return axis[0] * s, axis[1] * s, axis[2] * s, cos(angle / 2.0)
 
 
-image = ctx.image(window_size, 'rgba8unorm', texture=False)
-depth = ctx.image(window_size, 'depth24plus', texture=False)
+image = ctx.image(window.size, 'rgba8unorm', texture=False)
+depth = ctx.image(window.size, 'depth24plus', texture=False)
 image.clear_value = (0.2, 0.2, 0.2, 1.0)
 
 vertex_buffer = ctx.buffer(open(assets.get('food-model.bin'), 'rb').read())
@@ -138,7 +135,7 @@ pipeline = ctx.pipeline(
     vertex_count=vertex_buffer.size // zengl.calcsize('3f 3f 4nu1 1i'),
 )
 
-camera = zengl.camera((1.0, -4.0, 2.0), (0.0, 0.0, 0.5), aspect=window_aspect, fov=45.0)
+camera = zengl.camera((1.0, -4.0, 2.0), (0.0, 0.0, 0.5), aspect=window.aspect, fov=45.0)
 uniform_buffer.write(camera)
 
 packer = struct.Struct('8f')
@@ -173,9 +170,8 @@ rotation_axis = [qtransform(random_rotation(), (0.0, 0.0, 1.0)) for _ in range(2
 
 
 def render():
-    global window_time
-    window_time += 1.0 / 60.0
-    t = window_time
+    window.update()
+    t = window.time
     packer.pack_into(bones, 2 * 32, 0.0, 0.0, 0.8, 1.0, *axisangle((0.0, 0.0, 1.0), t * 20.0))
     for i in range(7, 207):
         a = offset[i] + t * speed[i]

@@ -8,7 +8,6 @@
   <title>ZenGL Examples</title>
 </head>
 <body>
-<canvas id="zengl-canvas" width="1280" height="720"></canvas>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.22.1/full/pyodide.js"></script>
 <ul>
   <li><a href="?example=triangle">Triangle</a></li>
@@ -27,22 +26,33 @@
       'examples-0.1.0-py3-none-any.whl',
     ]);
 
-    const canvas = document.getElementById('zengl-canvas');
-    const gl = canvas.getContext('webgl2', {
-      alpha: false,
-      depth: false,
-      stencil: false,
-      antialias: false,
-      premultipliedAlpha: false,
-      preserveDrawingBuffer: false,
-      powerPreference: 'high-performance',
-    });
-
-    const zenglSymbols = (wasm, gl) => {
+    const zenglSymbols = (wasm) => {
+      const textEncoder = new TextEncoder('utf-8');
+      const textDecoder = new TextDecoder('utf-8');
+      const recvString = (ptr) => {
+        textDecoder.decode(wasm.HEAPU8.subarray(ptr));
+      };
       const glo = new Map();
       let glid = 1;
       glo[0] = null;
+      let canvas = null;
+      let gl = null;
       return {
+        zengl_create_window(width, height) {
+          canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          document.body.appendChild(canvas);
+          gl = canvas.getContext('webgl2', {
+            alpha: false,
+            depth: false,
+            stencil: false,
+            antialias: false,
+            premultipliedAlpha: false,
+            preserveDrawingBuffer: false,
+            powerPreference: 'high-performance',
+          });
+        },
         zengl_glCullFace(mode) {
           gl.cullFace(mode);
         },
@@ -85,9 +95,6 @@
         },
         zengl_glGetIntegerv(pname, data) {
           wasm.HEAP32[data / 4] = gl.getParameter(pname);
-        },
-        zengl_glGetString(name) {
-          return wasm.stringToNewUTF8(gl.getParameter(name));
         },
         zengl_glViewport(x, y, width, height) {
           gl.viewport(x, y, width, height);
@@ -462,7 +469,7 @@
       };
     };
 
-    pyodide._module.mergeLibSymbols(zenglSymbols(pyodide._module, gl));
+    pyodide._module.mergeLibSymbols(zenglSymbols(pyodide._module));
 
     const example = window.location.href.split('?example=')[1] || 'triangle';
     pyodide.runPython(`from examples.${example} import render`);

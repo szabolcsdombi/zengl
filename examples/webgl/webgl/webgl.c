@@ -1,4 +1,5 @@
 #include <Python.h>
+#include <structmember.h>
 
 typedef signed long int GLintptr;
 typedef signed long int GLsizeiptr;
@@ -14,6 +15,8 @@ typedef unsigned char GLubyte;
 typedef char GLchar;
 typedef void * GLsync;
 
+extern void zengl_create_window(int width, int height);
+
 extern void zengl_glCullFace(GLenum mode);
 extern void zengl_glClear(GLbitfield mask);
 extern void zengl_glTexParameteri(GLenum target, GLenum pname, GLint param);
@@ -27,7 +30,6 @@ extern void zengl_glReadBuffer(GLenum src);
 extern void zengl_glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, void *pixels);
 extern GLenum zengl_glGetError(void);
 extern void zengl_glGetIntegerv(GLenum pname, GLint *data);
-extern const GLubyte *zengl_glGetString(GLenum name);
 extern void zengl_glViewport(GLint x, GLint y, GLsizei width, GLsizei height);
 extern void zengl_glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels);
 extern void zengl_glBindTexture(GLenum target, GLuint texture);
@@ -184,7 +186,13 @@ void impl_glGetIntegerv(GLenum pname, GLint *data) {
 }
 
 const GLubyte *impl_glGetString(GLenum name) {
-    return zengl_glGetString(name);
+    switch (name) {
+        case 0x1F00: return (GLubyte *)"WebKit";
+        case 0x1F01: return (GLubyte *)"WebKit WebGL";
+        case 0x1F02: return (GLubyte *)"WebGL 2.0 (OpenGL ES 3.0)";
+        case 0x8B8C: return (GLubyte *)"WebGL GLSL ES 3.00 (OpenGL ES GLSL ES 3.0)";
+    }
+    return NULL;
 }
 
 void impl_glViewport(GLint x, GLint y, GLsizei width, GLsizei height) {
@@ -608,134 +616,196 @@ static PyObject * load_opengl_function(PyObject * self, PyObject * arg) {
     }
     Py_INCREF(res);
     return res;
-    zengl_glCullFace(1);
 }
 
-PyMethodDef module_methods[] = {
-    {"load_opengl_function", (PyCFunction)load_opengl_function, METH_O, NULL},
-    {},
+typedef struct Window {
+    PyObject_HEAD
+    PyObject * size;
+    PyObject * aspect;
+    PyObject * mouse;
+    PyObject * time;
+} Window;
+
+PyTypeObject * Window_type;
+
+Window * meth_window(PyObject * self, PyObject * args, PyObject * kwargs) {
+    const char * keywords[] = {"size", NULL};
+
+    int width = 1280;
+    int height = 720;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|(ii)", (char **)keywords, &width, &height)) {
+        return NULL;
+    }
+    Window * res = PyObject_New(Window, Window_type);
+    zengl_create_window(width, height);
+    res->size = Py_BuildValue("(ii)", width, height);
+    res->aspect = PyFloat_FromDouble((double)width / (double)height);
+    res->mouse = Py_BuildValue("(ii)", 0, 0);
+    res->time = PyFloat_FromDouble(0.0);
+    return res;
+}
+
+PyObject * Window_meth_update(Window * self, PyObject * args) {
+    double time = PyFloat_AsDouble(self->time);
+    Py_SETREF(self->mouse, Py_BuildValue("(ii)", 0, 0));
+    Py_SETREF(self->time, PyFloat_FromDouble(time + 1.0 / 60.0));
+    Py_RETURN_NONE;
+}
+
+static void default_dealloc(PyObject * self) {
+    Py_TYPE(self)->tp_free(self);
+}
+
+static PyMethodDef Window_methods[] = {
+    {"update", (PyCFunction)Window_meth_update, METH_NOARGS},
+    {"load_opengl_function", (PyCFunction)load_opengl_function, METH_O},
+    {NULL},
 };
 
-PyModuleDef module_def = {PyModuleDef_HEAD_INIT, "webgl", NULL, -1, module_methods};
+static PyMemberDef Window_members[] = {
+    {"size", T_OBJECT, offsetof(Window, size), READONLY},
+    {"aspect", T_OBJECT, offsetof(Window, aspect), READONLY},
+    {"mouse", T_OBJECT, offsetof(Window, mouse), READONLY},
+    {"time", T_OBJECT, offsetof(Window, time), READONLY},
+    {NULL},
+};
+
+static PyType_Slot Window_slots[] = {
+    {Py_tp_methods, Window_methods},
+    {Py_tp_members, Window_members},
+    {Py_tp_dealloc, default_dealloc},
+    {0},
+};
+
+static PyType_Spec Window_spec = {"mymodule.Window", sizeof(Window), 0, Py_TPFLAGS_DEFAULT, Window_slots};
+
+static PyMethodDef module_methods[] = {
+    {"window", (PyCFunction)meth_window, METH_VARARGS | METH_KEYWORDS},
+    {NULL},
+};
+
+static PyModuleDef module_def = {PyModuleDef_HEAD_INIT, "webgl", NULL, -1, module_methods};
 
 extern PyObject * PyInit_webgl() {
     PyObject * module = PyModule_Create(&module_def);
+    Window_type = (PyTypeObject *)PyType_FromSpec(&Window_spec);
     lookup = PyDict_New();
-    fn("glCullFace", (void *)impl_glCullFace);
-    fn("glClear", (void *)impl_glClear);
-    fn("glTexParameteri", (void *)impl_glTexParameteri);
-    fn("glTexImage2D", (void *)impl_glTexImage2D);
-    fn("glDepthMask", (void *)impl_glDepthMask);
-    fn("glDisable", (void *)impl_glDisable);
-    fn("glEnable", (void *)impl_glEnable);
-    fn("glFlush", (void *)impl_glFlush);
-    fn("glDepthFunc", (void *)impl_glDepthFunc);
-    fn("glReadBuffer", (void *)impl_glReadBuffer);
-    fn("glReadPixels", (void *)impl_glReadPixels);
-    fn("glGetError", (void *)impl_glGetError);
-    fn("glGetIntegerv", (void *)impl_glGetIntegerv);
-    fn("glGetString", (void *)impl_glGetString);
-    fn("glViewport", (void *)impl_glViewport);
-    fn("glTexSubImage2D", (void *)impl_glTexSubImage2D);
-    fn("glBindTexture", (void *)impl_glBindTexture);
-    fn("glDeleteTextures", (void *)impl_glDeleteTextures);
-    fn("glGenTextures", (void *)impl_glGenTextures);
-    fn("glTexImage3D", (void *)impl_glTexImage3D);
-    fn("glTexSubImage3D", (void *)impl_glTexSubImage3D);
-    fn("glActiveTexture", (void *)impl_glActiveTexture);
-    fn("glBlendFuncSeparate", (void *)impl_glBlendFuncSeparate);
-    fn("glGenQueries", (void *)impl_glGenQueries);
-    fn("glBeginQuery", (void *)impl_glBeginQuery);
-    fn("glEndQuery", (void *)impl_glEndQuery);
-    fn("glGetQueryObjectuiv", (void *)impl_glGetQueryObjectuiv);
-    fn("glBindBuffer", (void *)impl_glBindBuffer);
-    fn("glDeleteBuffers", (void *)impl_glDeleteBuffers);
-    fn("glGenBuffers", (void *)impl_glGenBuffers);
-    fn("glBufferData", (void *)impl_glBufferData);
-    fn("glBufferSubData", (void *)impl_glBufferSubData);
-    fn("glUnmapBuffer", (void *)impl_glUnmapBuffer);
-    fn("glBlendEquationSeparate", (void *)impl_glBlendEquationSeparate);
-    fn("glDrawBuffers", (void *)impl_glDrawBuffers);
-    fn("glStencilOpSeparate", (void *)impl_glStencilOpSeparate);
-    fn("glStencilFuncSeparate", (void *)impl_glStencilFuncSeparate);
-    fn("glStencilMaskSeparate", (void *)impl_glStencilMaskSeparate);
-    fn("glAttachShader", (void *)impl_glAttachShader);
-    fn("glCompileShader", (void *)impl_glCompileShader);
-    fn("glCreateProgram", (void *)impl_glCreateProgram);
-    fn("glCreateShader", (void *)impl_glCreateShader);
-    fn("glDeleteProgram", (void *)impl_glDeleteProgram);
-    fn("glDeleteShader", (void *)impl_glDeleteShader);
-    fn("glEnableVertexAttribArray", (void *)impl_glEnableVertexAttribArray);
-    fn("glGetActiveAttrib", (void *)impl_glGetActiveAttrib);
-    fn("glGetActiveUniform", (void *)impl_glGetActiveUniform);
-    fn("glGetAttribLocation", (void *)impl_glGetAttribLocation);
-    fn("glGetProgramiv", (void *)impl_glGetProgramiv);
-    fn("glGetProgramInfoLog", (void *)impl_glGetProgramInfoLog);
-    fn("glGetShaderiv", (void *)impl_glGetShaderiv);
-    fn("glGetShaderInfoLog", (void *)impl_glGetShaderInfoLog);
-    fn("glGetUniformLocation", (void *)impl_glGetUniformLocation);
-    fn("glLinkProgram", (void *)impl_glLinkProgram);
-    fn("glShaderSource", (void *)impl_glShaderSource);
-    fn("glUseProgram", (void *)impl_glUseProgram);
-    fn("glUniform1i", (void *)impl_glUniform1i);
-    fn("glUniform1fv", (void *)impl_glUniform1fv);
-    fn("glUniform2fv", (void *)impl_glUniform2fv);
-    fn("glUniform3fv", (void *)impl_glUniform3fv);
-    fn("glUniform4fv", (void *)impl_glUniform4fv);
-    fn("glUniform1iv", (void *)impl_glUniform1iv);
-    fn("glUniform2iv", (void *)impl_glUniform2iv);
-    fn("glUniform3iv", (void *)impl_glUniform3iv);
-    fn("glUniform4iv", (void *)impl_glUniform4iv);
-    fn("glUniformMatrix2fv", (void *)impl_glUniformMatrix2fv);
-    fn("glUniformMatrix3fv", (void *)impl_glUniformMatrix3fv);
-    fn("glUniformMatrix4fv", (void *)impl_glUniformMatrix4fv);
-    fn("glVertexAttribPointer", (void *)impl_glVertexAttribPointer);
-    fn("glUniformMatrix2x3fv", (void *)impl_glUniformMatrix2x3fv);
-    fn("glUniformMatrix3x2fv", (void *)impl_glUniformMatrix3x2fv);
-    fn("glUniformMatrix2x4fv", (void *)impl_glUniformMatrix2x4fv);
-    fn("glUniformMatrix4x2fv", (void *)impl_glUniformMatrix4x2fv);
-    fn("glUniformMatrix3x4fv", (void *)impl_glUniformMatrix3x4fv);
-    fn("glUniformMatrix4x3fv", (void *)impl_glUniformMatrix4x3fv);
-    fn("glBindBufferRange", (void *)impl_glBindBufferRange);
-    fn("glVertexAttribIPointer", (void *)impl_glVertexAttribIPointer);
-    fn("glUniform1uiv", (void *)impl_glUniform1uiv);
-    fn("glUniform2uiv", (void *)impl_glUniform2uiv);
-    fn("glUniform3uiv", (void *)impl_glUniform3uiv);
-    fn("glUniform4uiv", (void *)impl_glUniform4uiv);
-    fn("glClearBufferiv", (void *)impl_glClearBufferiv);
-    fn("glClearBufferuiv", (void *)impl_glClearBufferuiv);
-    fn("glClearBufferfv", (void *)impl_glClearBufferfv);
-    fn("glClearBufferfi", (void *)impl_glClearBufferfi);
-    fn("glBindRenderbuffer", (void *)impl_glBindRenderbuffer);
-    fn("glDeleteRenderbuffers", (void *)impl_glDeleteRenderbuffers);
-    fn("glGenRenderbuffers", (void *)impl_glGenRenderbuffers);
-    fn("glBindFramebuffer", (void *)impl_glBindFramebuffer);
-    fn("glDeleteFramebuffers", (void *)impl_glDeleteFramebuffers);
-    fn("glGenFramebuffers", (void *)impl_glGenFramebuffers);
-    fn("glFramebufferTexture2D", (void *)impl_glFramebufferTexture2D);
-    fn("glFramebufferRenderbuffer", (void *)impl_glFramebufferRenderbuffer);
-    fn("glGenerateMipmap", (void *)impl_glGenerateMipmap);
-    fn("glBlitFramebuffer", (void *)impl_glBlitFramebuffer);
-    fn("glRenderbufferStorageMultisample", (void *)impl_glRenderbufferStorageMultisample);
-    fn("glFramebufferTextureLayer", (void *)impl_glFramebufferTextureLayer);
-    fn("glMapBufferRange", (void *)impl_glMapBufferRange);
-    fn("glBindVertexArray", (void *)impl_glBindVertexArray);
-    fn("glDeleteVertexArrays", (void *)impl_glDeleteVertexArrays);
-    fn("glGenVertexArrays", (void *)impl_glGenVertexArrays);
-    fn("glDrawArraysInstanced", (void *)impl_glDrawArraysInstanced);
-    fn("glDrawElementsInstanced", (void *)impl_glDrawElementsInstanced);
-    fn("glGetUniformBlockIndex", (void *)impl_glGetUniformBlockIndex);
-    fn("glGetActiveUniformBlockiv", (void *)impl_glGetActiveUniformBlockiv);
-    fn("glGetActiveUniformBlockName", (void *)impl_glGetActiveUniformBlockName);
-    fn("glUniformBlockBinding", (void *)impl_glUniformBlockBinding);
-    fn("glFenceSync", (void *)impl_glFenceSync);
-    fn("glDeleteSync", (void *)impl_glDeleteSync);
-    fn("glClientWaitSync", (void *)impl_glClientWaitSync);
-    fn("glGenSamplers", (void *)impl_glGenSamplers);
-    fn("glDeleteSamplers", (void *)impl_glDeleteSamplers);
-    fn("glBindSampler", (void *)impl_glBindSampler);
-    fn("glSamplerParameteri", (void *)impl_glSamplerParameteri);
-    fn("glSamplerParameterf", (void *)impl_glSamplerParameterf);
-    fn("glVertexAttribDivisor", (void *)impl_glVertexAttribDivisor);
+    fn("glCullFace", impl_glCullFace);
+    fn("glClear", impl_glClear);
+    fn("glTexParameteri", impl_glTexParameteri);
+    fn("glTexImage2D", impl_glTexImage2D);
+    fn("glDepthMask", impl_glDepthMask);
+    fn("glDisable", impl_glDisable);
+    fn("glEnable", impl_glEnable);
+    fn("glFlush", impl_glFlush);
+    fn("glDepthFunc", impl_glDepthFunc);
+    fn("glReadBuffer", impl_glReadBuffer);
+    fn("glReadPixels", impl_glReadPixels);
+    fn("glGetError", impl_glGetError);
+    fn("glGetIntegerv", impl_glGetIntegerv);
+    fn("glGetString", impl_glGetString);
+    fn("glViewport", impl_glViewport);
+    fn("glTexSubImage2D", impl_glTexSubImage2D);
+    fn("glBindTexture", impl_glBindTexture);
+    fn("glDeleteTextures", impl_glDeleteTextures);
+    fn("glGenTextures", impl_glGenTextures);
+    fn("glTexImage3D", impl_glTexImage3D);
+    fn("glTexSubImage3D", impl_glTexSubImage3D);
+    fn("glActiveTexture", impl_glActiveTexture);
+    fn("glBlendFuncSeparate", impl_glBlendFuncSeparate);
+    fn("glGenQueries", impl_glGenQueries);
+    fn("glBeginQuery", impl_glBeginQuery);
+    fn("glEndQuery", impl_glEndQuery);
+    fn("glGetQueryObjectuiv", impl_glGetQueryObjectuiv);
+    fn("glBindBuffer", impl_glBindBuffer);
+    fn("glDeleteBuffers", impl_glDeleteBuffers);
+    fn("glGenBuffers", impl_glGenBuffers);
+    fn("glBufferData", impl_glBufferData);
+    fn("glBufferSubData", impl_glBufferSubData);
+    fn("glUnmapBuffer", impl_glUnmapBuffer);
+    fn("glBlendEquationSeparate", impl_glBlendEquationSeparate);
+    fn("glDrawBuffers", impl_glDrawBuffers);
+    fn("glStencilOpSeparate", impl_glStencilOpSeparate);
+    fn("glStencilFuncSeparate", impl_glStencilFuncSeparate);
+    fn("glStencilMaskSeparate", impl_glStencilMaskSeparate);
+    fn("glAttachShader", impl_glAttachShader);
+    fn("glCompileShader", impl_glCompileShader);
+    fn("glCreateProgram", impl_glCreateProgram);
+    fn("glCreateShader", impl_glCreateShader);
+    fn("glDeleteProgram", impl_glDeleteProgram);
+    fn("glDeleteShader", impl_glDeleteShader);
+    fn("glEnableVertexAttribArray", impl_glEnableVertexAttribArray);
+    fn("glGetActiveAttrib", impl_glGetActiveAttrib);
+    fn("glGetActiveUniform", impl_glGetActiveUniform);
+    fn("glGetAttribLocation", impl_glGetAttribLocation);
+    fn("glGetProgramiv", impl_glGetProgramiv);
+    fn("glGetProgramInfoLog", impl_glGetProgramInfoLog);
+    fn("glGetShaderiv", impl_glGetShaderiv);
+    fn("glGetShaderInfoLog", impl_glGetShaderInfoLog);
+    fn("glGetUniformLocation", impl_glGetUniformLocation);
+    fn("glLinkProgram", impl_glLinkProgram);
+    fn("glShaderSource", impl_glShaderSource);
+    fn("glUseProgram", impl_glUseProgram);
+    fn("glUniform1i", impl_glUniform1i);
+    fn("glUniform1fv", impl_glUniform1fv);
+    fn("glUniform2fv", impl_glUniform2fv);
+    fn("glUniform3fv", impl_glUniform3fv);
+    fn("glUniform4fv", impl_glUniform4fv);
+    fn("glUniform1iv", impl_glUniform1iv);
+    fn("glUniform2iv", impl_glUniform2iv);
+    fn("glUniform3iv", impl_glUniform3iv);
+    fn("glUniform4iv", impl_glUniform4iv);
+    fn("glUniformMatrix2fv", impl_glUniformMatrix2fv);
+    fn("glUniformMatrix3fv", impl_glUniformMatrix3fv);
+    fn("glUniformMatrix4fv", impl_glUniformMatrix4fv);
+    fn("glVertexAttribPointer", impl_glVertexAttribPointer);
+    fn("glUniformMatrix2x3fv", impl_glUniformMatrix2x3fv);
+    fn("glUniformMatrix3x2fv", impl_glUniformMatrix3x2fv);
+    fn("glUniformMatrix2x4fv", impl_glUniformMatrix2x4fv);
+    fn("glUniformMatrix4x2fv", impl_glUniformMatrix4x2fv);
+    fn("glUniformMatrix3x4fv", impl_glUniformMatrix3x4fv);
+    fn("glUniformMatrix4x3fv", impl_glUniformMatrix4x3fv);
+    fn("glBindBufferRange", impl_glBindBufferRange);
+    fn("glVertexAttribIPointer", impl_glVertexAttribIPointer);
+    fn("glUniform1uiv", impl_glUniform1uiv);
+    fn("glUniform2uiv", impl_glUniform2uiv);
+    fn("glUniform3uiv", impl_glUniform3uiv);
+    fn("glUniform4uiv", impl_glUniform4uiv);
+    fn("glClearBufferiv", impl_glClearBufferiv);
+    fn("glClearBufferuiv", impl_glClearBufferuiv);
+    fn("glClearBufferfv", impl_glClearBufferfv);
+    fn("glClearBufferfi", impl_glClearBufferfi);
+    fn("glBindRenderbuffer", impl_glBindRenderbuffer);
+    fn("glDeleteRenderbuffers", impl_glDeleteRenderbuffers);
+    fn("glGenRenderbuffers", impl_glGenRenderbuffers);
+    fn("glBindFramebuffer", impl_glBindFramebuffer);
+    fn("glDeleteFramebuffers", impl_glDeleteFramebuffers);
+    fn("glGenFramebuffers", impl_glGenFramebuffers);
+    fn("glFramebufferTexture2D", impl_glFramebufferTexture2D);
+    fn("glFramebufferRenderbuffer", impl_glFramebufferRenderbuffer);
+    fn("glGenerateMipmap", impl_glGenerateMipmap);
+    fn("glBlitFramebuffer", impl_glBlitFramebuffer);
+    fn("glRenderbufferStorageMultisample", impl_glRenderbufferStorageMultisample);
+    fn("glFramebufferTextureLayer", impl_glFramebufferTextureLayer);
+    fn("glMapBufferRange", impl_glMapBufferRange);
+    fn("glBindVertexArray", impl_glBindVertexArray);
+    fn("glDeleteVertexArrays", impl_glDeleteVertexArrays);
+    fn("glGenVertexArrays", impl_glGenVertexArrays);
+    fn("glDrawArraysInstanced", impl_glDrawArraysInstanced);
+    fn("glDrawElementsInstanced", impl_glDrawElementsInstanced);
+    fn("glGetUniformBlockIndex", impl_glGetUniformBlockIndex);
+    fn("glGetActiveUniformBlockiv", impl_glGetActiveUniformBlockiv);
+    fn("glGetActiveUniformBlockName", impl_glGetActiveUniformBlockName);
+    fn("glUniformBlockBinding", impl_glUniformBlockBinding);
+    fn("glFenceSync", impl_glFenceSync);
+    fn("glDeleteSync", impl_glDeleteSync);
+    fn("glClientWaitSync", impl_glClientWaitSync);
+    fn("glGenSamplers", impl_glGenSamplers);
+    fn("glDeleteSamplers", impl_glDeleteSamplers);
+    fn("glBindSampler", impl_glBindSampler);
+    fn("glSamplerParameteri", impl_glSamplerParameteri);
+    fn("glSamplerParameterf", impl_glSamplerParameterf);
+    fn("glVertexAttribDivisor", impl_glVertexAttribDivisor);
     return module;
 }
