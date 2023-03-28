@@ -195,14 +195,12 @@ const zenglSymbols = (wasm) => {
     zengl_glGetActiveAttrib(program, index, bufSize, length, size, type, name) {
       const info = gl.getActiveAttrib(glo[program], index);
       setString(name, info.name);
-      wasm.HEAP32[length / 4] = info.name.length;
       wasm.HEAP32[size / 4] = info.size;
       wasm.HEAP32[type / 4] = info.type;
     },
     zengl_glGetActiveUniform(program, index, bufSize, length, size, type, name) {
       const info = gl.getActiveUniform(glo[program], index);
       setString(name, info.name);
-      wasm.HEAP32[length / 4] = info.name.length;
       wasm.HEAP32[size / 4] = info.size;
       wasm.HEAP32[type / 4] = info.type;
     },
