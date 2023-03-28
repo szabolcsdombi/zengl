@@ -9,12 +9,16 @@ RUN wget -q https://f003.backblazeb2.com/file/zengl-data/examples/web-example-as
 COPY _zengl.py zengl.c setup.py pyproject.toml MANIFEST.in README.md LICENSE /zengl/
 RUN echo 'source /emsdk/emsdk_env.sh && ZENGL_NO_STUBS=yes pyodide build /zengl/ --exports PyInit_zengl' | bash
 
+COPY examples/webgl/webgl /webgl/
+RUN echo 'source /emsdk/emsdk_env.sh && pyodide build /webgl/' | bash
+
 COPY examples/webgl/examples /examples/
 RUN tar -zxf web-example-assets.tar.gz -C /examples/examples/
 RUN echo 'source /emsdk/emsdk_env.sh && pyodide build /examples/' | bash
 
 WORKDIR /web/
 RUN cp /zengl/dist/zengl-1.12.0-cp310-cp310-emscripten_3_1_27_wasm32.whl /web/
+RUN cp /webgl/dist/webgl-0.1.0-cp310-cp310-emscripten_3_1_27_wasm32.whl /web/
 RUN cp /examples/dist/examples-0.1.0-py3-none-any.whl /web/
 COPY examples/webgl/public/* /web/
 CMD python -m http.server --bind 0.0.0.0 8000
