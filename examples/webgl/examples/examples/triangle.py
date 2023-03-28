@@ -1,7 +1,7 @@
 import struct
 
-import zengl
 import webgl
+import zengl
 
 window = webgl.window()
 

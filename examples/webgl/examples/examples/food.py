@@ -2,8 +2,8 @@ import random
 import struct
 from math import cos, pi, sin, sqrt
 
-import zengl
 import webgl
+import zengl
 
 from . import assets
 

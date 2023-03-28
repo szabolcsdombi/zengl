@@ -1,8 +1,8 @@
 import math
 import struct
 
-import zengl
 import webgl
+import zengl
 
 from . import assets
 
