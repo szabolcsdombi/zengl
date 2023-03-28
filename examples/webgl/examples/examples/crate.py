@@ -4,7 +4,6 @@ import struct
 import zengl
 import webgl
 
-
 from . import assets
 
 window = webgl.window()

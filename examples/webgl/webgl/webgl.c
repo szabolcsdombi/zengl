@@ -24,11 +24,11 @@ extern void zengl_glTexImage2D(GLenum target, GLint level, GLint internalformat,
 extern void zengl_glDepthMask(GLboolean flag);
 extern void zengl_glDisable(GLenum cap);
 extern void zengl_glEnable(GLenum cap);
-extern void zengl_glFlush(void);
+extern void zengl_glFlush();
 extern void zengl_glDepthFunc(GLenum func);
 extern void zengl_glReadBuffer(GLenum src);
 extern void zengl_glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, void *pixels);
-extern GLenum zengl_glGetError(void);
+extern GLenum zengl_glGetError();
 extern void zengl_glGetIntegerv(GLenum pname, GLint *data);
 extern void zengl_glViewport(GLint x, GLint y, GLsizei width, GLsizei height);
 extern void zengl_glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels);
@@ -56,7 +56,7 @@ extern void zengl_glStencilFuncSeparate(GLenum face, GLenum func, GLint ref, GLu
 extern void zengl_glStencilMaskSeparate(GLenum face, GLuint mask);
 extern void zengl_glAttachShader(GLuint program, GLuint shader);
 extern void zengl_glCompileShader(GLuint shader);
-extern GLuint zengl_glCreateProgram(void);
+extern GLuint zengl_glCreateProgram();
 extern GLuint zengl_glCreateShader(GLenum type);
 extern void zengl_glDeleteProgram(GLuint program);
 extern void zengl_glDeleteShader(GLuint shader);
@@ -161,7 +161,7 @@ void impl_glEnable(GLenum cap) {
     zengl_glEnable(cap);
 }
 
-void impl_glFlush(void) {
+void impl_glFlush() {
     zengl_glFlush();
 }
 
@@ -177,7 +177,7 @@ void impl_glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum f
     zengl_glReadPixels(x, y, width, height, format, type, pixels);
 }
 
-GLenum impl_glGetError(void) {
+GLenum impl_glGetError() {
     return zengl_glGetError();
 }
 
@@ -299,7 +299,7 @@ void impl_glCompileShader(GLuint shader) {
     zengl_glCompileShader(shader);
 }
 
-GLuint impl_glCreateProgram(void) {
+GLuint impl_glCreateProgram() {
     return zengl_glCreateProgram();
 }
 
