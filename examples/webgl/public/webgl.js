@@ -22,11 +22,15 @@ const zenglSymbols = (wasm) => {
   let gl = null;
 
   return {
-    zengl_create_window(width, height, handler) {
+    zengl_create_window(width, height, handler, root) {
       const canvas = document.createElement('canvas');
       canvas.width = width;
       canvas.height = height;
-      document.body.appendChild(canvas);
+      if (root === 0) {
+        document.body.appendChild(canvas);
+      } else {
+        document.getElementById(getString(root)).appendChild(canvas);
+      }
       const ctx = canvas.getContext('webgl2', {
         alpha: false,
         depth: false,

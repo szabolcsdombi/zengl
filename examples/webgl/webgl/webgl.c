@@ -15,7 +15,7 @@ typedef unsigned char GLubyte;
 typedef char GLchar;
 typedef void * GLsync;
 
-extern void * zengl_create_window(int width, int height, void * handler);
+extern void * zengl_create_window(int width, int height, void * handler, const char * root);
 extern void zengl_make_current(void * window);
 
 extern void zengl_glCullFace(GLenum mode);
@@ -632,12 +632,13 @@ typedef struct Window {
 static PyTypeObject * Window_type;
 
 static Window * meth_window(PyObject * self, PyObject * args, PyObject * kwargs) {
-    const char * keywords[] = {"size", NULL};
+    const char * keywords[] = {"size", "root", NULL};
 
     int width = 1280;
     int height = 720;
+    const char * root = NULL;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|(ii)", (char **)keywords, &width, &height)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|(ii)z", (char **)keywords, &width, &height, &root)) {
         return NULL;
     }
 
@@ -649,7 +650,7 @@ static Window * meth_window(PyObject * self, PyObject * args, PyObject * kwargs)
     res->render = NULL;
 
     PyObject * handler = PyObject_GetAttrString((PyObject *)res, "update");
-    res->window = zengl_create_window(width, height, handler);
+    res->window = zengl_create_window(width, height, handler, root);
     zengl_make_current(res->window);
     return res;
 }
