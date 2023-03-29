@@ -16,6 +16,7 @@ typedef char GLchar;
 typedef void * GLsync;
 
 extern void * zengl_create_window(int width, int height, void * handler);
+extern void zengl_make_current(void * window);
 
 extern void zengl_glCullFace(GLenum mode);
 extern void zengl_glClear(GLbitfield mask);
@@ -620,12 +621,12 @@ static PyObject * load_opengl_function(PyObject * self, PyObject * arg) {
 
 typedef struct Window {
     PyObject_HEAD
-    void * window;
     PyObject * size;
     PyObject * aspect;
     PyObject * mouse;
     PyObject * time;
     PyObject * render;
+    void * window;
 } Window;
 
 static PyTypeObject * Window_type;
@@ -639,14 +640,23 @@ static Window * meth_window(PyObject * self, PyObject * args, PyObject * kwargs)
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|(ii)", (char **)keywords, &width, &height)) {
         return NULL;
     }
+
     Window * res = PyObject_New(Window, Window_type);
-    res->window = zengl_create_window(width, height, PyObject_GetAttrString((PyObject *)res, "update"));
     res->size = Py_BuildValue("(ii)", width, height);
     res->aspect = PyFloat_FromDouble((double)width / (double)height);
     res->mouse = Py_BuildValue("(ii)", 0, 0);
     res->time = PyFloat_FromDouble(0.0);
     res->render = NULL;
+
+    PyObject * handler = PyObject_GetAttrString((PyObject *)res, "update");
+    res->window = zengl_create_window(width, height, handler);
+    zengl_make_current(res->window);
     return res;
+}
+
+static PyObject * Window_meth_make_current(Window * self, PyObject * args) {
+    zengl_make_current(self->window);
+    Py_RETURN_NONE;
 }
 
 static PyObject * Window_meth_update(Window * self, PyObject * args) {
@@ -671,6 +681,7 @@ static void default_dealloc(PyObject * self) {
 }
 
 static PyMethodDef Window_methods[] = {
+    {"make_current", (PyCFunction)Window_meth_make_current, METH_NOARGS},
     {"update", (PyCFunction)Window_meth_update, METH_NOARGS},
     {"render", (PyCFunction)Window_meth_render, METH_O},
     {"load_opengl_function", (PyCFunction)load_opengl_function, METH_O},

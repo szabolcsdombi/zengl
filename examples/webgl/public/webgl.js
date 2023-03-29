@@ -36,7 +36,6 @@ const zenglSymbols = (wasm) => {
         preserveDrawingBuffer: false,
         powerPreference: 'high-performance',
       });
-      gl = ctx;
       const render = () => {
         gl = ctx;
         wasm.callPyObject(handler, []);
@@ -44,8 +43,11 @@ const zenglSymbols = (wasm) => {
       };
       requestAnimationFrame(render);
       const window = windowid++;
-      windows[window] = { canvas, gl: ctx };
+      windows[window] = { canvas, ctx };
       return window;
+    },
+    zengl_make_current(window) {
+      gl = windows[window].ctx;
     },
     zengl_glCullFace(mode) {
       gl.cullFace(mode);
