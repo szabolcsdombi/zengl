@@ -2138,6 +2138,11 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
         return NULL;
     }
 
+    if (framebuffer_attachments == Py_None && viewport == Py_None) {
+        PyErr_Format(PyExc_TypeError, "no viewport was specified");
+        return NULL;
+    }
+
     Viewport viewport_value = to_viewport(viewport, 0, 0, 0, 0);
     if (PyErr_Occurred()) {
         PyErr_Format(PyExc_TypeError, "the viewport must be a tuple of 4 ints");
