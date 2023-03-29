@@ -168,7 +168,7 @@ const zenglSymbols = (wasm) => {
       gl.endQuery(target);
     },
     zengl_glGetQueryObjectuiv(id, pname, params) {
-      wasm.HEAP32[params / 4] = 0;
+      wasm.HEAP32[params / 4] = gl.getQueryParameter(glo[id], pname);
     },
     zengl_glBindBuffer(target, buffer) {
       gl.bindBuffer(target, glo[buffer]);
