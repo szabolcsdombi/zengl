@@ -1,11 +1,11 @@
 from setuptools import setup
 
 setup(
-    name='examples',
+    name='assets',
     version='0.1.0',
-    packages=['examples'],
+    packages=['assets'],
     package_data={
-        'examples': [
+        'assets': [
             'assets/crate-texture.bin',
             'assets/cube-model.bin',
             'assets/food-model.bin',

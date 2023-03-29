@@ -8,30 +8,10 @@
   <title>ZenGL Examples</title>
 </head>
 <body>
-<script src="https://cdn.jsdelivr.net/pyodide/v0.22.1/full/pyodide.js"></script>
-<script src="webgl.js"></script>
 <ul>
-  <li><a href="?example=triangle">Triangle</a></li>
-  <li><a href="?example=crate">Crate</a></li>
-  <li><a href="?example=food">Food</a></li>
+  <li><a href="triangle.html">Triangle</a></li>
+  <li><a href="crate.html">Crate</a></li>
+  <li><a href="food.html">Food</a></li>
 </ul>
-<script>
-  (async () => {
-    const pyodide = await loadPyodide();
-    window.pyodide = pyodide;
-    window.wasm = pyodide._module;
-
-    await pyodide.loadPackage([
-      'zengl-1.12.0-cp310-cp310-emscripten_3_1_27_wasm32.whl',
-      'webgl-0.1.0-cp310-cp310-emscripten_3_1_27_wasm32.whl',
-      'examples-0.1.0-py3-none-any.whl',
-    ]);
-
-    pyodide._module.mergeLibSymbols(zenglSymbols(pyodide._module));
-
-    const example = window.location.href.split('?example=')[1] || 'triangle';
-    pyodide.runPython(`import examples.${example}`);
-  })();
-</script>
 </body>
 </html>

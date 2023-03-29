@@ -660,13 +660,10 @@ static PyObject * Window_meth_update(Window * self, PyObject * args) {
     Py_RETURN_NONE;
 }
 
-static PyObject * set_render_callback(Window * self, PyObject * render) {
-}
-
-static PyMethodDef set_render_callback_def = {"render", (PyCFunction)set_render_callback, METH_O};
-
-static PyObject * Window_meth_render(Window * self, PyObject * args) {
-    return PyCFunction_New(&set_render_callback_def, (PyObject *)self);
+static PyObject * Window_meth_render(Window * self, PyObject * arg) {
+    Py_XSETREF(self->render, arg);
+    Py_INCREF(arg);
+    return arg;
 }
 
 static void default_dealloc(PyObject * self) {
@@ -675,7 +672,7 @@ static void default_dealloc(PyObject * self) {
 
 static PyMethodDef Window_methods[] = {
     {"update", (PyCFunction)Window_meth_update, METH_NOARGS},
-    {"render", (PyCFunction)Window_meth_render, METH_NOARGS},
+    {"render", (PyCFunction)Window_meth_render, METH_O},
     {"load_opengl_function", (PyCFunction)load_opengl_function, METH_O},
     {NULL},
 };
