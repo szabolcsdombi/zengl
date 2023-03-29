@@ -671,6 +671,7 @@ static PyObject * Window_meth_update(Window * self, PyObject * args) {
 }
 
 static PyObject * Window_meth_render(Window * self, PyObject * arg) {
+    Py_INCREF(arg);
     Py_XSETREF(self->render, arg);
     Py_INCREF(arg);
     return arg;
