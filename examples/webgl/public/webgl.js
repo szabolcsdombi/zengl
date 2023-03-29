@@ -13,6 +13,31 @@ const zenglSymbols = (wasm) => {
     wasm.HEAPU8[raw.byteLength] = 0;
   };
 
+  const typedArray = (type, ptr, size) => {
+    switch (type) {
+      case 0x1400: return wasm.HEAP8.subarray(ptr, ptr + size);
+      case 0x1401: return wasm.HEAPU8.subarray(ptr, ptr + size);
+      case 0x1402: return wasm.HEAP16.subarray(ptr / 2, ptr / 2 + size * 2);
+      case 0x1403: return wasm.HEAPU16.subarray(ptr / 2, ptr / 2 + size * 2);
+      case 0x1404: return wasm.HEAP32.subarray(ptr / 4, ptr / 4 + size * 4);
+      case 0x1405: return wasm.HEAPU32.subarray(ptr / 4, ptr / 4 + size * 4);
+      case 0x1406: return wasm.HEAPF32.subarray(ptr / 4, ptr / 4 + size * 4);
+      case 0x84FA: return wasm.HEAPU32.subarray(ptr / 4, ptr / 4 + size * 4);
+    };
+  };
+
+  const componentCount = (format) => {
+    switch (format) {
+      case 0x1903: return 1;
+      case 0x8227: return 2;
+      case 0x1908: return 4;
+      case 0x8D94: return 1;
+      case 0x8228: return 2;
+      case 0x1902: return 1;
+      case 0x84F9: return 1;
+    }
+  };
+
   const windows = new Map();
   let windowid = 1;
 
@@ -88,7 +113,8 @@ const zenglSymbols = (wasm) => {
       gl.readBuffer(src);
     },
     zengl_glReadPixels(x, y, width, height, format, type, pixels) {
-      console.log('glReadPixels', x, y, width, height, format, type, pixels);
+      const data = typedArray(type, pixels, width * height * componentCount(format));
+      gl.readPixels(x, y, width, height, format, type, data);
     },
     zengl_glGetError() {
       return gl.getError();
@@ -100,13 +126,8 @@ const zenglSymbols = (wasm) => {
       gl.viewport(x, y, width, height);
     },
     zengl_glTexSubImage2D(target, level, xoffset, yoffset, width, height, format, type, pixels) {
-      if (type === 0x1401) {
-        const size = width * height * 4;
-        const data = wasm.HEAPU8.subarray(pixels, pixels + size);
-        gl.texSubImage2D(target, level, xoffset, yoffset, width, height, format, type, data);
-      } else {
-        console.log('glTexSubImage2D', target, level, xoffset, yoffset, width, height, format, type, pixels);
-      }
+      const data = typedArray(type, pixels, width * height * componentCount(format));
+      gl.texSubImage2D(target, level, xoffset, yoffset, width, height, format, type, data);
     },
     zengl_glBindTexture(target, texture) {
       gl.bindTexture(target, glo[texture]);
@@ -125,13 +146,8 @@ const zenglSymbols = (wasm) => {
       gl.texImage3D(target, level, internalformat, width, height, depth, border, format, type, null);
     },
     zengl_glTexSubImage3D(target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels) {
-      if (type === 0x1401) {
-        const size = width * height * depth * 4;
-        const data = wasm.HEAPU8.subarray(pixels, pixels + size);
-        gl.texSubImage3D(target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, data);
-      } else {
-        console.log('glTexSubImage3D', target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels);
-      }
+      const data = typedArray(type, pixels, width * height * depth * componentCount(format));
+      gl.texSubImage3D(target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, data);
     },
     zengl_glActiveTexture(texture) {
       gl.activeTexture(texture);
