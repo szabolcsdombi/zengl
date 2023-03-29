@@ -156,14 +156,16 @@ const zenglSymbols = (wasm) => {
       gl.blendFuncSeparate(sfactorRGB, dfactorRGB, sfactorAlpha, dfactorAlpha);
     },
     zengl_glGenQueries(n, ids) {
-      // gl.getExtension('EXT_disjoint_timer_query');
+      gl.getExtension('EXT_disjoint_timer_query_webgl2');
       const query = glid++;
       glo[query] = gl.createQuery();
       wasm.HEAP32[ids / 4] = query;
     },
     zengl_glBeginQuery(target, id) {
+      gl.beginQuery(target, glo[id]);
     },
     zengl_glEndQuery(target) {
+      gl.endQuery(target);
     },
     zengl_glGetQueryObjectuiv(id, pname, params) {
       wasm.HEAP32[params / 4] = 0;
