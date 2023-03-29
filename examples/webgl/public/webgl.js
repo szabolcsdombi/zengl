@@ -47,10 +47,11 @@ const zenglSymbols = (wasm) => {
   let gl = null;
 
   return {
-    zengl_create_window(width, height, handler, root) {
+    zengl_create_window(width, height, input, handler, root) {
       const canvas = document.createElement('canvas');
       canvas.width = width;
       canvas.height = height;
+      canvas.tabIndex = 1;
       if (root === 0) {
         document.body.appendChild(canvas);
       } else {
@@ -65,15 +66,54 @@ const zenglSymbols = (wasm) => {
         preserveDrawingBuffer: false,
         powerPreference: 'high-performance',
       });
-      const render = () => {
+      const state = {
+        prevMx: 0,
+        prevMy: 0,
+        prevKeys: new Set(),
+        mx: 0,
+        my: 0,
+        keys: new Set(),
+      };
+      canvas.addEventListener('mousemove', (evt) => {
+        state.mx = evt.x;
+        state.my = evt.y;
+      });
+      canvas.addEventListener('keydown', (evt) => {
+        state.keys.add(evt.key);
+      });
+      canvas.addEventListener('keyup', (evt) => {
+        state.keys.delete(evt.key);
+      });
+      let prevTimestamp = null;
+      let firstTimestamp = null;
+      const render = (timestamp) => {
+        if (firstTimestamp === null) {
+          firstTimestamp = timestamp;
+          prevTimestamp = timestamp;
+        }
+        wasm.HEAPF32[input / 4] = (timestamp - firstTimestamp) * 1e-3;
+        wasm.HEAPF32[input / 4 + 1] = (timestamp - prevTimestamp) * 1e-3;
+        wasm.HEAP32[input / 4 + 2] = state.mx;
+        wasm.HEAP32[input / 4 + 3] = state.my;
+        wasm.HEAP32[input / 4 + 4] = state.mx - state.prevMx;
+        wasm.HEAP32[input / 4 + 5] = state.my - state.prevMy;
         gl = ctx;
         wasm.callPyObject(handler, []);
+        state.prevMx = state.mx;
+        state.prevMy = state.my;
+        state.prevKeys = state.keys;
+        state.keys = new Set(state.keys);
         requestAnimationFrame(render);
       };
       requestAnimationFrame(render);
       const window = windowid++;
-      windows[window] = { canvas, ctx };
+      windows[window] = { canvas, ctx, state };
       return window;
+    },
+    zengl_key_state(window, key) {
+      const state = windows[window].state;
+      const keyName = getString(key);
+      return (state.keys.has(keyName) ? 1 : 0) | (state.prevKeys.has(keyName) ? 2 : 0);
     },
     zengl_make_current(window) {
       gl = windows[window].ctx;

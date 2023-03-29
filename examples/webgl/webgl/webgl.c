@@ -15,8 +15,9 @@ typedef unsigned char GLubyte;
 typedef char GLchar;
 typedef void * GLsync;
 
-extern void * zengl_create_window(int width, int height, void * handler, const char * root);
+extern void * zengl_create_window(int width, int height, void * input, void * handler, const char * root);
 extern void zengl_make_current(void * window);
+extern int zengl_key_state(void * window, const char * key);
 
 extern void zengl_glCullFace(GLenum mode);
 extern void zengl_glClear(GLbitfield mask);
@@ -619,14 +620,25 @@ static PyObject * load_opengl_function(PyObject * self, PyObject * arg) {
     return res;
 }
 
+typedef struct WindowInput {
+    float time;
+    float time_delta;
+    int mouse_x;
+    int mouse_y;
+    int mouse_dx;
+    int mouse_dy;
+    int frame;
+} WindowInput;
+
 typedef struct Window {
     PyObject_HEAD
     PyObject * size;
     PyObject * aspect;
     PyObject * mouse;
-    PyObject * time;
+    PyObject * mouse_delta;
     PyObject * render;
     void * window;
+    WindowInput input;
 } Window;
 
 static PyTypeObject * Window_type;
@@ -646,11 +658,17 @@ static Window * meth_window(PyObject * self, PyObject * args, PyObject * kwargs)
     res->size = Py_BuildValue("(ii)", width, height);
     res->aspect = PyFloat_FromDouble((double)width / (double)height);
     res->mouse = Py_BuildValue("(ii)", 0, 0);
-    res->time = PyFloat_FromDouble(0.0);
     res->render = NULL;
+    res->input.time = 0.0f;
+    res->input.time_delta = 0.0f;
+    res->input.mouse_x = 0;
+    res->input.mouse_y = 0;
+    res->input.mouse_dx = 0;
+    res->input.mouse_dy = 0;
+    res->input.frame = 0;
 
     PyObject * handler = PyObject_GetAttrString((PyObject *)res, "update");
-    res->window = zengl_create_window(width, height, handler, root);
+    res->window = zengl_create_window(width, height, &res->input, handler, root);
     zengl_make_current(res->window);
     return res;
 }
@@ -661,14 +679,52 @@ static PyObject * Window_meth_make_current(Window * self, PyObject * args) {
 }
 
 static PyObject * Window_meth_update(Window * self, PyObject * args) {
-    double time = PyFloat_AsDouble(self->time);
-    Py_SETREF(self->mouse, Py_BuildValue("(ii)", 0, 0));
-    Py_SETREF(self->time, PyFloat_FromDouble(time + 1.0 / 60.0));
-    Py_XDECREF(PyObject_CallObject(self->render, NULL));
-    if (PyErr_Occurred()) {
-        return NULL;
+    Py_SETREF(self->mouse, Py_BuildValue("(ii)", self->input.mouse_x, self->input.mouse_y));
+    Py_SETREF(self->mouse_delta, Py_BuildValue("(ii)", self->input.mouse_dx, self->input.mouse_dy));
+    if (self->render) {
+        Py_XDECREF(PyObject_CallObject(self->render, NULL));
+        if (PyErr_Occurred()) {
+            return NULL;
+        }
+       self->input.frame += 1;
     }
     Py_RETURN_NONE;
+}
+
+static PyObject * Window_meth_key_pressed(Window * self, PyObject * arg) {
+    if (!PyUnicode_CheckExact(arg)) {
+        return NULL;
+    }
+    int flags = zengl_key_state(self->window, PyUnicode_AsUTF8(arg));
+    if ((flags & 1) && (~flags & 2)) {
+        Py_RETURN_TRUE;
+    } else {
+        Py_RETURN_FALSE;
+    }
+}
+
+static PyObject * Window_meth_key_down(Window * self, PyObject * arg) {
+    if (!PyUnicode_CheckExact(arg)) {
+        return NULL;
+    }
+    int flags = zengl_key_state(self->window, PyUnicode_AsUTF8(arg));
+    if (flags & 1) {
+        Py_RETURN_TRUE;
+    } else {
+        Py_RETURN_FALSE;
+    }
+}
+
+static PyObject * Window_meth_key_release(Window * self, PyObject * arg) {
+    if (!PyUnicode_CheckExact(arg)) {
+        return NULL;
+    }
+    int flags = zengl_key_state(self->window, PyUnicode_AsUTF8(arg));
+    if ((~flags & 1) & (flags & 2)) {
+        Py_RETURN_TRUE;
+    } else {
+        Py_RETURN_FALSE;
+    }
 }
 
 static PyObject * Window_meth_render(Window * self, PyObject * arg) {
@@ -683,6 +739,9 @@ static void default_dealloc(PyObject * self) {
 }
 
 static PyMethodDef Window_methods[] = {
+    {"key_pressed", (PyCFunction)Window_meth_key_pressed, METH_O},
+    {"key_down", (PyCFunction)Window_meth_key_down, METH_O},
+    {"key_release", (PyCFunction)Window_meth_key_release, METH_O},
     {"make_current", (PyCFunction)Window_meth_make_current, METH_NOARGS},
     {"update", (PyCFunction)Window_meth_update, METH_NOARGS},
     {"render", (PyCFunction)Window_meth_render, METH_O},
@@ -694,7 +753,9 @@ static PyMemberDef Window_members[] = {
     {"size", T_OBJECT, offsetof(Window, size), READONLY},
     {"aspect", T_OBJECT, offsetof(Window, aspect), READONLY},
     {"mouse", T_OBJECT, offsetof(Window, mouse), READONLY},
-    {"time", T_OBJECT, offsetof(Window, time), READONLY},
+    {"time", T_FLOAT, offsetof(Window, input.time), READONLY},
+    {"time_delta", T_FLOAT, offsetof(Window, input.time_delta), READONLY},
+    {"frame", T_INT, offsetof(Window, input.frame), READONLY},
     {NULL},
 };
 
