@@ -462,7 +462,7 @@ const zenglSymbols = (wasm) => {
       glo.delete(sync);
     },
     zengl_glClientWaitSync(sync, flags, timeout) {
-      gl.clientWaitSync(sync, flags, timeout);
+      gl.clientWaitSync(glo[sync], flags, gl.MAX_CLIENT_WAIT_TIMEOUT_WEBGL);
     },
     zengl_glGenSamplers(count, samplers) {
       const sampler = glid++;
