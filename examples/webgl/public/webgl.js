@@ -13,19 +13,21 @@ const zenglSymbols = (wasm) => {
     wasm.HEAPU8[raw.byteLength] = 0;
   };
 
+  const windows = new Map();
+  let windowid = 1;
+
   const glo = new Map();
   let glid = 1;
   glo[0] = null;
-  let canvas = null;
   let gl = null;
 
   return {
-    zengl_create_window(width, height) {
-      canvas = document.createElement('canvas');
+    zengl_create_window(width, height, handler) {
+      const canvas = document.createElement('canvas');
       canvas.width = width;
       canvas.height = height;
       document.body.appendChild(canvas);
-      gl = canvas.getContext('webgl2', {
+      const ctx = canvas.getContext('webgl2', {
         alpha: false,
         depth: false,
         stencil: false,
@@ -34,6 +36,16 @@ const zenglSymbols = (wasm) => {
         preserveDrawingBuffer: false,
         powerPreference: 'high-performance',
       });
+      gl = ctx;
+      const render = () => {
+        gl = ctx;
+        wasm.callPyObject(handler, []);
+        requestAnimationFrame(render);
+      };
+      requestAnimationFrame(render);
+      const window = windowid++;
+      windows[window] = { canvas, gl: ctx };
+      return window;
     },
     zengl_glCullFace(mode) {
       gl.cullFace(mode);

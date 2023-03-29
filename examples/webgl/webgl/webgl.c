@@ -15,7 +15,7 @@ typedef unsigned char GLubyte;
 typedef char GLchar;
 typedef void * GLsync;
 
-extern void zengl_create_window(int width, int height);
+extern void * zengl_create_window(int width, int height, void * handler);
 
 extern void zengl_glCullFace(GLenum mode);
 extern void zengl_glClear(GLbitfield mask);
@@ -620,15 +620,17 @@ static PyObject * load_opengl_function(PyObject * self, PyObject * arg) {
 
 typedef struct Window {
     PyObject_HEAD
+    void * window;
     PyObject * size;
     PyObject * aspect;
     PyObject * mouse;
     PyObject * time;
+    PyObject * render;
 } Window;
 
-PyTypeObject * Window_type;
+static PyTypeObject * Window_type;
 
-Window * meth_window(PyObject * self, PyObject * args, PyObject * kwargs) {
+static Window * meth_window(PyObject * self, PyObject * args, PyObject * kwargs) {
     const char * keywords[] = {"size", NULL};
 
     int width = 1280;
@@ -638,19 +640,33 @@ Window * meth_window(PyObject * self, PyObject * args, PyObject * kwargs) {
         return NULL;
     }
     Window * res = PyObject_New(Window, Window_type);
-    zengl_create_window(width, height);
+    res->window = zengl_create_window(width, height, PyObject_GetAttrString((PyObject *)res, "update"));
     res->size = Py_BuildValue("(ii)", width, height);
     res->aspect = PyFloat_FromDouble((double)width / (double)height);
     res->mouse = Py_BuildValue("(ii)", 0, 0);
     res->time = PyFloat_FromDouble(0.0);
+    res->render = NULL;
     return res;
 }
 
-PyObject * Window_meth_update(Window * self, PyObject * args) {
+static PyObject * Window_meth_update(Window * self, PyObject * args) {
     double time = PyFloat_AsDouble(self->time);
     Py_SETREF(self->mouse, Py_BuildValue("(ii)", 0, 0));
     Py_SETREF(self->time, PyFloat_FromDouble(time + 1.0 / 60.0));
+    Py_XDECREF(PyObject_CallObject(self->render, NULL));
+    if (PyErr_Occurred()) {
+        return NULL;
+    }
     Py_RETURN_NONE;
+}
+
+static PyObject * set_render_callback(Window * self, PyObject * render) {
+}
+
+static PyMethodDef set_render_callback_def = {"render", (PyCFunction)set_render_callback, METH_O};
+
+static PyObject * Window_meth_render(Window * self, PyObject * args) {
+    return PyCFunction_New(&set_render_callback_def, (PyObject *)self);
 }
 
 static void default_dealloc(PyObject * self) {
@@ -659,6 +675,7 @@ static void default_dealloc(PyObject * self) {
 
 static PyMethodDef Window_methods[] = {
     {"update", (PyCFunction)Window_meth_update, METH_NOARGS},
+    {"render", (PyCFunction)Window_meth_render, METH_NOARGS},
     {"load_opengl_function", (PyCFunction)load_opengl_function, METH_O},
     {NULL},
 };

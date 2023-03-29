@@ -64,8 +64,8 @@ pipeline = ctx.pipeline(
 print(zengl.inspect(pipeline))
 
 
+@window.render()
 def render():
-    window.update()
     ctx.new_frame()
     image.clear()
     pipeline.uniforms['time'][:] = struct.pack('f', window.time)

@@ -30,12 +30,7 @@
     pyodide._module.mergeLibSymbols(zenglSymbols(pyodide._module));
 
     const example = window.location.href.split('?example=')[1] || 'triangle';
-    pyodide.runPython(`from examples.${example} import render`);
-    const frame = () => {
-      pyodide.runPython('render()');
-      requestAnimationFrame(frame);
-    };
-    requestAnimationFrame(frame);
+    pyodide.runPython(`import examples.${example}`);
   })();
 </script>
 </body>
