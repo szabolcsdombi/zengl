@@ -122,10 +122,16 @@ const zenglSymbols = (wasm) => {
       wasm.HEAP32[textures / 4] = texture;
     },
     zengl_glTexImage3D(target, level, internalformat, width, height, depth, border, format, type, pixels) {
-      console.log('glTexImage3D', target, level, internalformat, width, height, depth, border, format, type, pixels);
+      gl.texImage3D(target, level, internalformat, width, height, depth, border, format, type, null);
     },
     zengl_glTexSubImage3D(target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels) {
-      console.log('glTexSubImage3D', target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels);
+      if (type === 0x1401) {
+        const size = width * height * depth * 4;
+        const data = wasm.HEAPU8.subarray(pixels, pixels + size);
+        gl.texSubImage3D(target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, data);
+      } else {
+        console.log('glTexSubImage3D', target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels);
+      }
     },
     zengl_glActiveTexture(texture) {
       gl.activeTexture(texture);
@@ -392,7 +398,7 @@ const zenglSymbols = (wasm) => {
       gl.renderbufferStorageMultisample(target, samples, internalformat, width, height);
     },
     zengl_glFramebufferTextureLayer(target, attachment, texture, level, layer) {
-      gl.framebufferTextureLayer(target, attachment, texture, level, layer);
+      gl.framebufferTextureLayer(target, attachment, glo[texture], level, layer);
     },
     zengl_glMapBufferRange(target, offset, length, access) {
       return 0;
