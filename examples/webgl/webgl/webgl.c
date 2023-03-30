@@ -15,8 +15,10 @@ typedef unsigned char GLubyte;
 typedef char GLchar;
 typedef void * GLsync;
 
-extern void * zengl_create_window(int width, int height, void * input, void * handler, const char * root);
+extern void * zengl_create_window(int width, int height, void * handler, const char * root);
 extern void zengl_make_current(void * window);
+extern double zengl_time_state(void * window);
+extern void zengl_mouse_state(void * window, int * mouse);
 extern int zengl_key_state(void * window, const char * key);
 
 extern void zengl_glCullFace(GLenum mode);
@@ -620,16 +622,6 @@ static PyObject * load_opengl_function(PyObject * self, PyObject * arg) {
     return res;
 }
 
-typedef struct WindowInput {
-    float time;
-    float time_delta;
-    int mouse_x;
-    int mouse_y;
-    int mouse_dx;
-    int mouse_dy;
-    int frame;
-} WindowInput;
-
 typedef struct Window {
     PyObject_HEAD
     PyObject * size;
@@ -638,7 +630,12 @@ typedef struct Window {
     PyObject * mouse_delta;
     PyObject * render;
     void * window;
-    WindowInput input;
+    double time;
+    int mouse_x;
+    int mouse_y;
+    int mouse_dx;
+    int mouse_dy;
+    int frame;
 } Window;
 
 static PyTypeObject * Window_type;
@@ -659,16 +656,15 @@ static Window * meth_window(PyObject * self, PyObject * args, PyObject * kwargs)
     res->aspect = PyFloat_FromDouble((double)width / (double)height);
     res->mouse = Py_BuildValue("(ii)", 0, 0);
     res->render = NULL;
-    res->input.time = 0.0f;
-    res->input.time_delta = 0.0f;
-    res->input.mouse_x = 0;
-    res->input.mouse_y = 0;
-    res->input.mouse_dx = 0;
-    res->input.mouse_dy = 0;
-    res->input.frame = 0;
+    res->time = 0.0;
+    res->mouse_x = 0;
+    res->mouse_y = 0;
+    res->mouse_dx = 0;
+    res->mouse_dy = 0;
+    res->frame = 0;
 
     PyObject * handler = PyObject_GetAttrString((PyObject *)res, "update");
-    res->window = zengl_create_window(width, height, &res->input, handler, root);
+    res->window = zengl_create_window(width, height, handler, root);
     zengl_make_current(res->window);
     return res;
 }
@@ -679,14 +675,17 @@ static PyObject * Window_meth_make_current(Window * self, PyObject * args) {
 }
 
 static PyObject * Window_meth_update(Window * self, PyObject * args) {
-    Py_SETREF(self->mouse, Py_BuildValue("(ii)", self->input.mouse_x, self->input.mouse_y));
-    Py_SETREF(self->mouse_delta, Py_BuildValue("(ii)", self->input.mouse_dx, self->input.mouse_dy));
+    int mouse[4];
+    zengl_mouse_state(self->window, mouse);
+    self->time = zengl_time_state(self->window);
+    Py_SETREF(self->mouse, Py_BuildValue("(ii)", mouse[0], mouse[1]));
+    Py_SETREF(self->mouse_delta, Py_BuildValue("(ii)", mouse[2], mouse[3]));
     if (self->render) {
         Py_XDECREF(PyObject_CallObject(self->render, NULL));
         if (PyErr_Occurred()) {
             return NULL;
         }
-       self->input.frame += 1;
+       self->frame += 1;
     }
     Py_RETURN_NONE;
 }
@@ -753,9 +752,8 @@ static PyMemberDef Window_members[] = {
     {"size", T_OBJECT, offsetof(Window, size), READONLY},
     {"aspect", T_OBJECT, offsetof(Window, aspect), READONLY},
     {"mouse", T_OBJECT, offsetof(Window, mouse), READONLY},
-    {"time", T_FLOAT, offsetof(Window, input.time), READONLY},
-    {"time_delta", T_FLOAT, offsetof(Window, input.time_delta), READONLY},
-    {"frame", T_INT, offsetof(Window, input.frame), READONLY},
+    {"time", T_DOUBLE, offsetof(Window, time), READONLY},
+    {"frame", T_INT, offsetof(Window, frame), READONLY},
     {NULL},
 };
 

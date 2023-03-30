@@ -47,7 +47,7 @@ const zenglSymbols = (wasm) => {
   let gl = null;
 
   return {
-    zengl_create_window(width, height, input, handler, root) {
+    zengl_create_window(width, height, handler, root) {
       const canvas = document.createElement('canvas');
       canvas.width = width;
       canvas.height = height;
@@ -73,6 +73,8 @@ const zenglSymbols = (wasm) => {
         mx: 0,
         my: 0,
         keys: new Set(),
+        timeRef: null,
+        timeElapsed: 0,
       };
       canvas.addEventListener('mousemove', (evt) => {
         state.mx = evt.x;
@@ -84,19 +86,11 @@ const zenglSymbols = (wasm) => {
       canvas.addEventListener('keyup', (evt) => {
         state.keys.delete(evt.key);
       });
-      let prevTimestamp = null;
-      let firstTimestamp = null;
       const render = (timestamp) => {
-        if (firstTimestamp === null) {
-          firstTimestamp = timestamp;
-          prevTimestamp = timestamp;
+        if (state.timeRef === null) {
+          state.timeRef = timestamp;
         }
-        wasm.HEAPF32[input / 4] = (timestamp - firstTimestamp) * 1e-3;
-        wasm.HEAPF32[input / 4 + 1] = (timestamp - prevTimestamp) * 1e-3;
-        wasm.HEAP32[input / 4 + 2] = state.mx;
-        wasm.HEAP32[input / 4 + 3] = state.my;
-        wasm.HEAP32[input / 4 + 4] = state.mx - state.prevMx;
-        wasm.HEAP32[input / 4 + 5] = state.my - state.prevMy;
+        state.timeElapsed = (timestamp - state.timeRef) * 1e-3;
         gl = ctx;
         wasm.callPyObject(handler, []);
         state.prevMx = state.mx;
@@ -109,6 +103,17 @@ const zenglSymbols = (wasm) => {
       const window = windowid++;
       windows[window] = { canvas, ctx, state };
       return window;
+    },
+    zengl_time_state(window) {
+      const state = windows[window].state;
+      return state.timeElapsed;
+    },
+    zengl_mouse_state(window, mouse) {
+      const state = windows[window].state;
+      wasm.HEAP32[mouse / 4] = state.mx;
+      wasm.HEAP32[mouse / 4 + 1] = state.my;
+      wasm.HEAP32[mouse / 4 + 2] = state.mx - state.prevMx;
+      wasm.HEAP32[mouse / 4 + 3] = state.my - state.prevMy;
     },
     zengl_key_state(window, key) {
       const state = windows[window].state;
