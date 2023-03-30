@@ -15,11 +15,10 @@
   <li><a href="crate.html">Crate</a></li>
   <li><a href="food.html">Food</a></li>
 </ul>
+<canvas id="zengl-canvas", tabindex="1" width="1280" height="720"></canvas>
 <script>
   (async () => {
     const pyodide = await loadPyodide();
-    window.pyodide = pyodide;
-    window.wasm = pyodide._module;
 
     await pyodide.loadPackage([
       'zengl-1.12.0-cp310-cp310-emscripten_3_1_27_wasm32.whl',
@@ -27,7 +26,7 @@
       'assets-0.1.0-py3-none-any.whl',
     ]);
 
-    pyodide._module.mergeLibSymbols(zenglSymbols(pyodide._module));
+    zenglSetup(pyodide, document.getElementById('zengl-canvas'));
 
     pyodide.runPython(document.getElementById('python').innerHTML);
   })();
@@ -41,8 +40,8 @@
   import webgl
   import zengl
 
-  window = webgl.window()
-  ctx = zengl.context(window)
+  window = webgl.window
+  ctx = zengl.context()
 
 
   def random_rotation():
@@ -203,7 +202,6 @@
   rotation_axis = [qtransform(random_rotation(), (0.0, 0.0, 1.0)) for _ in range(256)]
 
 
-  @window.render
   def render():
       t = window.time
       packer.pack_into(bones, 2 * 32, 0.0, 0.0, 0.8, 1.0, *axisangle((0.0, 0.0, 1.0), t * 20.0))

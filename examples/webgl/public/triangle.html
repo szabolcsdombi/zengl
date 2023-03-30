@@ -15,19 +15,17 @@
   <li><a href="crate.html">Crate</a></li>
   <li><a href="food.html">Food</a></li>
 </ul>
+<canvas id="zengl-canvas", tabindex="1" width="1280" height="720"></canvas>
 <script>
   (async () => {
     const pyodide = await loadPyodide();
-    window.pyodide = pyodide;
-    window.wasm = pyodide._module;
 
     await pyodide.loadPackage([
       'zengl-1.12.0-cp310-cp310-emscripten_3_1_27_wasm32.whl',
       'webgl-0.1.0-cp310-cp310-emscripten_3_1_27_wasm32.whl',
     ]);
 
-    pyodide._module.mergeLibSymbols(zenglSymbols(pyodide._module));
-
+    zenglSetup(pyodide, document.getElementById('zengl-canvas'));
     pyodide.runPython(document.getElementById('python').innerHTML);
   })();
 </script>
@@ -37,9 +35,9 @@
   import webgl
   import zengl
 
-  window = webgl.window()
+  window = webgl.window
 
-  ctx = zengl.context(window)
+  ctx = zengl.context()
   print(ctx.info, ctx.limits)
 
   image = ctx.image(window.size, 'rgba8unorm', texture=False)
@@ -98,7 +96,6 @@
   print(zengl.inspect(pipeline))
 
 
-  @window.render
   def render():
       ctx.new_frame()
       image.clear()
