@@ -176,7 +176,7 @@ class DefaultLoader:
 def loader(headless=False):
     if headless:
         import glcontext
-        return glcontext.default_backend()(glversion=450, mode='standalone')
+        return glcontext.default_backend()(glversion=330, mode='standalone')
     return DefaultLoader()
 
 
