@@ -1985,15 +1985,17 @@ static Image * Context_meth_image(Context * self, PyObject * args, PyObject * kw
         gl->TexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         gl->TexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         for (int level = 0; level < levels; ++level) {
+            int w = least_one(width >> level);
+            int h = least_one(height >> level);
             if (cubemap) {
                 for (int i = 0; i < 6; ++i) {
                     int face = GL_TEXTURE_CUBE_MAP_POSITIVE_X + i;
-                    gl->TexImage2D(face, level, fmt->internal_format, width, height, 0, fmt->format, fmt->type, NULL);
+                    gl->TexImage2D(face, level, fmt->internal_format, w, h, 0, fmt->format, fmt->type, NULL);
                 }
             } else if (array) {
-                gl->TexImage3D(target, level, fmt->internal_format, width, height, array, 0, fmt->format, fmt->type, NULL);
+                gl->TexImage3D(target, level, fmt->internal_format, w, h, array, 0, fmt->format, fmt->type, NULL);
             } else {
-                gl->TexImage2D(target, level, fmt->internal_format, width, height, 0, fmt->format, fmt->type, NULL);
+                gl->TexImage2D(target, level, fmt->internal_format, w, h, 0, fmt->format, fmt->type, NULL);
             }
         }
     }
