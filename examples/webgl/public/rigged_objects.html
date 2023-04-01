@@ -78,7 +78,7 @@
 
   image = ctx.image(window.size, 'rgba8unorm', texture=False)
   depth = ctx.image(window.size, 'depth24plus', texture=False)
-  image.clear_value = (0.2, 0.2, 0.2, 1.0)
+  image.clear_value = (0.0, 0.0, 0.0, 1.0)
 
   vertex_buffer = ctx.buffer(open(assets.get('food-model.bin'), 'rb').read())
   uniform_buffer = ctx.buffer(size=64)

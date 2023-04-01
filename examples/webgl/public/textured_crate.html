@@ -40,7 +40,7 @@
 
   image = ctx.image(window.size, 'rgba8unorm', texture=False)
   depth = ctx.image(window.size, 'depth24plus', texture=False)
-  image.clear_value = (0.05, 0.05, 0.05, 1.0)
+  image.clear_value = (0.0, 0.0, 0.0, 1.0)
 
   vertex_buffer = ctx.buffer(open(assets.get('cube-model.bin'), 'rb').read())
   texture = ctx.image((192, 192), 'rgba8unorm', open(assets.get('crate-texture.bin'), 'rb').read())

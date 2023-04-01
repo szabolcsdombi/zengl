@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body class="example">
+  <canvas id="zengl-canvas", tabindex="1" width="1280" height="720"></canvas>
+</body>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.23.0/full/pyodide.js"></script>
+<script src="webgl.js"></script>
+<script>
+  (async () => {
+    const pyodide = await loadPyodide();
+
+    await pyodide.loadPackage([
+      'zengl-1.12.0-cp311-cp311-emscripten_3_1_32_wasm32.whl',
+      'webgl-0.1.0-cp311-cp311-emscripten_3_1_32_wasm32.whl',
+    ]);
+
+    zenglSetup(pyodide, document.getElementById('zengl-canvas'));
+    pyodide.runPython(document.getElementById('python').innerHTML);
+  })();
+</script>
+<script id="python" type="application/x-python-code">
+  import os
+
+  import webgl
+  import zengl
+
+  window = webgl.window
+  ctx = zengl.context()
+
+  image = ctx.image(window.size, 'rgba8unorm')
+  temp = ctx.image(window.size, 'rgba8unorm')
+
+  scene = ctx.pipeline(
+      includes={
+          'size': f'ivec2 SIZE = ivec2({window.size[0], window.size[1]});',
+      },
+      vertex_shader='''
+          #version 300 es
+          precision highp float;
+
+          vec2 positions[3] = vec2[](
+              vec2(-1.0, -1.0),
+              vec2(3.0, -1.0),
+              vec2(-1.0, 3.0)
+          );
+
+          void main() {
+              gl_Position = vec4(positions[gl_VertexID], 0.0, 1.0);
+          }
+      ''',
+      fragment_shader='''
+          #version 300 es
+          precision highp float;
+          precision highp sampler2D;
+
+          uniform sampler2D Texture;
+
+          #include "size"
+
+          layout (location = 0) out vec4 out_color;
+
+          int c(int x, int y) {
+              ivec2 at = (ivec2(gl_FragCoord.xy) + ivec2(x, y) + SIZE) % SIZE;
+              return texelFetch(Texture, at, 0).r > 0.5 ? 1 : 0;
+          }
+
+          void main() {
+              float res;
+              int neighbours = c(-1, -1) + c(-1, 0) + c(0, 1) + c(0, -1) + c(-1, 1) + c(1, -1) + c(1, 0) + c(1, 1);
+              if (c(0, 0) == 1) {
+                  res = (neighbours == 2 || neighbours == 3) ? 1.0 : 0.0;
+              } else {
+                  res = (neighbours == 3) ? 1.0 : 0.0;
+              }
+              out_color = vec4(res, res, res, 1.0);
+          }
+      ''',
+      layout=[
+          {
+              'name': 'Texture',
+              'binding': 0,
+          },
+      ],
+      resources=[
+          {
+              'type': 'sampler',
+              'binding': 0,
+              'image': temp,
+          },
+      ],
+      framebuffer=[image],
+      topology='triangles',
+      vertex_count=3,
+  )
+
+  image.write(os.urandom(4 * window.size[0] * window.size[1]))
+
+
+  def render():
+      ctx.new_frame()
+      image.blit(temp)
+      scene.render()
+      temp.blit()
+      ctx.end_frame()
+</script>
+</html>
