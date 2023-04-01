@@ -5,13 +5,30 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
   <title>ZenGL Examples</title>
 </head>
 <body>
-<ul>
-  <li><a href="triangle.html">Triangle</a></li>
-  <li><a href="crate.html">Crate</a></li>
-  <li><a href="food.html">Food</a></li>
-</ul>
+  <div id="container">
+    <iframe id="browser" src=""></iframe>
+    <div id="sidebar">
+      <div id="topbar">Examples</div>
+      <a class="link" href="/triangle.html">Triangle</a>
+      <a class="link" href="/crate.html">Crate</a>
+      <a class="link" href="/food.html">Food</a>
+    </div>
+  </div>
 </body>
+<script>
+  const loadExample = (evt) => {
+    evt.preventDefault();
+    document.getElementById('browser').src = evt.target.href;
+  };
+
+  const links = document.getElementsByClassName('link');
+  for (let link of links) {
+    link.addEventListener('click', loadExample);
+  }
+</script>
 </html>

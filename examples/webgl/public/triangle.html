@@ -5,17 +5,13 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/png" href="favicon.png">
-  <title>ZenGL Examples</title>
+  <link rel="stylesheet" type="text/css" href="style.css">
 </head>
-<body>
+<body class="example">
+  <canvas id="zengl-canvas", tabindex="1" width="1280" height="720"></canvas>
+</body>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.23.0/full/pyodide.js"></script>
 <script src="webgl.js"></script>
-<ul>
-  <li><a href="triangle.html">Triangle</a></li>
-  <li><a href="crate.html">Crate</a></li>
-  <li><a href="food.html">Food</a></li>
-</ul>
-<canvas id="zengl-canvas", tabindex="1" width="1280" height="720"></canvas>
 <script>
   (async () => {
     const pyodide = await loadPyodide();
@@ -104,5 +100,4 @@
       image.blit()
       ctx.end_frame()
 </script>
-</body>
 </html>

@@ -1,0 +1,60 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  font-family: 'Roboto', sans-serif;
+  background-color: black;
+}
+
+#topbar {
+  width: 100%;
+  padding: 20px 20px;
+  color: white;
+  font-size: 24px;
+  user-select: none;
+}
+
+#container {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+#sidebar {
+  width: 300px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#browser {
+  flex-grow: 1;
+  border: 0;
+}
+
+.example {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.link {
+  display: block;
+  color: #eee;
+  margin-left: 20px;
+  padding: 10px 20px;
+  text-decoration: none;
+  border-left: 3px solid #555;
+}
+
+.link:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+#zengl-canvas {
+  width: 1280px;
+  height: 720px;
+}
