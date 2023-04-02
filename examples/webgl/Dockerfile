@@ -17,7 +17,7 @@ COPY examples/webgl/webgl /webgl/
 RUN cd /webgl/ && pyodide build /webgl/
 
 WORKDIR /web/
-RUN cp /zengl/dist/zengl-1.12.0-cp311-cp311-emscripten_3_1_32_wasm32.whl /web/
+RUN cp /zengl/dist/zengl-1.12.1-cp311-cp311-emscripten_3_1_32_wasm32.whl /web/
 RUN cp /webgl/dist/webgl-0.1.0-cp311-cp311-emscripten_3_1_32_wasm32.whl /web/
 RUN cp /assets/dist/assets-0.1.0-py3-none-any.whl /web/
 COPY examples/webgl/public/* /web/

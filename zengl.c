@@ -3499,7 +3499,7 @@ static int module_exec(PyObject * self) {
     PyModule_AddObject(self, "calcsize", (PyObject *)new_ref(PyObject_GetAttrString(state->helper, "calcsize")));
     PyModule_AddObject(self, "bind", (PyObject *)new_ref(PyObject_GetAttrString(state->helper, "bind")));
 
-    PyModule_AddObject(self, "__version__", PyUnicode_FromString("1.12.0"));
+    PyModule_AddObject(self, "__version__", PyUnicode_FromString("1.12.1"));
 
     return 0;
 }
