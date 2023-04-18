@@ -11,30 +11,42 @@
   <canvas id="zengl-canvas", tabindex="1" width="1280" height="720"></canvas>
 </body>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.23.1/full/pyodide.js"></script>
-<script src="webgl.js"></script>
+<script src="zengl_canvas.js"></script>
+<script src="zengl_webgl.js"></script>
 <script>
   (async () => {
     const pyodide = await loadPyodide();
 
     await pyodide.loadPackage([
       'zengl-1.12.1-cp311-cp311-emscripten_3_1_32_wasm32.whl',
-      'webgl-0.1.0-cp311-cp311-emscripten_3_1_32_wasm32.whl',
+      'zengl_webgl-0.1.0-cp311-cp311-emscripten_3_1_32_wasm32.whl',
+      'zengl_canvas-0.1.0-cp311-cp311-emscripten_3_1_32_wasm32.whl',
     ]);
 
-    zenglSetup(pyodide, document.getElementById('zengl-canvas'));
+    const canvas = document.getElementById('zengl-canvas');
+    const gl = canvas.getContext('webgl2', {
+      alpha: false, depth: false, stencil: false, antialias: false,
+      premultipliedAlpha: false, preserveDrawingBuffer: false,
+      powerPreference: 'high-performance',
+    });
+
+    zenglCanvasSetup(pyodide, canvas);
+    zenglSetup(pyodide._module, gl);
+
     pyodide.runPython(document.getElementById('python').innerHTML);
   })();
 </script>
 <script id="python" type="application/x-python-code">
   import struct
 
-  import webgl
   import zengl
+  import zengl_canvas
+  import zengl_webgl
 
-  window = webgl.window
-  ctx = zengl.context()
+  wnd = zengl_canvas.window
+  ctx = zengl.context(zengl_webgl.Loader())
 
-  image = ctx.image(window.size, 'rgba8unorm', texture=False)
+  image = ctx.image(wnd.size, 'rgba8unorm', texture=False)
 
   uniform_buffer = ctx.buffer(size=32)
 
@@ -107,7 +119,7 @@
 
   def render():
       ctx.new_frame()
-      uniform_buffer.write(struct.pack('=2f2fi', *window.size, *window.mouse, 100))
+      uniform_buffer.write(struct.pack('=2f2fi', *wnd.size, *wnd.mouse, 100))
       image.clear()
       scene.render()
       image.blit()

@@ -1,12 +1,12 @@
 from setuptools import Extension, setup
 
 ext = Extension(
-    name='webgl',
-    sources=['./webgl.c'],
+    name='zengl_webgl',
+    sources=['./zengl_webgl.c'],
 )
 
 setup(
-    name='webgl',
+    name='zengl_webgl',
     version='0.1.0',
     ext_modules=[ext],
 )

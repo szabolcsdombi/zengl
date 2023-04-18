@@ -11,18 +11,28 @@
   <canvas id="zengl-canvas", tabindex="1" width="1280" height="720"></canvas>
 </body>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.23.1/full/pyodide.js"></script>
-<script src="webgl.js"></script>
+<script src="zengl_canvas.js"></script>
+<script src="zengl_webgl.js"></script>
 <script>
   (async () => {
     const pyodide = await loadPyodide();
 
     await pyodide.loadPackage([
       'zengl-1.12.1-cp311-cp311-emscripten_3_1_32_wasm32.whl',
-      'webgl-0.1.0-cp311-cp311-emscripten_3_1_32_wasm32.whl',
+      'zengl_webgl-0.1.0-cp311-cp311-emscripten_3_1_32_wasm32.whl',
+      'zengl_canvas-0.1.0-cp311-cp311-emscripten_3_1_32_wasm32.whl',
       'assets-0.1.0-py3-none-any.whl',
     ]);
 
-    zenglSetup(pyodide, document.getElementById('zengl-canvas'));
+    const canvas = document.getElementById('zengl-canvas');
+    const gl = canvas.getContext('webgl2', {
+      alpha: false, depth: false, stencil: false, antialias: false,
+      premultipliedAlpha: false, preserveDrawingBuffer: false,
+      powerPreference: 'high-performance',
+    });
+
+    zenglCanvasSetup(pyodide, canvas);
+    zenglSetup(pyodide._module, gl);
 
     pyodide.runPython(document.getElementById('python').innerHTML);
   })();
@@ -33,11 +43,12 @@
   from math import cos, pi, sin, sqrt
 
   import assets
-  import webgl
   import zengl
+  import zengl_canvas
+  import zengl_webgl
 
-  window = webgl.window
-  ctx = zengl.context()
+  wnd = zengl_canvas.window
+  ctx = zengl.context(zengl_webgl.Loader())
 
 
   def random_rotation():
@@ -76,8 +87,8 @@
       return axis[0] * s, axis[1] * s, axis[2] * s, cos(angle / 2.0)
 
 
-  image = ctx.image(window.size, 'rgba8unorm', texture=False)
-  depth = ctx.image(window.size, 'depth24plus', texture=False)
+  image = ctx.image(wnd.size, 'rgba8unorm', texture=False)
+  depth = ctx.image(wnd.size, 'depth24plus', texture=False)
   image.clear_value = (0.0, 0.0, 0.0, 1.0)
 
   vertex_buffer = ctx.buffer(open(assets.get('food-model.bin'), 'rb').read())
@@ -164,7 +175,7 @@
       vertex_count=vertex_buffer.size // zengl.calcsize('3f 3f 4nu1 1i'),
   )
 
-  camera = zengl.camera((1.0, -4.0, 2.0), (0.0, 0.0, 0.5), aspect=window.aspect, fov=45.0)
+  camera = zengl.camera((1.0, -4.0, 2.0), (0.0, 0.0, 0.5), aspect=wnd.aspect, fov=45.0)
   uniform_buffer.write(camera)
 
   packer = struct.Struct('8f')
@@ -199,7 +210,7 @@
 
 
   def render():
-      t = window.time
+      t = wnd.time
       packer.pack_into(bones, 2 * 32, 0.0, 0.0, 0.8, 1.0, *axisangle((0.0, 0.0, 1.0), t * 20.0))
       for i in range(7, 207):
           a = offset[i] + t * speed[i]

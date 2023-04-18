@@ -11,35 +11,47 @@
   <canvas id="zengl-canvas", tabindex="1" width="1280" height="720"></canvas>
 </body>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.23.1/full/pyodide.js"></script>
-<script src="webgl.js"></script>
+<script src="zengl_canvas.js"></script>
+<script src="zengl_webgl.js"></script>
 <script>
   (async () => {
     const pyodide = await loadPyodide();
 
     await pyodide.loadPackage([
       'zengl-1.12.1-cp311-cp311-emscripten_3_1_32_wasm32.whl',
-      'webgl-0.1.0-cp311-cp311-emscripten_3_1_32_wasm32.whl',
+      'zengl_webgl-0.1.0-cp311-cp311-emscripten_3_1_32_wasm32.whl',
+      'zengl_canvas-0.1.0-cp311-cp311-emscripten_3_1_32_wasm32.whl',
     ]);
 
-    zenglSetup(pyodide, document.getElementById('zengl-canvas'));
+    const canvas = document.getElementById('zengl-canvas');
+    const gl = canvas.getContext('webgl2', {
+      alpha: false, depth: false, stencil: false, antialias: false,
+      premultipliedAlpha: false, preserveDrawingBuffer: false,
+      powerPreference: 'high-performance',
+    });
+
+    zenglCanvasSetup(pyodide, canvas);
+    zenglSetup(pyodide._module, gl);
+
     pyodide.runPython(document.getElementById('python').innerHTML);
   })();
 </script>
 <script id="python" type="application/x-python-code">
   import os
 
-  import webgl
   import zengl
+  import zengl_canvas
+  import zengl_webgl
 
-  window = webgl.window
-  ctx = zengl.context()
+  wnd = zengl_canvas.window
+  ctx = zengl.context(zengl_webgl.Loader())
 
-  image = ctx.image(window.size, 'rgba8unorm')
-  temp = ctx.image(window.size, 'rgba8unorm')
+  image = ctx.image(wnd.size, 'rgba8unorm')
+  temp = ctx.image(wnd.size, 'rgba8unorm')
 
   scene = ctx.pipeline(
       includes={
-          'size': f'ivec2 SIZE = ivec2({window.size[0], window.size[1]});',
+          'size': f'ivec2 SIZE = ivec2({wnd.size[0], wnd.size[1]});',
       },
       vertex_shader='''
           #version 300 es
@@ -100,7 +112,7 @@
       vertex_count=3,
   )
 
-  image.write(os.urandom(4 * window.size[0] * window.size[1]))
+  image.write(os.urandom(4 * wnd.size[0] * wnd.size[1]))
 
 
   def render():
