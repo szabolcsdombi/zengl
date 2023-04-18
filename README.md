@@ -20,6 +20,10 @@ what we render. The window does not have to be multisample, and it requires no d
 
 ## Examples
 
+ZenGL also works from the Browser ([In-Browser Examples](https://szabolcsdombi.github.io/zengl/))
+
+### Native Examples
+
 ```
 pip install -r examples/requirements.txt
 python examples/example_browser.py
