@@ -5,7 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-# [main](https://github.com/szabolcsdombi/zengl/compare/1.12.1...main)
+# [main](https://github.com/szabolcsdombi/zengl/compare/1.12.2...main)
+
+# [1.12.2](https://github.com/szabolcsdombi/zengl/compare/1.12.1...1.12.2)
+
+- Added web support
 
 # [1.12.1](https://github.com/szabolcsdombi/zengl/compare/1.12.0...1.12.1)
 
