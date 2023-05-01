@@ -20,7 +20,7 @@ State changes between pipelines are optimized; framebuffers, descriptor sets are
 
 ZenGL is a low level library, it adds no magic on the rendering side. All you need to know is OpenGL.
 
-ZenGL runs Natively (Desktop OpenGL), on top of Angle (DirectX, Vulkan, Meta), WebGL2 (In the Browser).
+ZenGL runs Natively (Desktop OpenGL), on top of Angle (DirectX, Vulkan, Metal), or WebGL2 (In the Browser).
 
 ## Examples
 
