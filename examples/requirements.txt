@@ -2,7 +2,7 @@ chull==1.0.1
 ffmpeg-python
 glcontext
 imageio-ffmpeg
-imgui==1.4.1
+imgui==2.0.0
 matplotlib
 numpy==1.24.2
 objloader==0.2.0
@@ -13,7 +13,7 @@ pygame
 pyglet==2.0.5
 pygmsh
 pyopengl==3.1.6
-requests==2.28.2
+requests==2.29.0
 scikit-image
 scipy==1.10.1
 vmath==0.3.0
