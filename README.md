@@ -41,3 +41,100 @@ python examples/example_browser.py
 [![normal_mapping](https://user-images.githubusercontent.com/11232402/235417454-1d8e4bfb-02ad-42a2-87ba-ce39f47de14d.png)](#native-examples)
 [![rigged_objects](https://user-images.githubusercontent.com/11232402/235417459-79483b7f-6581-4788-a662-ef81087334b6.png)](#native-examples)
 [![wireframe](https://user-images.githubusercontent.com/11232402/235417465-f3f54a9b-624b-4fa1-88b6-f725ac468e78.png)](#native-examples)
+
+### Complete Pipeline Definition
+
+Probably the only documentation needed.
+
+```py
+pipeline = ctx.pipeline(
+    # program definition
+    vertex_shader='...',
+    fragment_shader='...',
+    layout=[
+        {
+            'name': 'Uniforms',
+            'binding': 0,
+        },
+        {
+            'name': 'Texture',
+            'binding': 0,
+        },
+    ],
+
+    # descriptor sets
+    resources=[
+        {
+            'type': 'uniform_buffer',
+            'binding': 0,
+            'buffer': uniform_buffer,
+        },
+        {
+            'type': 'sampler',
+            'binding': 0,
+            'image': texture,
+        },
+    ],
+
+    # uniforms
+    uniforms={
+        'color': [0.0, 0.5, 1.0],
+        'iterations': 10,
+    },
+
+    # program definition global state
+    depth={
+        'func': 'less',
+        'write': False,
+    },
+    stencil={
+        'front': {
+            'fail_op': 'replace',
+            'pass_op': 'replace',
+            'depth_fail_op': 'replace',
+            'compare_op': 'always',
+            'compare_mask': 1,
+            'write_mask': 1,
+            'reference': 1,
+        },
+        'back': ...,
+        # or
+        'both': ...,
+    },
+    blend={
+        'enable': True,
+        'src_color': 'src_alpha',
+        'dst_color': 'one_minus_src_alpha',
+    },
+    cull_face='back',
+    topology='triangles',
+
+    # framebuffer
+    framebuffer=[color1, color2, ..., depth],
+    viewport=(x, y, width, height),
+
+    # vertex array
+    vertex_buffers=[
+        *zengl.bind(vertex_buffer, '3f 3f', 0, 1), # bound vertex attributes
+        *zengl.bind(None, '2f', 2), # unused vertex attribute
+    ],
+    index_buffer=index_buffer, # or None
+    short_index=False, # 2 or 4 byte intex
+    vertex_count=...,
+    instance_count=1,
+    first_vertex=0,
+
+    # override includes
+    includes={
+        'common': '...',
+    },
+)
+
+# some members are actually mutable and calls no OpenGL functions
+pipeline.viewport = ...
+pipeline.vertex_count = ...
+pipeline.uniforms['iterations'][:] = struct.pack('i', 50) # writable memoryview
+
+# rendering
+pipeline.render() # no parameters for hot code
+```
