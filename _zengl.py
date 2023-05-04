@@ -430,6 +430,7 @@ def uniforms(interface, selection):
     mem = memoryview(data)
     struct.pack_into('i', mem, 0, len(uniforms))
     offset = 4 + len(uniforms) * 16
+    mapping['all'] = mem[offset:]
     for index, name, location, count, gltype, format, values in uniforms:
         struct.pack_into('4i', mem, 4 + index * 16, location, count, gltype, offset)
         raw = mem[offset : offset + len(values) * 4]
