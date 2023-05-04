@@ -402,30 +402,41 @@ def clean_glsl_name(name):
     return name
 
 
-def uniforms(interface, values):
-    data = bytearray()
+def uniforms(interface, selection):
     uniform_map = {clean_glsl_name(obj['name']): obj for obj in interface[1]}
+    uniforms = []
+    data_size = 4
 
-    for name, value in values.items():
+    for name, values in selection.items():
         if name not in uniform_map:
             raise KeyError(f'Uniform "{name}" does not exist')
-        value = tuple(flatten(value))
+        values = tuple(flatten(values))
         location = uniform_map[name]['location']
         size = uniform_map[name]['size']
         gltype = uniform_map[name]['gltype']
         if gltype not in UNIFORM_PACKER:
             raise ValueError(f'Uniform "{name}" has an unknown type')
         items, format = UNIFORM_PACKER[gltype]
-        count = len(value) // items
-        if len(value) > size * items:
+        count = len(values) // items
+        if len(values) > size * items:
             raise ValueError(f'Uniform "{name}" must be {size * items} long at most')
-        if len(value) % items:
+        if len(values) % items:
             raise ValueError(f'Uniform "{name}" must have a length divisible by {items}')
-        data.extend(struct.pack('4i', len(value), location, count, gltype))
-        for value in flatten(value):
-            data.extend(struct.pack(format, value))
-    data.extend(struct.pack('4i', 0, 0, 0, 0))
-    return list(values), data
+        uniforms.append((len(uniforms), name, location, count, gltype, format, values))
+        data_size += 16 + len(values) * 4
+
+    mapping = {}
+    data = bytearray(data_size)
+    mem = memoryview(data)
+    struct.pack_into('i', mem, 0, len(uniforms))
+    offset = 4 + len(uniforms) * 16
+    for index, name, location, count, gltype, format, values in uniforms:
+        struct.pack_into('4i', mem, 4 + index * 16, location, count, gltype, offset)
+        raw = mem[offset : offset + len(values) * 4]
+        raw[:] = b''.join(struct.pack(format, x) for x in values)
+        mapping[name] = raw
+        offset += len(values) * 4
+    return mapping, data
 
 
 def validate(interface, layout, resources, vertex_buffers, limits):

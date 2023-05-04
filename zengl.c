@@ -318,15 +318,10 @@ typedef struct SamplerBinding {
 } SamplerBinding;
 
 typedef struct UniformBinding {
-    int values;
     int location;
     int count;
     int type;
-    union {
-        int int_values[1];
-        unsigned uint_values[1];
-        float float_values[1];
-    };
+    int offset;
 } UniformBinding;
 
 typedef struct StencilSettings {
@@ -876,7 +871,7 @@ typedef struct Pipeline {
     GLObject * vertex_array;
     GLObject * program;
     PyObject * uniform_map;
-    char * uniform_data;
+    PyObject * uniform_data;
     int uniform_count;
     int topology;
     int vertex_count;
@@ -1053,42 +1048,40 @@ static GLObject * build_framebuffer(Context * self, PyObject * attachments) {
     return res;
 }
 
-static void bind_uniforms(Context * self, char * data) {
+static void bind_uniforms(Context * self, PyObject * uniform_data) {
     const GLMethods * const gl = &self->gl;
-    int offset = 0;
-    while (1) {
-        UniformBinding * header = (UniformBinding *)(data + offset);
-        if (header->type == 0) {
-            break;
+    const char * const data = PyByteArray_AsString(uniform_data);
+    const int count = *(int *)data;
+    const UniformBinding * headers = (UniformBinding *)(data + 4);
+    for (int i = 0; i < count; ++i) {
+        void * ptr = data + headers[i].offset;
+        switch (headers[i].type) {
+            case 0x1404: gl->Uniform1iv(headers[i].location, headers[i].count, (int *)ptr); break;
+            case 0x8B53: gl->Uniform2iv(headers[i].location, headers[i].count, (int *)ptr); break;
+            case 0x8B54: gl->Uniform3iv(headers[i].location, headers[i].count, (int *)ptr); break;
+            case 0x8B55: gl->Uniform4iv(headers[i].location, headers[i].count, (int *)ptr); break;
+            case 0x8B56: gl->Uniform1iv(headers[i].location, headers[i].count, (int *)ptr); break;
+            case 0x8B57: gl->Uniform2iv(headers[i].location, headers[i].count, (int *)ptr); break;
+            case 0x8B58: gl->Uniform3iv(headers[i].location, headers[i].count, (int *)ptr); break;
+            case 0x8B59: gl->Uniform4iv(headers[i].location, headers[i].count, (int *)ptr); break;
+            case 0x1405: gl->Uniform1uiv(headers[i].location, headers[i].count, (unsigned *)ptr); break;
+            case 0x8DC6: gl->Uniform2uiv(headers[i].location, headers[i].count, (unsigned *)ptr); break;
+            case 0x8DC7: gl->Uniform3uiv(headers[i].location, headers[i].count, (unsigned *)ptr); break;
+            case 0x8DC8: gl->Uniform4uiv(headers[i].location, headers[i].count, (unsigned *)ptr); break;
+            case 0x1406: gl->Uniform1fv(headers[i].location, headers[i].count, (float *)ptr); break;
+            case 0x8B50: gl->Uniform2fv(headers[i].location, headers[i].count, (float *)ptr); break;
+            case 0x8B51: gl->Uniform3fv(headers[i].location, headers[i].count, (float *)ptr); break;
+            case 0x8B52: gl->Uniform4fv(headers[i].location, headers[i].count, (float *)ptr); break;
+            case 0x8B5A: gl->UniformMatrix2fv(headers[i].location, headers[i].count, 0, (float *)ptr); break;
+            case 0x8B65: gl->UniformMatrix2x3fv(headers[i].location, headers[i].count, 0, (float *)ptr); break;
+            case 0x8B66: gl->UniformMatrix2x4fv(headers[i].location, headers[i].count, 0, (float *)ptr); break;
+            case 0x8B67: gl->UniformMatrix3x2fv(headers[i].location, headers[i].count, 0, (float *)ptr); break;
+            case 0x8B5B: gl->UniformMatrix3fv(headers[i].location, headers[i].count, 0, (float *)ptr); break;
+            case 0x8B68: gl->UniformMatrix3x4fv(headers[i].location, headers[i].count, 0, (float *)ptr); break;
+            case 0x8B69: gl->UniformMatrix4x2fv(headers[i].location, headers[i].count, 0, (float *)ptr); break;
+            case 0x8B6A: gl->UniformMatrix4x3fv(headers[i].location, headers[i].count, 0, (float *)ptr); break;
+            case 0x8B5C: gl->UniformMatrix4fv(headers[i].location, headers[i].count, 0, (float *)ptr); break;
         }
-        switch (header->type) {
-            case 0x1404: gl->Uniform1iv(header->location, header->count, header->int_values); break;
-            case 0x8B53: gl->Uniform2iv(header->location, header->count, header->int_values); break;
-            case 0x8B54: gl->Uniform3iv(header->location, header->count, header->int_values); break;
-            case 0x8B55: gl->Uniform4iv(header->location, header->count, header->int_values); break;
-            case 0x8B56: gl->Uniform1iv(header->location, header->count, header->int_values); break;
-            case 0x8B57: gl->Uniform2iv(header->location, header->count, header->int_values); break;
-            case 0x8B58: gl->Uniform3iv(header->location, header->count, header->int_values); break;
-            case 0x8B59: gl->Uniform4iv(header->location, header->count, header->int_values); break;
-            case 0x1405: gl->Uniform1uiv(header->location, header->count, header->uint_values); break;
-            case 0x8DC6: gl->Uniform2uiv(header->location, header->count, header->uint_values); break;
-            case 0x8DC7: gl->Uniform3uiv(header->location, header->count, header->uint_values); break;
-            case 0x8DC8: gl->Uniform4uiv(header->location, header->count, header->uint_values); break;
-            case 0x1406: gl->Uniform1fv(header->location, header->count, header->float_values); break;
-            case 0x8B50: gl->Uniform2fv(header->location, header->count, header->float_values); break;
-            case 0x8B51: gl->Uniform3fv(header->location, header->count, header->float_values); break;
-            case 0x8B52: gl->Uniform4fv(header->location, header->count, header->float_values); break;
-            case 0x8B5A: gl->UniformMatrix2fv(header->location, header->count, 0, header->float_values); break;
-            case 0x8B65: gl->UniformMatrix2x3fv(header->location, header->count, 0, header->float_values); break;
-            case 0x8B66: gl->UniformMatrix2x4fv(header->location, header->count, 0, header->float_values); break;
-            case 0x8B67: gl->UniformMatrix3x2fv(header->location, header->count, 0, header->float_values); break;
-            case 0x8B5B: gl->UniformMatrix3fv(header->location, header->count, 0, header->float_values); break;
-            case 0x8B68: gl->UniformMatrix3x4fv(header->location, header->count, 0, header->float_values); break;
-            case 0x8B69: gl->UniformMatrix4x2fv(header->location, header->count, 0, header->float_values); break;
-            case 0x8B6A: gl->UniformMatrix4x3fv(header->location, header->count, 0, header->float_values); break;
-            case 0x8B5C: gl->UniformMatrix4fv(header->location, header->count, 0, header->float_values); break;
-        }
-        offset += header->values * 4 + 16;
     }
 }
 
@@ -2160,7 +2153,7 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
     }
 
     PyObject * uniform_map = NULL;
-    char * uniform_data = NULL;
+    PyObject * uniform_data = NULL;
 
     if (uniforms != Py_None) {
         PyObject * tuple = PyObject_CallMethod(self->module_state->helper, "uniforms", "OO", program->extra, uniforms);
@@ -2168,29 +2161,9 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
             return NULL;
         }
 
-        PyObject * names = PyTuple_GetItem(tuple, 0);
-        PyObject * data = PyTuple_GetItem(tuple, 1);
-        PyObject * mapping = PyDict_New();
-
-        uniform_data = (char *)PyMem_Malloc(PyByteArray_Size(data));
-        memcpy(uniform_data, PyByteArray_AsString(data), PyByteArray_Size(data));
-        int offset = 0;
-        int idx = 0;
-
-        while (1) {
-            UniformBinding * header = (UniformBinding *)(uniform_data + offset);
-            if (header->type == 0) {
-                break;
-            }
-            PyObject * name = PyList_GetItem(names, idx++);
-            PyObject * mem = PyMemoryView_FromMemory(uniform_data + offset + 16, header->values * 4, PyBUF_WRITE);
-            PyDict_SetItem(mapping, name, mem);
-            Py_DECREF(mem);
-            offset += header->values * 4 + 16;
-        }
-
-        uniform_map = PyDictProxy_New(mapping);
-        Py_DECREF(mapping);
+        uniform_map = PyDictProxy_New(PyTuple_GetItem(tuple, 0));
+        uniform_data = PyTuple_GetItem(tuple, 1);
+        Py_INCREF(uniform_data);
         Py_DECREF(tuple);
     }
 
@@ -2535,9 +2508,6 @@ static PyObject * Context_meth_release(Context * self, PyObject * arg) {
         release_framebuffer(self, pipeline->framebuffer);
         release_program(self, pipeline->program);
         release_vertex_array(self, pipeline->vertex_array);
-        if (pipeline->uniform_data) {
-            PyMem_Free(pipeline->uniform_data);
-        }
         Py_DECREF(pipeline);
     } else if (PyUnicode_CheckExact(arg) && !PyUnicode_CompareWithASCIIString(arg, "shader_cache")) {
         PyObject * key = NULL;
@@ -3288,6 +3258,9 @@ static void Pipeline_dealloc(Pipeline * self) {
     Py_DECREF(self->program);
     if (self->uniform_map) {
         Py_DECREF(self->uniform_map);
+    }
+    if (self->uniform_data) {
+        Py_DECREF(self->uniform_data);
     }
     Py_TYPE(self)->tp_free(self);
 }
