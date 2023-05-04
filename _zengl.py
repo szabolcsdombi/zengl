@@ -439,7 +439,8 @@ def uniforms(interface, selection):
     mapping['all'] = mem[offset:]
     for index, name, location, count, gltype, format, values in uniforms:
         struct.pack_into('4i', mem, 4 + index * 16, location, count, gltype, offset)
-        raw = mem[offset : offset + len(values)]
+        end = offset + len(values)
+        raw = mem[offset:end]
         raw[:] = values
         mapping[name] = raw
         offset += len(values)
