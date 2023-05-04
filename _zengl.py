@@ -410,20 +410,26 @@ def uniforms(interface, selection):
     for name, values in selection.items():
         if name not in uniform_map:
             raise KeyError(f'Uniform "{name}" does not exist')
-        values = tuple(flatten(values))
         location = uniform_map[name]['location']
         size = uniform_map[name]['size']
         gltype = uniform_map[name]['gltype']
         if gltype not in UNIFORM_PACKER:
             raise ValueError(f'Uniform "{name}" has an unknown type')
         items, format = UNIFORM_PACKER[gltype]
-        count = len(values) // items
-        if len(values) > size * items:
+        if values is None:
+            values_count = size * items
+            values = bytes(values_count * 4)
+        else:
+            values = tuple(flatten(values))
+            values_count = len(values)
+            values = b''.join(struct.pack(format, x) for x in values)
+        count = values_count // items
+        if values_count > size * items:
             raise ValueError(f'Uniform "{name}" must be {size * items} long at most')
-        if len(values) % items:
+        if values_count % items:
             raise ValueError(f'Uniform "{name}" must have a length divisible by {items}')
         uniforms.append((len(uniforms), name, location, count, gltype, format, values))
-        data_size += 16 + len(values) * 4
+        data_size += 16 + len(values)
 
     mapping = {}
     data = bytearray(data_size)
@@ -433,10 +439,10 @@ def uniforms(interface, selection):
     mapping['all'] = mem[offset:]
     for index, name, location, count, gltype, format, values in uniforms:
         struct.pack_into('4i', mem, 4 + index * 16, location, count, gltype, offset)
-        raw = mem[offset : offset + len(values) * 4]
-        raw[:] = b''.join(struct.pack(format, x) for x in values)
+        raw = mem[offset : offset + len(values)]
+        raw[:] = values
         mapping[name] = raw
-        offset += len(values) * 4
+        offset += len(values)
     return mapping, data
 
 

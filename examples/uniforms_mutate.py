@@ -59,8 +59,8 @@ pipeline = ctx.pipeline(
         }
     ''',
     uniforms={
-        'mvp': [0.0] * 16,
-        'color': [0.0, 0.0, 0.0],
+        'mvp': None,
+        'color': None,
     },
     framebuffer=[image, depth],
     topology='triangles',
