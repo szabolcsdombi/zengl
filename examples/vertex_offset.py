@@ -9,9 +9,9 @@ from window import Window
 
 def gen_sphere(radius, res=100):
     phi = np.pi * (3.0 - np.sqrt(5.0))
-    y = 1.0 - (np.arange(res) / (res - 1.0)) * 2.0
-    x = np.cos(phi * np.arange(res)) * np.sqrt(1.0 - y * y)
-    z = np.sin(phi * np.arange(res)) * np.sqrt(1.0 - y * y)
+    z = 1.0 - (np.arange(res) / (res - 1.0)) * 2.0
+    x = np.cos(phi * np.arange(res)) * np.sqrt(1.0 - z * z)
+    y = np.sin(phi * np.arange(res)) * np.sqrt(1.0 - z * z)
     return np.array([x, y, z]).T * radius
 
 
