@@ -909,7 +909,6 @@ typedef struct Pipeline {
     PyObject * uniforms;
     PyObject * uniforms_header;
     PyObject * uniforms_data;
-    int uniform_count;
     int topology;
     int vertex_count;
     int instance_count;
@@ -3004,6 +3003,48 @@ static int Image_set_clear_value(Image * self, PyObject * value, void * closure)
     return 0;
 }
 
+static Pipeline * Pipeline_meth_copy(Pipeline * self, PyObject * args) {
+    Pipeline * res = PyObject_New(Pipeline, self->ctx->module_state->Pipeline_type);
+    res->gc_prev = self->gc_prev;
+    res->gc_next = (GCHeader *)self;
+    res->gc_prev->gc_next = (GCHeader *)res;
+    res->gc_next->gc_prev = (GCHeader *)res;
+    Py_INCREF(res);
+
+    Py_INCREF(self->descriptor_set);
+    Py_INCREF(self->global_settings);
+    Py_INCREF(self->framebuffer);
+    Py_INCREF(self->vertex_array);
+    Py_INCREF(self->program);
+    Py_XINCREF(self->uniforms);
+    Py_XINCREF(self->uniforms_header);
+    Py_XINCREF(self->uniforms_data);
+
+    self->descriptor_set->uses += 1;
+    self->global_settings->uses += 1;
+    self->framebuffer->uses += 1;
+    self->vertex_array->uses += 1;
+    self->program->uses += 1;
+
+    res->ctx = self->ctx;
+    res->descriptor_set = self->descriptor_set;
+    res->global_settings = self->global_settings;
+    res->framebuffer = self->framebuffer;
+    res->vertex_array = self->vertex_array;
+    res->program = self->program;
+    res->uniforms = self->uniforms;
+    res->uniforms_header = self->uniforms_header;
+    res->uniforms_data = self->uniforms_data;
+    res->topology = self->topology;
+    res->vertex_count = self->vertex_count;
+    res->instance_count = self->instance_count;
+    res->first_vertex = self->first_vertex;
+    res->index_type = self->index_type;
+    res->index_size = self->index_size;
+    res->viewport = self->viewport;
+    return res;
+}
+
 static PyObject * Pipeline_meth_render(Pipeline * self, PyObject * args) {
     const GLMethods * const gl = &self->ctx->gl;
     if (memcmp(&self->viewport, &self->ctx->current_viewport, sizeof(Viewport))) {
@@ -3367,6 +3408,7 @@ static PyMemberDef Image_members[] = {
 };
 
 static PyMethodDef Pipeline_methods[] = {
+    {"copy", (PyCFunction)Pipeline_meth_copy, METH_NOARGS},
     {"render", (PyCFunction)Pipeline_meth_render, METH_NOARGS},
     {NULL},
 };
