@@ -405,8 +405,11 @@ def clean_glsl_name(name):
 def uniforms(interface, selection):
     uniform_map = {clean_glsl_name(obj['name']): obj for obj in interface[1]}
     uniforms = []
-    data_size = 4
+    header = bytearray()
+    data = bytearray()
+    offset = 0
 
+    header.extend(struct.pack('i', len(selection)))
     for name, values in selection.items():
         if name not in uniform_map:
             raise KeyError(f'Uniform "{name}" does not exist')
@@ -428,21 +431,17 @@ def uniforms(interface, selection):
             raise ValueError(f'Uniform "{name}" must be {size * items} long at most')
         if values_count % items:
             raise ValueError(f'Uniform "{name}" must have a length divisible by {items}')
-        uniforms.append((len(uniforms), name, location, count, gltype, format, values))
-        data_size += 16 + len(values)
+        header.extend(struct.pack('4i', location, count, gltype, offset))
+        uniforms.append((name, slice(offset, offset + len(values)), values))
+        offset += len(values)
 
     mapping = {}
-    data = memoryview(bytearray(data_size))
-    struct.pack_into('i', data, 0, len(uniforms))
-    offset = 4 + len(uniforms) * 16
-    mapping['all'] = data[offset:]
-    for index, name, location, count, gltype, format, values in uniforms:
-        struct.pack_into('4i', data, 4 + index * 16, location, count, gltype, offset)
-        s = slice(offset, offset + len(values))
-        data[s] = values
-        mapping[name] = data[s]
-        offset += len(values)
-    return mapping, data
+    data = memoryview(bytearray(offset))
+    for name, idx, values in uniforms:
+        data[idx] = values
+        mapping[name] = data[idx]
+    mapping['all'] = data
+    return mapping, memoryview(header), data
 
 
 def validate(interface, layout, resources, vertex_buffers, limits):
