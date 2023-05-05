@@ -133,31 +133,31 @@ VERTEX_SHADER_BUILTINS = {
 }
 
 UNIFORM_PACKER = {
-    0x1404: (1, 'i'),
-    0x8B53: (2, 'i'),
-    0x8B54: (3, 'i'),
-    0x8B55: (4, 'i'),
-    0x8B56: (1, 'i'),
-    0x8B57: (2, 'i'),
-    0x8B58: (3, 'i'),
-    0x8B59: (4, 'i'),
-    0x1405: (1, 'I'),
-    0x8DC6: (2, 'I'),
-    0x8DC7: (3, 'I'),
-    0x8DC8: (4, 'I'),
-    0x1406: (1, 'f'),
-    0x8B50: (2, 'f'),
-    0x8B51: (3, 'f'),
-    0x8B52: (4, 'f'),
-    0x8B5A: (4, 'f'),
-    0x8B65: (6, 'f'),
-    0x8B66: (8, 'f'),
-    0x8B67: (6, 'f'),
-    0x8B5B: (9, 'f'),
-    0x8B68: (12, 'f'),
-    0x8B69: (8, 'f'),
-    0x8B6A: (12, 'f'),
-    0x8B5C: (16, 'f'),
+    0x1404: (0, 1, 'i'),
+    0x8B53: (1, 2, 'i'),
+    0x8B54: (2, 3, 'i'),
+    0x8B55: (3, 4, 'i'),
+    0x8B56: (4, 1, 'i'),
+    0x8B57: (5, 2, 'i'),
+    0x8B58: (6, 3, 'i'),
+    0x8B59: (7, 4, 'i'),
+    0x1405: (8, 1, 'I'),
+    0x8DC6: (9, 2, 'I'),
+    0x8DC7: (10, 3, 'I'),
+    0x8DC8: (11, 4, 'I'),
+    0x1406: (12, 1, 'f'),
+    0x8B50: (13, 2, 'f'),
+    0x8B51: (14, 3, 'f'),
+    0x8B52: (15, 4, 'f'),
+    0x8B5A: (16, 4, 'f'),
+    0x8B65: (17, 6, 'f'),
+    0x8B66: (18, 8, 'f'),
+    0x8B67: (19, 6, 'f'),
+    0x8B5B: (20, 9, 'f'),
+    0x8B68: (21, 12, 'f'),
+    0x8B69: (22, 8, 'f'),
+    0x8B6A: (23, 12, 'f'),
+    0x8B5C: (24, 16, 'f'),
 }
 
 
@@ -418,7 +418,7 @@ def uniforms(interface, selection):
         gltype = uniform_map[name]['gltype']
         if gltype not in UNIFORM_PACKER:
             raise ValueError(f'Uniform "{name}" has an unknown type')
-        items, format = UNIFORM_PACKER[gltype]
+        function, items, format = UNIFORM_PACKER[gltype]
         if values is None:
             values_count = size * items
             values = bytes(values_count * 4)
@@ -431,7 +431,7 @@ def uniforms(interface, selection):
             raise ValueError(f'Uniform "{name}" must be {size * items} long at most')
         if values_count % items:
             raise ValueError(f'Uniform "{name}" must have a length divisible by {items}')
-        header.extend(struct.pack('4i', location, count, gltype, offset))
+        header.extend(struct.pack('4i', function, location, count, offset))
         uniforms.append((name, slice(offset, offset + len(values)), values))
         offset += len(values)
 
