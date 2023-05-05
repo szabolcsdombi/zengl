@@ -3157,7 +3157,7 @@ static PyObject * Pipeline_get_uniform_data(Pipeline * self, void * closure) {
 static int Pipeline_set_uniform_data(Pipeline * self, PyObject * value, void * closure) {
     if (!self->uniforms) {
         PyErr_Format(PyExc_TypeError, "this pipeline has no tracked uniforms");
-        return NULL;
+        return -1;
     }
     int invalid_value = !PyMemoryView_Check(value) || !PyBuffer_IsContiguous(PyMemoryView_GET_BUFFER(value), 'C');
     if (invalid_value || PyMemoryView_GET_BUFFER(self->uniform_data)->len != PyMemoryView_GET_BUFFER(value)->len) {
