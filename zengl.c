@@ -3361,7 +3361,7 @@ static PyMemberDef Pipeline_members[] = {
     {"vertex_count", T_INT, offsetof(Pipeline, vertex_count), 0},
     {"instance_count", T_INT, offsetof(Pipeline, instance_count), 0},
     {"first_vertex", T_INT, offsetof(Pipeline, first_vertex), 0},
-    {"uniforms", T_OBJECT_EX, offsetof(Pipeline, uniform_map), READONLY},
+    {"uniforms", T_OBJECT, offsetof(Pipeline, uniform_map), READONLY},
     {NULL},
 };
 
