@@ -1097,11 +1097,11 @@ static GLObject * build_framebuffer(Context * self, PyObject * attachments) {
 
 static void bind_uniforms(Context * self, PyObject * uniform_layout, PyObject * uniform_data) {
     const GLMethods * const gl = &self->gl;
-    const UniformHeader * const header = (char *)PyMemoryView_GET_BUFFER(uniform_layout)->buf;
+    const UniformHeader * const header = (UniformHeader *)PyMemoryView_GET_BUFFER(uniform_layout)->buf;
     const char * const data = (char *)PyMemoryView_GET_BUFFER(uniform_data)->buf;
     for (int i = 0; i < header->count; ++i) {
-        void * func = (char *)gl + uniform_setter_offset[header->binding[i].function];
-        void * ptr = data + header->binding[i].offset;
+        const void * func = (char *)gl + uniform_setter_offset[header->binding[i].function];
+        const void * ptr = data + header->binding[i].offset;
         if (header->binding[i].function & 0x10) {
             (*(UniformMatrixSetter *)func)(header->binding[i].location, header->binding[i].count, 0, ptr);
         } else {
