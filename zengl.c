@@ -324,6 +324,11 @@ typedef struct UniformBinding {
     int offset;
 } UniformBinding;
 
+typedef struct UniformHeader {
+    int count;
+    UniformBinding binding[1];
+} UniformHeader;
+
 typedef struct StencilSettings {
     int fail_op;
     int pass_op;
@@ -1051,38 +1056,36 @@ static GLObject * build_framebuffer(Context * self, PyObject * attachments) {
 
 static void bind_uniforms(Context * self, PyObject * uniform_header, PyObject * uniform_data) {
     const GLMethods * const gl = &self->gl;
-    const char * const header = (char *)PyMemoryView_GET_BUFFER(uniform_header)->buf;
+    const UniformHeader * const header = (char *)PyMemoryView_GET_BUFFER(uniform_header)->buf;
     const char * const data = (char *)PyMemoryView_GET_BUFFER(uniform_data)->buf;
-    const int count = *(int *)header;
-    const UniformBinding * headers = (UniformBinding *)(header + 4);
-    for (int i = 0; i < count; ++i) {
-        void * ptr = data + headers[i].offset;
-        switch (headers[i].type) {
-            case 0x1404: gl->Uniform1iv(headers[i].location, headers[i].count, (int *)ptr); break;
-            case 0x8B53: gl->Uniform2iv(headers[i].location, headers[i].count, (int *)ptr); break;
-            case 0x8B54: gl->Uniform3iv(headers[i].location, headers[i].count, (int *)ptr); break;
-            case 0x8B55: gl->Uniform4iv(headers[i].location, headers[i].count, (int *)ptr); break;
-            case 0x8B56: gl->Uniform1iv(headers[i].location, headers[i].count, (int *)ptr); break;
-            case 0x8B57: gl->Uniform2iv(headers[i].location, headers[i].count, (int *)ptr); break;
-            case 0x8B58: gl->Uniform3iv(headers[i].location, headers[i].count, (int *)ptr); break;
-            case 0x8B59: gl->Uniform4iv(headers[i].location, headers[i].count, (int *)ptr); break;
-            case 0x1405: gl->Uniform1uiv(headers[i].location, headers[i].count, (unsigned *)ptr); break;
-            case 0x8DC6: gl->Uniform2uiv(headers[i].location, headers[i].count, (unsigned *)ptr); break;
-            case 0x8DC7: gl->Uniform3uiv(headers[i].location, headers[i].count, (unsigned *)ptr); break;
-            case 0x8DC8: gl->Uniform4uiv(headers[i].location, headers[i].count, (unsigned *)ptr); break;
-            case 0x1406: gl->Uniform1fv(headers[i].location, headers[i].count, (float *)ptr); break;
-            case 0x8B50: gl->Uniform2fv(headers[i].location, headers[i].count, (float *)ptr); break;
-            case 0x8B51: gl->Uniform3fv(headers[i].location, headers[i].count, (float *)ptr); break;
-            case 0x8B52: gl->Uniform4fv(headers[i].location, headers[i].count, (float *)ptr); break;
-            case 0x8B5A: gl->UniformMatrix2fv(headers[i].location, headers[i].count, 0, (float *)ptr); break;
-            case 0x8B65: gl->UniformMatrix2x3fv(headers[i].location, headers[i].count, 0, (float *)ptr); break;
-            case 0x8B66: gl->UniformMatrix2x4fv(headers[i].location, headers[i].count, 0, (float *)ptr); break;
-            case 0x8B67: gl->UniformMatrix3x2fv(headers[i].location, headers[i].count, 0, (float *)ptr); break;
-            case 0x8B5B: gl->UniformMatrix3fv(headers[i].location, headers[i].count, 0, (float *)ptr); break;
-            case 0x8B68: gl->UniformMatrix3x4fv(headers[i].location, headers[i].count, 0, (float *)ptr); break;
-            case 0x8B69: gl->UniformMatrix4x2fv(headers[i].location, headers[i].count, 0, (float *)ptr); break;
-            case 0x8B6A: gl->UniformMatrix4x3fv(headers[i].location, headers[i].count, 0, (float *)ptr); break;
-            case 0x8B5C: gl->UniformMatrix4fv(headers[i].location, headers[i].count, 0, (float *)ptr); break;
+    for (int i = 0; i < header->count; ++i) {
+        void * ptr = data + header->binding[i].offset;
+        switch (header->binding[i].type) {
+            case 0x1404: gl->Uniform1iv(header->binding[i].location, header->binding[i].count, (int *)ptr); break;
+            case 0x8B53: gl->Uniform2iv(header->binding[i].location, header->binding[i].count, (int *)ptr); break;
+            case 0x8B54: gl->Uniform3iv(header->binding[i].location, header->binding[i].count, (int *)ptr); break;
+            case 0x8B55: gl->Uniform4iv(header->binding[i].location, header->binding[i].count, (int *)ptr); break;
+            case 0x8B56: gl->Uniform1iv(header->binding[i].location, header->binding[i].count, (int *)ptr); break;
+            case 0x8B57: gl->Uniform2iv(header->binding[i].location, header->binding[i].count, (int *)ptr); break;
+            case 0x8B58: gl->Uniform3iv(header->binding[i].location, header->binding[i].count, (int *)ptr); break;
+            case 0x8B59: gl->Uniform4iv(header->binding[i].location, header->binding[i].count, (int *)ptr); break;
+            case 0x1405: gl->Uniform1uiv(header->binding[i].location, header->binding[i].count, (unsigned *)ptr); break;
+            case 0x8DC6: gl->Uniform2uiv(header->binding[i].location, header->binding[i].count, (unsigned *)ptr); break;
+            case 0x8DC7: gl->Uniform3uiv(header->binding[i].location, header->binding[i].count, (unsigned *)ptr); break;
+            case 0x8DC8: gl->Uniform4uiv(header->binding[i].location, header->binding[i].count, (unsigned *)ptr); break;
+            case 0x1406: gl->Uniform1fv(header->binding[i].location, header->binding[i].count, (float *)ptr); break;
+            case 0x8B50: gl->Uniform2fv(header->binding[i].location, header->binding[i].count, (float *)ptr); break;
+            case 0x8B51: gl->Uniform3fv(header->binding[i].location, header->binding[i].count, (float *)ptr); break;
+            case 0x8B52: gl->Uniform4fv(header->binding[i].location, header->binding[i].count, (float *)ptr); break;
+            case 0x8B5A: gl->UniformMatrix2fv(header->binding[i].location, header->binding[i].count, 0, (float *)ptr); break;
+            case 0x8B65: gl->UniformMatrix2x3fv(header->binding[i].location, header->binding[i].count, 0, (float *)ptr); break;
+            case 0x8B66: gl->UniformMatrix2x4fv(header->binding[i].location, header->binding[i].count, 0, (float *)ptr); break;
+            case 0x8B67: gl->UniformMatrix3x2fv(header->binding[i].location, header->binding[i].count, 0, (float *)ptr); break;
+            case 0x8B5B: gl->UniformMatrix3fv(header->binding[i].location, header->binding[i].count, 0, (float *)ptr); break;
+            case 0x8B68: gl->UniformMatrix3x4fv(header->binding[i].location, header->binding[i].count, 0, (float *)ptr); break;
+            case 0x8B69: gl->UniformMatrix4x2fv(header->binding[i].location, header->binding[i].count, 0, (float *)ptr); break;
+            case 0x8B6A: gl->UniformMatrix4x3fv(header->binding[i].location, header->binding[i].count, 0, (float *)ptr); break;
+            case 0x8B5C: gl->UniformMatrix4fv(header->binding[i].location, header->binding[i].count, 0, (float *)ptr); break;
         }
     }
 }
