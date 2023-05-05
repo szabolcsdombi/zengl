@@ -870,7 +870,7 @@ typedef struct Pipeline {
     GLObject * framebuffer;
     GLObject * vertex_array;
     GLObject * program;
-    PyObject * uniform_map;
+    PyObject * uniforms;
     PyObject * uniform_mem;
     int uniform_count;
     int topology;
@@ -2118,6 +2118,10 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
         return NULL;
     }
 
+    if (uniforms == Py_None) {
+        uniforms = NULL;
+    }
+
     if (!vertex_shader) {
         PyErr_Format(PyExc_TypeError, "no vertex_shader was specified");
         return NULL;
@@ -2152,16 +2156,15 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
         return NULL;
     }
 
-    PyObject * uniform_map = NULL;
     PyObject * uniform_mem = NULL;
 
-    if (uniforms != Py_None) {
+    if (uniforms) {
         PyObject * tuple = PyObject_CallMethod(self->module_state->helper, "uniforms", "OO", program->extra, uniforms);
         if (!tuple) {
             return NULL;
         }
 
-        uniform_map = PyDictProxy_New(PyTuple_GetItem(tuple, 0));
+        uniforms = PyDictProxy_New(PyTuple_GetItem(tuple, 0));
         uniform_mem = PyTuple_GetItem(tuple, 1);
         Py_INCREF(uniform_mem);
         Py_DECREF(tuple);
@@ -2255,7 +2258,7 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
     res->framebuffer = framebuffer;
     res->vertex_array = vertex_array;
     res->program = program;
-    res->uniform_map = uniform_map;
+    res->uniforms = uniforms;
     res->uniform_mem = uniform_mem;
     res->topology = topology;
     res->vertex_count = vertex_count;
@@ -3256,8 +3259,8 @@ static void Pipeline_dealloc(Pipeline * self) {
     Py_DECREF(self->framebuffer);
     Py_DECREF(self->vertex_array);
     Py_DECREF(self->program);
-    if (self->uniform_map) {
-        Py_DECREF(self->uniform_map);
+    if (self->uniforms) {
+        Py_DECREF(self->uniforms);
     }
     if (self->uniform_mem) {
         Py_DECREF(self->uniform_mem);
@@ -3361,7 +3364,7 @@ static PyMemberDef Pipeline_members[] = {
     {"vertex_count", T_INT, offsetof(Pipeline, vertex_count), 0},
     {"instance_count", T_INT, offsetof(Pipeline, instance_count), 0},
     {"first_vertex", T_INT, offsetof(Pipeline, first_vertex), 0},
-    {"uniforms", T_OBJECT, offsetof(Pipeline, uniform_map), READONLY},
+    {"uniforms", T_OBJECT, offsetof(Pipeline, uniforms), READONLY},
     {NULL},
 };
 
