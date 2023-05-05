@@ -903,11 +903,11 @@ typedef struct Image {
     int level_count;
 } Image;
 
-typedef struct DynamicState {
+typedef struct RenderParamers {
     int vertex_count;
     int instance_count;
     int first_vertex;
-} DynamicState;
+} RenderParamers;
 
 typedef struct Pipeline {
     PyObject_HEAD
@@ -920,10 +920,10 @@ typedef struct Pipeline {
     GLObject * vertex_array;
     GLObject * program;
     PyObject * uniforms;
-    PyObject * uniforms_header;
-    PyObject * uniforms_data;
+    PyObject * uniform_layout;
+    PyObject * uniform_data;
     PyObject * viewport_data;
-    PyObject * state_data;
+    PyObject * render_data;
     int topology;
     int index_type;
     int index_size;
@@ -1095,10 +1095,10 @@ static GLObject * build_framebuffer(Context * self, PyObject * attachments) {
     return res;
 }
 
-static void bind_uniforms(Context * self, PyObject * uniforms_header, PyObject * uniforms_data) {
+static void bind_uniforms(Context * self, PyObject * uniform_layout, PyObject * uniform_data) {
     const GLMethods * const gl = &self->gl;
-    const UniformHeader * const header = (char *)PyMemoryView_GET_BUFFER(uniforms_header)->buf;
-    const char * const data = (char *)PyMemoryView_GET_BUFFER(uniforms_data)->buf;
+    const UniformHeader * const header = (char *)PyMemoryView_GET_BUFFER(uniform_layout)->buf;
+    const char * const data = (char *)PyMemoryView_GET_BUFFER(uniform_data)->buf;
     for (int i = 0; i < header->count; ++i) {
         void * func = (char *)gl + uniform_setter_offset[header->binding[i].function];
         void * ptr = data + header->binding[i].offset;
@@ -2181,8 +2181,8 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
         return NULL;
     }
 
-    PyObject * uniforms_header = NULL;
-    PyObject * uniforms_data = NULL;
+    PyObject * uniform_layout = NULL;
+    PyObject * uniform_data = NULL;
 
     if (uniforms) {
         PyObject * tuple = PyObject_CallMethod(self->module_state->helper, "uniforms", "OO", program->extra, uniforms);
@@ -2191,10 +2191,10 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
         }
 
         uniforms = PyDictProxy_New(PyTuple_GetItem(tuple, 0));
-        uniforms_header = PyTuple_GetItem(tuple, 1);
-        uniforms_data = PyTuple_GetItem(tuple, 2);
-        Py_INCREF(uniforms_header);
-        Py_INCREF(uniforms_data);
+        uniform_layout = PyTuple_GetItem(tuple, 1);
+        uniform_data = PyTuple_GetItem(tuple, 2);
+        Py_INCREF(uniform_layout);
+        Py_INCREF(uniform_data);
         Py_DECREF(tuple);
     }
 
@@ -2275,10 +2275,10 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
     GlobalSettings * global_settings = build_global_settings(self, settings);
     Py_DECREF(settings);
 
-    int state[3] = {vertex_count, instance_count, first_vertex};
+    int render_params[3] = {vertex_count, instance_count, first_vertex};
 
     PyObject * viewport_data = new_mem(&viewport_value, sizeof(viewport_value));
-    PyObject * state_data = new_mem(state, sizeof(state));
+    PyObject * render_data = new_mem(render_params, sizeof(render_params));
 
     Pipeline * res = PyObject_New(Pipeline, self->module_state->Pipeline_type);
     res->gc_prev = self->gc_prev;
@@ -2292,10 +2292,10 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
     res->vertex_array = vertex_array;
     res->program = program;
     res->uniforms = uniforms;
-    res->uniforms_header = uniforms_header;
-    res->uniforms_data = uniforms_data;
+    res->uniform_layout = uniform_layout;
+    res->uniform_data = uniform_data;
     res->viewport_data = viewport_data;
-    res->state_data = state_data;
+    res->render_data = render_data;
     res->topology = topology;
     res->index_type = index_type;
     res->index_size = index_size;
@@ -3031,7 +3031,7 @@ static Pipeline * Pipeline_meth_copy(Pipeline * self, PyObject * args) {
     Py_INCREF(self->vertex_array);
     Py_INCREF(self->program);
     Py_XINCREF(self->uniforms);
-    Py_XINCREF(self->uniforms_header);
+    Py_XINCREF(self->uniform_layout);
 
     self->descriptor_set->uses += 1;
     self->global_settings->uses += 1;
@@ -3039,9 +3039,9 @@ static Pipeline * Pipeline_meth_copy(Pipeline * self, PyObject * args) {
     self->vertex_array->uses += 1;
     self->program->uses += 1;
 
-    Py_buffer * uniforms_data = PyMemoryView_GET_BUFFER(self->uniforms_data)->buf;
+    Py_buffer * uniform_data = PyMemoryView_GET_BUFFER(self->uniform_data)->buf;
     Py_buffer * viewport_data = PyMemoryView_GET_BUFFER(self->viewport_data)->buf;
-    Py_buffer * state_data = PyMemoryView_GET_BUFFER(self->state_data)->buf;
+    Py_buffer * render_data = PyMemoryView_GET_BUFFER(self->render_data)->buf;
 
     res->ctx = self->ctx;
     res->descriptor_set = self->descriptor_set;
@@ -3050,10 +3050,10 @@ static Pipeline * Pipeline_meth_copy(Pipeline * self, PyObject * args) {
     res->vertex_array = self->vertex_array;
     res->program = self->program;
     res->uniforms = self->uniforms;
-    res->uniforms_header = self->uniforms_header;
-    res->uniforms_data = new_mem(uniforms_data->buf, uniforms_data->len);
+    res->uniform_layout = self->uniform_layout;
+    res->uniform_data = new_mem(uniform_data->buf, uniform_data->len);
     res->viewport_data = new_mem(viewport_data->buf, viewport_data->len);
-    res->state_data = new_mem(state_data->buf, state_data->len);
+    res->render_data = new_mem(render_data->buf, render_data->len);
     res->topology = self->topology;
     res->index_type = self->index_type;
     res->index_size = self->index_size;
@@ -3073,14 +3073,14 @@ static PyObject * Pipeline_meth_render(Pipeline * self, PyObject * args) {
     bind_vertex_array(self->ctx, self->vertex_array->obj);
     bind_descriptor_set(self->ctx, self->descriptor_set);
     if (self->uniforms) {
-        bind_uniforms(self->ctx, self->uniforms_header, self->uniforms_data);
+        bind_uniforms(self->ctx, self->uniform_layout, self->uniform_data);
     }
-    DynamicState * state = (DynamicState *)PyMemoryView_GET_BUFFER(self->state_data)->buf;
+    RenderParamers * params = (RenderParamers *)PyMemoryView_GET_BUFFER(self->render_data)->buf;
     if (self->index_type) {
-        Py_ssize_t offset = (Py_ssize_t)state->first_vertex * (Py_ssize_t)self->index_size;
-        gl->DrawElementsInstanced(self->topology, state->vertex_count, self->index_type, (void *)offset, state->instance_count);
+        Py_ssize_t offset = (Py_ssize_t)params->first_vertex * (Py_ssize_t)self->index_size;
+        gl->DrawElementsInstanced(self->topology, params->vertex_count, self->index_type, (void *)offset, params->instance_count);
     } else {
-        gl->DrawArraysInstanced(self->topology, state->first_vertex, state->vertex_count, state->instance_count);
+        gl->DrawArraysInstanced(self->topology, params->first_vertex, params->vertex_count, params->instance_count);
     }
     Py_RETURN_NONE;
 }
@@ -3101,13 +3101,13 @@ static int Pipeline_set_viewport(Pipeline * self, PyObject * value, void * closu
 }
 
 static PyObject * Pipeline_get_vertex_count(Pipeline * self, void * closure) {
-    DynamicState * state = (DynamicState *)PyMemoryView_GET_BUFFER(self->state_data)->buf;
-    return PyLong_FromLong(state->vertex_count);
+    RenderParamers * params = (RenderParamers *)PyMemoryView_GET_BUFFER(self->render_data)->buf;
+    return PyLong_FromLong(params->vertex_count);
 }
 
 static int Pipeline_set_vertex_count(Pipeline * self, PyObject * value, void * closure) {
-    DynamicState * state = (DynamicState *)PyMemoryView_GET_BUFFER(self->state_data)->buf;
-    state->vertex_count = PyLong_AsLong(value);
+    RenderParamers * params = (RenderParamers *)PyMemoryView_GET_BUFFER(self->render_data)->buf;
+    params->vertex_count = PyLong_AsLong(value);
     if (PyErr_Occurred()) {
         PyErr_Format(PyExc_TypeError, "invalid vertex_count");
         return -1;
@@ -3116,13 +3116,13 @@ static int Pipeline_set_vertex_count(Pipeline * self, PyObject * value, void * c
 }
 
 static PyObject * Pipeline_get_instance_count(Pipeline * self, void * closure) {
-    DynamicState * state = (DynamicState *)PyMemoryView_GET_BUFFER(self->state_data)->buf;
-    return PyLong_FromLong(state->instance_count);
+    RenderParamers * params = (RenderParamers *)PyMemoryView_GET_BUFFER(self->render_data)->buf;
+    return PyLong_FromLong(params->instance_count);
 }
 
 static int Pipeline_set_instance_count(Pipeline * self, PyObject * value, void * closure) {
-    DynamicState * state = (DynamicState *)PyMemoryView_GET_BUFFER(self->state_data)->buf;
-    state->instance_count = PyLong_AsLong(value);
+    RenderParamers * params = (RenderParamers *)PyMemoryView_GET_BUFFER(self->render_data)->buf;
+    params->instance_count = PyLong_AsLong(value);
     if (PyErr_Occurred()) {
         PyErr_Format(PyExc_TypeError, "invalid instance_count");
         return -1;
@@ -3131,13 +3131,13 @@ static int Pipeline_set_instance_count(Pipeline * self, PyObject * value, void *
 }
 
 static PyObject * Pipeline_get_first_vertex(Pipeline * self, void * closure) {
-    DynamicState * state = (DynamicState *)PyMemoryView_GET_BUFFER(self->state_data)->buf;
-    return PyLong_FromLong(state->first_vertex);
+    RenderParamers * params = (RenderParamers *)PyMemoryView_GET_BUFFER(self->render_data)->buf;
+    return PyLong_FromLong(params->first_vertex);
 }
 
 static int Pipeline_set_first_vertex(Pipeline * self, PyObject * value, void * closure) {
-    DynamicState * state = (DynamicState *)PyMemoryView_GET_BUFFER(self->state_data)->buf;
-    state->first_vertex = PyLong_AsLong(value);
+    RenderParamers * params = (RenderParamers *)PyMemoryView_GET_BUFFER(self->render_data)->buf;
+    params->first_vertex = PyLong_AsLong(value);
     if (PyErr_Occurred()) {
         PyErr_Format(PyExc_TypeError, "invalid first_vertex");
         return -1;
@@ -3384,8 +3384,8 @@ static void Pipeline_dealloc(Pipeline * self) {
     Py_DECREF(self->vertex_array);
     Py_DECREF(self->program);
     Py_XDECREF(self->uniforms);
-    Py_XDECREF(self->uniforms_header);
-    Py_XDECREF(self->uniforms_data);
+    Py_XDECREF(self->uniform_layout);
+    Py_XDECREF(self->uniform_data);
     Py_TYPE(self)->tp_free(self);
 }
 
