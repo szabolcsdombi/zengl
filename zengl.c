@@ -871,7 +871,7 @@ typedef struct Pipeline {
     GLObject * vertex_array;
     GLObject * program;
     PyObject * uniform_map;
-    PyObject * uniform_data;
+    PyObject * uniform_mem;
     int uniform_count;
     int topology;
     int vertex_count;
@@ -1048,9 +1048,9 @@ static GLObject * build_framebuffer(Context * self, PyObject * attachments) {
     return res;
 }
 
-static void bind_uniforms(Context * self, PyObject * uniform_data) {
+static void bind_uniforms(Context * self, PyObject * uniform_mem) {
     const GLMethods * const gl = &self->gl;
-    const char * const data = PyByteArray_AsString(uniform_data);
+    const char * const data = (char *)PyMemoryView_GET_BUFFER(uniform_mem)->buf;
     const int count = *(int *)data;
     const UniformBinding * headers = (UniformBinding *)(data + 4);
     for (int i = 0; i < count; ++i) {
@@ -2153,7 +2153,7 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
     }
 
     PyObject * uniform_map = NULL;
-    PyObject * uniform_data = NULL;
+    PyObject * uniform_mem = NULL;
 
     if (uniforms != Py_None) {
         PyObject * tuple = PyObject_CallMethod(self->module_state->helper, "uniforms", "OO", program->extra, uniforms);
@@ -2162,8 +2162,8 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
         }
 
         uniform_map = PyDictProxy_New(PyTuple_GetItem(tuple, 0));
-        uniform_data = PyTuple_GetItem(tuple, 1);
-        Py_INCREF(uniform_data);
+        uniform_mem = PyTuple_GetItem(tuple, 1);
+        Py_INCREF(uniform_mem);
         Py_DECREF(tuple);
     }
 
@@ -2256,7 +2256,7 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
     res->vertex_array = vertex_array;
     res->program = program;
     res->uniform_map = uniform_map;
-    res->uniform_data = uniform_data;
+    res->uniform_mem = uniform_mem;
     res->topology = topology;
     res->vertex_count = vertex_count;
     res->instance_count = instance_count;
@@ -2993,8 +2993,8 @@ static PyObject * Pipeline_meth_render(Pipeline * self, PyObject * args) {
     bind_program(self->ctx, self->program->obj);
     bind_vertex_array(self->ctx, self->vertex_array->obj);
     bind_descriptor_set(self->ctx, self->descriptor_set);
-    if (self->uniform_data) {
-        bind_uniforms(self->ctx, self->uniform_data);
+    if (self->uniform_mem) {
+        bind_uniforms(self->ctx, self->uniform_mem);
     }
     if (self->index_type) {
         long long offset = (long long)self->first_vertex * self->index_size;
@@ -3259,8 +3259,8 @@ static void Pipeline_dealloc(Pipeline * self) {
     if (self->uniform_map) {
         Py_DECREF(self->uniform_map);
     }
-    if (self->uniform_data) {
-        Py_DECREF(self->uniform_data);
+    if (self->uniform_mem) {
+        Py_DECREF(self->uniform_mem);
     }
     Py_TYPE(self)->tp_free(self);
 }

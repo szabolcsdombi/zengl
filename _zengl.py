@@ -432,17 +432,15 @@ def uniforms(interface, selection):
         data_size += 16 + len(values)
 
     mapping = {}
-    data = bytearray(data_size)
-    mem = memoryview(data)
-    struct.pack_into('i', mem, 0, len(uniforms))
+    data = memoryview(bytearray(data_size))
+    struct.pack_into('i', data, 0, len(uniforms))
     offset = 4 + len(uniforms) * 16
-    mapping['all'] = mem[offset:]
+    mapping['all'] = data[offset:]
     for index, name, location, count, gltype, format, values in uniforms:
-        struct.pack_into('4i', mem, 4 + index * 16, location, count, gltype, offset)
-        end = offset + len(values)
-        raw = mem[offset:end]
-        raw[:] = values
-        mapping[name] = raw
+        struct.pack_into('4i', data, 4 + index * 16, location, count, gltype, offset)
+        s = slice(offset, offset + len(values))
+        data[s] = values
+        mapping[name] = data[s]
         offset += len(values)
     return mapping, data
 
