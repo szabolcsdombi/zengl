@@ -1084,10 +1084,10 @@ static GLObject * build_framebuffer(Context * self, PyObject * attachments) {
     return res;
 }
 
-static void bind_uniforms(Context * self, PyObject * uniform_header, PyObject * uniform_data) {
+static void bind_uniforms(Context * self, PyObject * uniforms_header, PyObject * uniforms_data) {
     const GLMethods * const gl = &self->gl;
-    const UniformHeader * const header = (char *)PyMemoryView_GET_BUFFER(uniform_header)->buf;
-    const char * const data = (char *)PyMemoryView_GET_BUFFER(uniform_data)->buf;
+    const UniformHeader * const header = (char *)PyMemoryView_GET_BUFFER(uniforms_header)->buf;
+    const char * const data = (char *)PyMemoryView_GET_BUFFER(uniforms_data)->buf;
     for (int i = 0; i < header->count; ++i) {
         void * func = (char *)gl + uniform_setter_offset[header->binding[i].function];
         void * ptr = data + header->binding[i].offset;
