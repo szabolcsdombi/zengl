@@ -535,7 +535,7 @@ static void * new_ref(void * obj) {
     return obj;
 }
 
-PyObject * contiguous(PyObject * data) {
+static PyObject * contiguous(PyObject * data) {
     PyObject * mem = PyMemoryView_FromObject(data);
     if (!mem) {
         return NULL;
