@@ -535,13 +535,6 @@ static void * new_ref(void * obj) {
     return obj;
 }
 
-static PyObject * new_mem(void * data, Py_ssize_t size) {
-    PyObject * buffer = PyByteArray_FromStringAndSize((char *)data, size);
-    PyObject * mem = PyMemoryView_FromObject(buffer);
-    Py_DECREF(buffer);
-    return mem;
-}
-
 static int valid_mem(PyObject * mem, int size) {
     if (!PyMemoryView_Check(mem)) {
         return 0;
@@ -932,6 +925,8 @@ typedef struct Pipeline {
     PyObject * uniform_data;
     PyObject * viewport_data;
     PyObject * render_data;
+    RenderParamers params;
+    Viewport viewport;
     int topology;
     int index_type;
     int index_size;
@@ -2306,26 +2301,20 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
     GlobalSettings * global_settings = build_global_settings(self, settings);
     Py_DECREF(settings);
 
-    int render_params[3] = {vertex_count, instance_count, first_vertex};
-
-    if (viewport_data == Py_None) {
-        viewport_data = new_mem(&viewport_value, sizeof(viewport_value));
-    } else {
-        memcpy(PyMemoryView_GET_BUFFER(viewport_data)->buf, &viewport_value, sizeof(viewport_value));
-    }
-
-    if (render_data == Py_None) {
-        render_data = new_mem(render_params, sizeof(render_params));
-    } else {
-        memcpy(PyMemoryView_GET_BUFFER(render_data)->buf, render_params, sizeof(render_params));
-    }
-
     Pipeline * res = PyObject_New(Pipeline, self->module_state->Pipeline_type);
     res->gc_prev = self->gc_prev;
     res->gc_next = (GCHeader *)self;
     res->gc_prev->gc_next = (GCHeader *)res;
     res->gc_next->gc_prev = (GCHeader *)res;
     Py_INCREF(res);
+
+    if (viewport_data == Py_None) {
+        viewport_data = PyMemoryView_FromMemory((char *)&res->viewport, sizeof(res->viewport), PyBUF_WRITE);
+    }
+
+    if (render_data == Py_None) {
+        render_data = PyMemoryView_FromMemory((char *)&res->params, sizeof(res->params), PyBUF_WRITE);
+    }
 
     res->ctx = self;
     res->framebuffer = framebuffer;
@@ -2337,6 +2326,10 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
     res->viewport_data = viewport_data;
     res->render_data = render_data;
     res->topology = topology;
+    res->viewport = viewport_value;
+    res->params.vertex_count = vertex_count;
+    res->params.instance_count = instance_count;
+    res->params.first_vertex = first_vertex;
     res->index_type = index_type;
     res->index_size = index_size;
     res->descriptor_set = descriptor_set;
@@ -3083,65 +3076,17 @@ static PyObject * Pipeline_meth_render(Pipeline * self, PyObject * args) {
 }
 
 static PyObject * Pipeline_get_viewport(Pipeline * self, void * closure) {
-    Viewport * viewport = (Viewport *)PyMemoryView_GET_BUFFER(self->viewport_data)->buf;
-    return Py_BuildValue("(iiii)", viewport->x, viewport->y, viewport->width, viewport->height);
+    return Py_BuildValue("(iiii)", self->viewport.x, self->viewport.y, self->viewport.width, self->viewport.height);
 }
 
-static int Pipeline_set_viewport(Pipeline * self, PyObject * value, void * closure) {
-    Viewport * viewport = (Viewport *)PyMemoryView_GET_BUFFER(self->viewport_data)->buf;
-    *viewport = to_viewport(value, 0, 0, 0, 0);
+static int Pipeline_set_viewport(Pipeline * self, PyObject * viewport, void * closure) {
+    self->viewport = to_viewport(viewport, 0, 0, 0, 0);
     if (PyErr_Occurred()) {
         PyErr_Format(PyExc_TypeError, "the viewport must be a tuple of 4 ints");
         return -1;
     }
     return 0;
 }
-
-static PyObject * Pipeline_get_vertex_count(Pipeline * self, void * closure) {
-    RenderParamers * params = (RenderParamers *)PyMemoryView_GET_BUFFER(self->render_data)->buf;
-    return PyLong_FromLong(params->vertex_count);
-}
-
-static int Pipeline_set_vertex_count(Pipeline * self, PyObject * value, void * closure) {
-    RenderParamers * params = (RenderParamers *)PyMemoryView_GET_BUFFER(self->render_data)->buf;
-    params->vertex_count = PyLong_AsLong(value);
-    if (PyErr_Occurred()) {
-        PyErr_Format(PyExc_TypeError, "invalid vertex_count");
-        return -1;
-    }
-    return 0;
-}
-
-static PyObject * Pipeline_get_instance_count(Pipeline * self, void * closure) {
-    RenderParamers * params = (RenderParamers *)PyMemoryView_GET_BUFFER(self->render_data)->buf;
-    return PyLong_FromLong(params->instance_count);
-}
-
-static int Pipeline_set_instance_count(Pipeline * self, PyObject * value, void * closure) {
-    RenderParamers * params = (RenderParamers *)PyMemoryView_GET_BUFFER(self->render_data)->buf;
-    params->instance_count = PyLong_AsLong(value);
-    if (PyErr_Occurred()) {
-        PyErr_Format(PyExc_TypeError, "invalid instance_count");
-        return -1;
-    }
-    return 0;
-}
-
-static PyObject * Pipeline_get_first_vertex(Pipeline * self, void * closure) {
-    RenderParamers * params = (RenderParamers *)PyMemoryView_GET_BUFFER(self->render_data)->buf;
-    return PyLong_FromLong(params->first_vertex);
-}
-
-static int Pipeline_set_first_vertex(Pipeline * self, PyObject * value, void * closure) {
-    RenderParamers * params = (RenderParamers *)PyMemoryView_GET_BUFFER(self->render_data)->buf;
-    params->first_vertex = PyLong_AsLong(value);
-    if (PyErr_Occurred()) {
-        PyErr_Format(PyExc_TypeError, "invalid first_vertex");
-        return -1;
-    }
-    return 0;
-}
-
 static PyObject * inspect_descriptor_set(DescriptorSet * set) {
     PyObject * res = PyList_New(0);
     for (int i = 0; i < set->uniform_buffers.buffer_count; ++i) {
@@ -3477,13 +3422,13 @@ static PyMethodDef Pipeline_methods[] = {
 
 static PyGetSetDef Pipeline_getset[] = {
     {"viewport", (getter)Pipeline_get_viewport, (setter)Pipeline_set_viewport},
-    {"vertex_count", (getter)Pipeline_get_vertex_count, (setter)Pipeline_set_vertex_count},
-    {"instance_count", (getter)Pipeline_get_instance_count, (setter)Pipeline_set_instance_count},
-    {"first_vertex", (getter)Pipeline_get_first_vertex, (setter)Pipeline_set_first_vertex},
     {NULL},
 };
 
 static PyMemberDef Pipeline_members[] = {
+    {"vertex_count", T_INT, offsetof(Pipeline, params.vertex_count), 0},
+    {"instance_count", T_INT, offsetof(Pipeline, params.instance_count), 0},
+    {"first_vertex", T_INT, offsetof(Pipeline, params.first_vertex), 0},
     {"uniforms", T_OBJECT, offsetof(Pipeline, uniforms), READONLY},
     {NULL},
 };
