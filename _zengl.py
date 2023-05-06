@@ -443,7 +443,6 @@ def uniforms(interface, selection, uniform_data):
     for name, idx, values in uniforms:
         data[idx] = values
         mapping[name] = data[idx]
-    mapping['all'] = data
     return mapping, memoryview(layout), data
 
 
