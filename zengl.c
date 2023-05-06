@@ -904,11 +904,11 @@ typedef struct Image {
     int level_count;
 } Image;
 
-typedef struct RenderParamers {
+typedef struct RenderParameters {
     int vertex_count;
     int instance_count;
     int first_vertex;
-} RenderParamers;
+} RenderParameters;
 
 typedef struct Pipeline {
     PyObject_HEAD
@@ -925,7 +925,7 @@ typedef struct Pipeline {
     PyObject * uniform_data;
     PyObject * viewport_data;
     PyObject * render_data;
-    RenderParamers params;
+    RenderParameters params;
     Viewport viewport;
     int topology;
     int index_type;
@@ -3065,7 +3065,7 @@ static PyObject * Pipeline_meth_render(Pipeline * self, PyObject * args) {
     if (self->uniforms) {
         bind_uniforms(self->ctx, self->uniform_layout, self->uniform_data);
     }
-    RenderParamers * params = (RenderParamers *)PyMemoryView_GET_BUFFER(self->render_data)->buf;
+    RenderParameters * params = (RenderParameters *)PyMemoryView_GET_BUFFER(self->render_data)->buf;
     if (self->index_type) {
         Py_ssize_t offset = (Py_ssize_t)params->first_vertex * (Py_ssize_t)self->index_size;
         gl->DrawElementsInstanced(self->topology, params->vertex_count, self->index_type, (void *)offset, params->instance_count);
