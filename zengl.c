@@ -542,6 +542,14 @@ static PyObject * new_mem(void * data, Py_ssize_t size) {
     return mem;
 }
 
+static int valid_mem(PyObject * mem, int size) {
+    if (!PyMemoryView_Check(mem)) {
+        return 0;
+    }
+    Py_buffer * view = PyMemoryView_GET_BUFFER(mem);
+    return PyBuffer_IsContiguous(view, 'C') && (size < 0 || (int)view->len == size);
+}
+
 static PyObject * contiguous(PyObject * data) {
     PyObject * mem = PyMemoryView_FromObject(data);
     if (!mem) {
@@ -2086,6 +2094,9 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
         "instance_count",
         "first_vertex",
         "viewport",
+        "uniform_data",
+        "viewport_data",
+        "render_data",
         "includes",
         NULL,
     };
@@ -2108,12 +2119,15 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
     int instance_count = 1;
     int first_vertex = 0;
     PyObject * viewport = Py_None;
+    PyObject * uniform_data = Py_None;
+    PyObject * viewport_data = Py_None;
+    PyObject * render_data = Py_None;
     PyObject * includes = Py_None;
 
     int args_ok = PyArg_ParseTupleAndKeywords(
         args,
         kwargs,
-        "|O!O!OOOOOOOOOpOO&iiiOO",
+        "|O!O!OOOOOOOOOpOO&iiiOOOOO",
         keywords,
         &PyUnicode_Type,
         &vertex_shader,
@@ -2136,6 +2150,9 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
         &instance_count,
         &first_vertex,
         &viewport,
+        &uniform_data,
+        &viewport_data,
+        &render_data,
         &includes
     );
 
@@ -2167,6 +2184,21 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
         return NULL;
     }
 
+    if (uniform_data != Py_None && !valid_mem(uniform_data, -1)) {
+        PyErr_Format(PyExc_TypeError, "uniform_data must be a contiguous memoryview");
+        return NULL;
+    }
+
+    if (viewport_data != Py_None && !valid_mem(viewport_data, 16)) {
+        PyErr_Format(PyExc_TypeError, "viewport_data must be a contiguous memoryview with a size of 16 bytes");
+        return NULL;
+    }
+
+    if (render_data != Py_None && !valid_mem(render_data, 12)) {
+        PyErr_Format(PyExc_TypeError, "render_data must be a contiguous memoryview with a size of 12 bytes");
+        return NULL;
+    }
+
     Viewport viewport_value = to_viewport(viewport, 0, 0, 0, 0);
     if (PyErr_Occurred()) {
         PyErr_Format(PyExc_TypeError, "the viewport must be a tuple of 4 ints");
@@ -2182,10 +2214,9 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
     }
 
     PyObject * uniform_layout = NULL;
-    PyObject * uniform_data = NULL;
 
     if (uniforms) {
-        PyObject * tuple = PyObject_CallMethod(self->module_state->helper, "uniforms", "OO", program->extra, uniforms);
+        PyObject * tuple = PyObject_CallMethod(self->module_state->helper, "uniforms", "OOO", program->extra, uniforms, uniform_data);
         if (!tuple) {
             return NULL;
         }
@@ -2277,8 +2308,17 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
 
     int render_params[3] = {vertex_count, instance_count, first_vertex};
 
-    PyObject * viewport_data = new_mem(&viewport_value, sizeof(viewport_value));
-    PyObject * render_data = new_mem(render_params, sizeof(render_params));
+    if (viewport_data == Py_None) {
+        viewport_data = new_mem(&viewport_value, sizeof(viewport_value));
+    } else {
+        memcpy(PyMemoryView_GET_BUFFER(viewport_data)->buf, &viewport_value, sizeof(viewport_value));
+    }
+
+    if (render_data == Py_None) {
+        render_data = new_mem(render_params, sizeof(render_params));
+    } else {
+        memcpy(PyMemoryView_GET_BUFFER(render_data)->buf, render_params, sizeof(render_params));
+    }
 
     Pipeline * res = PyObject_New(Pipeline, self->module_state->Pipeline_type);
     res->gc_prev = self->gc_prev;
@@ -3017,49 +3057,6 @@ static int Image_set_clear_value(Image * self, PyObject * value, void * closure)
     return 0;
 }
 
-static Pipeline * Pipeline_meth_copy(Pipeline * self, PyObject * args) {
-    Pipeline * res = PyObject_New(Pipeline, self->ctx->module_state->Pipeline_type);
-    res->gc_prev = self->gc_prev;
-    res->gc_next = (GCHeader *)self;
-    res->gc_prev->gc_next = (GCHeader *)res;
-    res->gc_next->gc_prev = (GCHeader *)res;
-    Py_INCREF(res);
-
-    Py_INCREF(self->descriptor_set);
-    Py_INCREF(self->global_settings);
-    Py_INCREF(self->framebuffer);
-    Py_INCREF(self->vertex_array);
-    Py_INCREF(self->program);
-    Py_XINCREF(self->uniforms);
-    Py_XINCREF(self->uniform_layout);
-
-    self->descriptor_set->uses += 1;
-    self->global_settings->uses += 1;
-    self->framebuffer->uses += 1;
-    self->vertex_array->uses += 1;
-    self->program->uses += 1;
-
-    Py_buffer * uniform_data = PyMemoryView_GET_BUFFER(self->uniform_data)->buf;
-    Py_buffer * viewport_data = PyMemoryView_GET_BUFFER(self->viewport_data)->buf;
-    Py_buffer * render_data = PyMemoryView_GET_BUFFER(self->render_data)->buf;
-
-    res->ctx = self->ctx;
-    res->descriptor_set = self->descriptor_set;
-    res->global_settings = self->global_settings;
-    res->framebuffer = self->framebuffer;
-    res->vertex_array = self->vertex_array;
-    res->program = self->program;
-    res->uniforms = self->uniforms;
-    res->uniform_layout = self->uniform_layout;
-    res->uniform_data = new_mem(uniform_data->buf, uniform_data->len);
-    res->viewport_data = new_mem(viewport_data->buf, viewport_data->len);
-    res->render_data = new_mem(render_data->buf, render_data->len);
-    res->topology = self->topology;
-    res->index_type = self->index_type;
-    res->index_size = self->index_size;
-    return res;
-}
-
 static PyObject * Pipeline_meth_render(Pipeline * self, PyObject * args) {
     const GLMethods * const gl = &self->ctx->gl;
     Viewport * viewport = (Viewport *)PyMemoryView_GET_BUFFER(self->viewport_data)->buf;
@@ -3142,61 +3139,6 @@ static int Pipeline_set_first_vertex(Pipeline * self, PyObject * value, void * c
         PyErr_Format(PyExc_TypeError, "invalid first_vertex");
         return -1;
     }
-    return 0;
-}
-
-static PyObject * Pipeline_get_uniform_data(Pipeline * self, void * closure) {
-    if (!self->uniforms) {
-        PyErr_Format(PyExc_TypeError, "this pipeline has no tracked uniforms");
-        return NULL;
-    }
-    Py_INCREF(self->uniform_data);
-    return self->uniform_data;
-}
-
-static int Pipeline_set_uniform_data(Pipeline * self, PyObject * value, void * closure) {
-    if (!self->uniforms) {
-        PyErr_Format(PyExc_TypeError, "this pipeline has no tracked uniforms");
-        return -1;
-    }
-    int invalid_value = !PyMemoryView_Check(value) || !PyBuffer_IsContiguous(PyMemoryView_GET_BUFFER(value), 'C');
-    if (invalid_value || PyMemoryView_GET_BUFFER(self->uniform_data)->len != PyMemoryView_GET_BUFFER(value)->len) {
-        int expected_size = PyMemoryView_GET_BUFFER(self->uniform_data)->len;
-        PyErr_Format(PyExc_TypeError, "uniform_data must be a contiguous memoryview with a size of %d bytes", expected_size);
-        return -1;
-    }
-    Py_INCREF(value);
-    Py_SETREF(self->uniform_data, value);
-    return 0;
-}
-
-static PyObject * Pipeline_get_viewport_data(Pipeline * self, void * closure) {
-    Py_INCREF(self->viewport_data);
-    return self->viewport_data;
-}
-
-static int Pipeline_set_viewport_data(Pipeline * self, PyObject * value, void * closure) {
-    if (!PyMemoryView_Check(value) || !PyBuffer_IsContiguous(PyMemoryView_GET_BUFFER(value), 'C') || PyMemoryView_GET_BUFFER(value)->len != 16) {
-        PyErr_Format(PyExc_TypeError, "viewport_data must be a contiguous memoryview with a size of 16 bytes");
-        return -1;
-    }
-    Py_INCREF(value);
-    Py_SETREF(self->viewport_data, value);
-    return 0;
-}
-
-static PyObject * Pipeline_get_render_data(Pipeline * self, void * closure) {
-    Py_INCREF(self->render_data);
-    return self->render_data;
-}
-
-static int Pipeline_set_render_data(Pipeline * self, PyObject * value, void * closure) {
-    if (!PyMemoryView_Check(value) || !PyBuffer_IsContiguous(PyMemoryView_GET_BUFFER(value), 'C') || PyMemoryView_GET_BUFFER(value)->len != 12) {
-        PyErr_Format(PyExc_TypeError, "render_data must be a contiguous memoryview with a size of 12 bytes");
-        return -1;
-    }
-    Py_INCREF(value);
-    Py_SETREF(self->render_data, value);
     return 0;
 }
 
@@ -3529,7 +3471,6 @@ static PyMemberDef Image_members[] = {
 };
 
 static PyMethodDef Pipeline_methods[] = {
-    {"copy", (PyCFunction)Pipeline_meth_copy, METH_NOARGS},
     {"render", (PyCFunction)Pipeline_meth_render, METH_NOARGS},
     {NULL},
 };
@@ -3539,9 +3480,6 @@ static PyGetSetDef Pipeline_getset[] = {
     {"vertex_count", (getter)Pipeline_get_vertex_count, (setter)Pipeline_set_vertex_count},
     {"instance_count", (getter)Pipeline_get_instance_count, (setter)Pipeline_set_instance_count},
     {"first_vertex", (getter)Pipeline_get_first_vertex, (setter)Pipeline_set_first_vertex},
-    {"uniform_data", (getter)Pipeline_get_uniform_data, (setter)Pipeline_set_uniform_data},
-    {"viewport_data", (getter)Pipeline_get_viewport_data, (setter)Pipeline_set_viewport_data},
-    {"render_data", (getter)Pipeline_get_render_data, (setter)Pipeline_set_render_data},
     {NULL},
 };
 

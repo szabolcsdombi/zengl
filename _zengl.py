@@ -402,14 +402,13 @@ def clean_glsl_name(name):
     return name
 
 
-def uniforms(interface, selection):
+def uniforms(interface, selection, uniform_data):
     uniform_map = {clean_glsl_name(obj['name']): obj for obj in interface[1]}
     uniforms = []
-    header = bytearray()
-    data = bytearray()
+    layout = bytearray()
     offset = 0
 
-    header.extend(struct.pack('i', len(selection)))
+    layout.extend(struct.pack('i', len(selection)))
     for name, values in selection.items():
         if name not in uniform_map:
             raise KeyError(f'Uniform "{name}" does not exist')
@@ -431,17 +430,21 @@ def uniforms(interface, selection):
             raise ValueError(f'Uniform "{name}" must be {size * items} long at most')
         if values_count % items:
             raise ValueError(f'Uniform "{name}" must have a length divisible by {items}')
-        header.extend(struct.pack('4i', function, location, count, offset))
+        layout.extend(struct.pack('4i', function, location, count, offset))
         uniforms.append((name, slice(offset, offset + len(values)), values))
         offset += len(values)
 
+    data = uniform_data if uniform_data else memoryview(bytearray(offset))
+
+    if len(data) != offset:
+        raise ValueError(f'uniform_data must be {offset} bytes long')
+
     mapping = {}
-    data = memoryview(bytearray(offset))
     for name, idx, values in uniforms:
         data[idx] = values
         mapping[name] = data[idx]
     mapping['all'] = data
-    return mapping, memoryview(header), data
+    return mapping, memoryview(layout), data
 
 
 def validate(interface, layout, resources, vertex_buffers, limits):
