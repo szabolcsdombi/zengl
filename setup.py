@@ -16,7 +16,7 @@ if sys.platform.startswith('linux'):
     extra_compile_args = ['-Wno-write-strings', '-Wno-narrowing']
 
 if sys.platform.startswith('darwin'):
-    extra_compile_args = ['-std=c++11', '-Wno-writable-strings', '-Wno-c++11-narrowing']
+    extra_compile_args = ['-Wno-writable-strings']
 
 if os.getenv('ZENGL_COVERAGE'):
     extra_compile_args += ['-O0', '--coverage']
