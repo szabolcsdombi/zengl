@@ -5,7 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-# [main](https://github.com/szabolcsdombi/zengl/compare/1.12.2...main)
+# [main](https://github.com/szabolcsdombi/zengl/compare/1.13.0...main)
+
+# [1.13.0](https://github.com/szabolcsdombi/zengl/compare/1.12.2...1.13.0)
+
+- Implemented external pipeline render parameters
+- Implemented external viewport data
+- Implemented external uniform data
+- Implemented uniform binding jump table
+- Changed `Pipeline.uniforms` to be always present
 
 # [1.12.2](https://github.com/szabolcsdombi/zengl/compare/1.12.1...1.12.2)
 
