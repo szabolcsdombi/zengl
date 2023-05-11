@@ -2,7 +2,84 @@ import re
 import struct
 import textwrap
 
-FORMAT = {
+VERTEX_FORMAT = {
+    'uint8x2': (0x1401, 2, 0, 1),
+    'uint8x4': (0x1401, 4, 0, 1),
+    'sint8x2': (0x1400, 2, 0, 1),
+    'sint8x4': (0x1400, 4, 0, 1),
+    'unorm8x2': (0x1401, 2, 1, 0),
+    'unorm8x4': (0x1401, 4, 1, 0),
+    'snorm8x2': (0x1400, 2, 1, 0),
+    'snorm8x4': (0x1400, 4, 1, 0),
+    'uint16x2': (0x1403, 2, 0, 1),
+    'uint16x4': (0x1403, 4, 0, 1),
+    'sint16x2': (0x1402, 2, 0, 1),
+    'sint16x4': (0x1402, 4, 0, 1),
+    'unorm16x2': (0x1403, 2, 1, 0),
+    'unorm16x4': (0x1403, 4, 1, 0),
+    'snorm16x2': (0x1402, 2, 1, 0),
+    'snorm16x4': (0x1402, 4, 1, 0),
+    'float16x2': (0x140b, 2, 0, 0),
+    'float16x4': (0x140b, 4, 0, 0),
+    'float32': (0x1406, 1, 0, 0),
+    'float32x2': (0x1406, 2, 0, 0),
+    'float32x3': (0x1406, 3, 0, 0),
+    'float32x4': (0x1406, 4, 0, 0),
+    'uint32': (0x1405, 1, 0, 1),
+    'uint32x2': (0x1405, 2, 0, 1),
+    'uint32x3': (0x1405, 3, 0, 1),
+    'uint32x4': (0x1405, 4, 0, 1),
+    'sint32': (0x1404, 1, 0, 1),
+    'sint32x2': (0x1404, 2, 0, 1),
+    'sint32x3': (0x1404, 3, 0, 1),
+    'sint32x4': (0x1404, 4, 0, 1),
+}
+
+IMAGE_FORMAT = {
+    'r8unorm': (0x8229, 0x1903, 0x1401, 1, 1, 0x1800, 1, ord('f'), 1),
+    'rg8unorm': (0x822b, 0x8227, 0x1401, 2, 2, 0x1800, 1, ord('f'), 1),
+    'rgba8unorm': (0x8058, 0x1908, 0x1401, 4, 4, 0x1800, 1, ord('f'), 1),
+    'r8snorm': (0x8f94, 0x1903, 0x1401, 1, 1, 0x1800, 1, ord('f'), 1),
+    'rg8snorm': (0x8f95, 0x8227, 0x1401, 2, 2, 0x1800, 1, ord('f'), 1),
+    'rgba8snorm': (0x8f97, 0x1908, 0x1401, 4, 4, 0x1800, 1, ord('f'), 1),
+    'r8uint': (0x8232, 0x8d94, 0x1401, 1, 1, 0x1800, 1, ord('u'), 1),
+    'rg8uint': (0x8238, 0x8228, 0x1401, 2, 2, 0x1800, 1, ord('u'), 1),
+    'rgba8uint': (0x8d7c, 0x8d99, 0x1401, 4, 4, 0x1800, 1, ord('u'), 1),
+    'r16uint': (0x8234, 0x8d94, 0x1403, 1, 2, 0x1800, 1, ord('u'), 1),
+    'rg16uint': (0x823a, 0x8228, 0x1403, 2, 4, 0x1800, 1, ord('u'), 1),
+    'rgba16uint': (0x8d76, 0x8d99, 0x1403, 4, 8, 0x1800, 1, ord('u'), 1),
+    'r32uint': (0x8236, 0x8d94, 0x1405, 1, 4, 0x1800, 1, ord('u'), 1),
+    'rg32uint': (0x823c, 0x8228, 0x1405, 2, 8, 0x1800, 1, ord('u'), 1),
+    'rgba32uint': (0x8d70, 0x8d99, 0x1405, 4, 16, 0x1800, 1, ord('u'), 1),
+    'r8sint': (0x8231, 0x8d94, 0x1400, 1, 1, 0x1800, 1, ord('i'), 1),
+    'rg8sint': (0x8237, 0x8228, 0x1400, 2, 2, 0x1800, 1, ord('i'), 1),
+    'rgba8sint': (0x8d8e, 0x8d99, 0x1400, 4, 4, 0x1800, 1, ord('i'), 1),
+    'r16sint': (0x8233, 0x8d94, 0x1402, 1, 2, 0x1800, 1, ord('i'), 1),
+    'rg16sint': (0x8239, 0x8228, 0x1402, 2, 4, 0x1800, 1, ord('i'), 1),
+    'rgba16sint': (0x8d88, 0x8d99, 0x1402, 4, 8, 0x1800, 1, ord('i'), 1),
+    'r32sint': (0x8235, 0x8d94, 0x1404, 1, 4, 0x1800, 1, ord('i'), 1),
+    'rg32sint': (0x823b, 0x8228, 0x1404, 2, 8, 0x1800, 1, ord('i'), 1),
+    'rgba32sint': (0x8d82, 0x8d99, 0x1404, 4, 16, 0x1800, 1, ord('i'), 1),
+    'r16float': (0x822d, 0x1903, 0x1406, 1, 2, 0x1800, 1, ord('f'), 1),
+    'rg16float': (0x822f, 0x8227, 0x1406, 2, 4, 0x1800, 1, ord('f'), 1),
+    'rgba16float': (0x881a, 0x1908, 0x1406, 4, 8, 0x1800, 1, ord('f'), 1),
+    'r32float': (0x822e, 0x1903, 0x1406, 1, 4, 0x1800, 1, ord('f'), 1),
+    'rg32float': (0x8230, 0x8227, 0x1406, 2, 8, 0x1800, 1, ord('f'), 1),
+    'rgba32float': (0x8814, 0x1908, 0x1406, 4, 16, 0x1800, 1, ord('f'), 1),
+    'rgba8unorm-srgb': (0x8c43, 0x1908, 0x1401, 4, 4, 0x1800, 1, ord('f'), 1),
+    'depth16unorm': (0x81a5, 0x1902, 0x1403, 1, 2, 0x1801, 0, ord('f'), 2),
+    'depth24plus': (0x81a6, 0x1902, 0x1405, 1, 4, 0x1801, 0, ord('f'), 2),
+    'depth24plus-stencil8': (0x88f0, 0x84f9, 0x84fa, 2, 4, 0x84f9, 0, ord('x'), 6),
+    'depth32float': (0x8cac, 0x1902, 0x1406, 1, 4, 0x1801, 0, ord('f'), 2),
+}
+
+def parse_vertex_format(name, value):
+    value[:] = struct.pack('4i', *VERTEX_FORMAT[name])
+
+def parse_image_format(name, value):
+    value[:] = struct.pack('9i', *IMAGE_FORMAT[name])
+
+SHORT_VERTEX_FORMAT = {
     '2u1': ('uint8x2', 2),
     '4u1': ('uint8x4', 4),
     '2i1': ('sint8x2', 2),
@@ -193,7 +270,7 @@ def calcsize(layout):
         if node[-1] == 'x':
             stride += int(node[:-1])
             continue
-        stride += FORMAT[node][1]
+        stride += SHORT_VERTEX_FORMAT[node][1]
     return stride
 
 
@@ -213,7 +290,7 @@ def bind(buffer, layout, *attributes):
         if len(attributes) == idx:
             raise ValueError(f'Not enough vertex attributes for format "{layout}"')
         location = attributes[idx]
-        format, size = FORMAT[node]
+        format, size = SHORT_VERTEX_FORMAT[node]
         if location >= 0:
             res.append({
                 'location': location,
