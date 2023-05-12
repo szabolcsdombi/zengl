@@ -339,22 +339,48 @@ static int least_one(int value) {
     return value > 1 ? value : 1;
 }
 
-int get_vertex_format(PyObject * helper, PyObject * format, VertexFormat * res) {
-    PyObject * tmp = PyObject_CallMethod(helper, "parse_vertex_format", "(ON)", format, PyMemoryView_FromMemory((char *)res, sizeof(VertexFormat), PyBUF_WRITE));
-    if (tmp) {
-        Py_DECREF(tmp);
-        return 1;
+static int get_vertex_format(PyObject * helper, PyObject * name, VertexFormat * res) {
+    PyObject * lookup = PyObject_GetAttrString(helper, "VERTEX_FORMAT");
+    PyObject * tup = PyDict_GetItem(lookup, name);
+    Py_DECREF(lookup);
+    if (!tup) {
+        return 0;
     }
-    return 0;
+    res->type = PyLong_AsLong(PyTuple_GetItem(tup, 0));
+    res->size = PyLong_AsLong(PyTuple_GetItem(tup, 1));
+    res->normalize = PyLong_AsLong(PyTuple_GetItem(tup, 2));
+    res->integer = PyLong_AsLong(PyTuple_GetItem(tup, 3));
+    return 1;
 }
 
-int get_image_format(PyObject * helper, PyObject * format, ImageFormat * res) {
-    PyObject * tmp = PyObject_CallMethod(helper, "parse_image_format", "(ON)", format, PyMemoryView_FromMemory((char *)res, sizeof(ImageFormat), PyBUF_WRITE));
-    if (tmp) {
-        Py_DECREF(tmp);
-        return 1;
+static int get_image_format(PyObject * helper, PyObject * name, ImageFormat * res) {
+    PyObject * lookup = PyObject_GetAttrString(helper, "IMAGE_FORMAT");
+    PyObject * tup = PyDict_GetItem(lookup, name);
+    Py_DECREF(lookup);
+    if (!tup) {
+        return 0;
     }
-    return 0;
+    res->internal_format = PyLong_AsLong(PyTuple_GetItem(tup, 0));
+    res->format = PyLong_AsLong(PyTuple_GetItem(tup, 1));
+    res->type = PyLong_AsLong(PyTuple_GetItem(tup, 2));
+    res->buffer = PyLong_AsLong(PyTuple_GetItem(tup, 3));
+    res->components = PyLong_AsLong(PyTuple_GetItem(tup, 4));
+    res->pixel_size = PyLong_AsLong(PyTuple_GetItem(tup, 5));
+    res->color = PyLong_AsLong(PyTuple_GetItem(tup, 6));
+    res->flags = PyLong_AsLong(PyTuple_GetItem(tup, 7));
+    res->clear_type = PyUnicode_AsUTF8(PyTuple_GetItem(tup, 8))[0];
+    return 1;
+}
+
+static int get_topology(PyObject * helper, PyObject * name, int * res) {
+    PyObject * lookup = PyObject_GetAttrString(helper, "TOPOLOGY");
+    PyObject * value = PyDict_GetItem(lookup, name);
+    Py_DECREF(lookup);
+    if (!value) {
+        return 0;
+    }
+    *res = PyLong_AsLong(value);
+    return 1;
 }
 
 static int count_mipmaps(int width, int height) {
@@ -2150,12 +2176,11 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
     GlobalSettings * global_settings = build_global_settings(self, settings);
     Py_DECREF(settings);
 
-    topology_arg = PyObject_CallMethod(self->module_state->helper, "parse_topology", "(O)", topology_arg);
-    if (!topology_arg) {
+    int topology;
+    if (!get_topology(self->module_state->helper, topology_arg, &topology)) {
+        PyErr_Format(PyExc_ValueError, "invalid topology");
         return NULL;
     }
-
-    int topology = PyLong_AsLong(topology_arg);
 
     Pipeline * res = PyObject_New(Pipeline, self->module_state->Pipeline_type);
     res->gc_prev = self->gc_prev;
