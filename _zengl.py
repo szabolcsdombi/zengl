@@ -73,11 +73,24 @@ IMAGE_FORMAT = {
     'depth32float': (0x8cac, 0x1902, 0x1406, 1, 4, 0x1801, 0, ord('f'), 2),
 }
 
+TOPOLOGY = {
+    'points': 0,
+    'lines': 1,
+    'line_loop': 2,
+    'line_strip': 3,
+    'triangles': 4,
+    'triangle_strip': 5,
+    'triangle_fan': 6,
+}
+
 def parse_vertex_format(name, value):
     value[:] = struct.pack('4i', *VERTEX_FORMAT[name])
 
 def parse_image_format(name, value):
     value[:] = struct.pack('9i', *IMAGE_FORMAT[name])
+
+def parse_topology(name):
+    return TOPOLOGY[name]
 
 SHORT_VERTEX_FORMAT = {
     '2u1': ('uint8x2', 2),

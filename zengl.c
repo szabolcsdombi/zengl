@@ -357,31 +357,6 @@ int get_image_format(PyObject * helper, PyObject * format, ImageFormat * res) {
     return 0;
 }
 
-static int get_topology(const char * topology) {
-    if (!strcmp(topology, "points")) return GL_POINTS;
-    if (!strcmp(topology, "lines")) return GL_LINES;
-    if (!strcmp(topology, "line_loop")) return GL_LINE_LOOP;
-    if (!strcmp(topology, "line_strip")) return GL_LINE_STRIP;
-    if (!strcmp(topology, "triangles")) return GL_TRIANGLES;
-    if (!strcmp(topology, "triangle_strip")) return GL_TRIANGLE_STRIP;
-    if (!strcmp(topology, "triangle_fan")) return GL_TRIANGLE_FAN;
-    return -1;
-}
-
-static int topology_converter(PyObject * arg, int * value) {
-    if (!PyUnicode_CheckExact(arg)) {
-        PyErr_Format(PyExc_TypeError, "topology must be a string");
-        return 0;
-    }
-    int topology = get_topology(PyUnicode_AsUTF8(arg));
-    if (topology == -1) {
-        PyErr_Format(PyExc_ValueError, "invalid topology");
-        return 0;
-    }
-    *value = topology;
-    return 1;
-}
-
 static int count_mipmaps(int width, int height) {
     int size = width > height ? width : height;
     for (int i = 1; i < 32; ++i) {
@@ -631,6 +606,7 @@ typedef struct ModuleState {
     PyObject * helper;
     PyObject * empty_tuple;
     PyObject * str_none;
+    PyObject * str_triangles;
     PyTypeObject * Context_type;
     PyTypeObject * Buffer_type;
     PyTypeObject * Image_type;
@@ -1983,7 +1959,7 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
     PyObject * index_buffer = Py_None;
     int short_index = 0;
     PyObject * cull_face = self->module_state->str_none;
-    int topology = GL_TRIANGLES;
+    PyObject * topology_arg = self->module_state->str_triangles;
     int vertex_count = 0;
     int instance_count = 1;
     int first_vertex = 0;
@@ -1996,7 +1972,7 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
     int args_ok = PyArg_ParseTupleAndKeywords(
         args,
         kwargs,
-        "|O!O!OOOOOOOOOpOO&iiiOOOOO",
+        "|O!O!OOOOOOOOOpOOiiiOOOOO",
         keywords,
         &PyUnicode_Type,
         &vertex_shader,
@@ -2013,8 +1989,7 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
         &index_buffer,
         &short_index,
         &cull_face,
-        topology_converter,
-        &topology,
+        &topology_arg,
         &vertex_count,
         &instance_count,
         &first_vertex,
@@ -2174,6 +2149,13 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
 
     GlobalSettings * global_settings = build_global_settings(self, settings);
     Py_DECREF(settings);
+
+    topology_arg = PyObject_CallMethod(self->module_state->helper, "parse_topology", "(O)", topology_arg);
+    if (!topology_arg) {
+        return NULL;
+    }
+
+    int topology = PyLong_AsLong(topology_arg);
 
     Pipeline * res = PyObject_New(Pipeline, self->module_state->Pipeline_type);
     res->gc_prev = self->gc_prev;
@@ -3396,6 +3378,7 @@ static int module_exec(PyObject * self) {
 
     state->empty_tuple = PyTuple_New(0);
     state->str_none = PyUnicode_FromString("none");
+    state->str_triangles = PyUnicode_FromString("triangles");
     state->Context_type = (PyTypeObject *)PyType_FromSpec(&Context_spec);
     state->Buffer_type = (PyTypeObject *)PyType_FromSpec(&Buffer_spec);
     state->Image_type = (PyTypeObject *)PyType_FromSpec(&Image_spec);
@@ -3436,6 +3419,7 @@ static void module_free(PyObject * self) {
     if (state) {
         Py_DECREF(state->empty_tuple);
         Py_DECREF(state->str_none);
+        Py_DECREF(state->str_triangles);
         Py_DECREF(state->Context_type);
         Py_DECREF(state->Buffer_type);
         Py_DECREF(state->Image_type);
