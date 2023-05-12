@@ -2311,9 +2311,9 @@ static PyObject * Context_meth_end_frame(Context * self, PyObject * args, PyObje
     }
 
     if (sync) {
-        void * sync = gl->FenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-        gl->ClientWaitSync(sync, GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED);
-        gl->DeleteSync(sync);
+        void * fence = gl->FenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+        gl->ClientWaitSync(fence, GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED);
+        gl->DeleteSync(fence);
     }
 
     if (self->after_frame_callback != Py_None) {
@@ -2723,7 +2723,6 @@ static PyObject * Image_meth_write(Image * self, PyObject * args, PyObject * kwa
     gl->ActiveTexture(self->ctx->default_texture_unit);
     gl->BindTexture(self->target, self->image);
     if (self->cubemap) {
-        int padded_row = (size.x * self->fmt.pixel_size + 3) & ~3;
         int stride = padded_row * size.y;
         if (layer_arg != Py_None) {
             int face = GL_TEXTURE_CUBE_MAP_POSITIVE_X + layer;
