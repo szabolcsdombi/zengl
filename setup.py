@@ -13,7 +13,7 @@ stubs = {
 }
 
 if sys.platform.startswith('linux'):
-    extra_compile_args = ['-Wno-write-strings', '-Wno-narrowing']
+    extra_compile_args = []
 
 if sys.platform.startswith('darwin'):
     extra_compile_args = ['-Wno-writable-strings']
@@ -21,6 +21,13 @@ if sys.platform.startswith('darwin'):
 if os.getenv('ZENGL_COVERAGE'):
     extra_compile_args += ['-O0', '--coverage']
     extra_link_args += ['-O0', '--coverage']
+
+if os.getenv('ZENGL_WARNINGS'):
+    if sys.platform.startswith('linux'):
+        extra_compile_args += [
+            '-g3', '-Wall', '-Wextra', '-Wconversion', '-Wdouble-promotion', '-Wno-unused-parameter',
+            '-Wno-cast-function-type', '-fsanitize=undefined', '-Werror',
+        ]
 
 if os.getenv('ZENGL_NO_STUBS'):
     stubs = {}
