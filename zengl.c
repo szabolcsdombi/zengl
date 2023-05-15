@@ -2,7 +2,7 @@
 #include <structmember.h>
 
 #define MAX_ATTACHMENTS 16
-#define MAX_UNIFORM_BUFFER_BINDINGS 16
+#define MAX_BUFFER_BINDINGS 16
 #define MAX_SAMPLER_BINDINGS 64
 
 #ifdef _WIN32
@@ -274,18 +274,6 @@ typedef struct ImageFormat {
     int clear_type;
     int flags;
 } ImageFormat;
-
-typedef struct UniformBufferBinding {
-    int buffer;
-    int offset;
-    int size;
-} UniformBufferBinding;
-
-typedef struct SamplerBinding {
-    int sampler;
-    int target;
-    int image;
-} SamplerBinding;
 
 typedef struct UniformBinding {
     int function;
@@ -660,21 +648,25 @@ typedef struct GLObject {
     PyObject * extra;
 } GLObject;
 
+typedef struct BufferBinding {
+    struct Buffer * buffer;
+    int offset;
+    int size;
+} BufferBinding;
+
+typedef struct SamplerBinding {
+    GLObject * sampler;
+    struct Image * image;
+} SamplerBinding;
+
 typedef struct DescriptorSetBuffers {
-    int buffer_count;
-    int buffers[MAX_UNIFORM_BUFFER_BINDINGS];
-    GLsizeiptr buffer_offsets[MAX_UNIFORM_BUFFER_BINDINGS];
-    GLsizeiptr buffer_sizes[MAX_UNIFORM_BUFFER_BINDINGS];
-    PyObject * buffer_refs[MAX_UNIFORM_BUFFER_BINDINGS];
+    int binding_count;
+    BufferBinding binding[MAX_BUFFER_BINDINGS];
 } DescriptorSetBuffers;
 
 typedef struct DescriptorSetSamplers {
-    int sampler_count;
-    int samplers[MAX_SAMPLER_BINDINGS];
-    int textures[MAX_SAMPLER_BINDINGS];
-    int targets[MAX_SAMPLER_BINDINGS];
-    PyObject * sampler_refs[MAX_SAMPLER_BINDINGS];
-    PyObject * texture_refs[MAX_SAMPLER_BINDINGS];
+    int binding_count;
+    SamplerBinding binding[MAX_SAMPLER_BINDINGS];
 } DescriptorSetSamplers;
 
 typedef struct DescriptorSet {
@@ -894,22 +886,26 @@ static void bind_descriptor_set(Context * self, DescriptorSet * set) {
     const GLMethods * const gl = &self->gl;
     if (self->current_descriptor_set != set) {
         self->current_descriptor_set = set;
-        if (set->uniform_buffers.buffer_count) {
-            for (int i = 0; i < set->uniform_buffers.buffer_count; ++i) {
-                gl->BindBufferRange(
-                    GL_UNIFORM_BUFFER,
-                    i,
-                    set->uniform_buffers.buffers[i],
-                    set->uniform_buffers.buffer_offsets[i],
-                    set->uniform_buffers.buffer_sizes[i]
-                );
+        if (set->uniform_buffers.binding_count) {
+            for (int i = 0; i < set->uniform_buffers.binding_count; ++i) {
+                if (set->uniform_buffers.binding[i].buffer) {
+                    gl->BindBufferRange(
+                        GL_UNIFORM_BUFFER,
+                        i,
+                        set->uniform_buffers.binding[i].buffer->buffer,
+                        set->uniform_buffers.binding[i].offset,
+                        set->uniform_buffers.binding[i].size
+                    );
+                }
             }
         }
-        if (set->samplers.sampler_count) {
-            for (int i = 0; i < set->samplers.sampler_count; ++i) {
-                gl->ActiveTexture(GL_TEXTURE0 + i);
-                gl->BindTexture(set->samplers.targets[i], set->samplers.textures[i]);
-                gl->BindSampler(i, set->samplers.samplers[i]);
+        if (set->samplers.binding_count) {
+            for (int i = 0; i < set->samplers.binding_count; ++i) {
+                if (set->samplers.binding[i].image) {
+                    gl->ActiveTexture(GL_TEXTURE0 + i);
+                    gl->BindTexture(set->samplers.binding[i].image->target, set->samplers.binding[i].image->image);
+                    gl->BindSampler(i, set->samplers.binding[i].sampler->obj);
+                }
             }
         }
     }
@@ -1101,11 +1097,10 @@ static DescriptorSetBuffers build_descriptor_set_buffers(Context * self, PyObjec
         Buffer * buffer = (Buffer *)seq[i + 1];
         int offset = to_int(seq[i + 2]);
         int size = to_int(seq[i + 3]);
-        res.buffers[binding] = buffer->buffer;
-        res.buffer_offsets[binding] = offset;
-        res.buffer_sizes[binding] = size;
-        res.buffer_refs[binding] = (PyObject *)new_ref(buffer);
-        res.buffer_count = res.buffer_count > (binding + 1) ? res.buffer_count : (binding + 1);
+        res.binding[binding].buffer = (Buffer *)new_ref(buffer);
+        res.binding[binding].offset = offset;
+        res.binding[binding].size = size;
+        res.binding_count = res.binding_count > (binding + 1) ? res.binding_count : (binding + 1);
     }
 
     return res;
@@ -1122,12 +1117,9 @@ static DescriptorSetSamplers build_descriptor_set_samplers(Context * self, PyObj
         int binding = to_int(seq[i + 0]);
         Image * image = (Image *)seq[i + 1];
         GLObject * sampler = build_sampler(self, seq[i + 2]);
-        res.samplers[binding] = sampler->obj;
-        res.textures[binding] = image->image;
-        res.targets[binding] = image->target;
-        res.sampler_refs[binding] = (PyObject *)sampler;
-        res.texture_refs[binding] = (PyObject *)new_ref(image);
-        res.sampler_count = res.sampler_count > (binding + 1) ? res.sampler_count : (binding + 1);
+        res.binding[binding].sampler = sampler;
+        res.binding[binding].image = (Image *)new_ref(image);
+        res.binding_count = res.binding_count > (binding + 1) ? res.binding_count : (binding + 1);
     }
 
     return res;
@@ -1642,8 +1634,8 @@ static Context * meth_context(PyObject * self, PyObject * args, PyObject * kwarg
     gl->GetIntegerv(GL_MAX_DRAW_BUFFERS, &res->limits.max_draw_buffers);
     gl->GetIntegerv(GL_MAX_SAMPLES, &res->limits.max_samples);
 
-    if (res->limits.max_uniform_buffer_bindings > MAX_UNIFORM_BUFFER_BINDINGS) {
-        res->limits.max_uniform_buffer_bindings = MAX_UNIFORM_BUFFER_BINDINGS;
+    if (res->limits.max_uniform_buffer_bindings > MAX_BUFFER_BINDINGS) {
+        res->limits.max_uniform_buffer_bindings = MAX_BUFFER_BINDINGS;
     }
 
     if (res->limits.max_combined_texture_image_units > MAX_SAMPLER_BINDINGS) {
@@ -2340,8 +2332,8 @@ static void release_descriptor_set(Context * self, DescriptorSet * set) {
     const GLMethods * const gl = &self->gl;
     set->uses -= 1;
     if (!set->uses) {
-        for (int i = 0; i < set->samplers.sampler_count; ++i) {
-            GLObject * sampler = (GLObject *)set->samplers.sampler_refs[i];
+        for (int i = 0; i < set->samplers.binding_count; ++i) {
+            GLObject * sampler = set->samplers.binding[i].sampler;
             if (sampler) {
                 sampler->uses -= 1;
                 if (!sampler->uses) {
@@ -2350,12 +2342,12 @@ static void release_descriptor_set(Context * self, DescriptorSet * set) {
                 }
             }
         }
-        for (int i = 0; i < set->uniform_buffers.buffer_count; ++i) {
-            Py_XDECREF(set->uniform_buffers.buffer_refs[i]);
+        for (int i = 0; i < set->uniform_buffers.binding_count; ++i) {
+            Py_XDECREF(set->uniform_buffers.binding[i].buffer);
         }
-        for (int i = 0; i < set->samplers.sampler_count; ++i) {
-            Py_XDECREF(set->samplers.sampler_refs[i]);
-            Py_XDECREF(set->samplers.texture_refs[i]);
+        for (int i = 0; i < set->samplers.binding_count; ++i) {
+            Py_XDECREF(set->samplers.binding[i].sampler);
+            Py_XDECREF(set->samplers.binding[i].image);
         }
         remove_dict_value(self->descriptor_set_cache, (PyObject *)set);
         if (self->current_descriptor_set == set) {
@@ -2961,28 +2953,28 @@ static int Pipeline_set_viewport(Pipeline * self, PyObject * viewport, void * cl
 }
 static PyObject * inspect_descriptor_set(DescriptorSet * set) {
     PyObject * res = PyList_New(0);
-    for (int i = 0; i < set->uniform_buffers.buffer_count; ++i) {
-        if (set->uniform_buffers.buffer_refs[i]) {
+    for (int i = 0; i < set->uniform_buffers.binding_count; ++i) {
+        if (set->uniform_buffers.binding[i].buffer) {
             PyObject * obj = Py_BuildValue(
                 "{sssisisisi}",
                 "type", "uniform_buffer",
                 "binding", i,
-                "buffer", set->uniform_buffers.buffers[i],
-                "offset", set->uniform_buffers.buffer_offsets[i],
-                "size", set->uniform_buffers.buffer_sizes[i]
+                "buffer", set->uniform_buffers.binding[i].buffer->buffer,
+                "offset", set->uniform_buffers.binding[i].offset,
+                "size", set->uniform_buffers.binding[i].size
             );
             PyList_Append(res, obj);
             Py_DECREF(obj);
         }
     }
-    for (int i = 0; i < set->samplers.sampler_count; ++i) {
-        if (set->samplers.sampler_refs[i]) {
+    for (int i = 0; i < set->samplers.binding_count; ++i) {
+        if (set->samplers.binding[i].sampler) {
             PyObject * obj = Py_BuildValue(
                 "{sssisisi}",
                 "type", "sampler",
                 "binding", i,
-                "sampler", set->samplers.samplers[i],
-                "texture", set->samplers.textures[i]
+                "sampler", set->samplers.binding[i].sampler->obj,
+                "texture", set->samplers.binding[i].image->image
             );
             PyList_Append(res, obj);
             Py_DECREF(obj);
