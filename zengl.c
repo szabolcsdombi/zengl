@@ -414,12 +414,12 @@ static void * new_ref(void * obj) {
     return obj;
 }
 
-static int valid_mem(PyObject * mem, int size) {
+static int valid_mem(PyObject * mem, Py_ssize_t size) {
     if (!PyMemoryView_Check(mem)) {
         return 0;
     }
     Py_buffer * view = PyMemoryView_GET_BUFFER(mem);
-    return PyBuffer_IsContiguous(view, 'C') && (size < 0 || (int)view->len == size);
+    return PyBuffer_IsContiguous(view, 'C') && (size < 0 || view->len == size);
 }
 
 static PyObject * contiguous(PyObject * data) {
