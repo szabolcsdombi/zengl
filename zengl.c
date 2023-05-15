@@ -685,7 +685,6 @@ typedef struct DescriptorSet {
 } DescriptorSet;
 
 typedef struct BlendState {
-    int enable;
     int op_color;
     int op_alpha;
     int src_color;
@@ -1192,7 +1191,6 @@ static GlobalSettings * build_global_settings(Context * self, PyObject * setting
     }
     res->blend_enabled = to_int(seq[it++]);
     if (res->blend_enabled) {
-        res->blend.enable = to_int(seq[it++]);
         res->blend.op_color = to_int(seq[it++]);
         res->blend.op_alpha = to_int(seq[it++]);
         res->blend.src_color = to_int(seq[it++]);
