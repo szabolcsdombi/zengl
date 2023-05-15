@@ -1021,12 +1021,11 @@ static GLObject * build_vertex_array(Context * self, PyObject * bindings) {
             PyErr_Format(PyExc_ValueError, "invalid vertex format");
             return NULL;
         }
-        void * base = NULL;
         gl->BindBuffer(GL_ARRAY_BUFFER, buffer->buffer);
         if (fmt.integer) {
-            gl->VertexAttribIPointer(location, fmt.size, fmt.type, stride, base + offset);
+            gl->VertexAttribIPointer(location, fmt.size, fmt.type, stride, (void *)(long long)offset);
         } else {
-            gl->VertexAttribPointer(location, fmt.size, fmt.type, !!fmt.normalize, stride, base + offset);
+            gl->VertexAttribPointer(location, fmt.size, fmt.type, !!fmt.normalize, stride, (void *)(long long)offset);
         }
         gl->VertexAttribDivisor(location, divisor);
         gl->EnableVertexAttribArray(location);
