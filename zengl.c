@@ -19,19 +19,19 @@ typedef signed long int GLintptr;
 typedef signed long int GLsizeiptr;
 #endif
 
-typedef unsigned int GLenum;
+typedef int GLenum;
 typedef float GLfloat;
 typedef int GLint;
 typedef int GLsizei;
-typedef unsigned long long GLuint64;
-typedef unsigned int GLbitfield;
-typedef unsigned int GLuint;
-typedef unsigned char GLboolean;
-typedef unsigned char GLubyte;
+typedef long long GLuint64;
+typedef int GLbitfield;
+typedef int GLuint;
+typedef char GLboolean;
+typedef char GLubyte;
 typedef char GLchar;
 typedef void * GLsync;
 
-#define GL_COLOR_BUFFER_BIT 0x00004000
+#define GL_COLOR_BUFFER_BIT 0x4000
 #define GL_FRONT 0x0404
 #define GL_BACK 0x0405
 #define GL_CULL_FACE 0x0B44
@@ -101,8 +101,7 @@ typedef void * GLsync;
 #define GL_PROGRAM_POINT_SIZE 0x8642
 #define GL_TEXTURE_CUBE_MAP_SEAMLESS 0x884F
 #define GL_SYNC_GPU_COMMANDS_COMPLETE 0x9117
-#define GL_TIMEOUT_IGNORED 0xFFFFFFFFFFFFFFFFull
-#define GL_SYNC_FLUSH_COMMANDS_BIT 0x00000001
+#define GL_SYNC_FLUSH_COMMANDS_BIT 0x0001
 #define GL_TIME_ELAPSED 0x88BF
 #define GL_PRIMITIVE_RESTART_FIXED_INDEX 0x8D69
 #define GL_TEXTURE_MAX_ANISOTROPY 0x84FE
@@ -320,13 +319,25 @@ typedef struct Viewport {
 typedef union ClearValue {
     float clear_floats[4];
     int clear_ints[4];
-    unsigned int clear_uints[4];
+    unsigned clear_uints[4];
 } ClearValue;
 
 typedef struct IntPair {
     int x;
     int y;
 } IntPair;
+
+static int to_int(PyObject * obj) {
+    return (int)PyLong_AsLong(obj);
+}
+
+static unsigned to_uint(PyObject * obj) {
+    return (unsigned)PyLong_AsUnsignedLong(obj);
+}
+
+static float to_float(PyObject * obj) {
+    return (float)PyFloat_AsDouble(obj);
+}
 
 static int least_one(int value) {
     return value > 1 ? value : 1;
@@ -339,10 +350,10 @@ static int get_vertex_format(PyObject * helper, PyObject * name, VertexFormat * 
     if (!tup) {
         return 0;
     }
-    res->type = PyLong_AsLong(PyTuple_GetItem(tup, 0));
-    res->size = PyLong_AsLong(PyTuple_GetItem(tup, 1));
-    res->normalize = PyLong_AsLong(PyTuple_GetItem(tup, 2));
-    res->integer = PyLong_AsLong(PyTuple_GetItem(tup, 3));
+    res->type = to_int(PyTuple_GetItem(tup, 0));
+    res->size = to_int(PyTuple_GetItem(tup, 1));
+    res->normalize = to_int(PyTuple_GetItem(tup, 2));
+    res->integer = to_int(PyTuple_GetItem(tup, 3));
     return 1;
 }
 
@@ -353,14 +364,14 @@ static int get_image_format(PyObject * helper, PyObject * name, ImageFormat * re
     if (!tup) {
         return 0;
     }
-    res->internal_format = PyLong_AsLong(PyTuple_GetItem(tup, 0));
-    res->format = PyLong_AsLong(PyTuple_GetItem(tup, 1));
-    res->type = PyLong_AsLong(PyTuple_GetItem(tup, 2));
-    res->buffer = PyLong_AsLong(PyTuple_GetItem(tup, 3));
-    res->components = PyLong_AsLong(PyTuple_GetItem(tup, 4));
-    res->pixel_size = PyLong_AsLong(PyTuple_GetItem(tup, 5));
-    res->color = PyLong_AsLong(PyTuple_GetItem(tup, 6));
-    res->flags = PyLong_AsLong(PyTuple_GetItem(tup, 7));
+    res->internal_format = to_int(PyTuple_GetItem(tup, 0));
+    res->format = to_int(PyTuple_GetItem(tup, 1));
+    res->type = to_int(PyTuple_GetItem(tup, 2));
+    res->buffer = to_int(PyTuple_GetItem(tup, 3));
+    res->components = to_int(PyTuple_GetItem(tup, 4));
+    res->pixel_size = to_int(PyTuple_GetItem(tup, 5));
+    res->color = to_int(PyTuple_GetItem(tup, 6));
+    res->flags = to_int(PyTuple_GetItem(tup, 7));
     res->clear_type = PyUnicode_AsUTF8(PyTuple_GetItem(tup, 8))[0];
     return 1;
 }
@@ -372,7 +383,7 @@ static int get_topology(PyObject * helper, PyObject * name, int * res) {
     if (!value) {
         return 0;
     }
-    *res = PyLong_AsLong(value);
+    *res = to_int(value);
     return 1;
 }
 
@@ -435,8 +446,8 @@ static PyObject * contiguous(PyObject * data) {
 static IntPair to_int_pair(PyObject * obj, int x, int y) {
     IntPair res;
     if (obj != Py_None) {
-        res.x = PyLong_AsLong(PySequence_GetItem(obj, 0));
-        res.y = PyLong_AsLong(PySequence_GetItem(obj, 1));
+        res.x = to_int(PySequence_GetItem(obj, 0));
+        res.y = to_int(PySequence_GetItem(obj, 1));
     } else {
         res.x = x;
         res.y = y;
@@ -447,10 +458,10 @@ static IntPair to_int_pair(PyObject * obj, int x, int y) {
 static Viewport to_viewport(PyObject * obj, int x, int y, int width, int height) {
     Viewport res;
     if (obj != Py_None) {
-        res.x = PyLong_AsLong(PySequence_GetItem(obj, 0));
-        res.y = PyLong_AsLong(PySequence_GetItem(obj, 1));
-        res.width = PyLong_AsLong(PySequence_GetItem(obj, 2));
-        res.height = PyLong_AsLong(PySequence_GetItem(obj, 3));
+        res.x = to_int(PySequence_GetItem(obj, 0));
+        res.y = to_int(PySequence_GetItem(obj, 1));
+        res.width = to_int(PySequence_GetItem(obj, 2));
+        res.height = to_int(PySequence_GetItem(obj, 3));
     } else {
         res.x = x;
         res.y = y;
@@ -651,7 +662,7 @@ typedef struct GLObject {
 
 typedef struct DescriptorSetBuffers {
     int buffer_count;
-    unsigned buffers[MAX_UNIFORM_BUFFER_BINDINGS];
+    int buffers[MAX_UNIFORM_BUFFER_BINDINGS];
     GLsizeiptr buffer_offsets[MAX_UNIFORM_BUFFER_BINDINGS];
     GLsizeiptr buffer_sizes[MAX_UNIFORM_BUFFER_BINDINGS];
     PyObject * buffer_refs[MAX_UNIFORM_BUFFER_BINDINGS];
@@ -659,9 +670,9 @@ typedef struct DescriptorSetBuffers {
 
 typedef struct DescriptorSetSamplers {
     int sampler_count;
-    unsigned samplers[MAX_SAMPLER_BINDINGS];
-    unsigned textures[MAX_SAMPLER_BINDINGS];
-    unsigned targets[MAX_SAMPLER_BINDINGS];
+    int samplers[MAX_SAMPLER_BINDINGS];
+    int textures[MAX_SAMPLER_BINDINGS];
+    int targets[MAX_SAMPLER_BINDINGS];
     PyObject * sampler_refs[MAX_SAMPLER_BINDINGS];
     PyObject * texture_refs[MAX_SAMPLER_BINDINGS];
 } DescriptorSetSamplers;
@@ -829,7 +840,7 @@ static void bind_global_settings(Context * self, GlobalSettings * settings) {
     if (settings->depth_enabled) {
         gl->Enable(GL_DEPTH_TEST);
         gl->DepthFunc(settings->depth_func);
-        gl->DepthMask(settings->depth_write);
+        gl->DepthMask(!!settings->depth_write);
         self->current_depth_mask = settings->depth_write;
     } else {
         gl->Disable(GL_DEPTH_TEST);
@@ -919,7 +930,7 @@ static GLObject * build_framebuffer(Context * self, PyObject * attachments) {
     const GLMethods * const gl = &self->gl;
 
     int framebuffer = 0;
-    gl->GenFramebuffers(1, (unsigned *)&framebuffer);
+    gl->GenFramebuffers(1, &framebuffer);
     bind_framebuffer(self, framebuffer);
     int color_attachment_count = (int)PyTuple_Size(color_attachments);
     for (int i = 0; i < color_attachment_count; ++i) {
@@ -950,7 +961,7 @@ static GLObject * build_framebuffer(Context * self, PyObject * attachments) {
         }
     }
 
-    unsigned int draw_buffers[MAX_ATTACHMENTS];
+    int draw_buffers[MAX_ATTACHMENTS];
     for (int i = 0; i < color_attachment_count; ++i) {
         draw_buffers[i] = GL_COLOR_ATTACHMENT0 + i;
     }
@@ -997,25 +1008,26 @@ static GLObject * build_vertex_array(Context * self, PyObject * bindings) {
     PyObject * index_buffer = seq[0];
 
     int vertex_array = 0;
-    gl->GenVertexArrays(1, (unsigned *)&vertex_array);
+    gl->GenVertexArrays(1, &vertex_array);
     bind_vertex_array(self, vertex_array);
 
     for (int i = 1; i < length; i += 6) {
         Buffer * buffer = (Buffer *)seq[i + 0];
-        int location = PyLong_AsLong(seq[i + 1]);
-        void * offset = PyLong_AsVoidPtr(seq[i + 2]);
-        int stride = PyLong_AsLong(seq[i + 3]);
-        int divisor = PyLong_AsLong(seq[i + 4]);
+        int location = to_int(seq[i + 1]);
+        int offset = to_int(seq[i + 2]);
+        int stride = to_int(seq[i + 3]);
+        int divisor = to_int(seq[i + 4]);
         VertexFormat fmt;
         if (!get_vertex_format(self->module_state->helper, seq[i + 5], &fmt)) {
             PyErr_Format(PyExc_ValueError, "invalid vertex format");
             return NULL;
         }
+        void * base = NULL;
         gl->BindBuffer(GL_ARRAY_BUFFER, buffer->buffer);
         if (fmt.integer) {
-            gl->VertexAttribIPointer(location, fmt.size, fmt.type, stride, offset);
+            gl->VertexAttribIPointer(location, fmt.size, fmt.type, stride, base + offset);
         } else {
-            gl->VertexAttribPointer(location, fmt.size, fmt.type, fmt.normalize, stride, offset);
+            gl->VertexAttribPointer(location, fmt.size, fmt.type, !!fmt.normalize, stride, base + offset);
         }
         gl->VertexAttribDivisor(location, divisor);
         gl->EnableVertexAttribArray(location);
@@ -1048,24 +1060,24 @@ static GLObject * build_sampler(Context * self, PyObject * params) {
     PyObject ** seq = PySequence_Fast_ITEMS(params);
 
     int sampler = 0;
-    gl->GenSamplers(1, (unsigned *)&sampler);
-    gl->SamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, PyLong_AsLong(seq[0]));
-    gl->SamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, PyLong_AsLong(seq[1]));
-    gl->SamplerParameterf(sampler, GL_TEXTURE_MIN_LOD, (float)PyFloat_AsDouble(seq[2]));
-    gl->SamplerParameterf(sampler, GL_TEXTURE_MAX_LOD, (float)PyFloat_AsDouble(seq[3]));
+    gl->GenSamplers(1, &sampler);
+    gl->SamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, to_int(seq[0]));
+    gl->SamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, to_int(seq[1]));
+    gl->SamplerParameterf(sampler, GL_TEXTURE_MIN_LOD, to_float(seq[2]));
+    gl->SamplerParameterf(sampler, GL_TEXTURE_MAX_LOD, to_float(seq[3]));
 
-    float lod_bias = (float)PyFloat_AsDouble(seq[4]);
+    float lod_bias = to_float(seq[4]);
     if (lod_bias != 0.0f) {
         gl->SamplerParameterf(sampler, GL_TEXTURE_LOD_BIAS, lod_bias);
     }
 
-    gl->SamplerParameteri(sampler, GL_TEXTURE_WRAP_S, PyLong_AsLong(seq[5]));
-    gl->SamplerParameteri(sampler, GL_TEXTURE_WRAP_T, PyLong_AsLong(seq[6]));
-    gl->SamplerParameteri(sampler, GL_TEXTURE_WRAP_R, PyLong_AsLong(seq[7]));
-    gl->SamplerParameteri(sampler, GL_TEXTURE_COMPARE_MODE, PyLong_AsLong(seq[8]));
-    gl->SamplerParameteri(sampler, GL_TEXTURE_COMPARE_FUNC, PyLong_AsLong(seq[9]));
+    gl->SamplerParameteri(sampler, GL_TEXTURE_WRAP_S, to_int(seq[5]));
+    gl->SamplerParameteri(sampler, GL_TEXTURE_WRAP_T, to_int(seq[6]));
+    gl->SamplerParameteri(sampler, GL_TEXTURE_WRAP_R, to_int(seq[7]));
+    gl->SamplerParameteri(sampler, GL_TEXTURE_COMPARE_MODE, to_int(seq[8]));
+    gl->SamplerParameteri(sampler, GL_TEXTURE_COMPARE_FUNC, to_int(seq[9]));
 
-    float max_anisotropy = (float)PyFloat_AsDouble(seq[10]);
+    float max_anisotropy = to_float(seq[10]);
     if (max_anisotropy != 1.0f) {
         gl->SamplerParameterf(sampler, GL_TEXTURE_MAX_ANISOTROPY, max_anisotropy);
     }
@@ -1087,10 +1099,10 @@ static DescriptorSetBuffers build_descriptor_set_buffers(Context * self, PyObjec
     PyObject ** seq = PySequence_Fast_ITEMS(bindings);
 
     for (int i = 0; i < length; i += 4) {
-        int binding = PyLong_AsLong(seq[i + 0]);
+        int binding = to_int(seq[i + 0]);
         Buffer * buffer = (Buffer *)seq[i + 1];
-        int offset = PyLong_AsLong(seq[i + 2]);
-        int size = PyLong_AsLong(seq[i + 3]);
+        int offset = to_int(seq[i + 2]);
+        int size = to_int(seq[i + 3]);
         res.buffers[binding] = buffer->buffer;
         res.buffer_offsets[binding] = offset;
         res.buffer_sizes[binding] = size;
@@ -1109,7 +1121,7 @@ static DescriptorSetSamplers build_descriptor_set_samplers(Context * self, PyObj
     PyObject ** seq = PySequence_Fast_ITEMS(bindings);
 
     for (int i = 0; i < length; i += 3) {
-        int binding = PyLong_AsLong(seq[i + 0]);
+        int binding = to_int(seq[i + 0]);
         Image * image = (Image *)seq[i + 1];
         GLObject * sampler = build_sampler(self, seq[i + 2]);
         res.samplers[binding] = sampler->obj;
@@ -1154,39 +1166,39 @@ static GlobalSettings * build_global_settings(Context * self, PyObject * setting
     res->uses = 1;
 
     int it = 0;
-    res->attachments = PyLong_AsLong(seq[it++]);
-    res->cull_face = PyLong_AsLong(seq[it++]);
+    res->attachments = to_int(seq[it++]);
+    res->cull_face = to_int(seq[it++]);
     res->depth_enabled = PyObject_IsTrue(seq[it++]);
     if (res->depth_enabled) {
-        res->depth_func = PyLong_AsLong(seq[it++]);
+        res->depth_func = to_int(seq[it++]);
         res->depth_write = PyObject_IsTrue(seq[it++]);
     }
     res->stencil_enabled = PyObject_IsTrue(seq[it++]);
     if (res->stencil_enabled) {
-        res->stencil_front.fail_op = PyLong_AsLong(seq[it++]);
-        res->stencil_front.pass_op = PyLong_AsLong(seq[it++]);
-        res->stencil_front.depth_fail_op = PyLong_AsLong(seq[it++]);
-        res->stencil_front.compare_op = PyLong_AsLong(seq[it++]);
-        res->stencil_front.compare_mask = PyLong_AsLong(seq[it++]);
-        res->stencil_front.write_mask = PyLong_AsLong(seq[it++]);
-        res->stencil_front.reference = PyLong_AsLong(seq[it++]);
-        res->stencil_back.fail_op = PyLong_AsLong(seq[it++]);
-        res->stencil_back.pass_op = PyLong_AsLong(seq[it++]);
-        res->stencil_back.depth_fail_op = PyLong_AsLong(seq[it++]);
-        res->stencil_back.compare_op = PyLong_AsLong(seq[it++]);
-        res->stencil_back.compare_mask = PyLong_AsLong(seq[it++]);
-        res->stencil_back.write_mask = PyLong_AsLong(seq[it++]);
-        res->stencil_back.reference = PyLong_AsLong(seq[it++]);
+        res->stencil_front.fail_op = to_int(seq[it++]);
+        res->stencil_front.pass_op = to_int(seq[it++]);
+        res->stencil_front.depth_fail_op = to_int(seq[it++]);
+        res->stencil_front.compare_op = to_int(seq[it++]);
+        res->stencil_front.compare_mask = to_int(seq[it++]);
+        res->stencil_front.write_mask = to_int(seq[it++]);
+        res->stencil_front.reference = to_int(seq[it++]);
+        res->stencil_back.fail_op = to_int(seq[it++]);
+        res->stencil_back.pass_op = to_int(seq[it++]);
+        res->stencil_back.depth_fail_op = to_int(seq[it++]);
+        res->stencil_back.compare_op = to_int(seq[it++]);
+        res->stencil_back.compare_mask = to_int(seq[it++]);
+        res->stencil_back.write_mask = to_int(seq[it++]);
+        res->stencil_back.reference = to_int(seq[it++]);
     }
-    res->blend_enabled = PyLong_AsLong(seq[it++]);
+    res->blend_enabled = to_int(seq[it++]);
     if (res->blend_enabled) {
-        res->blend.enable = PyLong_AsLong(seq[it++]);
-        res->blend.op_color = PyLong_AsLong(seq[it++]);
-        res->blend.op_alpha = PyLong_AsLong(seq[it++]);
-        res->blend.src_color = PyLong_AsLong(seq[it++]);
-        res->blend.dst_color = PyLong_AsLong(seq[it++]);
-        res->blend.src_alpha = PyLong_AsLong(seq[it++]);
-        res->blend.dst_alpha = PyLong_AsLong(seq[it++]);
+        res->blend.enable = to_int(seq[it++]);
+        res->blend.op_color = to_int(seq[it++]);
+        res->blend.op_alpha = to_int(seq[it++]);
+        res->blend.src_color = to_int(seq[it++]);
+        res->blend.dst_color = to_int(seq[it++]);
+        res->blend.src_alpha = to_int(seq[it++]);
+        res->blend.dst_alpha = to_int(seq[it++]);
     }
 
     PyDict_SetItem(self->global_settings_cache, settings, (PyObject *)res);
@@ -1205,7 +1217,7 @@ static GLObject * compile_shader(Context * self, PyObject * pair) {
 
     PyObject * code = PyTuple_GetItem(pair, 0);
     const char * src = PyBytes_AsString(code);
-    int type = PyLong_AsLong(PyTuple_GetItem(pair, 1));
+    int type = to_int(PyTuple_GetItem(pair, 1));
     int shader = gl->CreateShader(type);
     gl->ShaderSource(shader, 1, &src, NULL);
     gl->CompileShader(shader);
@@ -1252,7 +1264,7 @@ static PyObject * program_interface(Context * self, int program) {
         int type = 0;
         int length = 0;
         char name[256] = {0};
-        gl->GetActiveAttrib(program, i, 256, &length, &size, (unsigned *)&type, name);
+        gl->GetActiveAttrib(program, i, 256, &length, &size, &type, name);
         int location = gl->GetAttribLocation(program, name);
         PyList_SET_ITEM(attributes, i, Py_BuildValue("{sssisisi}", "name", name, "location", location, "gltype", type, "size", size));
     }
@@ -1262,7 +1274,7 @@ static PyObject * program_interface(Context * self, int program) {
         int type = 0;
         int length = 0;
         char name[256] = {0};
-        gl->GetActiveUniform(program, i, 256, &length, &size, (unsigned *)&type, name);
+        gl->GetActiveUniform(program, i, 256, &length, &size, &type, name);
         int location = gl->GetUniformLocation(program, name);
         PyList_SET_ITEM(uniforms, i, Py_BuildValue("{sssisisi}", "name", name, "location", location, "gltype", type, "size", size));
     }
@@ -1349,8 +1361,8 @@ static ImageFace * build_image_face(Image * self, PyObject * key) {
         return cache;
     }
 
-    int layer = PyLong_AsLong(PyTuple_GetItem(key, 0));
-    int level = PyLong_AsLong(PyTuple_GetItem(key, 1));
+    int layer = to_int(PyTuple_GetItem(key, 0));
+    int level = to_int(PyTuple_GetItem(key, 1));
 
     int width = least_one(self->width >> level);
     int height = least_one(self->height >> level);
@@ -1397,7 +1409,7 @@ static void clear_bound_image(Image * self) {
     } else if (self->fmt.clear_type == 'i') {
         gl->ClearBufferiv(self->fmt.buffer, 0, self->clear_value.clear_ints);
     } else if (self->fmt.clear_type == 'u') {
-        gl->ClearBufferuiv(self->fmt.buffer, 0, self->clear_value.clear_uints);
+        gl->ClearBufferuiv(self->fmt.buffer, 0, (int *)self->clear_value.clear_uints);
     } else if (self->fmt.clear_type == 'x') {
         gl->ClearBufferfi(self->fmt.buffer, 0, self->clear_value.clear_floats[0], self->clear_value.clear_ints[1]);
     }
@@ -1713,7 +1725,7 @@ static Buffer * Context_meth_buffer(Context * self, PyObject * args, PyObject * 
 
     int size = 0;
     if (size_arg != Py_None) {
-        size = PyLong_AsLong(size_arg);
+        size = to_int(size_arg);
         if (size <= 0) {
             PyErr_Format(PyExc_ValueError, "invalid size");
             return NULL;
@@ -1736,7 +1748,7 @@ static Buffer * Context_meth_buffer(Context * self, PyObject * args, PyObject * 
     if (external) {
         buffer = external;
     } else {
-        gl->GenBuffers(1, (unsigned *)&buffer);
+        gl->GenBuffers(1, &buffer);
         gl->BindBuffer(GL_ARRAY_BUFFER, buffer);
         gl->BufferData(GL_ARRAY_BUFFER, size, NULL, dynamic ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
     }
@@ -1865,11 +1877,11 @@ static Image * Context_meth_image(Context * self, PyObject * args, PyObject * kw
     if (external) {
         image = external;
     } else if (renderbuffer) {
-        gl->GenRenderbuffers(1, (unsigned *)&image);
+        gl->GenRenderbuffers(1, &image);
         gl->BindRenderbuffer(GL_RENDERBUFFER, image);
         gl->RenderbufferStorageMultisample(GL_RENDERBUFFER, samples > 1 ? samples : 0, fmt.internal_format, width, height);
     } else {
-        gl->GenTextures(1, (unsigned *)&image);
+        gl->GenTextures(1, &image);
         gl->ActiveTexture(self->default_texture_unit);
         gl->BindTexture(target, image);
         gl->TexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -2117,7 +2129,7 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
     for (int i = 0; i < layout_count; ++i) {
         PyObject * obj = PyList_GetItem(layout, i);
         PyObject * name = PyDict_GetItemString(obj, "name");
-        int binding = PyLong_AsLong(PyDict_GetItemString(obj, "binding"));
+        int binding = to_int(PyDict_GetItemString(obj, "binding"));
         int location = gl->GetUniformLocation(program->obj, PyUnicode_AsUTF8(name));
         if (location >= 0) {
             gl->Uniform1i(location, binding);
@@ -2129,8 +2141,8 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
 
     if (attachments != Py_None && viewport == Py_None) {
         PyObject * size = PyTuple_GetItem(attachments, 0);
-        viewport_value.width = PyLong_AsLong(PyTuple_GetItem(size, 0));
-        viewport_value.height = PyLong_AsLong(PyTuple_GetItem(size, 1));
+        viewport_value.width = to_int(PyTuple_GetItem(size, 0));
+        viewport_value.height = to_int(PyTuple_GetItem(size, 1));
     }
 
     GLObject * framebuffer = build_framebuffer(self, attachments);
@@ -2246,7 +2258,7 @@ static PyObject * Context_meth_new_frame(Context * self, PyObject * args, PyObje
 
     if (frame_time) {
         if (!self->frame_time_query) {
-            gl->GenQueries(1, (unsigned *)&self->frame_time_query);
+            gl->GenQueries(1, &self->frame_time_query);
         }
         gl->BeginQuery(GL_TIME_ELAPSED, self->frame_time_query);
         self->frame_time_query_running = 1;
@@ -2300,7 +2312,7 @@ static PyObject * Context_meth_end_frame(Context * self, PyObject * args, PyObje
 
     if (self->frame_time_query_running) {
         gl->EndQuery(GL_TIME_ELAPSED);
-        gl->GetQueryObjectuiv(self->frame_time_query, GL_QUERY_RESULT, (unsigned *)&self->frame_time);
+        gl->GetQueryObjectuiv(self->frame_time_query, GL_QUERY_RESULT, &self->frame_time);
         self->frame_time_query_running = 0;
     } else {
         self->frame_time = 0;
@@ -2312,7 +2324,7 @@ static PyObject * Context_meth_end_frame(Context * self, PyObject * args, PyObje
 
     if (sync) {
         void * fence = gl->FenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-        gl->ClientWaitSync(fence, GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED);
+        gl->ClientWaitSync(fence, GL_SYNC_FLUSH_COMMANDS_BIT, -1);
         gl->DeleteSync(fence);
     }
 
@@ -2337,7 +2349,7 @@ static void release_descriptor_set(Context * self, DescriptorSet * set) {
                 sampler->uses -= 1;
                 if (!sampler->uses) {
                     remove_dict_value(self->sampler_cache, (PyObject *)sampler);
-                    gl->DeleteSamplers(1, (unsigned int *)&sampler->obj);
+                    gl->DeleteSamplers(1, &sampler->obj);
                 }
             }
         }
@@ -2374,7 +2386,7 @@ static void release_framebuffer(Context * self, GLObject * framebuffer) {
             self->current_framebuffer = 0;
         }
         if (framebuffer->obj) {
-            gl->DeleteFramebuffers(1, (unsigned int *)&framebuffer->obj);
+            gl->DeleteFramebuffers(1, &framebuffer->obj);
         }
     }
 }
@@ -2399,7 +2411,7 @@ static void release_vertex_array(Context * self, GLObject * vertex_array) {
         if (self->current_vertex_array == vertex_array->obj) {
             self->current_vertex_array = 0;
         }
-        gl->DeleteVertexArrays(1, (unsigned int *)&vertex_array->obj);
+        gl->DeleteVertexArrays(1, &vertex_array->obj);
     }
 }
 
@@ -2409,7 +2421,7 @@ static PyObject * Context_meth_release(Context * self, PyObject * arg) {
         Buffer * buffer = (Buffer *)arg;
         buffer->gc_prev->gc_next = buffer->gc_next;
         buffer->gc_next->gc_prev = buffer->gc_prev;
-        gl->DeleteBuffers(1, (unsigned int *)&buffer->buffer);
+        gl->DeleteBuffers(1, &buffer->buffer);
         Py_DECREF(buffer);
     } else if (Py_TYPE(arg) == self->module_state->Image_type) {
         Image * image = (Image *)arg;
@@ -2426,9 +2438,9 @@ static PyObject * Context_meth_release(Context * self, PyObject * arg) {
             PyDict_Clear(image->faces);
         }
         if (image->renderbuffer) {
-            gl->DeleteRenderbuffers(1, (unsigned int *)&image->image);
+            gl->DeleteRenderbuffers(1, &image->image);
         } else {
-            gl->DeleteTextures(1, (unsigned int *)&image->image);
+            gl->DeleteTextures(1, &image->image);
         }
         Py_DECREF(image);
     } else if (Py_TYPE(arg) == self->module_state->Pipeline_type) {
@@ -2494,7 +2506,7 @@ static int Context_set_screen(Context * self, PyObject * value, void * closure) 
         return -1;
     }
 
-    self->default_framebuffer->obj = PyLong_AsLong(value);
+    self->default_framebuffer->obj = to_int(value);
     return 0;
 }
 
@@ -2566,11 +2578,11 @@ static PyObject * Buffer_meth_map(Buffer * self, PyObject * args, PyObject * kwa
     }
 
     if (size_arg != Py_None) {
-        size = PyLong_AsLong(size_arg);
+        size = to_int(size_arg);
     }
 
     if (offset_arg != Py_None) {
-        offset = PyLong_AsLong(offset_arg);
+        offset = to_int(offset_arg);
     }
 
     if (self->mapped) {
@@ -2644,7 +2656,7 @@ static PyObject * Image_meth_write(Image * self, PyObject * args, PyObject * kwa
 
     int layer = 0;
     if (layer_arg != Py_None) {
-        layer = PyLong_AsLong(layer_arg);
+        layer = to_int(layer_arg);
     }
 
     IntPair size = to_int_pair(size_arg, least_one(self->width >> level), least_one(self->height >> level));
@@ -2830,7 +2842,7 @@ static ImageFace * Image_meth_face(Image * self, PyObject * args, PyObject * kwa
 
 static PyObject * Image_get_clear_value(Image * self, void * closure) {
     if (self->fmt.clear_type == 'x') {
-        return Py_BuildValue("fI", self->clear_value.clear_floats[0], self->clear_value.clear_uints[1]);
+        return Py_BuildValue("dI", (double)self->clear_value.clear_floats[0], self->clear_value.clear_uints[1]);
     }
     if (self->fmt.components == 1) {
         if (self->fmt.clear_type == 'f') {
@@ -2865,11 +2877,11 @@ static int Image_set_clear_value(Image * self, PyObject * value, void * closure)
             return -1;
         }
         if (self->fmt.clear_type == 'f') {
-            self->clear_value.clear_floats[0] = (float)PyFloat_AsDouble(value);
+            self->clear_value.clear_floats[0] = to_float(value);
         } else if (self->fmt.clear_type == 'i') {
-            self->clear_value.clear_ints[0] = PyLong_AsLong(value);
+            self->clear_value.clear_ints[0] = to_int(value);
         } else if (self->fmt.clear_type == 'u') {
-            self->clear_value.clear_uints[0] = PyLong_AsUnsignedLong(value);
+            self->clear_value.clear_uints[0] = to_uint(value);
         }
         return 0;
     }
@@ -2891,19 +2903,19 @@ static int Image_set_clear_value(Image * self, PyObject * value, void * closure)
 
     if (self->fmt.clear_type == 'f') {
         for (int i = 0; i < self->fmt.components; ++i) {
-            self->clear_value.clear_floats[i] = (float)PyFloat_AsDouble(seq[i]);
+            self->clear_value.clear_floats[i] = to_float(seq[i]);
         }
     } else if (self->fmt.clear_type == 'i') {
         for (int i = 0; i < self->fmt.components; ++i) {
-            self->clear_value.clear_ints[i] = PyLong_AsLong(seq[i]);
+            self->clear_value.clear_ints[i] = to_int(seq[i]);
         }
     } else if (self->fmt.clear_type == 'u') {
         for (int i = 0; i < self->fmt.components; ++i) {
-            self->clear_value.clear_uints[i] = PyLong_AsUnsignedLong(seq[i]);
+            self->clear_value.clear_uints[i] = to_uint(seq[i]);
         }
     } else if (self->fmt.clear_type == 'x') {
-        self->clear_value.clear_floats[0] = (float)PyFloat_AsDouble(seq[0]);
-        self->clear_value.clear_ints[1] = PyLong_AsLong(seq[1]);
+        self->clear_value.clear_floats[0] = to_float(seq[0]);
+        self->clear_value.clear_ints[1] = to_int(seq[1]);
     }
     if (PyErr_Occurred()) {
         Py_DECREF(values);
