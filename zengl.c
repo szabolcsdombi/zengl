@@ -379,7 +379,7 @@ static void remove_dict_value(PyObject * dict, PyObject * obj) {
     }
 }
 
-static void * new_ref(void * obj) {
+static PyObject * new_ref(void * obj) {
     Py_INCREF(obj);
     return obj;
 }
@@ -1574,8 +1574,8 @@ static Context * meth_context(PyObject * self, PyObject * args, PyObject * kwarg
     res->shader_cache = PyDict_New();
     res->includes = PyDict_New();
     res->default_framebuffer = default_framebuffer;
-    res->before_frame_callback = (PyObject *)new_ref(Py_None);
-    res->after_frame_callback = (PyObject *)new_ref(Py_None);
+    res->before_frame_callback = new_ref(Py_None);
+    res->after_frame_callback = new_ref(Py_None);
     res->limits_dict = NULL;
     res->info_dict = NULL;
     res->current_descriptor_set = NULL;
@@ -1882,7 +1882,7 @@ static Image * Context_meth_image(Context * self, PyObject * args, PyObject * kw
 
     res->ctx = self;
     res->size = Py_BuildValue("(ii)", width, height);
-    res->format = (PyObject *)new_ref(format);
+    res->format = new_ref(format);
     res->faces = PyDict_New();
     res->fmt = fmt;
     res->clear_value.clear_ints[0] = 0;
@@ -3380,14 +3380,15 @@ static int module_exec(PyObject * self) {
     state->GlobalSettings_type = (PyTypeObject *)PyType_FromSpec(&GlobalSettings_spec);
     state->GLObject_type = (PyTypeObject *)PyType_FromSpec(&GLObject_spec);
 
-    PyModule_AddObject(self, "Context", (PyObject *)new_ref(state->Context_type));
-    PyModule_AddObject(self, "Buffer", (PyObject *)new_ref(state->Buffer_type));
-    PyModule_AddObject(self, "Image", (PyObject *)new_ref(state->Image_type));
-    PyModule_AddObject(self, "Pipeline", (PyObject *)new_ref(state->Pipeline_type));
+    PyModule_AddObject(self, "Context", new_ref(state->Context_type));
+    PyModule_AddObject(self, "Buffer", new_ref(state->Buffer_type));
+    PyModule_AddObject(self, "Image", new_ref(state->Image_type));
+    PyModule_AddObject(self, "ImageFace", new_ref(state->ImageFace_type));
+    PyModule_AddObject(self, "Pipeline", new_ref(state->Pipeline_type));
 
-    PyModule_AddObject(self, "loader", (PyObject *)new_ref(PyObject_GetAttrString(state->helper, "loader")));
-    PyModule_AddObject(self, "calcsize", (PyObject *)new_ref(PyObject_GetAttrString(state->helper, "calcsize")));
-    PyModule_AddObject(self, "bind", (PyObject *)new_ref(PyObject_GetAttrString(state->helper, "bind")));
+    PyModule_AddObject(self, "loader", PyObject_GetAttrString(state->helper, "loader"));
+    PyModule_AddObject(self, "calcsize", PyObject_GetAttrString(state->helper, "calcsize"));
+    PyModule_AddObject(self, "bind", PyObject_GetAttrString(state->helper, "bind"));
 
     PyModule_AddObject(self, "__version__", PyUnicode_FromString("1.13.0"));
 
