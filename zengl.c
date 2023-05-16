@@ -2083,7 +2083,7 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
     PyObject * validate = PyObject_CallMethod(
         self->module_state->helper,
         "validate",
-        "OOOOO",
+        "(OOOOO)",
         program->extra,
         layout,
         resources,
@@ -2096,11 +2096,17 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
     }
 
     const GLMethods * const gl = &self->gl;
-    int layout_count = layout != Py_None ? (int)PyList_Size(layout) : 0; // TODO: check
+
+    PyObject * layout_bindings = PyObject_CallMethod(self->module_state->helper, "layout_bindings", "(O)", layout);
+    if (!layout_bindings) {
+        return NULL;
+    }
+
+    int layout_count = (int)PyList_Size(layout_bindings);
     for (int i = 0; i < layout_count; ++i) {
-        PyObject * obj = PyList_GetItem(layout, i);
-        PyObject * name = PyDict_GetItemString(obj, "name");
-        int binding = to_int(PyDict_GetItemString(obj, "binding"));
+        PyObject * obj = PyList_GetItem(layout_bindings, i);
+        PyObject * name = PyTuple_GetItem(obj, 0);
+        int binding = to_int(PyTuple_GetItem(obj, 1));
         int location = gl->GetUniformLocation(program->obj, PyUnicode_AsUTF8(name));
         if (location >= 0) {
             gl->Uniform1i(location, binding);
@@ -2109,6 +2115,8 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
             gl->UniformBlockBinding(program->obj, index, binding);
         }
     }
+
+    Py_DECREF(layout_bindings);
 
     if (attachments != Py_None && viewport == Py_None) {
         PyObject * size = PyTuple_GetItem(attachments, 0);

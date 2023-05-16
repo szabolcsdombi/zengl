@@ -526,6 +526,17 @@ def uniforms(interface, selection, uniform_data):
     return mapping, memoryview(layout), data
 
 
+def layout_bindings(layout):
+    res = []
+    if not layout:
+        return res
+    for obj in layout:
+        name = str(obj['name'])
+        binding = int(obj['binding'])
+        res.append((name, binding))
+    return res
+
+
 def validate(interface, layout, resources, vertex_buffers, limits):
     attributes, uniforms, uniform_buffers = interface
     attributes = [
