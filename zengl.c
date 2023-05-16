@@ -6,18 +6,12 @@
 #define MAX_SAMPLER_BINDINGS 64
 
 #ifdef _WIN32
-#define GLAPI __stdcall
+#define GL __stdcall *
 #else
-#define GLAPI
+#define GL *
 #endif
 
-#ifdef _WIN64
-typedef signed long long int GLintptr;
-typedef signed long long int GLsizeiptr;
-#else
-typedef signed long int GLintptr;
-typedef signed long int GLsizeiptr;
-#endif
+typedef Py_ssize_t intptr;
 
 typedef int GLenum;
 typedef float GLfloat;
@@ -107,126 +101,126 @@ typedef void * GLsync;
 #define GL_TEXTURE_MAX_ANISOTROPY 0x84FE
 
 typedef struct GLMethods {
-    void (GLAPI * CullFace)(GLenum mode);
-    void (GLAPI * Clear)(GLbitfield mask);
-    void (GLAPI * TexParameteri)(GLenum target, GLenum pname, GLint param);
-    void (GLAPI * TexImage2D)(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels);
-    void (GLAPI * DepthMask)(GLboolean flag);
-    void (GLAPI * Disable)(GLenum cap);
-    void (GLAPI * Enable)(GLenum cap);
-    void (GLAPI * Flush)(void);
-    void (GLAPI * DepthFunc)(GLenum func);
-    void (GLAPI * ReadBuffer)(GLenum src);
-    void (GLAPI * ReadPixels)(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, void *pixels);
-    GLenum (GLAPI * GetError)(void);
-    void (GLAPI * GetIntegerv)(GLenum pname, GLint *data);
-    const GLubyte *(GLAPI * GetString)(GLenum name);
-    void (GLAPI * Viewport)(GLint x, GLint y, GLsizei width, GLsizei height);
-    void (GLAPI * TexSubImage2D)(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels);
-    void (GLAPI * BindTexture)(GLenum target, GLuint texture);
-    void (GLAPI * DeleteTextures)(GLsizei n, const GLuint *textures);
-    void (GLAPI * GenTextures)(GLsizei n, GLuint *textures);
-    void (GLAPI * TexImage3D)(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void *pixels);
-    void (GLAPI * TexSubImage3D)(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels);
-    void (GLAPI * ActiveTexture)(GLenum texture);
-    void (GLAPI * BlendFuncSeparate)(GLenum sfactorRGB, GLenum dfactorRGB, GLenum sfactorAlpha, GLenum dfactorAlpha);
-    void (GLAPI * GenQueries)(GLsizei n, GLuint *ids);
-    void (GLAPI * BeginQuery)(GLenum target, GLuint id);
-    void (GLAPI * EndQuery)(GLenum target);
-    void (GLAPI * GetQueryObjectuiv)(GLuint id, GLenum pname, GLuint *params);
-    void (GLAPI * BindBuffer)(GLenum target, GLuint buffer);
-    void (GLAPI * DeleteBuffers)(GLsizei n, const GLuint *buffers);
-    void (GLAPI * GenBuffers)(GLsizei n, GLuint *buffers);
-    void (GLAPI * BufferData)(GLenum target, GLsizeiptr size, const void *data, GLenum usage);
-    void (GLAPI * BufferSubData)(GLenum target, GLintptr offset, GLsizeiptr size, const void *data);
-    GLboolean (GLAPI * UnmapBuffer)(GLenum target);
-    void (GLAPI * BlendEquationSeparate)(GLenum modeRGB, GLenum modeAlpha);
-    void (GLAPI * DrawBuffers)(GLsizei n, const GLenum *bufs);
-    void (GLAPI * StencilOpSeparate)(GLenum face, GLenum sfail, GLenum dpfail, GLenum dppass);
-    void (GLAPI * StencilFuncSeparate)(GLenum face, GLenum func, GLint ref, GLuint mask);
-    void (GLAPI * StencilMaskSeparate)(GLenum face, GLuint mask);
-    void (GLAPI * AttachShader)(GLuint program, GLuint shader);
-    void (GLAPI * CompileShader)(GLuint shader);
-    GLuint (GLAPI * CreateProgram)(void);
-    GLuint (GLAPI * CreateShader)(GLenum type);
-    void (GLAPI * DeleteProgram)(GLuint program);
-    void (GLAPI * DeleteShader)(GLuint shader);
-    void (GLAPI * EnableVertexAttribArray)(GLuint index);
-    void (GLAPI * GetActiveAttrib)(GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLint *size, GLenum *type, GLchar *name);
-    void (GLAPI * GetActiveUniform)(GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLint *size, GLenum *type, GLchar *name);
-    GLint (GLAPI * GetAttribLocation)(GLuint program, const GLchar *name);
-    void (GLAPI * GetProgramiv)(GLuint program, GLenum pname, GLint *params);
-    void (GLAPI * GetProgramInfoLog)(GLuint program, GLsizei bufSize, GLsizei *length, GLchar *infoLog);
-    void (GLAPI * GetShaderiv)(GLuint shader, GLenum pname, GLint *params);
-    void (GLAPI * GetShaderInfoLog)(GLuint shader, GLsizei bufSize, GLsizei *length, GLchar *infoLog);
-    GLint (GLAPI * GetUniformLocation)(GLuint program, const GLchar *name);
-    void (GLAPI * LinkProgram)(GLuint program);
-    void (GLAPI * ShaderSource)(GLuint shader, GLsizei count, const GLchar *const*string, const GLint *length);
-    void (GLAPI * UseProgram)(GLuint program);
-    void (GLAPI * Uniform1i)(GLint location, GLint v0);
-    void (GLAPI * Uniform1fv)(GLint location, GLsizei count, const GLfloat *value);
-    void (GLAPI * Uniform2fv)(GLint location, GLsizei count, const GLfloat *value);
-    void (GLAPI * Uniform3fv)(GLint location, GLsizei count, const GLfloat *value);
-    void (GLAPI * Uniform4fv)(GLint location, GLsizei count, const GLfloat *value);
-    void (GLAPI * Uniform1iv)(GLint location, GLsizei count, const GLint *value);
-    void (GLAPI * Uniform2iv)(GLint location, GLsizei count, const GLint *value);
-    void (GLAPI * Uniform3iv)(GLint location, GLsizei count, const GLint *value);
-    void (GLAPI * Uniform4iv)(GLint location, GLsizei count, const GLint *value);
-    void (GLAPI * UniformMatrix2fv)(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-    void (GLAPI * UniformMatrix3fv)(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-    void (GLAPI * UniformMatrix4fv)(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-    void (GLAPI * VertexAttribPointer)(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer);
-    void (GLAPI * UniformMatrix2x3fv)(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-    void (GLAPI * UniformMatrix3x2fv)(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-    void (GLAPI * UniformMatrix2x4fv)(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-    void (GLAPI * UniformMatrix4x2fv)(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-    void (GLAPI * UniformMatrix3x4fv)(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-    void (GLAPI * UniformMatrix4x3fv)(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-    void (GLAPI * BindBufferRange)(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size);
-    void (GLAPI * VertexAttribIPointer)(GLuint index, GLint size, GLenum type, GLsizei stride, const void *pointer);
-    void (GLAPI * Uniform1uiv)(GLint location, GLsizei count, const GLuint *value);
-    void (GLAPI * Uniform2uiv)(GLint location, GLsizei count, const GLuint *value);
-    void (GLAPI * Uniform3uiv)(GLint location, GLsizei count, const GLuint *value);
-    void (GLAPI * Uniform4uiv)(GLint location, GLsizei count, const GLuint *value);
-    void (GLAPI * ClearBufferiv)(GLenum buffer, GLint drawbuffer, const GLint *value);
-    void (GLAPI * ClearBufferuiv)(GLenum buffer, GLint drawbuffer, const GLuint *value);
-    void (GLAPI * ClearBufferfv)(GLenum buffer, GLint drawbuffer, const GLfloat *value);
-    void (GLAPI * ClearBufferfi)(GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil);
-    void (GLAPI * BindRenderbuffer)(GLenum target, GLuint renderbuffer);
-    void (GLAPI * DeleteRenderbuffers)(GLsizei n, const GLuint *renderbuffers);
-    void (GLAPI * GenRenderbuffers)(GLsizei n, GLuint *renderbuffers);
-    void (GLAPI * BindFramebuffer)(GLenum target, GLuint framebuffer);
-    void (GLAPI * DeleteFramebuffers)(GLsizei n, const GLuint *framebuffers);
-    void (GLAPI * GenFramebuffers)(GLsizei n, GLuint *framebuffers);
-    void (GLAPI * FramebufferTexture2D)(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
-    void (GLAPI * FramebufferRenderbuffer)(GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer);
-    void (GLAPI * GenerateMipmap)(GLenum target);
-    void (GLAPI * BlitFramebuffer)(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
-    void (GLAPI * RenderbufferStorageMultisample)(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height);
-    void (GLAPI * FramebufferTextureLayer)(GLenum target, GLenum attachment, GLuint texture, GLint level, GLint layer);
-    void *(GLAPI * MapBufferRange)(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access);
-    void (GLAPI * BindVertexArray)(GLuint array);
-    void (GLAPI * DeleteVertexArrays)(GLsizei n, const GLuint *arrays);
-    void (GLAPI * GenVertexArrays)(GLsizei n, GLuint *arrays);
-    void (GLAPI * DrawArraysInstanced)(GLenum mode, GLint first, GLsizei count, GLsizei instancecount);
-    void (GLAPI * DrawElementsInstanced)(GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount);
-    GLuint (GLAPI * GetUniformBlockIndex)(GLuint program, const GLchar *uniformBlockName);
-    void (GLAPI * GetActiveUniformBlockiv)(GLuint program, GLuint uniformBlockIndex, GLenum pname, GLint *params);
-    void (GLAPI * GetActiveUniformBlockName)(GLuint program, GLuint uniformBlockIndex, GLsizei bufSize, GLsizei *length, GLchar *uniformBlockName);
-    void (GLAPI * UniformBlockBinding)(GLuint program, GLuint uniformBlockIndex, GLuint uniformBlockBinding);
-    GLsync (GLAPI * FenceSync)(GLenum condition, GLbitfield flags);
-    void (GLAPI * DeleteSync)(GLsync sync);
-    GLenum (GLAPI * ClientWaitSync)(GLsync sync, GLbitfield flags, GLuint64 timeout);
-    void (GLAPI * GenSamplers)(GLsizei count, GLuint *samplers);
-    void (GLAPI * DeleteSamplers)(GLsizei count, const GLuint *samplers);
-    void (GLAPI * BindSampler)(GLuint unit, GLuint sampler);
-    void (GLAPI * SamplerParameteri)(GLuint sampler, GLenum pname, GLint param);
-    void (GLAPI * SamplerParameterf)(GLuint sampler, GLenum pname, GLfloat param);
-    void (GLAPI * VertexAttribDivisor)(GLuint index, GLuint divisor);
+    void (GL CullFace)(int);
+    void (GL Clear)(int);
+    void (GL TexParameteri)(int, int, int);
+    void (GL TexImage2D)(int, int, int, int, int, int, int, int, const void *);
+    void (GL DepthMask)(int);
+    void (GL Disable)(int);
+    void (GL Enable)(int);
+    void (GL Flush)();
+    void (GL DepthFunc)(int);
+    void (GL ReadBuffer)(int);
+    void (GL ReadPixels)(int, int, int, int, int, int, void *);
+    int (GL GetError)();
+    void (GL GetIntegerv)(int, int *);
+    const char * (GL GetString)(int);
+    void (GL Viewport)(int, int, int, int);
+    void (GL TexSubImage2D)(int, int, int, int, int, int, int, int, const void *);
+    void (GL BindTexture)(int, int);
+    void (GL DeleteTextures)(int, const int *);
+    void (GL GenTextures)(int, int *);
+    void (GL TexImage3D)(int, int, int, int, int, int, int, int, int, const void *);
+    void (GL TexSubImage3D)(int, int, int, int, int, int, int, int, int, int, const void *);
+    void (GL ActiveTexture)(int);
+    void (GL BlendFuncSeparate)(int, int, int, int);
+    void (GL GenQueries)(int, int *);
+    void (GL BeginQuery)(int, int);
+    void (GL EndQuery)(int);
+    void (GL GetQueryObjectuiv)(int, int, void *);
+    void (GL BindBuffer)(int, int);
+    void (GL DeleteBuffers)(int, const int *);
+    void (GL GenBuffers)(int, int *);
+    void (GL BufferData)(int, intptr, const void *, int);
+    void (GL BufferSubData)(int, intptr, intptr, const void *);
+    int (GL UnmapBuffer)(int);
+    void (GL BlendEquationSeparate)(int, int);
+    void (GL DrawBuffers)(int, const int *);
+    void (GL StencilOpSeparate)(int, int, int, int);
+    void (GL StencilFuncSeparate)(int, int, int, int);
+    void (GL StencilMaskSeparate)(int, int);
+    void (GL AttachShader)(int, int);
+    void (GL CompileShader)(int);
+    int (GL CreateProgram)();
+    int (GL CreateShader)(int);
+    void (GL DeleteProgram)(int);
+    void (GL DeleteShader)(int);
+    void (GL EnableVertexAttribArray)(int);
+    void (GL GetActiveAttrib)(int, int, int, int *, int *, int *, char *);
+    void (GL GetActiveUniform)(int, int, int, int *, int *, int *, char *);
+    int (GL GetAttribLocation)(int, const char *);
+    void (GL GetProgramiv)(int, int, int *);
+    void (GL GetProgramInfoLog)(int, int, int *, char *);
+    void (GL GetShaderiv)(int, int, int *);
+    void (GL GetShaderInfoLog)(int, int, int *, char *);
+    int (GL GetUniformLocation)(int, const char *);
+    void (GL LinkProgram)(int);
+    void (GL ShaderSource)(int, int, const void *, const int *);
+    void (GL UseProgram)(int);
+    void (GL Uniform1i)(int, int);
+    void (GL Uniform1fv)(int, int, const void *);
+    void (GL Uniform2fv)(int, int, const void *);
+    void (GL Uniform3fv)(int, int, const void *);
+    void (GL Uniform4fv)(int, int, const void *);
+    void (GL Uniform1iv)(int, int, const void *);
+    void (GL Uniform2iv)(int, int, const void *);
+    void (GL Uniform3iv)(int, int, const void *);
+    void (GL Uniform4iv)(int, int, const void *);
+    void (GL UniformMatrix2fv)(int, int, int, const void *);
+    void (GL UniformMatrix3fv)(int, int, int, const void *);
+    void (GL UniformMatrix4fv)(int, int, int, const void *);
+    void (GL VertexAttribPointer)(int, int, int, int, int, intptr);
+    void (GL UniformMatrix2x3fv)(int, int, int, const void *);
+    void (GL UniformMatrix3x2fv)(int, int, int, const void *);
+    void (GL UniformMatrix2x4fv)(int, int, int, const void *);
+    void (GL UniformMatrix4x2fv)(int, int, int, const void *);
+    void (GL UniformMatrix3x4fv)(int, int, int, const void *);
+    void (GL UniformMatrix4x3fv)(int, int, int, const void *);
+    void (GL BindBufferRange)(int, int, int, intptr, intptr);
+    void (GL VertexAttribIPointer)(int, int, int, int, intptr);
+    void (GL Uniform1uiv)(int, int, const void *);
+    void (GL Uniform2uiv)(int, int, const void *);
+    void (GL Uniform3uiv)(int, int, const void *);
+    void (GL Uniform4uiv)(int, int, const void *);
+    void (GL ClearBufferiv)(int, int, const void *);
+    void (GL ClearBufferuiv)(int, int, const void *);
+    void (GL ClearBufferfv)(int, int, const void *);
+    void (GL ClearBufferfi)(int, int, float, int);
+    void (GL BindRenderbuffer)(int, int);
+    void (GL DeleteRenderbuffers)(int, const int *);
+    void (GL GenRenderbuffers)(int, int *);
+    void (GL BindFramebuffer)(int, int);
+    void (GL DeleteFramebuffers)(int, const int *);
+    void (GL GenFramebuffers)(int, int *);
+    void (GL FramebufferTexture2D)(int, int, int, int, int);
+    void (GL FramebufferRenderbuffer)(int, int, int, int);
+    void (GL GenerateMipmap)(int);
+    void (GL BlitFramebuffer)(int, int, int, int, int, int, int, int, int, int);
+    void (GL RenderbufferStorageMultisample)(int, int, int, int, int);
+    void (GL FramebufferTextureLayer)(int, int, int, int, int);
+    void * (GL MapBufferRange)(int, intptr, intptr, int);
+    void (GL BindVertexArray)(int);
+    void (GL DeleteVertexArrays)(int, const int *);
+    void (GL GenVertexArrays)(int, int *);
+    void (GL DrawArraysInstanced)(int, int, int, int);
+    void (GL DrawElementsInstanced)(int, int, int, intptr, int);
+    int (GL GetUniformBlockIndex)(int, const char *);
+    void (GL GetActiveUniformBlockiv)(int, int, int, int *);
+    void (GL GetActiveUniformBlockName)(int, int, int, int *, char *);
+    void (GL UniformBlockBinding)(int, int, int);
+    void * (GL FenceSync)(int, int);
+    void (GL DeleteSync)(void *);
+    int (GL ClientWaitSync)(void *, int, long long);
+    void (GL GenSamplers)(int, int *);
+    void (GL DeleteSamplers)(int, const int *);
+    void (GL BindSampler)(int, int);
+    void (GL SamplerParameteri)(int, int, int);
+    void (GL SamplerParameterf)(int, int, float);
+    void (GL VertexAttribDivisor)(int, int);
 } GLMethods;
 
-typedef void (GLAPI * UniformSetter)(GLint location, GLsizei count, const void * value);
-typedef void (GLAPI * UniformMatrixSetter)(GLint location, GLsizei count, GLboolean transpose, const void * value);
+typedef void (GL UniformSetter)(int, int, const void *);
+typedef void (GL UniformMatrixSetter)(int, int, int, const void *);
 
 static int uniform_setter_offset[] = {
     offsetof(GLMethods, Uniform1iv),
@@ -831,7 +825,7 @@ static void bind_global_settings(Context * self, GlobalSettings * settings) {
     if (settings->depth_enabled) {
         gl->Enable(GL_DEPTH_TEST);
         gl->DepthFunc(settings->depth_func);
-        gl->DepthMask(!!settings->depth_write);
+        gl->DepthMask(settings->depth_write);
         self->current_depth_mask = settings->depth_write;
     } else {
         gl->Disable(GL_DEPTH_TEST);
@@ -1019,9 +1013,9 @@ static GLObject * build_vertex_array(Context * self, PyObject * bindings) {
         }
         gl->BindBuffer(GL_ARRAY_BUFFER, buffer->buffer);
         if (fmt.integer) {
-            gl->VertexAttribIPointer(location, fmt.size, fmt.type, stride, (void *)(long long)offset);
+            gl->VertexAttribIPointer(location, fmt.size, fmt.type, stride, (intptr)offset);
         } else {
-            gl->VertexAttribPointer(location, fmt.size, fmt.type, !!fmt.normalize, stride, (void *)(long long)offset);
+            gl->VertexAttribPointer(location, fmt.size, fmt.type, fmt.normalize, stride, (intptr)offset);
         }
         gl->VertexAttribDivisor(location, divisor);
         gl->EnableVertexAttribArray(location);
@@ -2931,7 +2925,7 @@ static PyObject * Pipeline_meth_render(Pipeline * self, PyObject * args) {
     }
     RenderParameters * params = (RenderParameters *)PyMemoryView_GET_BUFFER(self->render_data)->buf;
     if (self->index_type) {
-        Py_ssize_t offset = (Py_ssize_t)params->first_vertex * (Py_ssize_t)self->index_size;
+        intptr offset = (intptr)params->first_vertex * (intptr)self->index_size;
         gl->DrawElementsInstanced(self->topology, params->vertex_count, self->index_type, (void *)offset, params->instance_count);
     } else {
         gl->DrawArraysInstanced(self->topology, params->first_vertex, params->vertex_count, params->instance_count);
