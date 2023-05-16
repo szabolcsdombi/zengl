@@ -13,18 +13,6 @@
 
 typedef Py_ssize_t intptr;
 
-typedef int GLenum;
-typedef float GLfloat;
-typedef int GLint;
-typedef int GLsizei;
-typedef long long GLuint64;
-typedef int GLbitfield;
-typedef int GLuint;
-typedef char GLboolean;
-typedef char GLubyte;
-typedef char GLchar;
-typedef void * GLsync;
-
 #define GL_COLOR_BUFFER_BIT 0x4000
 #define GL_FRONT 0x0404
 #define GL_BACK 0x0405
