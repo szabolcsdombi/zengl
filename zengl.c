@@ -1392,7 +1392,7 @@ static void clear_bound_image(Image * self) {
     } else if (self->fmt.clear_type == 'i') {
         gl->ClearBufferiv(self->fmt.buffer, 0, self->clear_value.clear_ints);
     } else if (self->fmt.clear_type == 'u') {
-        gl->ClearBufferuiv(self->fmt.buffer, 0, (int *)self->clear_value.clear_uints);
+        gl->ClearBufferuiv(self->fmt.buffer, 0, self->clear_value.clear_uints);
     } else if (self->fmt.clear_type == 'x') {
         gl->ClearBufferfi(self->fmt.buffer, 0, self->clear_value.clear_floats[0], self->clear_value.clear_ints[1]);
     }
@@ -2519,8 +2519,9 @@ static PyObject * Buffer_meth_write(Buffer * self, PyObject * args, PyObject * k
     }
 
     Py_buffer * view = PyMemoryView_GET_BUFFER(mem);
+    int size = (int)view->len;
 
-    if ((int)view->len + offset > self->size) {
+    if (size + offset > self->size) {
         PyErr_Format(PyExc_ValueError, "invalid size");
         return NULL;
     }
@@ -2529,7 +2530,7 @@ static PyObject * Buffer_meth_write(Buffer * self, PyObject * args, PyObject * k
 
     if (view->len) {
         gl->BindBuffer(GL_ARRAY_BUFFER, self->buffer);
-        gl->BufferSubData(GL_ARRAY_BUFFER, offset, (int)view->len, view->buf);
+        gl->BufferSubData(GL_ARRAY_BUFFER, offset, size, view->buf);
     }
 
     Py_DECREF(mem);
@@ -2707,9 +2708,10 @@ static PyObject * Image_meth_write(Image * self, PyObject * args, PyObject * kwa
     }
 
     Py_buffer * view = PyMemoryView_GET_BUFFER(mem);
+    int data_size = (int)view->len;
 
-    if ((int)view->len != expected_size) {
-        PyErr_Format(PyExc_ValueError, "invalid data size, expected %d, got %d", expected_size, (int)view->len);
+    if (data_size != expected_size) {
+        PyErr_Format(PyExc_ValueError, "invalid data size, expected %d, got %d", expected_size, data_size);
         return NULL;
     }
 
@@ -2926,7 +2928,7 @@ static PyObject * Pipeline_meth_render(Pipeline * self, PyObject * args) {
     RenderParameters * params = (RenderParameters *)PyMemoryView_GET_BUFFER(self->render_data)->buf;
     if (self->index_type) {
         intptr offset = (intptr)params->first_vertex * (intptr)self->index_size;
-        gl->DrawElementsInstanced(self->topology, params->vertex_count, self->index_type, (void *)offset, params->instance_count);
+        gl->DrawElementsInstanced(self->topology, params->vertex_count, self->index_type, offset, params->instance_count);
     } else {
         gl->DrawArraysInstanced(self->topology, params->first_vertex, params->vertex_count, params->instance_count);
     }
