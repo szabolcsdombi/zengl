@@ -2062,7 +2062,7 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
     PyObject * uniform_layout = NULL;
 
     if (uniforms) {
-        PyObject * tuple = PyObject_CallMethod(self->module_state->helper, "uniforms", "OOO", program->extra, uniforms, uniform_data);
+        PyObject * tuple = PyObject_CallMethod(self->module_state->helper, "uniforms", "(OOO)", program->extra, uniforms, uniform_data);
         if (!tuple) {
             return NULL;
         }
@@ -2075,10 +2075,6 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
         Py_DECREF(tuple);
     }
 
-    PyObject * attachments = PyObject_CallMethod(self->module_state->helper, "framebuffer_attachments", "(O)", framebuffer_attachments);
-    if (!attachments) {
-        return NULL;
-    }
 
     PyObject * validate = PyObject_CallMethod(
         self->module_state->helper,
@@ -2118,6 +2114,10 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
 
     Py_DECREF(layout_bindings);
 
+    PyObject * attachments = PyObject_CallMethod(self->module_state->helper, "framebuffer_attachments", "(O)", framebuffer_attachments);
+    if (!attachments) {
+        return NULL;
+    }
     if (attachments != Py_None && viewport == Py_None) {
         PyObject * size = PyTuple_GetItem(attachments, 0);
         viewport_value.width = to_int(PyTuple_GetItem(size, 0));
@@ -2126,7 +2126,7 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
 
     GLObject * framebuffer = build_framebuffer(self, attachments);
 
-    PyObject * bindings = PyObject_CallMethod(self->module_state->helper, "vertex_array_bindings", "OO", vertex_buffers, index_buffer);
+    PyObject * bindings = PyObject_CallMethod(self->module_state->helper, "vertex_array_bindings", "(OO)", vertex_buffers, index_buffer);
     if (!bindings) {
         return NULL;
     }
@@ -2142,7 +2142,7 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
     DescriptorSet * descriptor_set = build_descriptor_set(self, resource_bindings);
     Py_DECREF(resource_bindings);
 
-    PyObject * settings = PyObject_CallMethod(self->module_state->helper, "settings", "OOOON", cull_face, depth, stencil, blend, attachments);
+    PyObject * settings = PyObject_CallMethod(self->module_state->helper, "settings", "(OOOON)", cull_face, depth, stencil, blend, attachments);
     if (!settings) {
         return NULL;
     }
