@@ -3,4 +3,4 @@ RUN pip install -U pip wheel setuptools &&\
     pip install sphinx furo
 WORKDIR /app
 COPY . .
-CMD python setup.py build_sphinx
+CMD sphinx-build docs build
