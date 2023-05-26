@@ -359,12 +359,12 @@ static int get_topology(PyObject * helper, PyObject * name, int * res) {
 
 static int count_mipmaps(int width, int height) {
     int size = width > height ? width : height;
-    for (int i = 1; i < 32; ++i) {
-        if (size < (1 << i)) {
-            return i;
-        }
+    int levels = 0;
+    while (size) {
+        levels += 1;
+        size /= 2;
     }
-    return 32;
+    return levels;
 }
 
 static void remove_dict_value(PyObject * dict, PyObject * obj) {
