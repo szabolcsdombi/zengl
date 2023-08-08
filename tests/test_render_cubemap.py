@@ -6,14 +6,17 @@ import zengl
 
 def test(ctx: zengl.Context):
     image = ctx.image((64, 64), 'rgba8unorm')
-    temp = np.concatenate([
-        np.full((16, 16, 2), (-0.5, -0.5)),
-        np.full((16, 16, 2), (0.5, -0.5)),
-        np.full((16, 16, 2), (-0.5, 0.5)),
-        np.full((16, 16, 2), (0.5, 0.5)),
-        np.full((16, 16, 2), (0.0, 0.0)),
-        np.full((16, 16, 2), (0.0, 0.0)),
-    ], dtype='f4')
+    temp = np.concatenate(
+        [
+            np.full((16, 16, 2), (-0.5, -0.5)),
+            np.full((16, 16, 2), (0.5, -0.5)),
+            np.full((16, 16, 2), (-0.5, 0.5)),
+            np.full((16, 16, 2), (0.5, 0.5)),
+            np.full((16, 16, 2), (0.0, 0.0)),
+            np.full((16, 16, 2), (0.0, 0.0)),
+        ],
+        dtype='f4',
+    )
     texture = ctx.image((16, 16), 'rg32float', temp, cubemap=True)
     pipeline = ctx.pipeline(
         vertex_shader='''
@@ -75,9 +78,12 @@ def test(ctx: zengl.Context):
     pipeline.render()
     ctx.end_frame()
     pixels = np.frombuffer(image.read(), 'u1').reshape(64, 64, 4)
-    np.testing.assert_array_equal(pixels[[16, 16, 48, 48], [16, 48, 16, 48]], [
-        [0, 0, 255, 255],
-        [0, 0, 255, 255],
-        [0, 0, 255, 255],
-        [0, 0, 255, 255],
-    ])
+    np.testing.assert_array_equal(
+        pixels[[16, 16, 48, 48], [16, 48, 16, 48]],
+        [
+            [0, 0, 255, 255],
+            [0, 0, 255, 255],
+            [0, 0, 255, 255],
+            [0, 0, 255, 255],
+        ],
+    )

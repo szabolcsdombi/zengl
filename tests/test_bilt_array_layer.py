@@ -13,12 +13,15 @@ def test_blit_array_layer(ctx: zengl.Context):
     array.face(2).blit(image.face())
     ctx.end_frame()
     pixels = np.frombuffer(image.read(), 'u1').reshape(64, 64, 4)
-    np.testing.assert_array_equal(pixels[[16, 16, 48, 48], [16, 48, 16, 48]], [
-        [200, 100, 0, 255],
-        [200, 100, 0, 255],
-        [200, 100, 0, 255],
-        [200, 100, 0, 255],
-    ])
+    np.testing.assert_array_equal(
+        pixels[[16, 16, 48, 48], [16, 48, 16, 48]],
+        [
+            [200, 100, 0, 255],
+            [200, 100, 0, 255],
+            [200, 100, 0, 255],
+            [200, 100, 0, 255],
+        ],
+    )
 
     ctx.new_frame()
     image.clear()
@@ -27,12 +30,15 @@ def test_blit_array_layer(ctx: zengl.Context):
     array.face(2).blit(image.face())
     ctx.end_frame()
     pixels = np.frombuffer(image.read(), 'u1').reshape(64, 64, 4)
-    np.testing.assert_array_equal(pixels[[16, 16, 48, 48], [16, 48, 16, 48]], [
-        [0, 0, 255, 255],
-        [0, 0, 255, 255],
-        [0, 0, 255, 255],
-        [0, 0, 255, 255],
-    ])
+    np.testing.assert_array_equal(
+        pixels[[16, 16, 48, 48], [16, 48, 16, 48]],
+        [
+            [0, 0, 255, 255],
+            [0, 0, 255, 255],
+            [0, 0, 255, 255],
+            [0, 0, 255, 255],
+        ],
+    )
 
     ctx.new_frame()
     array.mipmaps()
@@ -40,9 +46,12 @@ def test_blit_array_layer(ctx: zengl.Context):
     array.face(layer=2, level=1).blit(image.face(), target_viewport=(0, 0, 32, 32))
     ctx.end_frame()
     pixels = np.frombuffer(image.read(), 'u1').reshape(64, 64, 4)
-    np.testing.assert_array_equal(pixels[[16, 16, 48, 48], [16, 48, 16, 48]], [
-        [0, 0, 255, 255],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-    ])
+    np.testing.assert_array_equal(
+        pixels[[16, 16, 48, 48], [16, 48, 16, 48]],
+        [
+            [0, 0, 255, 255],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+        ],
+    )

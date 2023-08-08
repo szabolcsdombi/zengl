@@ -39,9 +39,12 @@ def test_render_triangle(ctx: zengl.Context):
     y = np.tile(np.arange(4) * 50 + 50, 4)
     r = [255, 0, 0, 255]
     z = [0, 0, 0, 0]
-    np.testing.assert_array_equal(pixels[x, y], [
-        r, r, r, r,
-        z, r, r, z,
-        z, r, r, z,
-        z, z, z, z,
-    ])
+    np.testing.assert_array_equal(
+        pixels[x, y].reshape(4, 4, 4),
+        [
+            [r, r, r, r],
+            [z, r, r, z],
+            [z, r, r, z],
+            [z, z, z, z],
+        ],
+    )

@@ -33,7 +33,7 @@ def make_pipeline(ctx, framebuffer, viewport, color):
         vertex_count=3,
         includes={
             'color': f'vec3 color = vec3({color[0]:.3f}, {color[1]:.3f}, {color[2]:.3f});',
-        }
+        },
     )
 
 

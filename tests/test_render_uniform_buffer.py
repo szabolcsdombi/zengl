@@ -64,10 +64,10 @@ def test(ctx: zengl.Context):
 
     uniform_buffer_data = struct.pack(
         '4f4f4f4i',
-        0.5, 0.5, -999.0, -999.0,
-        1.0, 1.0, -999.0, -999.0,
-        0.0, 0.0, 1.0, -999.0,
-        1, -999, -999, -999,
+        *(0.5, 0.5, -999.0, -999.0),
+        *(1.0, 1.0, -999.0, -999.0),
+        *(0.0, 0.0, 1.0, -999.0),
+        *(1, -999, -999, -999),
     )
 
     ctx.new_frame()
@@ -76,9 +76,12 @@ def test(ctx: zengl.Context):
     pipeline.render()
     ctx.end_frame()
     pixels = np.frombuffer(image.read(), 'u1').reshape(64, 64, 4)
-    np.testing.assert_array_equal(pixels[[16, 16, 48, 48], [16, 48, 16, 48]], [
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 255, 255],
-    ])
+    np.testing.assert_array_equal(
+        pixels[[16, 16, 48, 48], [16, 48, 16, 48]],
+        [
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 255, 255],
+        ],
+    )

@@ -7,13 +7,18 @@ def test(ctx: zengl.Context):
     depth = ctx.image((64, 64), 'depth24plus')
     texture = ctx.image((16, 16), 'rgba8unorm', np.full((16, 16, 4), (64, 64, 255, 255), 'u1'))
     uniform_buffer = ctx.buffer(size=64)
-    vertex_buffer = ctx.buffer(np.array([
-        [-1.0, 1.0, -1.0, 1.0],
-        [-1.0, -1.0, 1.0, 1.0],
-        [0.0, 0.0, 0.0, 0.0],
-        [0.0, 1.0, 0.0, 1.0],
-        [0.0, 0.0, 1.0, 1.0],
-    ], 'f4').T)
+    vertex_buffer = ctx.buffer(
+        np.array(
+            [
+                [-1.0, 1.0, -1.0, 1.0],
+                [-1.0, -1.0, 1.0, 1.0],
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0, 1.0],
+                [0.0, 0.0, 1.0, 1.0],
+            ],
+            'f4',
+        ).T
+    )
     pipeline = ctx.pipeline(
         vertex_shader='''
             #version 330 core

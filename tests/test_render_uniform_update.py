@@ -54,9 +54,12 @@ def test(ctx: zengl.Context):
     pipeline.render()
     ctx.end_frame()
     pixels = np.frombuffer(image.read(), 'u1').reshape(64, 64, 4)
-    np.testing.assert_array_equal(pixels[[16, 16, 48, 48], [16, 48, 16, 48]], [
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 255, 255],
-    ])
+    np.testing.assert_array_equal(
+        pixels[[16, 16, 48, 48], [16, 48, 16, 48]],
+        [
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 255, 255],
+        ],
+    )
