@@ -19,8 +19,8 @@ VERTEX_FORMAT = {
     'unorm16x4': (0x1403, 4, 1, 0),
     'snorm16x2': (0x1402, 2, 1, 0),
     'snorm16x4': (0x1402, 4, 1, 0),
-    'float16x2': (0x140b, 2, 0, 0),
-    'float16x4': (0x140b, 4, 0, 0),
+    'float16x2': (0x140B, 2, 0, 0),
+    'float16x4': (0x140B, 4, 0, 0),
     'float32': (0x1406, 1, 0, 0),
     'float32x2': (0x1406, 2, 0, 0),
     'float32x3': (0x1406, 3, 0, 0),
@@ -37,40 +37,40 @@ VERTEX_FORMAT = {
 
 IMAGE_FORMAT = {
     'r8unorm': (0x8229, 0x1903, 0x1401, 0x1800, 1, 1, 1, 1, 'f'),
-    'rg8unorm': (0x822b, 0x8227, 0x1401, 0x1800, 2, 2, 1, 1, 'f'),
+    'rg8unorm': (0x822B, 0x8227, 0x1401, 0x1800, 2, 2, 1, 1, 'f'),
     'rgba8unorm': (0x8058, 0x1908, 0x1401, 0x1800, 4, 4, 1, 1, 'f'),
-    'r8snorm': (0x8f94, 0x1903, 0x1401, 0x1800, 1, 1, 1, 1, 'f'),
-    'rg8snorm': (0x8f95, 0x8227, 0x1401, 0x1800, 2, 2, 1, 1, 'f'),
-    'rgba8snorm': (0x8f97, 0x1908, 0x1401, 0x1800, 4, 4, 1, 1, 'f'),
-    'r8uint': (0x8232, 0x8d94, 0x1401, 0x1800, 1, 1, 1, 1, 'u'),
+    'r8snorm': (0x8F94, 0x1903, 0x1401, 0x1800, 1, 1, 1, 1, 'f'),
+    'rg8snorm': (0x8F95, 0x8227, 0x1401, 0x1800, 2, 2, 1, 1, 'f'),
+    'rgba8snorm': (0x8F97, 0x1908, 0x1401, 0x1800, 4, 4, 1, 1, 'f'),
+    'r8uint': (0x8232, 0x8D94, 0x1401, 0x1800, 1, 1, 1, 1, 'u'),
     'rg8uint': (0x8238, 0x8228, 0x1401, 0x1800, 2, 2, 1, 1, 'u'),
-    'rgba8uint': (0x8d7c, 0x8d99, 0x1401, 0x1800, 4, 4, 1, 1, 'u'),
-    'r16uint': (0x8234, 0x8d94, 0x1403, 0x1800, 1, 2, 1, 1, 'u'),
-    'rg16uint': (0x823a, 0x8228, 0x1403, 0x1800, 2, 4, 1, 1, 'u'),
-    'rgba16uint': (0x8d76, 0x8d99, 0x1403, 0x1800, 4, 8, 1, 1, 'u'),
-    'r32uint': (0x8236, 0x8d94, 0x1405, 0x1800, 1, 4, 1, 1, 'u'),
-    'rg32uint': (0x823c, 0x8228, 0x1405, 0x1800, 2, 8, 1, 1, 'u'),
-    'rgba32uint': (0x8d70, 0x8d99, 0x1405, 0x1800, 4, 16, 1, 1, 'u'),
-    'r8sint': (0x8231, 0x8d94, 0x1400, 0x1800, 1, 1, 1, 1, 'i'),
+    'rgba8uint': (0x8D7C, 0x8D99, 0x1401, 0x1800, 4, 4, 1, 1, 'u'),
+    'r16uint': (0x8234, 0x8D94, 0x1403, 0x1800, 1, 2, 1, 1, 'u'),
+    'rg16uint': (0x823A, 0x8228, 0x1403, 0x1800, 2, 4, 1, 1, 'u'),
+    'rgba16uint': (0x8D76, 0x8D99, 0x1403, 0x1800, 4, 8, 1, 1, 'u'),
+    'r32uint': (0x8236, 0x8D94, 0x1405, 0x1800, 1, 4, 1, 1, 'u'),
+    'rg32uint': (0x823C, 0x8228, 0x1405, 0x1800, 2, 8, 1, 1, 'u'),
+    'rgba32uint': (0x8D70, 0x8D99, 0x1405, 0x1800, 4, 16, 1, 1, 'u'),
+    'r8sint': (0x8231, 0x8D94, 0x1400, 0x1800, 1, 1, 1, 1, 'i'),
     'rg8sint': (0x8237, 0x8228, 0x1400, 0x1800, 2, 2, 1, 1, 'i'),
-    'rgba8sint': (0x8d8e, 0x8d99, 0x1400, 0x1800, 4, 4, 1, 1, 'i'),
-    'r16sint': (0x8233, 0x8d94, 0x1402, 0x1800, 1, 2, 1, 1, 'i'),
+    'rgba8sint': (0x8D8E, 0x8D99, 0x1400, 0x1800, 4, 4, 1, 1, 'i'),
+    'r16sint': (0x8233, 0x8D94, 0x1402, 0x1800, 1, 2, 1, 1, 'i'),
     'rg16sint': (0x8239, 0x8228, 0x1402, 0x1800, 2, 4, 1, 1, 'i'),
-    'rgba16sint': (0x8d88, 0x8d99, 0x1402, 0x1800, 4, 8, 1, 1, 'i'),
-    'r32sint': (0x8235, 0x8d94, 0x1404, 0x1800, 1, 4, 1, 1, 'i'),
-    'rg32sint': (0x823b, 0x8228, 0x1404, 0x1800, 2, 8, 1, 1, 'i'),
-    'rgba32sint': (0x8d82, 0x8d99, 0x1404, 0x1800, 4, 16, 1, 1, 'i'),
-    'r16float': (0x822d, 0x1903, 0x1406, 0x1800, 1, 2, 1, 1, 'f'),
-    'rg16float': (0x822f, 0x8227, 0x1406, 0x1800, 2, 4, 1, 1, 'f'),
-    'rgba16float': (0x881a, 0x1908, 0x1406, 0x1800, 4, 8, 1, 1, 'f'),
-    'r32float': (0x822e, 0x1903, 0x1406, 0x1800, 1, 4, 1, 1, 'f'),
+    'rgba16sint': (0x8D88, 0x8D99, 0x1402, 0x1800, 4, 8, 1, 1, 'i'),
+    'r32sint': (0x8235, 0x8D94, 0x1404, 0x1800, 1, 4, 1, 1, 'i'),
+    'rg32sint': (0x823B, 0x8228, 0x1404, 0x1800, 2, 8, 1, 1, 'i'),
+    'rgba32sint': (0x8D82, 0x8D99, 0x1404, 0x1800, 4, 16, 1, 1, 'i'),
+    'r16float': (0x822D, 0x1903, 0x1406, 0x1800, 1, 2, 1, 1, 'f'),
+    'rg16float': (0x822F, 0x8227, 0x1406, 0x1800, 2, 4, 1, 1, 'f'),
+    'rgba16float': (0x881A, 0x1908, 0x1406, 0x1800, 4, 8, 1, 1, 'f'),
+    'r32float': (0x822E, 0x1903, 0x1406, 0x1800, 1, 4, 1, 1, 'f'),
     'rg32float': (0x8230, 0x8227, 0x1406, 0x1800, 2, 8, 1, 1, 'f'),
     'rgba32float': (0x8814, 0x1908, 0x1406, 0x1800, 4, 16, 1, 1, 'f'),
-    'rgba8unorm-srgb': (0x8c43, 0x1908, 0x1401, 0x1800, 4, 4, 1, 1, 'f'),
-    'depth16unorm': (0x81a5, 0x1902, 0x1403, 0x1801, 1, 2, 0, 2, 'f'),
-    'depth24plus': (0x81a6, 0x1902, 0x1405, 0x1801, 1, 4, 0, 2, 'f'),
-    'depth24plus-stencil8': (0x88f0, 0x84f9, 0x84fa, 0x84f9, 2, 4, 0, 6, 'x'),
-    'depth32float': (0x8cac, 0x1902, 0x1406, 0x1801, 1, 4, 0, 2, 'f'),
+    'rgba8unorm-srgb': (0x8C43, 0x1908, 0x1401, 0x1800, 4, 4, 1, 1, 'f'),
+    'depth16unorm': (0x81A5, 0x1902, 0x1403, 0x1801, 1, 2, 0, 2, 'f'),
+    'depth24plus': (0x81A6, 0x1902, 0x1405, 0x1801, 1, 4, 0, 2, 'f'),
+    'depth24plus-stencil8': (0x88F0, 0x84F9, 0x84FA, 0x84F9, 2, 4, 0, 6, 'x'),
+    'depth32float': (0x8CAC, 0x1902, 0x1406, 0x1801, 1, 4, 0, 2, 'f'),
 }
 
 TOPOLOGY = {
@@ -245,6 +245,7 @@ UNIFORM_PACKER = {
 class DefaultLoader:
     def __init__(self):
         import ctypes
+
         if hasattr(ctypes, 'WinDLL'):
             lib = ctypes.WinDLL('Opengl32.dll')
             proc = ctypes.cast(lib.wglGetProcAddress, ctypes.CFUNCTYPE(ctypes.c_ulonglong, ctypes.c_char_p))
@@ -257,6 +258,7 @@ class DefaultLoader:
 def loader(headless=False):
     if headless:
         import glcontext
+
         return glcontext.default_backend()(glversion=330, mode='standalone')
     return DefaultLoader()
 
@@ -296,13 +298,15 @@ def bind(buffer, layout, *attributes):
         location = attributes[idx]
         format, size = SHORT_VERTEX_FORMAT[node]
         if location >= 0:
-            res.append({
-                'location': location,
-                'buffer': buffer,
-                'format': format,
-                'offset': offset,
-                'step': step,
-            })
+            res.append(
+                {
+                    'location': location,
+                    'buffer': buffer,
+                    'format': format,
+                    'offset': offset,
+                    'step': step,
+                }
+            )
         offset += size
         idx += 1
 
@@ -396,37 +400,41 @@ def settings(cull_face, depth, stencil, blend, attachments):
     if has_stencil:
         front = stencil.get('front', stencil.get('both', {}))
         back = stencil.get('back', stencil.get('both', {}))
-        res.extend([
-            True,
-            STENCIL_OP[front.get('fail_op', 'keep')],
-            STENCIL_OP[front.get('pass_op', 'keep')],
-            STENCIL_OP[front.get('depth_fail_op', 'keep')],
-            COMPARE_FUNC[front.get('compare_op', 'always')],
-            int(front.get('compare_mask', 0xff)),
-            int(front.get('write_mask', 0xff)),
-            int(front.get('reference', 0)),
-            STENCIL_OP[back.get('fail_op', 'keep')],
-            STENCIL_OP[back.get('pass_op', 'keep')],
-            STENCIL_OP[back.get('depth_fail_op', 'keep')],
-            COMPARE_FUNC[back.get('compare_op', 'always')],
-            int(back.get('compare_mask', 0xff)),
-            int(back.get('write_mask', 0xff)),
-            int(back.get('reference', 0)),
-        ])
+        res.extend(
+            [
+                True,
+                STENCIL_OP[front.get('fail_op', 'keep')],
+                STENCIL_OP[front.get('pass_op', 'keep')],
+                STENCIL_OP[front.get('depth_fail_op', 'keep')],
+                COMPARE_FUNC[front.get('compare_op', 'always')],
+                int(front.get('compare_mask', 0xFF)),
+                int(front.get('write_mask', 0xFF)),
+                int(front.get('reference', 0)),
+                STENCIL_OP[back.get('fail_op', 'keep')],
+                STENCIL_OP[back.get('pass_op', 'keep')],
+                STENCIL_OP[back.get('depth_fail_op', 'keep')],
+                COMPARE_FUNC[back.get('compare_op', 'always')],
+                int(back.get('compare_mask', 0xFF)),
+                int(back.get('write_mask', 0xFF)),
+                int(back.get('reference', 0)),
+            ]
+        )
 
     else:
         res.append(False)
 
     if blend is not None:
         res.append(True)
-        res.extend([
-            BLEND_FUNC[blend.get('op_color', 'add')],
-            BLEND_FUNC[blend.get('op_alpha', 'add')],
-            BLEND_CONSTANT[blend.get('src_color', 'one')],
-            BLEND_CONSTANT[blend.get('dst_color', 'zero')],
-            BLEND_CONSTANT[blend.get('src_alpha', 'one')],
-            BLEND_CONSTANT[blend.get('dst_alpha', 'zero')],
-        ])
+        res.extend(
+            [
+                BLEND_FUNC[blend.get('op_color', 'add')],
+                BLEND_FUNC[blend.get('op_alpha', 'add')],
+                BLEND_CONSTANT[blend.get('src_color', 'one')],
+                BLEND_CONSTANT[blend.get('dst_color', 'zero')],
+                BLEND_CONSTANT[blend.get('src_alpha', 'one')],
+                BLEND_CONSTANT[blend.get('dst_alpha', 'zero')],
+            ]
+        )
 
     else:
         res.append(False)
@@ -454,11 +462,11 @@ def program(vertex_shader, fragment_shader, layout, includes):
     for obj in sorted(layout, key=lambda x: x['name']):
         bindings.extend((obj['name'], obj['binding']))
 
-    return (vert, 0x8b31), (frag, 0x8b30), tuple(bindings)
+    return (vert, 0x8B31), (frag, 0x8B30), tuple(bindings)
 
 
 def compile_error(shader: bytes, shader_type: int, log: bytes):
-    name = {0x8b31: 'Vertex Shader', 0x8b30: 'Fragment Shader'}[shader_type]
+    name = {0x8B31: 'Vertex Shader', 0x8B30: 'Fragment Shader'}[shader_type]
     log = log.rstrip(b'\x00').decode()
     raise ValueError(f'{name} Error\n\n{log}')
 
@@ -544,7 +552,8 @@ def validate(interface, layout, resources, vertex_buffers, limits):
             'name': obj['name'].replace('[0]', f'[{i:d}]'),
             'location': obj['location'] + i if obj['location'] >= 0 else -1,
         }
-        for obj in attributes for i in range(obj['size'])
+        for obj in attributes
+        for i in range(obj['size'])
         if obj['name'] not in VERTEX_SHADER_BUILTINS
     ]
     uniforms = [
@@ -552,7 +561,8 @@ def validate(interface, layout, resources, vertex_buffers, limits):
             'name': obj['name'].replace('[0]', f'[{i}]'),
             'location': obj['location'] + i if obj['location'] >= 0 else -1,
         }
-        for obj in uniforms for i in range(obj['size'])
+        for obj in uniforms
+        for i in range(obj['size'])
         if obj['gltype'] not in UNIFORM_PACKER
     ]
     bound_attributes = set()
