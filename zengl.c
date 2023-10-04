@@ -799,6 +799,15 @@ typedef struct ImageFace {
     int flags;
 } ImageFace;
 
+static void bind_viewport(Context * self, Viewport * viewport) {
+    const GLMethods * const gl = &self->gl;
+    Viewport * c = &self->current_viewport;
+    if (viewport->x != c->x || viewport->y != c->y || viewport->width != c->width || viewport->height != c->height) {
+        gl->Viewport(viewport->x, viewport->y, viewport->width, viewport->height);
+        self->current_viewport = *viewport;
+    }
+}
+
 static void bind_global_settings(Context * self, GlobalSettings * settings) {
     const GLMethods * const gl = &self->gl;
     if (self->current_global_settings == settings) {
@@ -2909,10 +2918,7 @@ static int Image_set_clear_value(Image * self, PyObject * value, void * closure)
 static PyObject * Pipeline_meth_render(Pipeline * self, PyObject * args) {
     const GLMethods * const gl = &self->ctx->gl;
     Viewport * viewport = (Viewport *)PyMemoryView_GET_BUFFER(self->viewport_data)->buf;
-    if (memcmp(viewport, &self->ctx->current_viewport, sizeof(Viewport))) {
-        gl->Viewport(viewport->x, viewport->y, viewport->width, viewport->height);
-        self->ctx->current_viewport = *viewport;
-    }
+    bind_viewport(self->ctx, viewport);
     bind_global_settings(self->ctx, self->global_settings);
     bind_framebuffer(self->ctx, self->framebuffer->obj);
     bind_program(self->ctx, self->program->obj);
