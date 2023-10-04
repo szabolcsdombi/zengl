@@ -5,7 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-# [main](https://github.com/szabolcsdombi/zengl/compare/1.13.0...main)
+# [main](https://github.com/szabolcsdombi/zengl/compare/1.14.0...main)
+
+# [1.14.0](https://github.com/szabolcsdombi/zengl/compare/1.13.0...1.14.0)
+
+- Improved web support
+- Added Python 3.12 release builds
+- Added support for customized builds
 
 # [1.13.0](https://github.com/szabolcsdombi/zengl/compare/1.12.2...1.13.0)
 

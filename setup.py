@@ -44,7 +44,7 @@ with open('README.md') as readme:
 
 setup(
     name='zengl',
-    version='1.13.0',
+    version='1.14.0',
     ext_modules=[ext],
     py_modules=['_zengl'],
     license='MIT',
