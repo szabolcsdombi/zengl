@@ -10,7 +10,7 @@
 <body class="example">
   <canvas id="zengl-canvas", tabindex="1" width="1280" height="720"></canvas>
 </body>
-<script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
 <script src="zengl_canvas.js"></script>
 <script src="zengl_webgl.js"></script>
 <script>
@@ -18,9 +18,9 @@
     const pyodide = await loadPyodide();
 
     await pyodide.loadPackage([
-      'zengl-1.13.0-cp311-cp311-emscripten_3_1_32_wasm32.whl',
-      'zengl_webgl-0.1.0-cp311-cp311-emscripten_3_1_32_wasm32.whl',
-      'zengl_canvas-0.1.0-cp311-cp311-emscripten_3_1_32_wasm32.whl',
+      'zengl-1.13.0-cp311-cp311-emscripten_3_1_45_wasm32.whl',
+      'zengl_webgl-0.1.0-cp311-cp311-emscripten_3_1_45_wasm32.whl',
+      'zengl_canvas-0.1.0-cp311-cp311-emscripten_3_1_45_wasm32.whl',
       'assets-0.1.0-py3-none-any.whl',
     ]);
 
