@@ -250,16 +250,22 @@ class DefaultLoader:
         if sys.platform.startswith('win'):
             lib = ctypes.WinDLL('Opengl32.dll')
             proc = ctypes.cast(lib.wglGetProcAddress, ctypes.CFUNCTYPE(ctypes.c_ulonglong, ctypes.c_char_p))
-            loader = lambda name: proc(name.encode()) or ctypes.cast(lib[name], ctypes.c_void_p).value
+
+            def loader(name):
+                return proc(name.encode()) or ctypes.cast(lib[name], ctypes.c_void_p).value
 
         elif sys.platform.startswith('linux'):
             lib = ctypes.CDLL('libGL.so')
             proc = ctypes.cast(lib.glXGetProcAddress, ctypes.CFUNCTYPE(ctypes.c_ulonglong, ctypes.c_char_p))
-            loader = lambda name: proc(name.encode()) or ctypes.cast(lib[name], ctypes.c_void_p).value
+
+            def loader(name):
+                return proc(name.encode()) or ctypes.cast(lib[name], ctypes.c_void_p).value
 
         elif sys.platform.startswith('darwin'):
             lib = ctypes.CDLL('/System/Library/Frameworks/OpenGL.framework/OpenGL')
-            loader = lambda name: ctypes.cast(lib[name], ctypes.c_void_p).value
+
+            def loader(name):
+                return ctypes.cast(lib[name], ctypes.c_void_p).value
 
         elif sys.platform.startswith('emscripten'):
             raise RuntimeError('Please provide a WebGL2 loader')
