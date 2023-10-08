@@ -903,6 +903,7 @@ static void bind_descriptor_set(Context * self, DescriptorSet * set) {
 }
 
 static GLObject * build_framebuffer(Context * self, PyObject * attachments) {
+    const GLMethods * const gl = &self->gl;
     GLObject * cache = (GLObject *)PyDict_GetItem(self->framebuffer_cache, attachments);
     if (cache) {
         cache->uses += 1;
@@ -912,8 +913,6 @@ static GLObject * build_framebuffer(Context * self, PyObject * attachments) {
 
     PyObject * color_attachments = PyTuple_GetItem(attachments, 1);
     PyObject * depth_stencil_attachment = PyTuple_GetItem(attachments, 2);
-
-    const GLMethods * const gl = &self->gl;
 
     int framebuffer = 0;
     gl->GenFramebuffers(1, &framebuffer);
@@ -980,14 +979,13 @@ static void bind_uniforms(Context * self, PyObject * uniform_layout, PyObject * 
 }
 
 static GLObject * build_vertex_array(Context * self, PyObject * bindings) {
+    const GLMethods * const gl = &self->gl;
     GLObject * cache = (GLObject *)PyDict_GetItem(self->vertex_array_cache, bindings);
     if (cache) {
         cache->uses += 1;
         Py_INCREF(cache);
         return cache;
     }
-
-    const GLMethods * const gl = &self->gl;
 
     int length = (int)PyTuple_Size(bindings);
     PyObject ** seq = PySequence_Fast_ITEMS(bindings);
@@ -1033,14 +1031,13 @@ static GLObject * build_vertex_array(Context * self, PyObject * bindings) {
 }
 
 static GLObject * build_sampler(Context * self, PyObject * params) {
+    const GLMethods * const gl = &self->gl;
     GLObject * cache = (GLObject *)PyDict_GetItem(self->sampler_cache, params);
     if (cache) {
         cache->uses += 1;
         Py_INCREF(cache);
         return cache;
     }
-
-    const GLMethods * const gl = &self->gl;
 
     PyObject ** seq = PySequence_Fast_ITEMS(params);
 
@@ -1186,14 +1183,13 @@ static GlobalSettings * build_global_settings(Context * self, PyObject * setting
 }
 
 static GLObject * compile_shader(Context * self, PyObject * pair) {
+    const GLMethods * const gl = &self->gl;
     GLObject * cache = (GLObject *)PyDict_GetItem(self->shader_cache, pair);
     if (cache) {
         cache->uses += 1;
         Py_INCREF(cache);
         return cache;
     }
-
-    const GLMethods * const gl = &self->gl;
 
     PyObject * code = PyTuple_GetItem(pair, 0);
     const char * src = PyBytes_AsString(code);
@@ -1396,6 +1392,8 @@ static void clear_bound_image(Image * self) {
 }
 
 static PyObject * blit_image_face(ImageFace * src, PyObject * dst, PyObject * src_viewport, PyObject * dst_viewport, int filter, PyObject * srgb) {
+    const GLMethods * const gl = &src->ctx->gl;
+
     if (Py_TYPE(dst) == src->image->ctx->module_state->Image_type) {
         Image * image = (Image *)dst;
         if (image->array || image->cubemap) {
@@ -1460,8 +1458,6 @@ static PyObject * blit_image_face(ImageFace * src, PyObject * dst, PyObject * sr
         return NULL;
     }
 
-    const GLMethods * const gl = &src->ctx->gl;
-
     if (disable_srgb) {
         gl->Disable(GL_FRAMEBUFFER_SRGB);
     }
@@ -1484,6 +1480,8 @@ static PyObject * blit_image_face(ImageFace * src, PyObject * dst, PyObject * sr
 }
 
 static PyObject * read_image_face(ImageFace * src, PyObject * size_arg, PyObject * offset_arg) {
+    const GLMethods * const gl = &src->image->ctx->gl;
+
     if (size_arg == Py_None && offset_arg != Py_None) {
         PyErr_Format(PyExc_ValueError, "the size is required when the offset is not None");
         return NULL;
@@ -1535,8 +1533,6 @@ static PyObject * read_image_face(ImageFace * src, PyObject * size_arg, PyObject
         Py_DECREF(release);
         return res;
     }
-
-    const GLMethods * const gl = &src->image->ctx->gl;
 
     PyObject * res = PyBytes_FromStringAndSize(NULL, (long long)size.x * size.y * src->image->fmt.pixel_size);
     bind_framebuffer(src->ctx, src->framebuffer->obj);
@@ -2083,7 +2079,6 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
         Py_INCREF(uniform_data);
         Py_DECREF(tuple);
     }
-
 
     PyObject * validate = PyObject_CallMethod(
         self->module_state->helper,
