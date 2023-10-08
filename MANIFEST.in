@@ -1,2 +1,5 @@
+include zengl.c
+include zengl_web.c
+include zengl_web.js
 include README.md
 include LICENSE
