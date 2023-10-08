@@ -5,6 +5,8 @@ from setuptools import Extension, setup
 
 extra_compile_args = []
 extra_link_args = []
+define_macros = []
+sources = ['zengl.c']
 
 stubs = {
     'packages': ['zengl-stubs'],
@@ -17,6 +19,18 @@ if sys.platform.startswith('linux'):
 
 if sys.platform.startswith('darwin'):
     extra_compile_args = ['-Wno-writable-strings']
+
+if os.getenv('PYODIDE'):
+    import re
+
+    with open('zengl_web.js') as f:
+        setup_gl = re.sub(r'\s+', ' ', f.read(), flags=re.M)
+
+    define_macros = [
+        ('setup_gl', f'"{setup_gl}"'),
+    ]
+    sources = ['zengl_web.c']
+    stubs = {}
 
 if os.getenv('ZENGL_COVERAGE'):
     extra_compile_args += ['-O0', '--coverage']
@@ -34,9 +48,10 @@ if os.getenv('ZENGL_NO_STUBS'):
 
 ext = Extension(
     name='zengl',
-    sources=['zengl.c'],
+    sources=sources,
     extra_compile_args=extra_compile_args,
     extra_link_args=extra_link_args,
+    define_macros=define_macros,
 )
 
 with open('README.md') as readme:

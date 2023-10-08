@@ -268,9 +268,7 @@ class DefaultLoader:
                 return ctypes.cast(lib[name], ctypes.c_void_p).value
 
         elif sys.platform.startswith('emscripten'):
-            import webgl2
-
-            loader = webgl2.load_opengl_function
+            loader = None
 
         self.load_opengl_function = loader
 
