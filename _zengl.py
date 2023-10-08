@@ -245,14 +245,26 @@ UNIFORM_PACKER = {
 class DefaultLoader:
     def __init__(self):
         import ctypes
+        import sys
 
-        if hasattr(ctypes, 'WinDLL'):
+        if sys.platform.startswith('win'):
             lib = ctypes.WinDLL('Opengl32.dll')
             proc = ctypes.cast(lib.wglGetProcAddress, ctypes.CFUNCTYPE(ctypes.c_ulonglong, ctypes.c_char_p))
-        else:
+            loader = lambda name: proc(name.encode()) or ctypes.cast(lib[name], ctypes.c_void_p).value
+
+        elif sys.platform.startswith('linux'):
             lib = ctypes.CDLL('libGL.so')
             proc = ctypes.cast(lib.glXGetProcAddress, ctypes.CFUNCTYPE(ctypes.c_ulonglong, ctypes.c_char_p))
-        self.load_opengl_function = lambda name: proc(name.encode()) or ctypes.cast(lib[name], ctypes.c_void_p).value
+            loader = lambda name: proc(name.encode()) or ctypes.cast(lib[name], ctypes.c_void_p).value
+
+        elif sys.platform.startswith('darwin'):
+            lib = ctypes.CDLL('/System/Library/Frameworks/OpenGL.framework/OpenGL')
+            loader = lambda name: ctypes.cast(lib[name], ctypes.c_void_p).value
+
+        elif sys.platform.startswith('emscripten'):
+            raise RuntimeError('Please provide a WebGL2 loader')
+
+        self.load_opengl_function = loader
 
 
 def loader(headless=False):
