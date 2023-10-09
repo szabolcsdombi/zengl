@@ -1,4 +1,3 @@
-import ctypes
 import struct
 
 import numpy as np

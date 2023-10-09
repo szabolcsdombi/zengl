@@ -11,7 +11,7 @@ def gaussian_kernel(s):
 
 
 class Blur1D:
-    def __init__(self, src, dst, mode):
+    def __init__(self, src: zengl.Image, dst: zengl.Image, mode):
         self.ctx = zengl.context()
 
         self.pipeline = self.ctx.pipeline(
@@ -86,7 +86,7 @@ class Blur1D:
 
 
 class Blur2D:
-    def __init__(self, src, dst):
+    def __init__(self, src: zengl.Image, dst: zengl.Image):
         self.ctx = zengl.context()
 
         self.temp = self.ctx.image(src.size, 'rgba8unorm')
@@ -103,7 +103,7 @@ class App:
         self.wnd = glwindow.get_window()
         self.ctx = zengl.context(glwindow.get_loader())
 
-        self.scene = Monkey(samples=1)
+        self.scene = Monkey(self.wnd.size, samples=1)
         self.blur = Blur2D(self.scene.image, self.scene.image)
 
     def update(self):

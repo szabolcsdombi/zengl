@@ -5,12 +5,11 @@ import zengl
 
 
 class Logo:
-    def __init__(self, samples):
-        self.wnd = glwindow.get_window()
+    def __init__(self, size, samples=4):
         self.ctx = zengl.context()
 
-        self.image = self.ctx.image(self.wnd.size, 'rgba8unorm-srgb', samples=samples)
-        self.depth = self.ctx.image(self.wnd.size, 'depth24plus', samples=samples)
+        self.image = self.ctx.image(size, 'rgba8unorm', samples=samples)
+        self.depth = self.ctx.image(size, 'depth24plus', samples=samples)
         self.image.clear_value = (0.0, 0.0, 0.0, 0.0)
 
         self.pipeline = self.ctx.pipeline(
@@ -88,10 +87,11 @@ class Logo:
                     float u = smoothstep(0.48, 0.47, abs(v_vertex.x - 0.5));
                     float v = smoothstep(0.48, 0.47, abs(v_vertex.y - 0.5));
                     out_color = vec4(v_color * (u * v), 1.0);
+                    out_color.rgb = pow(out_color.rgb, vec3(1.0 / 2.2));
                 }
             ''',
             uniforms={
-                'aspect': self.wnd.aspect_ratio,
+                'aspect': size[0] / size[1],
                 'time': 0.0,
             },
             framebuffer=[self.image, self.depth],
@@ -114,7 +114,7 @@ class App:
     def __init__(self):
         self.wnd = glwindow.get_window()
         self.ctx = zengl.context(glwindow.get_loader())
-        self.logo = Logo(samples=16)
+        self.logo = Logo(self.wnd.size, samples=16)
 
     def update(self):
         self.ctx.new_frame()

@@ -4,12 +4,11 @@ import zengl
 
 
 class Blending:
-    def __init__(self):
-        self.wnd = glwindow.get_window()
+    def __init__(self, size, samples=4):
         self.ctx = zengl.context()
 
-        self.image = self.ctx.image(self.wnd.size, 'rgba8unorm-srgb', samples=4)
-        self.depth = self.ctx.image(self.wnd.size, 'depth24plus', samples=4)
+        self.image = self.ctx.image(size, 'rgba8unorm', samples=samples)
+        self.depth = self.ctx.image(size, 'depth24plus', samples=samples)
         self.image.clear_value = (0.0, 0.0, 0.0, 1.0)
 
         self.uniform_buffer = self.ctx.buffer(size=16)
@@ -57,6 +56,7 @@ class Blending:
 
                 void main() {
                     out_color = vec4(v_color);
+                    out_color.rgb = pow(out_color.rgb, vec3(1.0 / 2.2));
                 }
             ''',
             layout=[
@@ -84,12 +84,13 @@ class Blending:
             instance_count=10,
         )
 
+        self.aspect = size[0] / size[1]
         self.time = 0.0
 
     def render(self):
         self.time += 1.0 / 60.0
         self.image.clear()
-        self.uniform_buffer.write(np.array([0.5, 0.5 * self.wnd.aspect_ratio, self.time, 0.0], 'f4'))
+        self.uniform_buffer.write(np.array([0.5, 0.5 * self.aspect, self.time, 0.0], 'f4'))
         self.pipeline.render()
 
 
@@ -97,7 +98,7 @@ class App:
     def __init__(self):
         self.wnd = glwindow.get_window()
         self.ctx = zengl.context(glwindow.get_loader())
-        self.logo = Blending()
+        self.logo = Blending(self.wnd.size)
 
     def update(self):
         self.ctx.new_frame()
