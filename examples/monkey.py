@@ -1,81 +1,103 @@
+import math
+
 import zengl
+import glwindow
 from objloader import Obj
 
 import assets
-from window import Window
 
-window = Window()
-ctx = zengl.context()
 
-image = ctx.image(window.size, 'rgba8unorm', samples=4)
-depth = ctx.image(window.size, 'depth24plus', samples=4)
-image.clear_value = (0.2, 0.2, 0.2, 1.0)
+class Monkey:
+    def __init__(self, samples=4):
+        self.wnd = glwindow.get_window()
+        self.ctx = zengl.context()
 
-model = Obj.open(assets.get('monkey.obj')).pack('vx vy vz nx ny nz')
-vertex_buffer = ctx.buffer(model)
+        self.image = self.ctx.image(self.wnd.size, 'rgba8unorm', samples=samples)
+        self.depth = self.ctx.image(self.wnd.size, 'depth24plus', samples=samples)
 
-uniform_buffer = ctx.buffer(size=64)
+        self.image.clear_value = (0.2, 0.2, 0.2, 1.0)
 
-pipeline = ctx.pipeline(
-    vertex_shader='''
-        #version 300 es
-        precision highp float;
+        model = Obj.open(assets.get('monkey.obj')).pack('vx vy vz nx ny nz')
+        self.vertex_buffer = self.ctx.buffer(model)
+        self.uniform_buffer = self.ctx.buffer(size=80)
+        self.pipeline = self.ctx.pipeline(
+            vertex_shader='''
+                #version 300 es
+                precision highp float;
 
-        layout (std140) uniform Common {
-            mat4 mvp;
-        };
+                layout (std140) uniform Common {
+                    mat4 mvp;
+                };
 
-        layout (location = 0) in vec3 in_vert;
-        layout (location = 1) in vec3 in_norm;
+                layout (location = 0) in vec3 in_vert;
+                layout (location = 1) in vec3 in_norm;
 
-        out vec3 v_norm;
+                out vec3 v_norm;
 
-        void main() {
-            gl_Position = mvp * vec4(in_vert, 1.0);
-            v_norm = in_norm;
-        }
-    ''',
-    fragment_shader='''
-        #version 300 es
-        precision highp float;
+                void main() {
+                    gl_Position = mvp * vec4(in_vert, 1.0);
+                    v_norm = in_norm;
+                }
+            ''',
+            fragment_shader='''
+                #version 300 es
+                precision highp float;
 
-        in vec3 v_norm;
+                in vec3 v_norm;
 
-        layout (location = 0) out vec4 out_color;
+                layout (location = 0) out vec4 out_color;
 
-        void main() {
-            vec3 light = vec3(4.0, 3.0, 10.0);
-            float lum = dot(normalize(light), normalize(v_norm)) * 0.7 + 0.3;
-            out_color = vec4(lum, lum, lum, 1.0);
-        }
-    ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-    ],
-    resources=[
-        {
-            'type': 'uniform_buffer',
-            'binding': 0,
-            'buffer': uniform_buffer,
-        },
-    ],
-    framebuffer=[image, depth],
-    topology='triangles',
-    cull_face='back',
-    vertex_buffers=zengl.bind(vertex_buffer, '3f 3f', 0, 1),
-    vertex_count=vertex_buffer.size // zengl.calcsize('3f 3f'),
-)
+                void main() {
+                    vec3 light = vec3(4.0, 3.0, 10.0);
+                    float lum = dot(normalize(light), normalize(v_norm)) * 0.7 + 0.3;
+                    out_color = vec4(lum, lum, lum, 1.0);
+                }
+            ''',
+            layout=[
+                {
+                    'name': 'Common',
+                    'binding': 0,
+                },
+            ],
+            resources=[
+                {
+                    'type': 'uniform_buffer',
+                    'binding': 0,
+                    'buffer': self.uniform_buffer,
+                },
+            ],
+            framebuffer=[self.image, self.depth],
+            topology='triangles',
+            cull_face='back',
+            vertex_buffers=zengl.bind(self.vertex_buffer, '3f 3f', 0, 1),
+            vertex_count=self.vertex_buffer.size // zengl.calcsize('3f 3f'),
+        )
 
-camera = zengl.camera((3.0, 2.0, 2.0), (0.0, 0.0, 0.5), aspect=window.aspect, fov=45.0)
-uniform_buffer.write(camera)
+        self.time = 0.0
 
-while window.update():
-    ctx.new_frame()
-    image.clear()
-    depth.clear()
-    pipeline.render()
-    image.blit()
-    ctx.end_frame()
+    def render(self):
+        self.time += 1.0 / 60.0
+        eye = (math.sin(self.time) + 1.0, 3.0, 2.0)
+        camera = zengl.camera(eye, (0.0, 0.0, 0.5), aspect=self.wnd.aspect_ratio, fov=45.0)
+        self.uniform_buffer.write(camera)
+        self.image.clear()
+        self.depth.clear()
+        self.pipeline.render()
+
+
+class App:
+    def __init__(self):
+        self.wnd = glwindow.get_window()
+        self.ctx = zengl.context(glwindow.get_loader())
+
+        self.scene = Monkey()
+
+    def update(self):
+        self.ctx.new_frame()
+        self.scene.render()
+        self.scene.image.blit()
+        self.ctx.end_frame()
+
+
+if __name__ == '__main__':
+    glwindow.run(App)
