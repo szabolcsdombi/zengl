@@ -1,5 +1,5 @@
-import zengl
 import glwindow
+import zengl
 
 from monkey import Monkey
 

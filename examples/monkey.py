@@ -1,7 +1,7 @@
 import math
 
-import zengl
 import glwindow
+import zengl
 from objloader import Obj
 
 import assets

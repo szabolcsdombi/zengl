@@ -1,10 +1,10 @@
 import glwindow
 import zengl
 
-from zengl_logo import Logo
-from grass import Grass
 from blending import Blending
 from box_grid import BoxGrid
+from grass import Grass
+from zengl_logo import Logo
 
 
 class App:
