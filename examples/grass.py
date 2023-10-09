@@ -17,7 +17,7 @@ def grass_mesh():
 
 
 class Grass:
-    def __init__(self, count, size, samples=4):
+    def __init__(self, size, count, samples=4):
         self.ctx = zengl.context()
         self.image = self.ctx.image(size, 'rgba8unorm', samples=samples)
         self.depth = self.ctx.image(size, 'depth24plus', samples=samples)
@@ -102,7 +102,6 @@ class Grass:
             ],
             framebuffer=[self.image, self.depth],
             topology='triangle_strip',
-            cull_face='back',
             instance_count=count * count,
             vertex_count=15,
         )
@@ -124,7 +123,7 @@ class App:
     def __init__(self):
         self.wnd = glwindow.get_window()
         self.ctx = zengl.context(glwindow.get_loader())
-        self.scene = Grass(200, self.wnd.size)
+        self.scene = Grass(self.wnd.size, 200)
 
     def update(self):
         self.ctx.new_frame()

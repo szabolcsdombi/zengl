@@ -1,153 +1,163 @@
-import struct
 from colorsys import hls_to_rgb
 
+import glwindow
 import numpy as np
 import zengl
 
-from window import Window
 
-window = Window()
-ctx = zengl.context()
-image = ctx.image(window.size, 'rgba8unorm-srgb', samples=4)
-image.clear_value = (0.0, 0.0, 0.0, 1.0)
+def curve_mesh(N=16, M=128):
+    t = np.linspace(0.0, np.pi / 2.0, N, endpoint=False)
 
-N, M = 16, 128
-t = np.linspace(0.0, np.pi / 2.0, N, endpoint=False)
+    sx = np.repeat(-np.cos(t), 2)[1:]
+    sy = np.array([np.sin(t), -np.sin(t)]).T.flatten()[1:]
+    sz = np.zeros(N * 2 - 1)
 
-sx = np.repeat(-np.cos(t), 2)[1:]
-sy = np.array([np.sin(t), -np.sin(t)]).T.flatten()[1:]
-sz = np.zeros(N * 2 - 1)
+    vx = np.zeros(M * 2)
+    vy = np.tile([1.0, -1.0], M)
+    vz = np.repeat(np.linspace(0.0, 1.0, M), 2)
 
-vx = np.zeros(M * 2)
-vy = np.tile([1.0, -1.0], M)
-vz = np.repeat(np.linspace(0.0, 1.0, M), 2)
+    x = np.concatenate([sx, vx, -sx[::-1]])
+    y = np.concatenate([sy, vy, -sy[::-1]])
+    z = np.concatenate([sz, vz, sz + 1.0])
 
-x = np.concatenate([sx, vx, -sx[::-1]])
-y = np.concatenate([sy, vy, -sy[::-1]])
-z = np.concatenate([sz, vz, sz + 1.0])
+    return np.array([x, y, z]).T.astype('f4').tobytes()
 
-instance_count = 32
-curves = []
 
-for i in range(instance_count):
-    w, h = window.size
-    a = np.random.uniform(0.0, np.pi * 2.0)
-    b = a + np.pi + np.random.uniform(-0.5, 0.5)
-    c = np.random.uniform(0.0, np.pi * 2.0)
-    d = np.random.uniform(0.0, np.pi * 2.0)
-    x1, y1 = np.cos(a) * 300.0 + w / 2.0, np.sin(a) * 300.0 + h / 2.0
-    x2, y2 = np.cos(b) * 300.0 + w / 2.0, np.sin(b) * 300.0 + h / 2.0
-    x3, y3 = np.cos(c) * 150.0 + w / 2.0 - x1, np.sin(c) * 150.0 + h / 2.0 - y1
-    x4, y4 = x2 - (np.cos(d) * 150.0 + w / 2.0), y2 - (np.sin(d) * 150.0 + h / 2.0)
-    r, g, b = hls_to_rgb(np.random.uniform(0.0, 1.0), 0.3, 1.0)
-    s = np.random.uniform(5.0, 15.0)
-    curves.append([
-        x1, y1, x3, y3,
-        x2, y2, x4, y4,
-        r, g, b, s,
-    ])
+class Curves:
+    def __init__(self, center, scale, instance_count=32):
+        curves = []
+        for _ in range(instance_count):
+            a = np.random.uniform(0.0, np.pi * 2.0)
+            b = a + np.pi + np.random.uniform(-0.5, 0.5)
+            c = np.random.uniform(0.0, np.pi * 2.0)
+            d = np.random.uniform(0.0, np.pi * 2.0)
+            x1, y1 = np.cos(a) * scale + center[0], np.sin(a) * scale + center[1]
+            x2, y2 = np.cos(b) * scale + center[0], np.sin(b) * scale + center[1]
+            x3, y3 = np.cos(c) * scale * 0.5 + center[0] - x1, np.sin(c) * scale * 0.5 + center[1] - y1
+            x4, y4 = x2 - (np.cos(d) * scale * 0.5 + center[0]), y2 - (np.sin(d) * scale * 0.5 + center[1])
+            r, g, b = hls_to_rgb(np.random.uniform(0.0, 1.0), 0.3, 1.0)
+            s = np.random.uniform(5.0, 15.0) * scale / 300.0
+            curves.append([
+                x1, y1, x3, y3,
+                x2, y2, x4, y4,
+                r, g, b, s,
+            ])
 
-offset = np.random.uniform(0.0, np.pi * 2.0, (4, instance_count))
-curves = np.array(curves, 'f4')
+        self.scale = scale
+        self.instance_count = instance_count
+        self.offset = np.random.uniform(0.0, np.pi * 2.0, (4, instance_count)).astype('f4')
+        self.curves = np.array(curves, 'f4')
 
-vertex_buffer = ctx.buffer(np.array([x, y, z]).T.astype('f4').tobytes())
-instance_buffer = ctx.buffer(curves)
-uniform_buffer = ctx.buffer(size=16)
+    def instances(self, time):
+        return self.curves + np.array([
+            np.sin(self.offset[0] + time) * self.scale / 30.0,
+            np.cos(self.offset[0] + time) * self.scale / 30.0,
+            np.sin(self.offset[1] + time) * self.scale / 6.0,
+            np.cos(self.offset[1] + time) * self.scale / 6.0,
+            np.sin(self.offset[2] + time) * self.scale / 30.0,
+            np.cos(self.offset[2] + time) * self.scale / 30.0,
+            np.sin(self.offset[3] + time) * self.scale / 6.0,
+            np.cos(self.offset[3] + time) * self.scale / 6.0,
+            *np.zeros((4, self.instance_count), 'f4'),
+        ], 'f4').T
 
-pipeline = ctx.pipeline(
-    vertex_shader='''
-        #version 300 es
-        precision highp float;
 
-        layout (std140) uniform Common {
-            vec2 screen_size;
-        };
+class BezierCurves:
+    def __init__(self, size, samples=4):
+        self.ctx = zengl.context()
+        self.curves = Curves((size[0] / 2.0, size[1] / 2.0), min(size) * 0.4)
 
-        layout (location = 0) in vec3 in_vert;
+        self.image = self.ctx.image(size, 'rgba8unorm', samples=samples)
 
-        layout (location = 1) in vec4 in_a;
-        layout (location = 2) in vec4 in_b;
-        layout (location = 3) in vec4 in_color_and_size;
+        self.vertex_buffer = self.ctx.buffer(curve_mesh())
+        self.instance_buffer = self.ctx.buffer(self.curves.instances(0.0))
 
-        out vec3 v_color;
+        self.pipeline = self.ctx.pipeline(
+            vertex_shader='''
+                #version 300 es
+                precision highp float;
 
-        void main() {
-            float t = in_vert.z;
-            vec2 A = in_a.xy;
-            vec2 B = in_a.xy + in_a.zw;
-            vec2 C = in_b.xy - in_b.zw;
-            vec2 D = in_b.xy;
-            vec2 E = B - A;
-            vec2 F = C - B;
-            vec2 G = D - C;
-            vec2 H = A + E * t;
-            vec2 I = B + F * t;
-            vec2 J = C + G * t;
-            vec2 K = H + (I - H) * t;
-            vec2 L = I + (J - I) * t;
-            vec2 M = K + (L - K) * t;
-            vec2 N = E + (F - E) * t;
-            vec2 O = F + (G - F) * t;
-            vec2 P = N + (O - N) * t;
-            vec2 n = normalize(P);
-            mat2 basis = mat2(n, vec2(-n.y, n.x));
-            vec2 vert = M + basis * in_vert.xy * in_color_and_size.w;
-            gl_Position = vec4((vert / screen_size) * 2.0 - 1.0, 0.0, 1.0);
-            v_color = in_color_and_size.rgb;
-        }
-    ''',
-    fragment_shader='''
-        #version 300 es
-        precision highp float;
+                #include "screen_size"
 
-        in vec3 v_color;
+                layout (location = 0) in vec3 in_vert;
 
-        layout (location = 0) out vec4 out_color;
+                layout (location = 1) in vec4 in_a;
+                layout (location = 2) in vec4 in_b;
+                layout (location = 3) in vec4 in_color_and_size;
 
-        void main() {
-            out_color = vec4(v_color, 1.0);
-        }
-    ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-    ],
-    resources=[
-        {
-            'type': 'uniform_buffer',
-            'binding': 0,
-            'buffer': uniform_buffer,
-        },
-    ],
-    framebuffer=[image],
-    topology='triangle_strip',
-    vertex_buffers=[
-        *zengl.bind(vertex_buffer, '3f', 0),
-        *zengl.bind(instance_buffer, '4f 4f 4f /i', 1, 2, 3),
-    ],
-    vertex_count=vertex_buffer.size // zengl.calcsize('3f'),
-    instance_count=instance_count,
-)
+                out vec3 v_color;
 
-uniform_buffer.write(struct.pack('=ff8x', *window.size))
+                void main() {
+                    float t = in_vert.z;
+                    vec2 A = in_a.xy;
+                    vec2 B = in_a.xy + in_a.zw;
+                    vec2 C = in_b.xy - in_b.zw;
+                    vec2 D = in_b.xy;
+                    vec2 E = B - A;
+                    vec2 F = C - B;
+                    vec2 G = D - C;
+                    vec2 H = A + E * t;
+                    vec2 I = B + F * t;
+                    vec2 J = C + G * t;
+                    vec2 K = H + (I - H) * t;
+                    vec2 L = I + (J - I) * t;
+                    vec2 M = K + (L - K) * t;
+                    vec2 N = E + (F - E) * t;
+                    vec2 O = F + (G - F) * t;
+                    vec2 P = N + (O - N) * t;
+                    vec2 n = normalize(P);
+                    mat2 basis = mat2(n, vec2(-n.y, n.x));
+                    vec2 vert = M + basis * in_vert.xy * in_color_and_size.w;
+                    gl_Position = vec4((vert / screen_size) * 2.0 - 1.0, 0.0, 1.0);
+                    v_color = in_color_and_size.rgb;
+                }
+            ''',
+            fragment_shader='''
+                #version 300 es
+                precision highp float;
 
-initial = curves.copy()
+                in vec3 v_color;
 
-while window.update():
-    t = window.time
-    curves[:, 0] = initial[:, 0] + np.sin(offset[0] + t) * 10.0
-    curves[:, 1] = initial[:, 1] + np.cos(offset[0] + t) * 10.0
-    curves[:, 2] = initial[:, 2] + np.sin(offset[1] + t) * 50.0
-    curves[:, 3] = initial[:, 3] + np.cos(offset[1] + t) * 50.0
-    curves[:, 4] = initial[:, 4] + np.sin(offset[2] + t) * 10.0
-    curves[:, 5] = initial[:, 5] + np.cos(offset[2] + t) * 10.0
-    curves[:, 6] = initial[:, 6] - np.sin(offset[3] + t) * 50.0
-    curves[:, 7] = initial[:, 7] - np.cos(offset[3] + t) * 50.0
-    ctx.new_frame()
-    instance_buffer.write(curves)
-    image.clear()
-    pipeline.render()
-    image.blit()
-    ctx.end_frame()
+                layout (location = 0) out vec4 out_color;
+
+                void main() {
+                    out_color = vec4(pow(v_color, vec3(1.0 / 2.2)), 1.0);
+                }
+            ''',
+            includes={
+                'screen_size': f'vec2 screen_size = vec2({float(size[0])}, {float(size[1])});',
+            },
+            framebuffer=[self.image],
+            topology='triangle_strip',
+            vertex_buffers=[
+                *zengl.bind(self.vertex_buffer, '3f', 0),
+                *zengl.bind(self.instance_buffer, '4f 4f 4f /i', 1, 2, 3),
+            ],
+            vertex_count=self.vertex_buffer.size // zengl.calcsize('3f'),
+            instance_count=self.curves.instance_count,
+        )
+
+        self.time = 0.0
+
+    def render(self):
+        self.time += 1.0 / 60.0
+        self.instance_buffer.write(self.curves.instances(self.time))
+        self.image.clear()
+        self.pipeline.render()
+
+
+class App:
+    def __init__(self):
+        self.wnd = glwindow.get_window()
+        self.ctx = zengl.context(glwindow.get_loader())
+        self.scene = BezierCurves(self.wnd.size)
+
+    def update(self):
+        self.ctx.new_frame()
+        self.scene.render()
+        self.scene.image.blit()
+        self.ctx.end_frame()
+
+
+if __name__ == '__main__':
+    glwindow.run(App)

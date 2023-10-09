@@ -1,9 +1,8 @@
 import glwindow
 import zengl
-
 from blending import Blending
-from box_grid import BoxGrid
 from grass import Grass
+from wireframe_terrain import WireframeTerrain
 from zengl_logo import Logo
 
 
@@ -13,8 +12,8 @@ class App:
         self.half_size = self.wnd.size[0] // 2, self.wnd.size[1] // 2
         self.ctx = zengl.context(glwindow.get_loader())
         self.scene1 = Logo(self.half_size)
-        self.scene2 = BoxGrid(self.half_size)
-        self.scene3 = Grass(100, self.half_size)
+        self.scene2 = WireframeTerrain(self.half_size)
+        self.scene3 = Grass(self.half_size, 100)
         self.scene4 = Blending(self.half_size)
 
     def update(self):

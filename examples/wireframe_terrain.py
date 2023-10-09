@@ -1,7 +1,8 @@
+import math
+
+import glwindow
 import numpy as np
 import zengl
-
-from window import Window
 
 
 def create_terrain(size):
@@ -20,75 +21,91 @@ def create_terrain(size):
     A, B = np.meshgrid(np.arange(size + 1), np.arange(size))
     Q = np.concatenate([A + B * size, A * size + B])
     Q[:, -1] = -1
+
     return P.astype('f4').tobytes(), Q.astype('i4').tobytes()
 
 
-vertex_data, index_data = create_terrain(64)
+class WireframeTerrain:
+    def __init__(self, size, samples=4):
+        self.ctx = zengl.context()
+        self.image = self.ctx.image(size, 'rgba8unorm', samples=samples)
+        self.depth = self.ctx.image(size, 'depth24plus', samples=samples)
 
-window = Window()
-ctx = zengl.context()
+        vertex_data, index_data = create_terrain(64)
+        self.vertex_buffer = self.ctx.buffer(vertex_data)
+        self.index_buffer = self.ctx.buffer(index_data)
 
-image = ctx.image(window.size, 'rgba8unorm', samples=4)
-depth = ctx.image(window.size, 'depth24plus', samples=4)
-image.clear_value = (1.0, 1.0, 1.0, 1.0)
+        self.uniform_buffer = self.ctx.buffer(size=64)
+        self.pipeline = self.ctx.pipeline(
+            vertex_shader='''
+                #version 300 es
+                precision highp float;
 
-vertex_buffer = ctx.buffer(vertex_data)
-index_buffer = ctx.buffer(index_data)
+                layout (std140) uniform Common {
+                    mat4 mvp;
+                };
 
-uniform_buffer = ctx.buffer(size=64)
+                layout (location = 0) in vec3 in_vert;
 
-terrain = ctx.pipeline(
-    vertex_shader='''
-        #version 300 es
-        precision highp float;
+                void main() {
+                    gl_Position = mvp * vec4(in_vert, 1.0);
+                }
+            ''',
+            fragment_shader='''
+                #version 300 es
+                precision highp float;
 
-        layout (std140) uniform Common {
-            mat4 mvp;
-        };
+                layout (location = 0) out vec4 out_color;
 
-        layout (location = 0) in vec3 in_vert;
+                void main() {
+                    out_color = vec4(1.0, 1.0, 1.0, 1.0);
+                }
+            ''',
+            layout=[
+                {
+                    'name': 'Common',
+                    'binding': 0,
+                },
+            ],
+            resources=[
+                {
+                    'type': 'uniform_buffer',
+                    'binding': 0,
+                    'buffer': self.uniform_buffer,
+                },
+            ],
+            framebuffer=[self.image, self.depth],
+            topology='line_strip',
+            vertex_buffers=zengl.bind(self.vertex_buffer, '3f', 0),
+            index_buffer=self.index_buffer,
+            vertex_count=self.index_buffer.size // 4,
+        )
 
-        void main() {
-            gl_Position = mvp * vec4(in_vert, 1.0);
-        }
-    ''',
-    fragment_shader='''
-        #version 300 es
-        precision highp float;
+        self.aspect = size[0] / size[1]
+        self.time = 0.0
 
-        layout (location = 0) out vec4 out_color;
+    def render(self):
+        self.time += 1.0 / 60.0
+        eye = (math.cos(self.time * 0.3) * 3.0, math.sin(self.time * 0.3) * 3.0, 1.5)
+        camera = zengl.camera(eye, (0.0, 0.0, 0.0), aspect=self.aspect, fov=45.0)
+        self.uniform_buffer.write(camera)
+        self.image.clear()
+        self.depth.clear()
+        self.pipeline.render()
 
-        void main() {
-            out_color = vec4(0.0, 0.0, 0.0, 1.0);
-        }
-    ''',
-    layout=[
-        {
-            'name': 'Common',
-            'binding': 0,
-        },
-    ],
-    resources=[
-        {
-            'type': 'uniform_buffer',
-            'binding': 0,
-            'buffer': uniform_buffer,
-        },
-    ],
-    framebuffer=[image, depth],
-    topology='line_strip',
-    vertex_buffers=zengl.bind(vertex_buffer, '3f', 0),
-    index_buffer=index_buffer,
-    vertex_count=index_buffer.size // 4,
-)
 
-camera = zengl.camera((3.0, 2.0, 2.0), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
-uniform_buffer.write(camera)
+class App:
+    def __init__(self):
+        self.wnd = glwindow.get_window()
+        self.ctx = zengl.context(glwindow.get_loader())
+        self.scene = WireframeTerrain(self.wnd.size)
 
-while window.update():
-    ctx.new_frame()
-    image.clear()
-    depth.clear()
-    terrain.render()
-    image.blit()
-    ctx.end_frame()
+    def update(self):
+        self.ctx.new_frame()
+        self.scene.render()
+        self.scene.image.blit()
+        self.ctx.end_frame()
+
+
+if __name__ == '__main__':
+    glwindow.run(App)
