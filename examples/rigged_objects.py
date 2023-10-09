@@ -124,7 +124,8 @@ ctx.includes['qtransform'] = '''
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         #include "qtransform"
 
@@ -156,7 +157,8 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         in vec3 v_norm;
         in vec3 v_color;

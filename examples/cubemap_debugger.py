@@ -22,7 +22,8 @@ temp_depth = ctx.image(size, 'depth24plus')
 
 cube = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         uniform vec2 view;
 
@@ -97,7 +98,8 @@ cube = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         uniform samplerCube Texture;
 
@@ -133,7 +135,8 @@ cube = ctx.pipeline(
 
 flat = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         vec2 positions[3] = vec2[](
             vec2(-1.0, -1.0),
@@ -149,7 +152,8 @@ flat = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         uniform samplerCube Texture;
 
@@ -219,7 +223,8 @@ def cubemap_face_pipeline(face):
     image_face = texture.face(layer=face)
     pipeline = ctx.pipeline(
         vertex_shader='''
-            #version 330 core
+            #version 300 es
+            precision highp float;
 
             const float znear = 0.1;
             const float zfar = 100.0;
@@ -250,7 +255,8 @@ def cubemap_face_pipeline(face):
             }
         ''',
         fragment_shader='''
-            #version 330 core
+            #version 300 es
+            precision highp float;
 
             in vec3 v_vert;
             in vec3 v_norm;

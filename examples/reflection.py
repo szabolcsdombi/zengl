@@ -21,7 +21,8 @@ uniform_buffer = ctx.buffer(size=80)
 
 monkey = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -38,7 +39,8 @@ monkey = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         in vec3 v_norm;
 
@@ -72,7 +74,8 @@ monkey = ctx.pipeline(
 
 monkey_reflection = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -89,7 +92,8 @@ monkey_reflection = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         in vec3 v_norm;
 
@@ -123,7 +127,8 @@ monkey_reflection = ctx.pipeline(
 
 monkey_shadow = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -137,7 +142,8 @@ monkey_shadow = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         layout (location = 0) out vec4 out_color;
 
@@ -187,7 +193,8 @@ monkey_shadow = ctx.pipeline(
 
 plane = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -205,7 +212,8 @@ plane = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         layout (location = 0) out vec4 out_color;
 

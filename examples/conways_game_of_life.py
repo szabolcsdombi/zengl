@@ -12,10 +12,11 @@ temp = ctx.image(window.size, 'rgba8unorm')
 
 scene = ctx.pipeline(
     includes={
-        'size': f'ivec2 SIZE = ivec2({width, height});',
+        'size': f'ivec2 SIZE = ivec2({width}, {height});',
     },
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         vec2 positions[3] = vec2[](
             vec2(-1.0, -1.0),
@@ -28,7 +29,8 @@ scene = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         uniform sampler2D Texture;
 

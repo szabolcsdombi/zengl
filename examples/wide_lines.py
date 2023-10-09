@@ -35,7 +35,8 @@ vertex_buffers = [
 def build_pipeline(vertex_buffer):
     return ctx.pipeline(
         vertex_shader='''
-            #version 330 core
+            #version 300 es
+            precision highp float;
 
             layout (std140) uniform Common {
                 mat4 mvp;
@@ -48,7 +49,8 @@ def build_pipeline(vertex_buffer):
             }
         ''',
         fragment_shader='''
-            #version 330 core
+            #version 300 es
+            precision highp float;
 
             layout (location = 0) out vec4 out_color;
 

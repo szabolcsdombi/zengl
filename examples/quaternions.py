@@ -42,7 +42,8 @@ ctx.includes['qtransform'] = '''
 
 shape = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         #include "qtransform"
 
@@ -64,7 +65,8 @@ shape = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         in vec3 v_norm;
 

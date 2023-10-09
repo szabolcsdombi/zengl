@@ -35,7 +35,8 @@ ctx.includes['grass'] = grass_mesh()
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         #include "N"
         #include "grass"
@@ -62,10 +63,10 @@ pipeline = ctx.pipeline(
         void main() {
             vec3 v = grass[gl_VertexID];
             vec4 data = hash41(float(gl_InstanceID));
-            vec2 cell = vec2(gl_InstanceID % N, gl_InstanceID / N);
+            vec2 cell = vec2(float(gl_InstanceID % N), float(gl_InstanceID / N));
             float height = (sin(cell.x * 0.1) + cos(cell.y * 0.1)) * 0.2;
-            float scale = 0.9 + hash11(gl_InstanceID) * 0.2;
-            data.xy = (data.xy + cell - N / 2) * 0.1;
+            float scale = 0.9 + hash11(float(gl_InstanceID)) * 0.2;
+            data.xy = (data.xy + cell - float(N / 2)) * 0.1;
             data.z *= 6.283184;
             vec3 vert = vec3(
                 data.x + cos(data.z) * v.x + sin(data.z) * v.y,
@@ -78,7 +79,8 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         in vec2 v_data;
 

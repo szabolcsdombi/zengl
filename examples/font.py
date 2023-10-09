@@ -56,7 +56,8 @@ ctx.includes['font_size'] = 'const vec2 font_size = vec2(32.0, 32.0);'
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         #include "screen_size"
         #include "font_size"
@@ -81,7 +82,8 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         in vec3 v_texcoord;
 

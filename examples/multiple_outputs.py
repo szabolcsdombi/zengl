@@ -13,7 +13,8 @@ image2.clear_value = (1.0, 1.0, 1.0, 1.0)
 
 triangle = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         out vec3 v_color;
 
@@ -35,7 +36,8 @@ triangle = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         in vec3 v_color;
 

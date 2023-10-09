@@ -25,7 +25,8 @@ uniform_buffer = ctx.buffer(size=80)
 
 triangle = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         out vec3 v_color;
 
@@ -47,7 +48,8 @@ triangle = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         in vec3 v_color;
 
@@ -64,7 +66,8 @@ triangle = ctx.pipeline(
 
 crate = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         uniform Common {
             mat4 mvp;
@@ -87,7 +90,8 @@ crate = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         uniform Common {
             mat4 mvp;

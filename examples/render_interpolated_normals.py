@@ -19,7 +19,8 @@ uniform_buffer = ctx.buffer(size=64)
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -36,7 +37,8 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         in vec3 v_norm;
 
@@ -96,7 +98,8 @@ index_buffer = ctx.buffer(np.array([
 
 wireframe = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -109,7 +112,8 @@ wireframe = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         layout (location = 0) out vec4 out_color;
 
@@ -140,7 +144,8 @@ wireframe = ctx.pipeline(
 
 normals = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -162,7 +167,8 @@ normals = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         layout (location = 0) out vec4 out_color;
 

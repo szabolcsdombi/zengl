@@ -102,7 +102,8 @@ uniform_buffer = ctx.buffer(size=80)
 
 shape = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -119,7 +120,8 @@ shape = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         in vec3 v_norm;
 

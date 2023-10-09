@@ -9,7 +9,8 @@ image = ctx.image(window.size, 'rgba8unorm', samples=4)
 
 background = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         vec2 positions[3] = vec2[](
             vec2(-1.0, -1.0),
@@ -22,7 +23,8 @@ background = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         layout (location = 0) out vec4 out_color;
 

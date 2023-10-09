@@ -29,7 +29,8 @@ def face_pipeline(face):
 
     return ctx.pipeline(
         vertex_shader='''
-            #version 330 core
+            #version 300 es
+            precision highp float;
 
             vec2 vertices[3] = vec2[](
                 vec2(-1.0, -1.0),
@@ -45,7 +46,8 @@ def face_pipeline(face):
             }
         ''',
         fragment_shader='''
-            #version 330 core
+            #version 300 es
+            precision highp float;
 
             #include "uv_to_dir"
 

@@ -4,7 +4,8 @@ import zengl
 def grid_pipeline(ctx: zengl.Pipeline, framebuffer):
     return ctx.pipeline(
         vertex_shader='''
-            #version 330 core
+            #version 300 es
+            precision highp float;
 
             #include "defaults"
 
@@ -19,7 +20,8 @@ def grid_pipeline(ctx: zengl.Pipeline, framebuffer):
             }
         ''',
         fragment_shader='''
-            #version 330 core
+            #version 300 es
+            precision highp float;
 
             layout (location = 0) out vec4 out_color;
 

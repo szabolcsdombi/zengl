@@ -53,7 +53,8 @@ ctx.includes['qtransform'] = '''
 
 crate = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         #include "qtransform"
 
@@ -80,7 +81,8 @@ crate = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         layout (std140) uniform Common {
             mat4 mvp;

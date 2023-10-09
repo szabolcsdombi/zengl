@@ -112,7 +112,8 @@ ctx.includes['qtransform'] = '''
 
 cube = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         #include "N"
         #include "qtransform"
@@ -141,14 +142,15 @@ cube = ctx.pipeline(
             float x = float(gl_InstanceID % N) - float(N - 1) / 2.0;
             float y = float(gl_InstanceID / N % N) - float(N - 1) / 2.0;
             float z = float(gl_InstanceID / N / N % N) - float(N - 1) / 2.0;
-            v_vertex = qtransform(rotations[gl_InstanceID], (in_vertex + vec3(x, y, z)) / N);
+            v_vertex = qtransform(rotations[gl_InstanceID], (in_vertex + vec3(x, y, z)) / float(N));
             v_normal = qtransform(rotations[gl_InstanceID], in_normal);
             v_color = colors[gl_InstanceID * 7 + int(in_color)].rgb;
             gl_Position = mvp * vec4(v_vertex, 1.0);
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         in vec3 v_vertex;
         in vec3 v_normal;

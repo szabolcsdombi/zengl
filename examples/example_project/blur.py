@@ -23,7 +23,8 @@ class Blur:
 
         self.blur_x = ctx.pipeline(
             vertex_shader='''
-                #version 330 core
+                #version 300 es
+                precision highp float;
 
                 vec2 positions[3] = vec2[](
                     vec2(-1.0, -1.0),
@@ -36,7 +37,8 @@ class Blur:
                 }
             ''',
             fragment_shader='''
-                #version 330 core
+                #version 300 es
+                precision highp float;
 
                 uniform sampler2D Texture;
 
@@ -72,7 +74,8 @@ class Blur:
 
         self.blur_y = ctx.pipeline(
             vertex_shader='''
-                #version 330 core
+                #version 300 es
+                precision highp float;
 
                 vec2 positions[3] = vec2[](
                     vec2(-1.0, -1.0),
@@ -85,7 +88,8 @@ class Blur:
                 }
             ''',
             fragment_shader='''
-                #version 330 core
+                #version 300 es
+                precision highp float;
 
                 uniform sampler2D Texture;
 

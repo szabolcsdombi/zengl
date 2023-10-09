@@ -31,7 +31,8 @@ uniform_buffer = ctx.buffer(size=64)
 
 depth_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -46,7 +47,8 @@ depth_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         void main() {
         }
@@ -73,7 +75,8 @@ depth_pipeline = ctx.pipeline(
 
 texture_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         layout (location = 0) in vec3 in_vertex;
         layout (location = 1) in vec2 in_texcoord;
@@ -86,7 +89,9 @@ texture_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
+        precision highp int;
 
         #include "samples"
 
@@ -104,7 +109,7 @@ texture_pipeline = ctx.pipeline(
             vec4 vertex = mvp * vec4(v_vertex, 1.0);
             vertex.xyz = vertex.xyz / vertex.w * 0.5 + 0.5;
             float lum = texture(DepthTexture, vertex.xyz);
-            out_color = vec4(vec3(lum) / samples, 1.0);
+            out_color = vec4(vec3(lum) / float(samples), 1.0);
         }
     ''',
     layout=[
@@ -144,7 +149,8 @@ texture_pipeline = ctx.pipeline(
 
 fill_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         vec2 positions[3] = vec2[](
             vec2(-1.0, -1.0),
@@ -157,7 +163,8 @@ fill_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         uniform sampler2D Texture;
 
@@ -187,7 +194,7 @@ fill_pipeline = ctx.pipeline(
                     color += temp;
                 }
                 if (count > 0) {
-                    color /= count;
+                    color /= float(count);
                 }
             }
             out_color = color;
@@ -213,7 +220,8 @@ fill_pipeline = ctx.pipeline(
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -232,7 +240,8 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         uniform sampler2D Texture;
 

@@ -15,7 +15,8 @@ class SimpleModel:
     def pipeline(self, object_state_resource, framebuffer: List[zengl.Image]):
         return self.ctx.pipeline(
             vertex_shader='''
-                #version 330 core
+                #version 300 es
+                precision highp float;
 
                 #include "main_uniform_buffer"
 
@@ -34,7 +35,8 @@ class SimpleModel:
                 }
             ''',
             fragment_shader='''
-                #version 330 core
+                #version 300 es
+                precision highp float;
 
                 in vec3 v_norm;
 

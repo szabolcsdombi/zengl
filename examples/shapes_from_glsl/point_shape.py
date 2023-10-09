@@ -17,7 +17,8 @@ grid = grid_pipeline(ctx, [image, depth])
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         #include "defaults"
 
@@ -83,7 +84,8 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         #include "defaults"
 

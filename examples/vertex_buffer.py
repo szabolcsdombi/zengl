@@ -16,7 +16,8 @@ vertex_buffer = ctx.buffer(np.array([
 
 triangle = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         layout (location = 0) in vec2 in_vert;
         layout (location = 1) in vec3 in_color;
@@ -29,7 +30,8 @@ triangle = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         in vec3 v_color;
 

@@ -30,7 +30,8 @@ ctx.includes['size'] = f'const int size = {size};'
 
 texcoord_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -48,7 +49,9 @@ texcoord_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
+        precision highp int;
 
         #include "size"
 
@@ -57,8 +60,8 @@ texcoord_pipeline = ctx.pipeline(
         layout (location = 0) out int out_address;
 
         void main() {
-            int tx = int(v_texcoord.x * size + 0.5);
-            int ty = int(v_texcoord.y * size + 0.5);
+            int tx = int(v_texcoord.x * float(size) + 0.5);
+            int ty = int(v_texcoord.y * float(size) + 0.5);
             out_address = ty * size + tx;
         }
     ''',
@@ -111,7 +114,8 @@ Image.fromarray((ao.reshape(size, size) * 255.0).astype('u1'), 'L').save('genera
 
 render_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -131,7 +135,8 @@ render_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         uniform sampler2D Texture;
 

@@ -25,7 +25,8 @@ vertex_buffer = ctx.buffer(np.array([
 
 triangle = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         layout (std140) uniform Common {
             vec2 scale;
@@ -38,14 +39,15 @@ triangle = ctx.pipeline(
         out vec4 v_color;
 
         void main() {
-            float r = rotation * (0.5 + gl_InstanceID * 0.05);
+            float r = rotation * (0.5 + float(gl_InstanceID) * 0.05);
             mat2 rot = mat2(cos(r), sin(r), -sin(r), cos(r));
             gl_Position = vec4((rot * in_vert) * scale, 0.0, 1.0);
             v_color = in_color;
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         in vec4 v_color;
 

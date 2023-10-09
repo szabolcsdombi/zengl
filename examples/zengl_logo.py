@@ -13,7 +13,8 @@ image.clear_value = (0.005, 0.005, 0.005, 0.0)
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         mat4 perspective(float fovy, float aspect, float znear, float zfar) {
             float tan_half_fovy = tan(fovy * 0.008726646259971647884618453842);
@@ -73,7 +74,8 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         in vec3 v_vertex;
         in vec3 v_color;

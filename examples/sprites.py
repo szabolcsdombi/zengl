@@ -36,7 +36,8 @@ ctx.includes['screen_size'] = f'const vec2 screen_size = vec2({width}, {height})
 
 triangle = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         #include "screen_size"
 
@@ -62,7 +63,8 @@ triangle = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         in vec3 v_texcoord;
 

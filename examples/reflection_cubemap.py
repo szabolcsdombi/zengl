@@ -22,7 +22,8 @@ class Cubemap:
         row = [
             ctx.pipeline(
                 vertex_shader='''
-                    #version 330 core
+                    #version 300 es
+                    precision highp float;
 
                     const float znear = 0.1;
                     const float zfar = 100.0;
@@ -53,7 +54,8 @@ class Cubemap:
                     }
                 ''',
                 fragment_shader='''
-                    #version 330 core
+                    #version 300 es
+                    precision highp float;
 
                     in vec3 v_vertex;
                     in vec3 v_normal;
@@ -99,7 +101,8 @@ class Scene:
     def pipeline(self, vertex_buffer, reflecting):
         self.pipelines.append(ctx.pipeline(
             vertex_shader='''
-                #version 330 core
+                #version 300 es
+                precision highp float;
 
                 layout (std140) uniform Common {
                     mat4 mvp;
@@ -119,7 +122,8 @@ class Scene:
                 }
             ''',
             fragment_shader='''
-                #version 330 core
+                #version 300 es
+                precision highp float;
 
                 layout (std140) uniform Common {
                     mat4 mvp;

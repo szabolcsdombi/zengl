@@ -11,9 +11,9 @@ from window import Window
 window = Window()
 ctx = zengl.context()
 
-query = ctypes.c_uint32()
-query_result = ctypes.c_uint32()
-GL.glGenQueries(1, ctypes.byref(query))
+# query = ctypes.c_uint32()
+# query_result = ctypes.c_uint32()
+query = GL.glGenQueries(1)[0]
 
 image = ctx.image(window.size, 'rgba8unorm', samples=4)
 image.clear_value = (1.0, 1.0, 1.0, 1.0)
@@ -22,7 +22,8 @@ uniform_buffer = ctx.buffer(size=16)
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         layout (std140) uniform Common {
             vec2 scale;
@@ -39,7 +40,8 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         layout (location = 0) out vec4 out_color;
 
@@ -74,8 +76,8 @@ while window.update():
     GL.glBeginQuery(GL.GL_SAMPLES_PASSED, query)
     pipeline.render()
     GL.glEndQuery(GL.GL_SAMPLES_PASSED)
-    GL.glGetQueryObjectuiv(query, GL.GL_QUERY_RESULT, ctypes.byref(query_result))
-    bar.max = max(bar.max, query_result.value)
-    bar.goto(query_result.value)
+    query_result = GL.glGetQueryObjectuiv(query, GL.GL_QUERY_RESULT)
+    bar.max = max(bar.max, query_result)
+    bar.goto(query_result)
     image.blit()
     ctx.end_frame()

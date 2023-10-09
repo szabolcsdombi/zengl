@@ -67,8 +67,8 @@ ctx.includes['surface'] = '''
         vec3 v = vec3(0.0, 0.0, 0.0);
         for (int i = 0; i < 4; ++i) {
             for (int j = 0; j < 4; ++j) {
-                float Bi = c4[i] * safe_pow(uv.x, i) * safe_pow(1.0 - uv.x, 3 - i);
-                float Bj = c4[j] * safe_pow(uv.y, j) * safe_pow(1.0 - uv.y, 3 - j);
+                float Bi = c4[i] * safe_pow(uv.x, float(i)) * safe_pow(1.0 - uv.x, float(3 - i));
+                float Bj = c4[j] * safe_pow(uv.y, float(j)) * safe_pow(1.0 - uv.y, float(3 - j));
                 v += point(i, j) * Bi * Bj;
             }
         }
@@ -78,8 +78,8 @@ ctx.includes['surface'] = '''
         vec3 v = vec3(0.0, 0.0, 0.0);
         for (int i = 0; i < 3; ++i) {
             for (int j = 0; j < 4; ++j) {
-                float Bi = c3[i] * safe_pow(uv.x, i) * safe_pow(1.0 - uv.x, 2 - i);
-                float Bj = c4[j] * safe_pow(uv.y, j) * safe_pow(1.0 - uv.y, 3 - j);
+                float Bi = c3[i] * safe_pow(uv.x, float(i)) * safe_pow(1.0 - uv.x, float(2 - i));
+                float Bj = c4[j] * safe_pow(uv.y, float(j)) * safe_pow(1.0 - uv.y, float(3 - j));
                 v += tangent(i, j) * Bi * Bj;
             }
         }
@@ -89,8 +89,8 @@ ctx.includes['surface'] = '''
         vec3 v = vec3(0.0, 0.0, 0.0);
         for (int i = 0; i < 4; ++i) {
             for (int j = 0; j < 3; ++j) {
-                float Bi = c4[i] * safe_pow(uv.x, i) * safe_pow(1.0 - uv.x, 3 - i);
-                float Bj = c3[j] * safe_pow(uv.y, j) * safe_pow(1.0 - uv.y, 2 - j);
+                float Bi = c4[i] * safe_pow(uv.x, float(i)) * safe_pow(1.0 - uv.x, float(3 - i));
+                float Bj = c3[j] * safe_pow(uv.y, float(j)) * safe_pow(1.0 - uv.y, float(2 - j));
                 v += bitangent(i, j) * Bi * Bj;
             }
         }
@@ -128,7 +128,8 @@ ctx.includes['blinn_phong'] = '''
 
 surface_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         #include "common"
         #include "surface"
@@ -147,7 +148,8 @@ surface_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         #include "common"
         #include "blinn_phong"
@@ -197,7 +199,8 @@ surface_pipeline = ctx.pipeline(
 
 surface_wire_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         #include "common"
         #include "surface"
@@ -212,7 +215,8 @@ surface_wire_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         in vec3 v_vertex;
 
@@ -255,7 +259,8 @@ surface_wire_pipeline = ctx.pipeline(
 
 points_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         #include "common"
         #include "surface"
@@ -329,7 +334,8 @@ points_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         #include "common"
 
@@ -374,7 +380,8 @@ points_pipeline = ctx.pipeline(
 
 lines_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         #include "common"
         #include "surface"
@@ -467,7 +474,8 @@ lines_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         #include "common"
 
@@ -512,7 +520,8 @@ lines_pipeline = ctx.pipeline(
 
 points_pipeline_seethrough = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         #include "common"
         #include "surface"
@@ -586,7 +595,8 @@ points_pipeline_seethrough = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         #include "common"
 
@@ -641,7 +651,8 @@ points_pipeline_seethrough = ctx.pipeline(
 
 lines_pipeline_seethrough = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         #include "common"
         #include "surface"
@@ -734,7 +745,8 @@ lines_pipeline_seethrough = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         #include "common"
 

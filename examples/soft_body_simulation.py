@@ -70,7 +70,8 @@ ctx.includes['get_point'] = f'''
 
 edges_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         uniform sampler2D Points;
         uniform isampler2D Edges;
@@ -93,7 +94,8 @@ edges_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         in vec3 v_color;
 
@@ -137,7 +139,8 @@ edges_pipeline = ctx.pipeline(
 
 points_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         uniform sampler2D Points;
 
@@ -152,7 +155,8 @@ points_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         in vec3 v_color;
 
@@ -184,7 +188,8 @@ points_pipeline = ctx.pipeline(
 
 move_points_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         vec2 positions[3] = vec2[](
             vec2(-1.0, -1.0),
@@ -197,7 +202,8 @@ move_points_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         uniform sampler2D PrevPoints;
         uniform sampler2D Points;
@@ -247,7 +253,8 @@ move_points_pipeline = ctx.pipeline(
 
 constraint_edges_pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         vec2 positions[3] = vec2[](
             vec2(-1.0, -1.0),
@@ -260,7 +267,8 @@ constraint_edges_pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         uniform sampler2D Points;
         uniform isampler2D Edges;

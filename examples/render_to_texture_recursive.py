@@ -34,7 +34,8 @@ uniform_buffer = ctx.buffer(size=80)
 def crate_pipeline(source_image, target_image, target_depth):
     return ctx.pipeline(
         vertex_shader='''
-            #version 330 core
+            #version 300 es
+            precision highp float;
 
             uniform Common {
                 mat4 mvp;
@@ -57,7 +58,8 @@ def crate_pipeline(source_image, target_image, target_depth):
             }
         ''',
         fragment_shader='''
-            #version 330 core
+            #version 300 es
+            precision highp float;
 
             uniform Common {
                 mat4 mvp;

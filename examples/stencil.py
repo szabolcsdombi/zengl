@@ -19,7 +19,8 @@ uniform_buffer = ctx.buffer(size=80)
 
 triangle = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         vec2 positions[3] = vec2[](
             vec2(0.0, 0.8),
@@ -32,7 +33,8 @@ triangle = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         void main() {
         }
@@ -68,7 +70,8 @@ triangle = ctx.pipeline(
 
 monkey = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -85,7 +88,8 @@ monkey = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         in vec3 v_norm;
 

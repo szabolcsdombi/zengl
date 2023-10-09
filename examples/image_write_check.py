@@ -29,8 +29,8 @@ ctx = zengl.context()
 image = ctx.image(window.size, 'rgba8unorm', samples=4)
 image.clear_value = (0.2, 0.2, 0.2, 1.0)
 
-texture = ctx.image((64, 64), 'rgba8unorm', array=4)
-texture.mipmaps(base=0, levels=3)
+texture = ctx.image((64, 64), 'rgba8unorm', array=4, levels=3)
+texture.mipmaps()
 
 texture.write(noise(256, 64, 50, 50, 50))
 texture.write(noise(128, 32, 50, 50, 50), level=1)
@@ -70,7 +70,8 @@ ctx.includes['screen_size'] = f'const vec2 screen_size = vec2({width}, {height})
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         #include "screen_size"
 
@@ -93,7 +94,8 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         uniform sampler2DArray Texture;
 

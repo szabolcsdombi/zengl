@@ -64,7 +64,8 @@ ctx.includes['terrain_info'] = '''
 
 terrain = ctx.pipeline(
     vertex_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         #include "terrain_info"
 
@@ -88,7 +89,8 @@ terrain = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 330 core
+        #version 300 es
+        precision highp float;
 
         in vec3 v_normal;
         in vec2 v_texcoord;
