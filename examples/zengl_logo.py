@@ -3,13 +3,11 @@ import struct
 import glwindow
 import zengl
 
-glwindow.init()
-
 
 class App:
     def __init__(self):
         self.wnd = glwindow.get_window()
-        self.ctx = zengl.context()
+        self.ctx = zengl.context(glwindow.get_loader())
 
         self.image = self.ctx.image(self.wnd.size, 'rgba8unorm-srgb', samples=16)
         self.depth = self.ctx.image(self.wnd.size, 'depth24plus', samples=16)
@@ -116,4 +114,4 @@ class App:
 
 
 if __name__ == '__main__':
-    glwindow.run(app=App())
+    glwindow.run(App)

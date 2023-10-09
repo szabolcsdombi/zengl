@@ -4,8 +4,6 @@ from objloader import Obj
 
 import assets
 
-glwindow.init()
-
 
 def gaussian_kernel(s):
     c = [2.718281828459045 ** (-x * x / (s * s / 4.0)) for x in range(-s, s + 1)]
@@ -14,8 +12,10 @@ def gaussian_kernel(s):
 
 
 class Blur1D:
-    def __init__(self, ctx, src, dst, mode):
-        self.pipeline = ctx.pipeline(
+    def __init__(self, src, dst, mode):
+        self.ctx = zengl.context()
+
+        self.pipeline = self.ctx.pipeline(
             vertex_shader='''
                 #version 300 es
                 precision highp float;
@@ -87,10 +87,12 @@ class Blur1D:
 
 
 class Blur2D:
-    def __init__(self, ctx, src, dst):
-        self.temp = ctx.image(src.size, 'rgba8unorm')
-        self.blur_x = Blur1D(ctx, src, self.temp, 'x')
-        self.blur_y = Blur1D(ctx, self.temp, dst, 'y')
+    def __init__(self, src, dst):
+        self.ctx = zengl.context()
+
+        self.temp = self.ctx.image(src.size, 'rgba8unorm')
+        self.blur_x = Blur1D(src, self.temp, 'x')
+        self.blur_y = Blur1D(self.temp, dst, 'y')
 
     def render(self):
         self.blur_x.render()
@@ -98,9 +100,10 @@ class Blur2D:
 
 
 class Scene:
-    def __init__(self, ctx):
-        self.ctx = ctx
+    def __init__(self):
         self.wnd = glwindow.get_window()
+        self.ctx = zengl.context()
+
         self.image = self.ctx.image(self.wnd.size, 'rgba8unorm')
         self.depth = self.ctx.image(self.wnd.size, 'depth24plus')
 
@@ -173,10 +176,10 @@ class Scene:
 class App:
     def __init__(self):
         self.wnd = glwindow.get_window()
-        self.ctx = zengl.context()
+        self.ctx = zengl.context(glwindow.get_loader())
 
-        self.scene = Scene(self.ctx)
-        self.blur = Blur2D(self.ctx, self.scene.image, self.scene.image)
+        self.scene = Scene()
+        self.blur = Blur2D(self.scene.image, self.scene.image)
 
     def update(self):
         self.ctx.new_frame()
@@ -187,4 +190,4 @@ class App:
 
 
 if __name__ == '__main__':
-    glwindow.run(app=App())
+    glwindow.run(App)
