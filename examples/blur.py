@@ -1,3 +1,5 @@
+import math
+
 import zengl
 import glwindow
 from objloader import Obj
@@ -165,8 +167,12 @@ class Scene:
             vertex_count=self.vertex_buffer.size // zengl.calcsize('3f 3f'),
         )
 
+        self.time = 0.0
+
     def render(self):
-        camera = zengl.camera((3.0, 2.0, 2.0), (0.0, 0.0, 0.5), aspect=self.wnd.aspect_ratio, fov=45.0)
+        self.time += 1.0 / 60.0
+        eye = (math.sin(self.time) + 1.0, 3.0, 2.0)
+        camera = zengl.camera(eye, (0.0, 0.0, 0.5), aspect=self.wnd.aspect_ratio, fov=45.0)
         self.uniform_buffer.write(camera)
         self.image.clear()
         self.depth.clear()

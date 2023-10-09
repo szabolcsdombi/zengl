@@ -4,14 +4,14 @@ import glwindow
 import zengl
 
 
-class App:
-    def __init__(self):
+class Logo:
+    def __init__(self, samples):
         self.wnd = glwindow.get_window()
-        self.ctx = zengl.context(glwindow.get_loader())
+        self.ctx = zengl.context()
 
-        self.image = self.ctx.image(self.wnd.size, 'rgba8unorm-srgb', samples=16)
-        self.depth = self.ctx.image(self.wnd.size, 'depth24plus', samples=16)
-        self.image.clear_value = (0.005, 0.005, 0.005, 0.0)
+        self.image = self.ctx.image(self.wnd.size, 'rgba8unorm-srgb', samples=samples)
+        self.depth = self.ctx.image(self.wnd.size, 'depth24plus', samples=samples)
+        self.image.clear_value = (0.0, 0.0, 0.0, 0.0)
 
         self.pipeline = self.ctx.pipeline(
             vertex_shader='''
@@ -102,14 +102,24 @@ class App:
 
         self.time = 0.0
 
-    def update(self):
+    def render(self):
         self.time += 1.0 / 60.0
-        self.ctx.new_frame()
-        self.depth.clear()
         self.image.clear()
+        self.depth.clear()
         self.pipeline.uniforms['time'][:] = struct.pack('f', self.time)
         self.pipeline.render()
-        self.image.blit()
+
+
+class App:
+    def __init__(self):
+        self.wnd = glwindow.get_window()
+        self.ctx = zengl.context(glwindow.get_loader())
+        self.logo = Logo(samples=16)
+
+    def update(self):
+        self.ctx.new_frame()
+        self.logo.render()
+        self.logo.image.blit()
         self.ctx.end_frame()
 
 
