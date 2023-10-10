@@ -1,5 +1,3 @@
-import os
-
 import glwindow
 import zengl
 
@@ -7,7 +5,7 @@ import zengl
 class Scene:
     def __init__(self, size):
         self.ctx = zengl.context()
-        self.image = self.ctx.image(size, 'rgba8unorm', os.urandom(size[0] * size[1] * 4))
+        self.image = self.ctx.image(size, 'rgba8unorm', bytes(size[0] * size[1] * 4))
 
 
 class App:

@@ -77,7 +77,7 @@ class Monkey:
 
     def render(self):
         self.time += 1.0 / 60.0
-        eye = (math.sin(self.time) + 1.0, 3.0, 2.0)
+        eye = (math.cos(self.time * 0.2) * 4.0, math.sin(self.time * 0.2) * 4.0, 2.0)
         camera = zengl.camera(eye, (0.0, 0.0, 0.5), aspect=self.aspect, fov=45.0)
         self.uniform_buffer.write(camera)
         self.image.clear()
