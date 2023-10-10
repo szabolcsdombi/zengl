@@ -782,31 +782,31 @@ static void bind_uniforms(Context * self, PyObject * uniform_layout, PyObject * 
     for (int i = 0; i < header->count; ++i) {
         const void * ptr = data + header->binding[i].offset;
         switch (header->binding[i].function) {
-            case 0: zengl_glUniform1iv(header->binding[i].location, header->binding[i].count, ptr);
-            case 1: zengl_glUniform2iv(header->binding[i].location, header->binding[i].count, ptr);
-            case 2: zengl_glUniform3iv(header->binding[i].location, header->binding[i].count, ptr);
-            case 3: zengl_glUniform4iv(header->binding[i].location, header->binding[i].count, ptr);
-            case 4: zengl_glUniform1iv(header->binding[i].location, header->binding[i].count, ptr);
-            case 5: zengl_glUniform2iv(header->binding[i].location, header->binding[i].count, ptr);
-            case 6: zengl_glUniform3iv(header->binding[i].location, header->binding[i].count, ptr);
-            case 7: zengl_glUniform4iv(header->binding[i].location, header->binding[i].count, ptr);
-            case 8: zengl_glUniform1uiv(header->binding[i].location, header->binding[i].count, ptr);
-            case 9: zengl_glUniform2uiv(header->binding[i].location, header->binding[i].count, ptr);
-            case 10: zengl_glUniform3uiv(header->binding[i].location, header->binding[i].count, ptr);
-            case 11: zengl_glUniform4uiv(header->binding[i].location, header->binding[i].count, ptr);
-            case 12: zengl_glUniform1fv(header->binding[i].location, header->binding[i].count, ptr);
-            case 13: zengl_glUniform2fv(header->binding[i].location, header->binding[i].count, ptr);
-            case 14: zengl_glUniform3fv(header->binding[i].location, header->binding[i].count, ptr);
-            case 15: zengl_glUniform4fv(header->binding[i].location, header->binding[i].count, ptr);
-            case 16: zengl_glUniformMatrix2fv(header->binding[i].location, header->binding[i].count, 0, ptr);
-            case 17: zengl_glUniformMatrix2x3fv(header->binding[i].location, header->binding[i].count, 0, ptr);
-            case 18: zengl_glUniformMatrix2x4fv(header->binding[i].location, header->binding[i].count, 0, ptr);
-            case 19: zengl_glUniformMatrix3x2fv(header->binding[i].location, header->binding[i].count, 0, ptr);
-            case 20: zengl_glUniformMatrix3fv(header->binding[i].location, header->binding[i].count, 0, ptr);
-            case 21: zengl_glUniformMatrix3x4fv(header->binding[i].location, header->binding[i].count, 0, ptr);
-            case 22: zengl_glUniformMatrix4x2fv(header->binding[i].location, header->binding[i].count, 0, ptr);
-            case 23: zengl_glUniformMatrix4x3fv(header->binding[i].location, header->binding[i].count, 0, ptr);
-            case 24: zengl_glUniformMatrix4fv(header->binding[i].location, header->binding[i].count, 0, ptr);
+            case 0: zengl_glUniform1iv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 1: zengl_glUniform2iv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 2: zengl_glUniform3iv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 3: zengl_glUniform4iv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 4: zengl_glUniform1iv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 5: zengl_glUniform2iv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 6: zengl_glUniform3iv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 7: zengl_glUniform4iv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 8: zengl_glUniform1uiv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 9: zengl_glUniform2uiv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 10: zengl_glUniform3uiv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 11: zengl_glUniform4uiv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 12: zengl_glUniform1fv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 13: zengl_glUniform2fv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 14: zengl_glUniform3fv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 15: zengl_glUniform4fv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 16: zengl_glUniformMatrix2fv(header->binding[i].location, header->binding[i].count, 0, ptr); break;
+            case 17: zengl_glUniformMatrix2x3fv(header->binding[i].location, header->binding[i].count, 0, ptr); break;
+            case 18: zengl_glUniformMatrix2x4fv(header->binding[i].location, header->binding[i].count, 0, ptr); break;
+            case 19: zengl_glUniformMatrix3x2fv(header->binding[i].location, header->binding[i].count, 0, ptr); break;
+            case 20: zengl_glUniformMatrix3fv(header->binding[i].location, header->binding[i].count, 0, ptr); break;
+            case 21: zengl_glUniformMatrix3x4fv(header->binding[i].location, header->binding[i].count, 0, ptr); break;
+            case 22: zengl_glUniformMatrix4x2fv(header->binding[i].location, header->binding[i].count, 0, ptr); break;
+            case 23: zengl_glUniformMatrix4x3fv(header->binding[i].location, header->binding[i].count, 0, ptr); break;
+            case 24: zengl_glUniformMatrix4fv(header->binding[i].location, header->binding[i].count, 0, ptr); break;
         }
     }
 }
