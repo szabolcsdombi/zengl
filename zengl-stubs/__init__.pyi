@@ -291,7 +291,13 @@ class Context:
     frame_time: int
     screen: int
     def buffer(
-        self, data: Bytes | None = None, size: int | None = None, dynamic: bool = False, external: int = 0
+        self,
+        data: Bytes | None = None,
+        size: int | None = None,
+        dynamic: bool = False,
+        index: bool = False,
+        uniform: bool = False,
+        external: int = 0,
     ) -> Buffer: ...
     def image(
         self,

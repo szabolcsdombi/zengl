@@ -730,6 +730,7 @@ typedef struct Buffer {
     GCHeader * gc_next;
     Context * ctx;
     int buffer;
+    int target;
     int size;
     int dynamic;
     int mapped;
@@ -1678,14 +1679,16 @@ static Context * meth_context(PyObject * self, PyObject * args, PyObject * kwarg
 }
 
 static Buffer * Context_meth_buffer(Context * self, PyObject * args, PyObject * kwargs) {
-    static char * keywords[] = {"data", "size", "dynamic", "external", NULL};
+    static char * keywords[] = {"data", "size", "dynamic", "index", "uniform", "external", NULL};
 
     PyObject * data = Py_None;
     PyObject * size_arg = Py_None;
     int dynamic = 1;
+    int index = 0;
+    int uniform = 0;
     int external = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O$Opi", keywords, &data, &size_arg, &dynamic, &external)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O$Opppi", keywords, &data, &size_arg, &dynamic, &index, &uniform, &external)) {
         return NULL;
     }
 
@@ -1715,6 +1718,8 @@ static Buffer * Context_meth_buffer(Context * self, PyObject * args, PyObject * 
         }
     }
 
+    int target = uniform ? GL_UNIFORM_BUFFER : index ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
+
     if (data != Py_None) {
         data = PyMemoryView_FromObject(data);
         if (PyErr_Occurred()) {
@@ -1732,8 +1737,8 @@ static Buffer * Context_meth_buffer(Context * self, PyObject * args, PyObject * 
         buffer = external;
     } else {
         gl->GenBuffers(1, &buffer);
-        gl->BindBuffer(GL_ARRAY_BUFFER, buffer);
-        gl->BufferData(GL_ARRAY_BUFFER, size, NULL, dynamic ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
+        gl->BindBuffer(target, buffer);
+        gl->BufferData(target, size, NULL, dynamic ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
     }
 
     Buffer * res = PyObject_New(Buffer, self->module_state->Buffer_type);
@@ -1745,6 +1750,7 @@ static Buffer * Context_meth_buffer(Context * self, PyObject * args, PyObject * 
 
     res->ctx = self;
     res->buffer = buffer;
+    res->target = target;
     res->size = size;
     res->dynamic = dynamic;
     res->mapped = 0;
@@ -2535,9 +2541,17 @@ static PyObject * Buffer_meth_write(Buffer * self, PyObject * args, PyObject * k
 
     const GLMethods * const gl = &self->ctx->gl;
 
+    if (self->target == GL_ELEMENT_ARRAY_BUFFER) {
+        bind_vertex_array(self->ctx, 0);
+    }
+
+    if (self->target == GL_UNIFORM_BUFFER) {
+        self->ctx->current_descriptor_set = NULL;
+    }
+
     if (view->len) {
-        gl->BindBuffer(GL_ARRAY_BUFFER, self->buffer);
-        gl->BufferSubData(GL_ARRAY_BUFFER, offset, size, view->buf);
+        gl->BindBuffer(self->target, self->buffer);
+        gl->BufferSubData(self->target, offset, size, view->buf);
     }
 
     Py_DECREF(mem);

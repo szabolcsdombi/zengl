@@ -141,7 +141,7 @@ Buffer
 
     vertex_buffer = ctx.buffer(size=1024)
 
-.. py:method:: Context.buffer(data, size, dynamic, external) -> Buffer
+.. py:method:: Context.buffer(data, size, dynamic, index, uniform, external) -> Buffer
 
 **data**
     | The buffer content, represented as ``bytes`` or a buffer for example a numpy array.
@@ -156,6 +156,16 @@ Buffer
     | A boolean to enable ``GL_DYNAMIC_DRAW`` on buffer creation.
     | When this flag is False the ``GL_STATIC_DRAW`` is used.
     | The default value is True.
+
+**index**
+    | Modifies the write operation to use the element array buffer binding.
+    | Only useful for the webgl compatibility.
+    | The default value is False.
+
+**uniform**
+    | Modifies the write operation to use the uniform buffer binding.
+    | Only useful for the webgl compatibility.
+    | The default value is False.
 
 **external**
     | An OpenGL Buffer Object returned by glGenBuffers.
