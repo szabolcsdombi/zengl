@@ -5,12 +5,6 @@
 #define MAX_BUFFER_BINDINGS 16
 #define MAX_SAMPLER_BINDINGS 64
 
-#ifdef _WIN32
-#define GL __stdcall *
-#else
-#define GL *
-#endif
-
 typedef Py_ssize_t intptr;
 
 #define GL_COLOR_BUFFER_BIT 0x4000
@@ -432,6 +426,7 @@ typedef struct ModuleState {
     PyObject * empty_tuple;
     PyObject * str_none;
     PyObject * str_triangles;
+    PyObject * default_context;
     PyTypeObject * Context_type;
     PyTypeObject * Buffer_type;
     PyTypeObject * Image_type;
@@ -553,6 +548,7 @@ typedef struct Buffer {
     GCHeader * gc_next;
     Context * ctx;
     int buffer;
+    int target;
     int size;
     int dynamic;
     int mapped;
@@ -1377,6 +1373,9 @@ static Context * meth_context(PyObject * self, PyObject * args, PyObject * kwarg
     ModuleState * module_state = (ModuleState *)PyModule_GetState(self);
 
     if (loader == Py_None) {
+        if (module_state->default_context != Py_None) {
+            return (Context *)new_ref(module_state->default_context);
+        }
         loader = PyObject_CallMethod(module_state->helper, "loader", NULL);
         if (!loader) {
             return NULL;
@@ -1484,18 +1483,23 @@ static Context * meth_context(PyObject * self, PyObject * args, PyObject * kwarg
         zengl_glEnable(GL_FRAMEBUFFER_SRGB);
     }
 
+    PyObject * old_context = module_state->default_context;
+    module_state->default_context = new_ref(res);
+    Py_DECREF(old_context);
     return res;
 }
 
 static Buffer * Context_meth_buffer(Context * self, PyObject * args, PyObject * kwargs) {
-    static char * keywords[] = {"data", "size", "dynamic", "external", NULL};
+    static char * keywords[] = {"data", "size", "dynamic", "index", "uniform", "external", NULL};
 
     PyObject * data = Py_None;
     PyObject * size_arg = Py_None;
     int dynamic = 1;
+    int index = 0;
+    int uniform = 0;
     int external = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O$Opi", keywords, &data, &size_arg, &dynamic, &external)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O$Opppi", keywords, &data, &size_arg, &dynamic, &index, &uniform, &external)) {
         return NULL;
     }
 
@@ -1523,6 +1527,8 @@ static Buffer * Context_meth_buffer(Context * self, PyObject * args, PyObject * 
         }
     }
 
+    int target = uniform ? GL_UNIFORM_BUFFER : index ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
+
     if (data != Py_None) {
         data = PyMemoryView_FromObject(data);
         if (PyErr_Occurred()) {
@@ -1540,8 +1546,8 @@ static Buffer * Context_meth_buffer(Context * self, PyObject * args, PyObject * 
         buffer = external;
     } else {
         zengl_glGenBuffers(1, &buffer);
-        zengl_glBindBuffer(GL_ARRAY_BUFFER, buffer);
-        zengl_glBufferData(GL_ARRAY_BUFFER, size, NULL, dynamic ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
+        zengl_glBindBuffer(target, buffer);
+        zengl_glBufferData(target, size, NULL, dynamic ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
     }
 
     Buffer * res = PyObject_New(Buffer, self->module_state->Buffer_type);
@@ -1553,6 +1559,7 @@ static Buffer * Context_meth_buffer(Context * self, PyObject * args, PyObject * 
 
     res->ctx = self;
     res->buffer = buffer;
+    res->target = target;
     res->size = size;
     res->dynamic = dynamic;
     res->mapped = 0;
@@ -2328,9 +2335,17 @@ static PyObject * Buffer_meth_write(Buffer * self, PyObject * args, PyObject * k
         return NULL;
     }
 
+    if (self->target == GL_ELEMENT_ARRAY_BUFFER) {
+        bind_vertex_array(self->ctx, 0);
+    }
+
+    if (self->target == GL_UNIFORM_BUFFER) {
+        self->ctx->current_descriptor_set = NULL;
+    }
+
     if (view->len) {
-        zengl_glBindBuffer(GL_ARRAY_BUFFER, self->buffer);
-        zengl_glBufferSubData(GL_ARRAY_BUFFER, offset, size, view->buf);
+        zengl_glBindBuffer(self->target, self->buffer);
+        zengl_glBufferSubData(self->target, offset, size, view->buf);
     }
 
     Py_DECREF(mem);
@@ -3173,6 +3188,7 @@ static int module_exec(PyObject * self) {
     state->empty_tuple = PyTuple_New(0);
     state->str_none = PyUnicode_FromString("none");
     state->str_triangles = PyUnicode_FromString("triangles");
+    state->default_context = new_ref(Py_None);
     state->Context_type = (PyTypeObject *)PyType_FromSpec(&Context_spec);
     state->Buffer_type = (PyTypeObject *)PyType_FromSpec(&Buffer_spec);
     state->Image_type = (PyTypeObject *)PyType_FromSpec(&Image_spec);
@@ -3219,6 +3235,7 @@ static void module_free(PyObject * self) {
         Py_DECREF(state->empty_tuple);
         Py_DECREF(state->str_none);
         Py_DECREF(state->str_triangles);
+        Py_DECREF(state->default_context);
         Py_DECREF(state->Context_type);
         Py_DECREF(state->Buffer_type);
         Py_DECREF(state->Image_type);
