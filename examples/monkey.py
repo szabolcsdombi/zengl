@@ -18,7 +18,7 @@ class Monkey:
 
         model = Obj.open(assets.get('monkey.obj')).pack('vx vy vz nx ny nz')
         self.vertex_buffer = self.ctx.buffer(model)
-        self.uniform_buffer = self.ctx.buffer(size=80)
+        self.uniform_buffer = self.ctx.buffer(size=80, uniform=True)
         self.pipeline = self.ctx.pipeline(
             vertex_shader='''
                 #version 300 es

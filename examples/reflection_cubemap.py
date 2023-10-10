@@ -94,7 +94,7 @@ class Scene:
         self.image = ctx.image(window.size, 'rgba8unorm', samples=4)
         self.depth = ctx.image(window.size, 'depth24plus', samples=4)
         self.image.clear_value = (0.2, 0.2, 0.2, 1.0)
-        self.uniform_buffer = ctx.buffer(size=80)
+        self.uniform_buffer = ctx.buffer(size=80, uniform=True)
         self.uniform_buffer_data = bytearray(80)
         self.pipelines = []
 

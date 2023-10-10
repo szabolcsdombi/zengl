@@ -14,7 +14,7 @@ class BoxGrid:
         model = struct.pack('3f3f3f', -0.866, -0.5, 0.0, 0.866, -0.5, 0.0, 0.0, 1.0, 0.0)
 
         self.vertex_buffer = self.ctx.buffer(model)
-        self.uniform_buffer = self.ctx.buffer(size=64)
+        self.uniform_buffer = self.ctx.buffer(size=64, uniform=True)
         self.pipeline = self.ctx.pipeline(
             vertex_shader='''
                 #version 300 es

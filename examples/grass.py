@@ -23,7 +23,7 @@ class Grass:
         self.depth = self.ctx.image(size, 'depth24plus', samples=samples)
 
         self.ubo_data = bytearray(64)
-        self.uniform_buffer = self.ctx.buffer(self.ubo_data)
+        self.uniform_buffer = self.ctx.buffer(self.ubo_data, uniform=True)
         self.pipeline = self.ctx.pipeline(
             vertex_shader='''
                 #version 300 es

@@ -11,7 +11,7 @@ class Blending:
         self.depth = self.ctx.image(size, 'depth24plus', samples=samples)
         self.image.clear_value = (0.0, 0.0, 0.0, 1.0)
 
-        self.uniform_buffer = self.ctx.buffer(size=16)
+        self.uniform_buffer = self.ctx.buffer(size=16, uniform=True)
 
         self.vertex_buffer = self.ctx.buffer(np.array([
             1.0, 0.0,

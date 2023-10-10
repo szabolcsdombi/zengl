@@ -33,9 +33,9 @@ class WireframeTerrain:
 
         vertex_data, index_data = create_terrain(64)
         self.vertex_buffer = self.ctx.buffer(vertex_data)
-        self.index_buffer = self.ctx.buffer(index_data)
+        self.index_buffer = self.ctx.buffer(index_data, index=True)
+        self.uniform_buffer = self.ctx.buffer(size=64, uniform=True)
 
-        self.uniform_buffer = self.ctx.buffer(size=64)
         self.pipeline = self.ctx.pipeline(
             vertex_shader='''
                 #version 300 es

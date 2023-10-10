@@ -22,7 +22,7 @@ class Crate:
         self.texture = self.ctx.image(img.size, 'rgba8unorm', img.tobytes())
 
         self.ubo = bytearray(80)
-        self.uniform_buffer = self.ctx.buffer(self.ubo)
+        self.uniform_buffer = self.ctx.buffer(self.ubo, uniform=True)
 
         self.pipeline = self.ctx.pipeline(
             vertex_shader='''
