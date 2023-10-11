@@ -10,7 +10,7 @@ import assets
 
 
 class Crate:
-    def __init__(self, size, samples=4):
+    def __init__(self, size, texture=None, samples=4):
         self.ctx = zengl.context()
         self.image = self.ctx.image(size, 'rgba8unorm', samples=samples)
         self.depth = self.ctx.image(size, 'depth24plus', samples=samples)
@@ -18,8 +18,10 @@ class Crate:
         model = objloader.Obj.open(assets.get('box.obj')).pack('vx vy vz nx ny nz tx ty')
         self.vertex_buffer = self.ctx.buffer(model)
 
-        img = Image.open(assets.get('crate.png')).convert('RGBA')
-        self.texture = self.ctx.image(img.size, 'rgba8unorm', img.tobytes())
+        self.texture = texture
+        if self.texture is None:
+            img = Image.open(assets.get('crate.png')).convert('RGBA')
+            self.texture = self.ctx.image(img.size, 'rgba8unorm', img.tobytes())
 
         self.ubo = bytearray(80)
         self.uniform_buffer = self.ctx.buffer(self.ubo, uniform=True)

@@ -7,6 +7,9 @@ class Scene:
         self.ctx = zengl.context()
         self.image = self.ctx.image(size, 'rgba8unorm', bytes(size[0] * size[1] * 4))
 
+    def render(self):
+        pass
+
 
 class App:
     def __init__(self):
@@ -16,6 +19,7 @@ class App:
 
     def update(self):
         self.ctx.new_frame()
+        self.scene.render()
         self.scene.image.blit()
         self.ctx.end_frame()
 

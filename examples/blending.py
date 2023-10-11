@@ -85,12 +85,13 @@ class Blending:
         )
 
         self.aspect = size[0] / size[1]
+        self.scale = 0.5
         self.time = 0.0
 
     def render(self):
         self.time += 1.0 / 60.0
         self.image.clear()
-        self.uniform_buffer.write(np.array([0.5, 0.5 * self.aspect, self.time, 0.0], 'f4'))
+        self.uniform_buffer.write(np.array([self.scale, self.scale * self.aspect, self.time, 0.0], 'f4'))
         self.pipeline.render()
 
 
