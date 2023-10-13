@@ -2251,7 +2251,7 @@ static PyObject * Context_meth_new_frame(Context * self, PyObject * args, PyObje
     }
 
     if (clear) {
-        bind_framebuffer(self, 0);
+        bind_framebuffer(self, self->default_framebuffer->obj);
         gl->Clear(GL_COLOR_BUFFER_BIT);
     }
 
