@@ -441,17 +441,8 @@ static Viewport to_viewport(PyObject * obj, int x, int y, int width, int height)
     return res;
 }
 
-static void * load_opengl_function(PyObject * loader, const char * method) {
-    if (PyObject_HasAttrString(loader, "load_opengl_function")) {
-        PyObject * res = PyObject_CallMethod(loader, "load_opengl_function", "s", method);
-        if (!res) {
-            return NULL;
-        }
-        return PyLong_AsVoidPtr(res);
-    }
-
-    // deprecated path for backward compatibility
-    PyObject * res = PyObject_CallMethod(loader, "load", "s", method);
+static void * load_opengl_function(PyObject * loader_function, const char * method) {
+    PyObject * res = PyObject_CallFunction(loader_function, "(s)", method);
     if (!res) {
         return NULL;
     }
@@ -459,10 +450,22 @@ static void * load_opengl_function(PyObject * loader, const char * method) {
 }
 
 static void load_gl(GLMethods * gl, PyObject * loader) {
+    PyObject * loader_function = PyObject_GetAttrString(loader, "load_opengl_function");
+
+    if (!loader_function) {
+        PyErr_Clear();
+        loader_function = PyObject_GetAttrString(loader, "load");
+    }
+
+    if (!loader_function) {
+        PyErr_Format(PyExc_ValueError, "invalid loader");
+        return;
+    }
+
     PyObject * missing = PyList_New(0);
 
     #define check(name) if (!gl->name) { if (PyErr_Occurred()) return; PyList_Append(missing, PyUnicode_FromString("gl" # name)); }
-    #define load(name) *(void **)&gl->name = load_opengl_function(loader, "gl" # name); check(name)
+    #define load(name) *(void **)&gl->name = load_opengl_function(loader_function, "gl" # name); check(name)
 
     load(CullFace);
     load(Clear);
