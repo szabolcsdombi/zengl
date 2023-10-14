@@ -68,6 +68,7 @@ class BezierCurves:
         self.curves = Curves((size[0] / 2.0, size[1] / 2.0), min(size) * 0.4)
 
         self.image = self.ctx.image(size, 'rgba8unorm', samples=samples)
+        self.output = self.image if self.image.samples == 1 else self.ctx.image(size, 'rgba8unorm')
 
         self.vertex_buffer = self.ctx.buffer(curve_mesh())
         self.instance_buffer = self.ctx.buffer(self.curves.instances(0.0))
@@ -144,6 +145,8 @@ class BezierCurves:
         self.instance_buffer.write(self.curves.instances(self.time))
         self.image.clear()
         self.pipeline.render()
+        if self.image != self.output:
+            self.image.blit(self.output)
 
 
 class App:
@@ -155,7 +158,7 @@ class App:
     def update(self):
         self.ctx.new_frame()
         self.scene.render()
-        self.scene.image.blit()
+        self.scene.output.blit()
         self.ctx.end_frame()
 
 

@@ -23,10 +23,10 @@ class App:
         self.scene2.render()
         self.scene3.render()
         self.scene4.render()
-        self.scene1.image.blit(None, (0, h, w, h))
-        self.scene2.image.blit(None, (w, h, w, h))
-        self.scene3.image.blit(None, (0, 0, w, h))
-        self.scene4.image.blit(None, (w, 0, w, h))
+        self.scene1.output.blit(None, (0, h, w, h))
+        self.scene2.output.blit(None, (w, h, w, h))
+        self.scene3.output.blit(None, (0, 0, w, h))
+        self.scene4.output.blit(None, (w, 0, w, h))
         self.ctx.end_frame()
 
 

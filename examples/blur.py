@@ -103,13 +103,13 @@ class App:
         self.ctx = zengl.context(glwindow.get_loader())
 
         self.scene = Monkey(self.wnd.size, samples=1)
-        self.blur = Blur2D(self.scene.image, self.scene.image)
+        self.blur = Blur2D(self.scene.output, self.scene.output)
 
     def update(self):
         self.ctx.new_frame()
         self.scene.render()
         self.blur.render()
-        self.scene.image.blit()
+        self.scene.output.blit()
         self.ctx.end_frame()
 
 

@@ -10,7 +10,7 @@ class Logo:
 
         self.image = self.ctx.image(size, 'rgba8unorm', samples=samples)
         self.depth = self.ctx.image(size, 'depth24plus', samples=samples)
-        self.image.clear_value = (0.0, 0.0, 0.0, 0.0)
+        self.output = self.image if self.image.samples == 1 else self.ctx.image(size, 'rgba8unorm')
 
         self.pipeline = self.ctx.pipeline(
             vertex_shader='''
@@ -108,6 +108,8 @@ class Logo:
         self.depth.clear()
         self.pipeline.uniforms['time'][:] = struct.pack('f', self.time)
         self.pipeline.render()
+        if self.image != self.output:
+            self.image.blit(self.output)
 
 
 class App:
@@ -119,7 +121,7 @@ class App:
     def update(self):
         self.ctx.new_frame()
         self.logo.render()
-        self.logo.image.blit()
+        self.logo.output.blit()
         self.ctx.end_frame()
 
 

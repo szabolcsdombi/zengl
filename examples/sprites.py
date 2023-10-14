@@ -19,6 +19,7 @@ class Sprites:
         self.turn = np.random.uniform(-0.002, 0.002, count)
 
         self.image = self.ctx.image(size, 'rgba8unorm')
+        self.output = self.image
 
         self.texture = self.ctx.image((64, 64), 'rgba8unorm', pixels, array=48)
         self.instance_buffer = self.ctx.buffer(size=count * 16)
@@ -125,7 +126,7 @@ class App:
     def update(self):
         self.ctx.new_frame()
         self.scene.render()
-        self.scene.image.blit()
+        self.scene.output.blit()
         self.ctx.end_frame()
 
 

@@ -37,6 +37,7 @@ class FontDemo:
         self.ctx = zengl.context()
 
         self.image = self.ctx.image(size, 'rgba8unorm')
+        self.output = self.image
 
         pixels = load_font_atlas()
         self.texture = self.ctx.image((32, 32), 'rgba8unorm', pixels, array=256)
@@ -141,7 +142,7 @@ class App:
     def update(self):
         self.ctx.new_frame()
         self.scene.render()
-        self.scene.image.blit()
+        self.scene.output.blit()
         self.ctx.end_frame()
 
 

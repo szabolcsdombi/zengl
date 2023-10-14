@@ -21,6 +21,7 @@ class Grass:
         self.ctx = zengl.context()
         self.image = self.ctx.image(size, 'rgba8unorm', samples=samples)
         self.depth = self.ctx.image(size, 'depth24plus', samples=samples)
+        self.output = self.image if self.image.samples == 1 else self.ctx.image(size, 'rgba8unorm')
 
         self.ubo_data = bytearray(64)
         self.uniform_buffer = self.ctx.buffer(self.ubo_data, uniform=True)
@@ -117,6 +118,8 @@ class Grass:
         self.image.clear()
         self.depth.clear()
         self.pipeline.render()
+        if self.image != self.output:
+            self.image.blit(self.output)
 
 
 class App:
@@ -128,7 +131,7 @@ class App:
     def update(self):
         self.ctx.new_frame()
         self.scene.render()
-        self.scene.image.blit()
+        self.scene.output.blit()
         self.ctx.end_frame()
 
 

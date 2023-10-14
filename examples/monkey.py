@@ -13,8 +13,7 @@ class Monkey:
 
         self.image = self.ctx.image(size, 'rgba8unorm', samples=samples)
         self.depth = self.ctx.image(size, 'depth24plus', samples=samples)
-
-        self.image.clear_value = (0.2, 0.2, 0.2, 1.0)
+        self.output = self.image if self.image.samples == 1 else self.ctx.image(size, 'rgba8unorm')
 
         model = Obj.open(assets.get('monkey.obj')).pack('vx vy vz nx ny nz')
         self.vertex_buffer = self.ctx.buffer(model)
@@ -80,9 +79,12 @@ class Monkey:
         eye = (math.cos(self.time * 0.2) * 4.0, math.sin(self.time * 0.2) * 4.0, 2.0)
         camera = zengl.camera(eye, (0.0, 0.0, 0.5), aspect=self.aspect, fov=45.0)
         self.uniform_buffer.write(camera)
+        self.image.clear_value = (0.2, 0.2, 0.2, 1.0)
         self.image.clear()
         self.depth.clear()
         self.pipeline.render()
+        if self.image != self.output:
+            self.image.blit(self.output)
 
 
 class App:
@@ -94,7 +96,7 @@ class App:
     def update(self):
         self.ctx.new_frame()
         self.scene.render()
-        self.scene.image.blit()
+        self.scene.output.blit()
         self.ctx.end_frame()
 
 

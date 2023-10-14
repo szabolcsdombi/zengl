@@ -11,6 +11,8 @@ class Fractal:
         self.size = size
 
         self.image = self.ctx.image(size, 'rgba8unorm')
+        self.output = self.image
+
         self.uniform_buffer = self.ctx.buffer(size=32)
         self.pipeline = self.ctx.pipeline(
             vertex_shader='''
@@ -97,7 +99,7 @@ class App:
     def update(self):
         self.ctx.new_frame()
         self.scene.render()
-        self.scene.image.blit()
+        self.scene.output.blit()
         self.ctx.end_frame()
 
 
