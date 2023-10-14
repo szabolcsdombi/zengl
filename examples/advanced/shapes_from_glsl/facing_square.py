@@ -1,74 +1,87 @@
 import zengl
 
-from defaults import defaults
-from grid import grid_pipeline
-from window import Window
 
-window = Window(1280, 720)
-ctx = zengl.context()
+class Square:
+    def __init__(self, framebuffer, uniform_buffer):
+        self.ctx = zengl.context()
+        self.pipeline = self.ctx.pipeline(
+            vertex_shader='''
+                #version 300 es
+                precision highp float;
 
-image = ctx.image(window.size, 'rgba8unorm', samples=4)
-depth = ctx.image(window.size, 'depth24plus', samples=4)
-image.clear_value = (0.2, 0.2, 0.2, 1.0)
+                layout (std140) uniform Common {
+                    mat4 mvp;
+                    vec3 eye;
+                    vec3 light;
+                };
 
-ctx.includes['defaults'] = defaults
+                vec2 vertices[4] = vec2[](
+                    vec2(-0.5, -0.5),
+                    vec2(0.5, -0.5),
+                    vec2(-0.5, 0.5),
+                    vec2(0.5, 0.5)
+                );
 
-grid = grid_pipeline(ctx, [image, depth])
+                vec3 position = vec3(0.0, 0.0, 0.0);
+                vec3 up = vec3(0.0, 0.0, 1.0);
 
-pipeline = ctx.pipeline(
-    vertex_shader='''
-        #version 300 es
-        precision highp float;
+                out vec3 v_vertex;
+                out vec3 v_normal;
+                out vec2 v_texcoord;
 
-        #include "defaults"
+                void main() {
+                    v_normal = normalize(eye.xyz - position);
+                    vec3 tangent = normalize(cross(up, v_normal));
+                    vec3 bitangent = cross(v_normal, tangent);
+                    v_vertex = position + tangent * vertices[gl_VertexID].x + bitangent * vertices[gl_VertexID].y;
+                    v_texcoord = vertices[gl_VertexID] + 0.5;
+                    gl_Position = mvp * vec4(v_vertex, 1.0);
+                }
+            ''',
+            fragment_shader='''
+                #version 300 es
+                precision highp float;
 
-        vec2 vertices[4] = vec2[](
-            vec2(-0.5, -0.5),
-            vec2(0.5, -0.5),
-            vec2(-0.5, 0.5),
-            vec2(0.5, 0.5)
-        );
+                layout (std140) uniform Common {
+                    mat4 mvp;
+                    vec3 eye;
+                    vec3 light;
+                };
 
-        vec3 position = vec3(0.0, 0.0, 0.0);
-        vec3 up = vec3(0.0, 0.0, 1.0);
+                in vec3 v_normal;
 
-        out vec3 v_vertex;
-        out vec3 v_normal;
-        out vec2 v_texcoord;
+                layout (location = 0) out vec4 out_color;
 
-        void main() {
-            v_normal = normalize(eye.xyz - position);
-            vec3 tangent = normalize(cross(up, v_normal));
-            vec3 bitangent = cross(v_normal, tangent);
-            v_vertex = position + tangent * vertices[gl_VertexID].x + bitangent * vertices[gl_VertexID].y;
-            v_texcoord = vertices[gl_VertexID] + 0.5;
-            gl_Position = mvp * vec4(v_vertex, 1.0);
-        }
-    ''',
-    fragment_shader='''
-        #version 300 es
-        precision highp float;
+                void main() {
+                    float lum = dot(normalize(light.xyz), normalize(v_normal)) * 0.7 + 0.3;
+                    out_color = vec4(lum, lum, lum, 1.0);
+                }
+            ''',
+            layout=[
+                {
+                    'name': 'Common',
+                    'binding': 0,
+                },
+            ],
+            resources=[
+                {
+                    'type': 'uniform_buffer',
+                    'binding': 0,
+                    'buffer': uniform_buffer,
+                },
+            ],
+            framebuffer=framebuffer,
+            topology='triangle_strip',
+            cull_face='back',
+            vertex_count=4,
+        )
 
-        #include "defaults"
+    def render(self):
+        self.pipeline.render()
 
-        in vec3 v_normal;
 
-        layout (location = 0) out vec4 out_color;
+if __name__ == '__main__':
+    import preview
+    from grid import Grid
 
-        void main() {
-            float lum = dot(normalize(light.xyz), normalize(v_normal)) * 0.7 + 0.3;
-            out_color = vec4(lum, lum, lum, 1.0);
-        }
-    ''',
-    framebuffer=[image, depth],
-    topology='triangle_strip',
-    cull_face='back',
-    vertex_count=4,
-)
-
-while window.update():
-    image.clear()
-    depth.clear()
-    grid.render()
-    pipeline.render()
-    image.blit()
+    preview.show([Grid, Square])

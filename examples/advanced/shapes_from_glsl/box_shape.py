@@ -1,179 +1,192 @@
 import zengl
 
-from defaults import defaults
-from grid import grid_pipeline
-from window import Window
 
-window = Window(1280, 720)
-ctx = zengl.context()
+class Box:
+    def __init__(self, framebuffer, uniform_buffer):
+        self.ctx = zengl.context()
+        self.pipeline = self.ctx.pipeline(
+            vertex_shader='''
+                #version 300 es
+                precision highp float;
 
-image = ctx.image(window.size, 'rgba8unorm', samples=4)
-depth = ctx.image(window.size, 'depth24plus', samples=4)
-image.clear_value = (0.2, 0.2, 0.2, 1.0)
+                layout (std140) uniform Common {
+                    mat4 mvp;
+                    vec3 eye;
+                    vec3 light;
+                };
 
-ctx.includes['defaults'] = defaults
+                vec3 vertices[36] = vec3[](
+                    vec3(-0.5, -0.5, -0.5),
+                    vec3(-0.5, 0.5, -0.5),
+                    vec3(0.5, 0.5, -0.5),
+                    vec3(0.5, 0.5, -0.5),
+                    vec3(0.5, -0.5, -0.5),
+                    vec3(-0.5, -0.5, -0.5),
+                    vec3(-0.5, -0.5, 0.5),
+                    vec3(0.5, -0.5, 0.5),
+                    vec3(0.5, 0.5, 0.5),
+                    vec3(0.5, 0.5, 0.5),
+                    vec3(-0.5, 0.5, 0.5),
+                    vec3(-0.5, -0.5, 0.5),
+                    vec3(-0.5, -0.5, -0.5),
+                    vec3(0.5, -0.5, -0.5),
+                    vec3(0.5, -0.5, 0.5),
+                    vec3(0.5, -0.5, 0.5),
+                    vec3(-0.5, -0.5, 0.5),
+                    vec3(-0.5, -0.5, -0.5),
+                    vec3(0.5, -0.5, -0.5),
+                    vec3(0.5, 0.5, -0.5),
+                    vec3(0.5, 0.5, 0.5),
+                    vec3(0.5, 0.5, 0.5),
+                    vec3(0.5, -0.5, 0.5),
+                    vec3(0.5, -0.5, -0.5),
+                    vec3(0.5, 0.5, -0.5),
+                    vec3(-0.5, 0.5, -0.5),
+                    vec3(-0.5, 0.5, 0.5),
+                    vec3(-0.5, 0.5, 0.5),
+                    vec3(0.5, 0.5, 0.5),
+                    vec3(0.5, 0.5, -0.5),
+                    vec3(-0.5, 0.5, -0.5),
+                    vec3(-0.5, -0.5, -0.5),
+                    vec3(-0.5, -0.5, 0.5),
+                    vec3(-0.5, -0.5, 0.5),
+                    vec3(-0.5, 0.5, 0.5),
+                    vec3(-0.5, 0.5, -0.5)
+                );
 
-grid = grid_pipeline(ctx, [image, depth])
+                vec3 normals[36] = vec3[](
+                    vec3(0.0, 0.0, -1.0),
+                    vec3(0.0, 0.0, -1.0),
+                    vec3(0.0, 0.0, -1.0),
+                    vec3(0.0, 0.0, -1.0),
+                    vec3(0.0, 0.0, -1.0),
+                    vec3(0.0, 0.0, -1.0),
+                    vec3(0.0, 0.0, 1.0),
+                    vec3(0.0, 0.0, 1.0),
+                    vec3(0.0, 0.0, 1.0),
+                    vec3(0.0, 0.0, 1.0),
+                    vec3(0.0, 0.0, 1.0),
+                    vec3(0.0, 0.0, 1.0),
+                    vec3(0.0, -1.0, 0.0),
+                    vec3(0.0, -1.0, 0.0),
+                    vec3(0.0, -1.0, 0.0),
+                    vec3(0.0, -1.0, 0.0),
+                    vec3(0.0, -1.0, 0.0),
+                    vec3(0.0, -1.0, 0.0),
+                    vec3(1.0, 0.0, 0.0),
+                    vec3(1.0, 0.0, 0.0),
+                    vec3(1.0, 0.0, 0.0),
+                    vec3(1.0, 0.0, 0.0),
+                    vec3(1.0, 0.0, 0.0),
+                    vec3(1.0, 0.0, 0.0),
+                    vec3(0.0, 1.0, 0.0),
+                    vec3(0.0, 1.0, 0.0),
+                    vec3(0.0, 1.0, 0.0),
+                    vec3(0.0, 1.0, 0.0),
+                    vec3(0.0, 1.0, 0.0),
+                    vec3(0.0, 1.0, 0.0),
+                    vec3(-1.0, 0.0, 0.0),
+                    vec3(-1.0, 0.0, 0.0),
+                    vec3(-1.0, 0.0, 0.0),
+                    vec3(-1.0, 0.0, 0.0),
+                    vec3(-1.0, 0.0, 0.0),
+                    vec3(-1.0, 0.0, 0.0)
+                );
 
-pipeline = ctx.pipeline(
-    vertex_shader='''
-        #version 300 es
-        precision highp float;
+                vec2 texcoords[36] = vec2[](
+                    vec2(1.0, 0.0),
+                    vec2(1.0, 1.0),
+                    vec2(0.0, 1.0),
+                    vec2(0.0, 1.0),
+                    vec2(0.0, 0.0),
+                    vec2(1.0, 0.0),
+                    vec2(0.0, 0.0),
+                    vec2(1.0, 0.0),
+                    vec2(1.0, 1.0),
+                    vec2(1.0, 1.0),
+                    vec2(0.0, 1.0),
+                    vec2(0.0, 0.0),
+                    vec2(0.0, 0.0),
+                    vec2(1.0, 0.0),
+                    vec2(1.0, 1.0),
+                    vec2(1.0, 1.0),
+                    vec2(0.0, 1.0),
+                    vec2(0.0, 0.0),
+                    vec2(0.0, 0.0),
+                    vec2(1.0, 0.0),
+                    vec2(1.0, 1.0),
+                    vec2(1.0, 1.0),
+                    vec2(0.0, 1.0),
+                    vec2(0.0, 0.0),
+                    vec2(0.0, 0.0),
+                    vec2(1.0, 0.0),
+                    vec2(1.0, 1.0),
+                    vec2(1.0, 1.0),
+                    vec2(0.0, 1.0),
+                    vec2(0.0, 0.0),
+                    vec2(0.0, 0.0),
+                    vec2(1.0, 0.0),
+                    vec2(1.0, 1.0),
+                    vec2(1.0, 1.0),
+                    vec2(0.0, 1.0),
+                    vec2(0.0, 0.0)
+                );
 
-        #include "defaults"
+                out vec3 v_vertex;
+                out vec3 v_normal;
+                out vec2 v_texcoord;
 
-        vec3 vertices[36] = vec3[](
-            vec3(-0.5, -0.5, -0.5),
-            vec3(-0.5, 0.5, -0.5),
-            vec3(0.5, 0.5, -0.5),
-            vec3(0.5, 0.5, -0.5),
-            vec3(0.5, -0.5, -0.5),
-            vec3(-0.5, -0.5, -0.5),
-            vec3(-0.5, -0.5, 0.5),
-            vec3(0.5, -0.5, 0.5),
-            vec3(0.5, 0.5, 0.5),
-            vec3(0.5, 0.5, 0.5),
-            vec3(-0.5, 0.5, 0.5),
-            vec3(-0.5, -0.5, 0.5),
-            vec3(-0.5, -0.5, -0.5),
-            vec3(0.5, -0.5, -0.5),
-            vec3(0.5, -0.5, 0.5),
-            vec3(0.5, -0.5, 0.5),
-            vec3(-0.5, -0.5, 0.5),
-            vec3(-0.5, -0.5, -0.5),
-            vec3(0.5, -0.5, -0.5),
-            vec3(0.5, 0.5, -0.5),
-            vec3(0.5, 0.5, 0.5),
-            vec3(0.5, 0.5, 0.5),
-            vec3(0.5, -0.5, 0.5),
-            vec3(0.5, -0.5, -0.5),
-            vec3(0.5, 0.5, -0.5),
-            vec3(-0.5, 0.5, -0.5),
-            vec3(-0.5, 0.5, 0.5),
-            vec3(-0.5, 0.5, 0.5),
-            vec3(0.5, 0.5, 0.5),
-            vec3(0.5, 0.5, -0.5),
-            vec3(-0.5, 0.5, -0.5),
-            vec3(-0.5, -0.5, -0.5),
-            vec3(-0.5, -0.5, 0.5),
-            vec3(-0.5, -0.5, 0.5),
-            vec3(-0.5, 0.5, 0.5),
-            vec3(-0.5, 0.5, -0.5)
-        );
+                void main() {
+                    v_vertex = vertices[gl_VertexID];
+                    v_normal = normals[gl_VertexID];
+                    v_texcoord = texcoords[gl_VertexID];
+                    gl_Position = mvp * vec4(v_vertex, 1.0);
+                }
+            ''',
+            fragment_shader='''
+                #version 300 es
+                precision highp float;
 
-        vec3 normals[36] = vec3[](
-            vec3(0.0, 0.0, -1.0),
-            vec3(0.0, 0.0, -1.0),
-            vec3(0.0, 0.0, -1.0),
-            vec3(0.0, 0.0, -1.0),
-            vec3(0.0, 0.0, -1.0),
-            vec3(0.0, 0.0, -1.0),
-            vec3(0.0, 0.0, 1.0),
-            vec3(0.0, 0.0, 1.0),
-            vec3(0.0, 0.0, 1.0),
-            vec3(0.0, 0.0, 1.0),
-            vec3(0.0, 0.0, 1.0),
-            vec3(0.0, 0.0, 1.0),
-            vec3(0.0, -1.0, 0.0),
-            vec3(0.0, -1.0, 0.0),
-            vec3(0.0, -1.0, 0.0),
-            vec3(0.0, -1.0, 0.0),
-            vec3(0.0, -1.0, 0.0),
-            vec3(0.0, -1.0, 0.0),
-            vec3(1.0, 0.0, 0.0),
-            vec3(1.0, 0.0, 0.0),
-            vec3(1.0, 0.0, 0.0),
-            vec3(1.0, 0.0, 0.0),
-            vec3(1.0, 0.0, 0.0),
-            vec3(1.0, 0.0, 0.0),
-            vec3(0.0, 1.0, 0.0),
-            vec3(0.0, 1.0, 0.0),
-            vec3(0.0, 1.0, 0.0),
-            vec3(0.0, 1.0, 0.0),
-            vec3(0.0, 1.0, 0.0),
-            vec3(0.0, 1.0, 0.0),
-            vec3(-1.0, 0.0, 0.0),
-            vec3(-1.0, 0.0, 0.0),
-            vec3(-1.0, 0.0, 0.0),
-            vec3(-1.0, 0.0, 0.0),
-            vec3(-1.0, 0.0, 0.0),
-            vec3(-1.0, 0.0, 0.0)
-        );
+                layout (std140) uniform Common {
+                    mat4 mvp;
+                    vec3 eye;
+                    vec3 light;
+                };
 
-        vec2 texcoords[36] = vec2[](
-            vec2(1.0, 0.0),
-            vec2(1.0, 1.0),
-            vec2(0.0, 1.0),
-            vec2(0.0, 1.0),
-            vec2(0.0, 0.0),
-            vec2(1.0, 0.0),
-            vec2(0.0, 0.0),
-            vec2(1.0, 0.0),
-            vec2(1.0, 1.0),
-            vec2(1.0, 1.0),
-            vec2(0.0, 1.0),
-            vec2(0.0, 0.0),
-            vec2(0.0, 0.0),
-            vec2(1.0, 0.0),
-            vec2(1.0, 1.0),
-            vec2(1.0, 1.0),
-            vec2(0.0, 1.0),
-            vec2(0.0, 0.0),
-            vec2(0.0, 0.0),
-            vec2(1.0, 0.0),
-            vec2(1.0, 1.0),
-            vec2(1.0, 1.0),
-            vec2(0.0, 1.0),
-            vec2(0.0, 0.0),
-            vec2(0.0, 0.0),
-            vec2(1.0, 0.0),
-            vec2(1.0, 1.0),
-            vec2(1.0, 1.0),
-            vec2(0.0, 1.0),
-            vec2(0.0, 0.0),
-            vec2(0.0, 0.0),
-            vec2(1.0, 0.0),
-            vec2(1.0, 1.0),
-            vec2(1.0, 1.0),
-            vec2(0.0, 1.0),
-            vec2(0.0, 0.0)
-        );
+                in vec3 v_normal;
 
-        out vec3 v_vertex;
-        out vec3 v_normal;
-        out vec2 v_texcoord;
+                layout (location = 0) out vec4 out_color;
 
-        void main() {
-            v_vertex = vertices[gl_VertexID];
-            v_normal = normals[gl_VertexID];
-            v_texcoord = texcoords[gl_VertexID];
-            gl_Position = mvp * vec4(v_vertex, 1.0);
-        }
-    ''',
-    fragment_shader='''
-        #version 300 es
-        precision highp float;
+                void main() {
+                    float lum = dot(normalize(light.xyz), normalize(v_normal)) * 0.7 + 0.3;
+                    out_color = vec4(lum, lum, lum, 1.0);
+                }
+            ''',
+            layout=[
+                {
+                    'name': 'Common',
+                    'binding': 0,
+                },
+            ],
+            resources=[
+                {
+                    'type': 'uniform_buffer',
+                    'binding': 0,
+                    'buffer': uniform_buffer,
+                },
+            ],
+            framebuffer=framebuffer,
+            topology='triangles',
+            cull_face='back',
+            vertex_count=36,
+        )
 
-        #include "defaults"
+    def render(self):
+        self.pipeline.render()
 
-        in vec3 v_normal;
 
-        layout (location = 0) out vec4 out_color;
+if __name__ == '__main__':
+    import preview
+    from grid import Grid
 
-        void main() {
-            float lum = dot(normalize(light.xyz), normalize(v_normal)) * 0.7 + 0.3;
-            out_color = vec4(lum, lum, lum, 1.0);
-        }
-    ''',
-    framebuffer=[image, depth],
-    topology='triangles',
-    cull_face='back',
-    vertex_count=36,
-)
-
-while window.update():
-    image.clear()
-    depth.clear()
-    grid.render()
-    pipeline.render()
-    image.blit()
+    preview.show([Grid, Box])
