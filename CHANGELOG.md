@@ -5,12 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-# [main](https://github.com/szabolcsdombi/zengl/compare/1.15.0...main)
+# [main](https://github.com/szabolcsdombi/zengl/compare/1.16.0...main)
+
+# [1.16.0](https://github.com/szabolcsdombi/zengl/compare/1.15.0...1.16.0)
+
+- Added index, and uniform parameters form `Context.buffer` for better web support
+- Fixed clear in `Context.new_frame` for a nonzero default framebuffer
+- Removed deprecated `load` method support from the loader
 
 # [1.15.0](https://github.com/szabolcsdombi/zengl/compare/1.14.0...1.15.0)
 
 - Added nativ web support without third party webgl binding
-- Fixed default loader for osx
+- Added `zengl.setup_gl` for the web build
+- Fixed the default loader for osx
 
 # [1.14.0](https://github.com/szabolcsdombi/zengl/compare/1.13.0...1.14.0)
 

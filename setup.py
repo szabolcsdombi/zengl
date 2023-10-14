@@ -59,7 +59,7 @@ with open('README.md') as readme:
 
 setup(
     name='zengl',
-    version='1.15.0',
+    version='1.16.0',
     ext_modules=[ext],
     py_modules=['_zengl'],
     license='MIT',
