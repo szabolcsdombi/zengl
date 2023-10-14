@@ -453,11 +453,6 @@ static void load_gl(GLMethods * gl, PyObject * loader) {
     PyObject * loader_function = PyObject_GetAttrString(loader, "load_opengl_function");
 
     if (!loader_function) {
-        PyErr_Clear();
-        loader_function = PyObject_GetAttrString(loader, "load");
-    }
-
-    if (!loader_function) {
         PyErr_Format(PyExc_ValueError, "invalid loader");
         return;
     }
