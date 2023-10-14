@@ -16,3 +16,4 @@ __pycache__
 *.jpg
 
 !favicon.png
+!logo.png
