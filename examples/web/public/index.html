@@ -7,48 +7,29 @@
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="stylesheet" type="text/css" href="style.css">
 </head>
-<script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
-<script src="python.js"></script>
-<script>
-  runPython(`
-    import js
-    import pyodide_js
-    import zengl
+<body>
+  <div id="spinner"><div class="lds-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+  <script>
+    const runPython = async (code) => {
+      const pyodide = await loadPyodide();
+      await pyodide.loadPackage([
+        'glwindow-0.1.0-cp311-cp311-emscripten_3_1_45_wasm32.whl',
+        'zengl-1.16.0-cp311-cp311-emscripten_3_1_45_wasm32.whl',
+        'numpy',
+      ], { messageCallback() {} });
+      const response = await fetch('examples.tar.gz');
+      const buffer = await response.arrayBuffer();
+      await pyodide.unpackArchive(buffer, 'gztar');
+      pyodide.runPython(code);
+      document.getElementById('spinner').remove();
+    };
 
-    canvas = js.document.createElement('canvas')
-    canvas.id = 'canvas'
-    canvas.width = 600
-    canvas.height = 400
-
-    canvas.style.position = 'fixed'
-    canvas.style.left = '50%'
-    canvas.style.top = '50%'
-    canvas.style.transform = 'translate(-50%, -50%)'
-
-    options = js.Object.new()
-    options.powerPreference = 'high-performance'
-    options.premultipliedAlpha = False
-    options.antialias = False
-    options.alpha = False
-    options.depth = False
-    options.stencil = False
-
-    gl = canvas.getContext('webgl2', options)
-    canvas = js.document.body.appendChild(canvas)
-
-    setup_gl = js.eval(zengl.setup_gl)
-    setup_gl(pyodide_js._module, gl)
-
-    ctx = zengl.context()
-
-    from zengl_logo import Logo
-
-    logo = Logo(size=(600, 400), samples=16)
-    logo.render()
-
-    resolved = ctx.image((600, 400), 'rgba8unorm', texture=False)
-    logo.image.blit(resolved)
-    resolved.blit()
-  `);
-</script>
+    runPython(`
+      import glwindow
+      from composer import App
+      glwindow.run(App)
+    `);
+  </script>
+</body>
 </html>
