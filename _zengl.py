@@ -398,8 +398,8 @@ def framebuffer_attachments(attachments):
 
 def settings(cull_face, depth, stencil, blend, attachments):
     num_color_attachments = 1 if attachments is None else len(attachments[1])
-    has_depth = attachments is None or (attachments[2] is not None and attachments[2].flags & 2)
-    has_stencil = attachments is None or (attachments[2] is not None and attachments[2].flags & 4)
+    has_depth = False if attachments is None else (attachments[2] is not None and attachments[2].flags & 2)
+    has_stencil = False if attachments is None else (attachments[2] is not None and attachments[2].flags & 4)
 
     res = [num_color_attachments, CULL_FACE[cull_face]]
 
