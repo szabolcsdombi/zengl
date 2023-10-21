@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 # [main](https://github.com/szabolcsdombi/zengl/compare/1.16.0...main)
 
+- Fixed `Context.new_frame` type hints
+- Fixed rendering to the default framebuffer without depth and stencil test
+
 # [1.16.0](https://github.com/szabolcsdombi/zengl/compare/1.15.0...1.16.0)
 
 - Added index, and uniform parameters form `Context.buffer` for better web support
