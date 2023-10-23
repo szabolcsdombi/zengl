@@ -113,7 +113,6 @@ extern void zengl_glDeleteBuffers(int, const int *);
 extern void zengl_glGenBuffers(int, int *);
 extern void zengl_glBufferData(int, intptr, const void *, int);
 extern void zengl_glBufferSubData(int, intptr, intptr, const void *);
-extern int zengl_glUnmapBuffer(int);
 extern void zengl_glBlendEquationSeparate(int, int);
 extern void zengl_glDrawBuffers(int, const int *);
 extern void zengl_glStencilOpSeparate(int, int, int, int);
@@ -178,7 +177,6 @@ extern void zengl_glGenerateMipmap(int);
 extern void zengl_glBlitFramebuffer(int, int, int, int, int, int, int, int, int, int);
 extern void zengl_glRenderbufferStorageMultisample(int, int, int, int, int);
 extern void zengl_glFramebufferTextureLayer(int, int, int, int, int);
-extern void * zengl_glMapBufferRange(int, intptr, intptr, int);
 extern void zengl_glBindVertexArray(int);
 extern void zengl_glDeleteVertexArrays(int, const int *);
 extern void zengl_glGenVertexArrays(int, int *);
@@ -2352,76 +2350,6 @@ static PyObject * Buffer_meth_write(Buffer * self, PyObject * args, PyObject * k
     Py_RETURN_NONE;
 }
 
-static PyObject * Buffer_meth_map(Buffer * self, PyObject * args, PyObject * kwargs) {
-    static char * keywords[] = {"size", "offset", "discard", NULL};
-
-    PyObject * size_arg = Py_None;
-    PyObject * offset_arg = Py_None;
-    int discard = 0;
-
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|OOp", keywords, &size_arg, &offset_arg, &discard)) {
-        return NULL;
-    }
-
-    int size = self->size;
-    int offset = 0;
-
-    if (size_arg != Py_None && !PyLong_CheckExact(size_arg)) {
-        PyErr_Format(PyExc_TypeError, "the size must be an int or None");
-        return NULL;
-    }
-
-    if (offset_arg != Py_None && !PyLong_CheckExact(offset_arg)) {
-        PyErr_Format(PyExc_TypeError, "the offset must be an int or None");
-        return NULL;
-    }
-
-    if (size_arg != Py_None) {
-        size = to_int(size_arg);
-    }
-
-    if (offset_arg != Py_None) {
-        offset = to_int(offset_arg);
-    }
-
-    if (self->mapped) {
-        PyErr_Format(PyExc_RuntimeError, "already mapped");
-        return NULL;
-    }
-
-    if (size_arg == Py_None && offset_arg != Py_None) {
-        PyErr_Format(PyExc_ValueError, "the size is required when the offset is not None");
-        return NULL;
-    }
-
-    if (size <= 0 || size > self->size) {
-        PyErr_Format(PyExc_ValueError, "invalid size");
-        return NULL;
-    }
-
-    if (offset < 0 || offset + size > self->size) {
-        PyErr_Format(PyExc_ValueError, "invalid offset");
-        return NULL;
-    }
-
-    self->mapped = 1;
-    self->ctx->mapped_buffers += 1;
-    const int access = discard ? GL_MAP_READ_BIT | GL_MAP_WRITE_BIT : GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_WRITE_BIT;
-    zengl_glBindBuffer(GL_ARRAY_BUFFER, self->buffer);
-    void * ptr = zengl_glMapBufferRange(GL_ARRAY_BUFFER, offset, size, access);
-    return PyMemoryView_FromMemory((char *)ptr, size, PyBUF_WRITE);
-}
-
-static PyObject * Buffer_meth_unmap(Buffer * self, PyObject * args) {
-    if (self->mapped) {
-        self->mapped = 0;
-        self->ctx->mapped_buffers -= 1;
-        zengl_glBindBuffer(GL_ARRAY_BUFFER, self->buffer);
-        zengl_glUnmapBuffer(GL_ARRAY_BUFFER);
-    }
-    Py_RETURN_NONE;
-}
-
 static PyObject * Image_meth_clear(Image * self, PyObject * args) {
     const int count = (int)PyTuple_Size(self->layers);
     for (int i = 0; i < count; ++i) {
@@ -3047,8 +2975,6 @@ static PyMemberDef Context_members[] = {
 
 static PyMethodDef Buffer_methods[] = {
     {"write", (PyCFunction)Buffer_meth_write, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"map", (PyCFunction)Buffer_meth_map, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"unmap", (PyCFunction)Buffer_meth_unmap, METH_NOARGS, NULL},
     {0},
 };
 

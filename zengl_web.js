@@ -154,9 +154,6 @@
     zengl_glBufferSubData(target, offset, size, data) {
       gl.bufferSubData(target, offset, wasm.HEAPU8.subarray(data, data + size));
     },
-    zengl_glUnmapBuffer(target) {
-      return 0;
-    },
     zengl_glBlendEquationSeparate(modeRGB, modeAlpha) {
       gl.blendEquationSeparate(modeRGB, modeAlpha);
     },
@@ -382,9 +379,6 @@
     },
     zengl_glFramebufferTextureLayer(target, attachment, texture, level, layer) {
       gl.framebufferTextureLayer(target, attachment, glo[texture], level, layer);
-    },
-    zengl_glMapBufferRange(target, offset, length, access) {
-      return 0;
     },
     zengl_glBindVertexArray(array) {
       gl.bindVertexArray(glo[array]);
