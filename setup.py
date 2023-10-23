@@ -6,7 +6,6 @@ from setuptools import Extension, setup
 extra_compile_args = []
 extra_link_args = []
 define_macros = []
-sources = ['zengl.c']
 
 stubs = {
     'packages': ['zengl-stubs'],
@@ -23,13 +22,13 @@ if sys.platform.startswith('darwin'):
 if os.getenv('PYODIDE'):
     import re
 
-    with open('zengl_web.js') as f:
-        setup_gl = re.sub(r'\s+', ' ', f.read(), flags=re.M)
+    with open('zengl.js') as f:
+        zengl_js = re.sub(r'\s+', ' ', f.read(), flags=re.M)
 
     define_macros = [
-        ('setup_gl', f'"{setup_gl}"'),
+        ('ZENGL_JS', f'"{zengl_js}"'),
+        ('WEB', None),
     ]
-    sources = ['zengl_web.c']
     stubs = {}
 
 if os.getenv('ZENGL_COVERAGE'):
@@ -48,7 +47,7 @@ if os.getenv('ZENGL_NO_STUBS'):
 
 ext = Extension(
     name='zengl',
-    sources=sources,
+    sources=['zengl.c'],
     extra_compile_args=extra_compile_args,
     extra_link_args=extra_link_args,
     define_macros=define_macros,

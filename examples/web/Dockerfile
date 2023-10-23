@@ -8,7 +8,7 @@ RUN git clone https://github.com/emscripten-core/emsdk.git $EMSDK &&\
 RUN git clone https://github.com/szabolcsdombi/glwindow /glwindow
 RUN pyodide build /glwindow -o /web/
 
-COPY setup.py MANIFEST.in README.md zengl_web.js zengl_web.c _zengl.py /zengl/
+COPY setup.py MANIFEST.in README.md zengl.js zengl.c _zengl.py /zengl/
 RUN pyodide build /zengl -o /web/
 
 COPY examples/*.py /examples/

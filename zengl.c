@@ -88,122 +88,149 @@ typedef Py_ssize_t intptr;
 #define GL_PRIMITIVE_RESTART_FIXED_INDEX 0x8D69
 #define GL_TEXTURE_MAX_ANISOTROPY 0x84FE
 
-void (GL glCullFace)(int);
-void (GL glClear)(int);
-void (GL glTexParameteri)(int, int, int);
-void (GL glTexImage2D)(int, int, int, int, int, int, int, int, const void *);
-void (GL glDepthMask)(int);
-void (GL glDisable)(int);
-void (GL glEnable)(int);
-void (GL glFlush)();
-void (GL glDepthFunc)(int);
-void (GL glReadBuffer)(int);
-void (GL glReadPixels)(int, int, int, int, int, int, void *);
-int (GL glGetError)();
-void (GL glGetIntegerv)(int, int *);
-const char * (GL glGetString)(int);
-void (GL glViewport)(int, int, int, int);
-void (GL glTexSubImage2D)(int, int, int, int, int, int, int, int, const void *);
-void (GL glBindTexture)(int, int);
-void (GL glDeleteTextures)(int, const int *);
-void (GL glGenTextures)(int, int *);
-void (GL glTexImage3D)(int, int, int, int, int, int, int, int, int, const void *);
-void (GL glTexSubImage3D)(int, int, int, int, int, int, int, int, int, int, const void *);
-void (GL glActiveTexture)(int);
-void (GL glBlendFuncSeparate)(int, int, int, int);
-void (GL glGenQueries)(int, int *);
-void (GL glBeginQuery)(int, int);
-void (GL glEndQuery)(int);
-void (GL glGetQueryObjectuiv)(int, int, void *);
-void (GL glBindBuffer)(int, int);
-void (GL glDeleteBuffers)(int, const int *);
-void (GL glGenBuffers)(int, int *);
-void (GL glBufferData)(int, intptr, const void *, int);
-void (GL glBufferSubData)(int, intptr, intptr, const void *);
-int (GL glUnmapBuffer)(int);
-void (GL glBlendEquationSeparate)(int, int);
-void (GL glDrawBuffers)(int, const int *);
-void (GL glStencilOpSeparate)(int, int, int, int);
-void (GL glStencilFuncSeparate)(int, int, int, int);
-void (GL glStencilMaskSeparate)(int, int);
-void (GL glAttachShader)(int, int);
-void (GL glCompileShader)(int);
-int (GL glCreateProgram)();
-int (GL glCreateShader)(int);
-void (GL glDeleteProgram)(int);
-void (GL glDeleteShader)(int);
-void (GL glEnableVertexAttribArray)(int);
-void (GL glGetActiveAttrib)(int, int, int, int *, int *, int *, char *);
-void (GL glGetActiveUniform)(int, int, int, int *, int *, int *, char *);
-int (GL glGetAttribLocation)(int, const char *);
-void (GL glGetProgramiv)(int, int, int *);
-void (GL glGetProgramInfoLog)(int, int, int *, char *);
-void (GL glGetShaderiv)(int, int, int *);
-void (GL glGetShaderInfoLog)(int, int, int *, char *);
-int (GL glGetUniformLocation)(int, const char *);
-void (GL glLinkProgram)(int);
-void (GL glShaderSource)(int, int, const void *, const int *);
-void (GL glUseProgram)(int);
-void (GL glUniform1i)(int, int);
-void (GL glUniform1fv)(int, int, const void *);
-void (GL glUniform2fv)(int, int, const void *);
-void (GL glUniform3fv)(int, int, const void *);
-void (GL glUniform4fv)(int, int, const void *);
-void (GL glUniform1iv)(int, int, const void *);
-void (GL glUniform2iv)(int, int, const void *);
-void (GL glUniform3iv)(int, int, const void *);
-void (GL glUniform4iv)(int, int, const void *);
-void (GL glUniformMatrix2fv)(int, int, int, const void *);
-void (GL glUniformMatrix3fv)(int, int, int, const void *);
-void (GL glUniformMatrix4fv)(int, int, int, const void *);
-void (GL glVertexAttribPointer)(int, int, int, int, int, intptr);
-void (GL glUniformMatrix2x3fv)(int, int, int, const void *);
-void (GL glUniformMatrix3x2fv)(int, int, int, const void *);
-void (GL glUniformMatrix2x4fv)(int, int, int, const void *);
-void (GL glUniformMatrix4x2fv)(int, int, int, const void *);
-void (GL glUniformMatrix3x4fv)(int, int, int, const void *);
-void (GL glUniformMatrix4x3fv)(int, int, int, const void *);
-void (GL glBindBufferRange)(int, int, int, intptr, intptr);
-void (GL glVertexAttribIPointer)(int, int, int, int, intptr);
-void (GL glUniform1uiv)(int, int, const void *);
-void (GL glUniform2uiv)(int, int, const void *);
-void (GL glUniform3uiv)(int, int, const void *);
-void (GL glUniform4uiv)(int, int, const void *);
-void (GL glClearBufferiv)(int, int, const void *);
-void (GL glClearBufferuiv)(int, int, const void *);
-void (GL glClearBufferfv)(int, int, const void *);
-void (GL glClearBufferfi)(int, int, float, int);
-void (GL glBindRenderbuffer)(int, int);
-void (GL glDeleteRenderbuffers)(int, const int *);
-void (GL glGenRenderbuffers)(int, int *);
-void (GL glBindFramebuffer)(int, int);
-void (GL glDeleteFramebuffers)(int, const int *);
-void (GL glGenFramebuffers)(int, int *);
-void (GL glFramebufferTexture2D)(int, int, int, int, int);
-void (GL glFramebufferRenderbuffer)(int, int, int, int);
-void (GL glGenerateMipmap)(int);
-void (GL glBlitFramebuffer)(int, int, int, int, int, int, int, int, int, int);
-void (GL glRenderbufferStorageMultisample)(int, int, int, int, int);
-void (GL glFramebufferTextureLayer)(int, int, int, int, int);
-void * (GL glMapBufferRange)(int, intptr, intptr, int);
-void (GL glBindVertexArray)(int);
-void (GL glDeleteVertexArrays)(int, const int *);
-void (GL glGenVertexArrays)(int, int *);
-void (GL glDrawArraysInstanced)(int, int, int, int);
-void (GL glDrawElementsInstanced)(int, int, int, intptr, int);
-int (GL glGetUniformBlockIndex)(int, const char *);
-void (GL glGetActiveUniformBlockiv)(int, int, int, int *);
-void (GL glGetActiveUniformBlockName)(int, int, int, int *, char *);
-void (GL glUniformBlockBinding)(int, int, int);
-void * (GL glFenceSync)(int, int);
-void (GL glDeleteSync)(void *);
-int (GL glClientWaitSync)(void *, int, long long);
-void (GL glGenSamplers)(int, int *);
-void (GL glDeleteSamplers)(int, const int *);
-void (GL glBindSampler)(int, int);
-void (GL glSamplerParameteri)(int, int, int);
-void (GL glSamplerParameterf)(int, int, float);
-void (GL glVertexAttribDivisor)(int, int);
+#ifndef WEB
+#define RESOLVE(type, name, ...) type (GL name)(__VA_ARGS__)
+#else
+#define RESOLVE(type, name, ...) extern type name(__VA_ARGS__) __asm__("zengl_" # name)
+#endif
+
+RESOLVE(void, glCullFace, int);
+RESOLVE(void, glClear, int);
+RESOLVE(void, glTexParameteri, int, int, int);
+RESOLVE(void, glTexImage2D, int, int, int, int, int, int, int, int, const void *);
+RESOLVE(void, glDepthMask, int);
+RESOLVE(void, glDisable, int);
+RESOLVE(void, glEnable, int);
+RESOLVE(void, glFlush);
+RESOLVE(void, glDepthFunc, int);
+RESOLVE(void, glReadBuffer, int);
+RESOLVE(void, glReadPixels, int, int, int, int, int, int, void *);
+RESOLVE(int, glGetError);
+RESOLVE(void, glGetIntegerv, int, int *);
+RESOLVE(void, glViewport, int, int, int, int);
+RESOLVE(void, glTexSubImage2D, int, int, int, int, int, int, int, int, const void *);
+RESOLVE(void, glBindTexture, int, int);
+RESOLVE(void, glDeleteTextures, int, const int *);
+RESOLVE(void, glGenTextures, int, int *);
+RESOLVE(void, glTexImage3D, int, int, int, int, int, int, int, int, int, const void *);
+RESOLVE(void, glTexSubImage3D, int, int, int, int, int, int, int, int, int, int, const void *);
+RESOLVE(void, glActiveTexture, int);
+RESOLVE(void, glBlendFuncSeparate, int, int, int, int);
+RESOLVE(void, glGenQueries, int, int *);
+RESOLVE(void, glBeginQuery, int, int);
+RESOLVE(void, glEndQuery, int);
+RESOLVE(void, glGetQueryObjectuiv, int, int, void *);
+RESOLVE(void, glBindBuffer, int, int);
+RESOLVE(void, glDeleteBuffers, int, const int *);
+RESOLVE(void, glGenBuffers, int, int *);
+RESOLVE(void, glBufferData, int, intptr, const void *, int);
+RESOLVE(void, glBufferSubData, int, intptr, intptr, const void *);
+RESOLVE(void, glBlendEquationSeparate, int, int);
+RESOLVE(void, glDrawBuffers, int, const int *);
+RESOLVE(void, glStencilOpSeparate, int, int, int, int);
+RESOLVE(void, glStencilFuncSeparate, int, int, int, int);
+RESOLVE(void, glStencilMaskSeparate, int, int);
+RESOLVE(void, glAttachShader, int, int);
+RESOLVE(void, glCompileShader, int);
+RESOLVE(int, glCreateProgram);
+RESOLVE(int, glCreateShader, int);
+RESOLVE(void, glDeleteProgram, int);
+RESOLVE(void, glDeleteShader, int);
+RESOLVE(void, glEnableVertexAttribArray, int);
+RESOLVE(void, glGetActiveAttrib, int, int, int, int *, int *, int *, char *);
+RESOLVE(void, glGetActiveUniform, int, int, int, int *, int *, int *, char *);
+RESOLVE(int, glGetAttribLocation, int, const char *);
+RESOLVE(void, glGetProgramiv, int, int, int *);
+RESOLVE(void, glGetProgramInfoLog, int, int, int *, char *);
+RESOLVE(void, glGetShaderiv, int, int, int *);
+RESOLVE(void, glGetShaderInfoLog, int, int, int *, char *);
+RESOLVE(int, glGetUniformLocation, int, const char *);
+RESOLVE(void, glLinkProgram, int);
+RESOLVE(void, glShaderSource, int, int, const void *, const int *);
+RESOLVE(void, glUseProgram, int);
+RESOLVE(void, glUniform1i, int, int);
+RESOLVE(void, glUniform1fv, int, int, const void *);
+RESOLVE(void, glUniform2fv, int, int, const void *);
+RESOLVE(void, glUniform3fv, int, int, const void *);
+RESOLVE(void, glUniform4fv, int, int, const void *);
+RESOLVE(void, glUniform1iv, int, int, const void *);
+RESOLVE(void, glUniform2iv, int, int, const void *);
+RESOLVE(void, glUniform3iv, int, int, const void *);
+RESOLVE(void, glUniform4iv, int, int, const void *);
+RESOLVE(void, glUniformMatrix2fv, int, int, int, const void *);
+RESOLVE(void, glUniformMatrix3fv, int, int, int, const void *);
+RESOLVE(void, glUniformMatrix4fv, int, int, int, const void *);
+RESOLVE(void, glVertexAttribPointer, int, int, int, int, int, intptr);
+RESOLVE(void, glUniformMatrix2x3fv, int, int, int, const void *);
+RESOLVE(void, glUniformMatrix3x2fv, int, int, int, const void *);
+RESOLVE(void, glUniformMatrix2x4fv, int, int, int, const void *);
+RESOLVE(void, glUniformMatrix4x2fv, int, int, int, const void *);
+RESOLVE(void, glUniformMatrix3x4fv, int, int, int, const void *);
+RESOLVE(void, glUniformMatrix4x3fv, int, int, int, const void *);
+RESOLVE(void, glBindBufferRange, int, int, int, intptr, intptr);
+RESOLVE(void, glVertexAttribIPointer, int, int, int, int, intptr);
+RESOLVE(void, glUniform1uiv, int, int, const void *);
+RESOLVE(void, glUniform2uiv, int, int, const void *);
+RESOLVE(void, glUniform3uiv, int, int, const void *);
+RESOLVE(void, glUniform4uiv, int, int, const void *);
+RESOLVE(void, glClearBufferiv, int, int, const void *);
+RESOLVE(void, glClearBufferuiv, int, int, const void *);
+RESOLVE(void, glClearBufferfv, int, int, const void *);
+RESOLVE(void, glClearBufferfi, int, int, float, int);
+RESOLVE(void, glBindRenderbuffer, int, int);
+RESOLVE(void, glDeleteRenderbuffers, int, const int *);
+RESOLVE(void, glGenRenderbuffers, int, int *);
+RESOLVE(void, glBindFramebuffer, int, int);
+RESOLVE(void, glDeleteFramebuffers, int, const int *);
+RESOLVE(void, glGenFramebuffers, int, int *);
+RESOLVE(void, glFramebufferTexture2D, int, int, int, int, int);
+RESOLVE(void, glFramebufferRenderbuffer, int, int, int, int);
+RESOLVE(void, glGenerateMipmap, int);
+RESOLVE(void, glBlitFramebuffer, int, int, int, int, int, int, int, int, int, int);
+RESOLVE(void, glRenderbufferStorageMultisample, int, int, int, int, int);
+RESOLVE(void, glFramebufferTextureLayer, int, int, int, int, int);
+RESOLVE(void, glBindVertexArray, int);
+RESOLVE(void, glDeleteVertexArrays, int, const int *);
+RESOLVE(void, glGenVertexArrays, int, int *);
+RESOLVE(void, glDrawArraysInstanced, int, int, int, int);
+RESOLVE(void, glDrawElementsInstanced, int, int, int, intptr, int);
+RESOLVE(int, glGetUniformBlockIndex, int, const char *);
+RESOLVE(void, glGetActiveUniformBlockiv, int, int, int, int *);
+RESOLVE(void, glGetActiveUniformBlockName, int, int, int, int *, char *);
+RESOLVE(void, glUniformBlockBinding, int, int, int);
+RESOLVE(void *, glFenceSync, int, int);
+RESOLVE(void, glDeleteSync, void *);
+RESOLVE(int, glClientWaitSync, void *, int, long long);
+RESOLVE(void, glGenSamplers, int, int *);
+RESOLVE(void, glDeleteSamplers, int, const int *);
+RESOLVE(void, glBindSampler, int, int);
+RESOLVE(void, glSamplerParameteri, int, int, int);
+RESOLVE(void, glSamplerParameterf, int, int, float);
+RESOLVE(void, glVertexAttribDivisor, int, int);
+
+#ifndef WEB
+RESOLVE(const char *, glGetString, int);
+RESOLVE(void *, glMapBufferRange, int, intptr, intptr, int);
+RESOLVE(int, glUnmapBuffer, int);
+#else
+static const char * glGetString(int name) {
+    switch (name) {
+        case 0x1F00: return "WebKit";
+        case 0x1F01: return "WebKit WebGL";
+        case 0x1F02: return "WebGL 2.0 (OpenGL ES 3.0)";
+        case 0x8B8C: return "WebGL GLSL ES 3.00 (OpenGL ES GLSL ES 3.0)";
+    }
+    return NULL;
+}
+static void * glMapBufferRange(int target, intptr offset, intptr length, int access) {
+    return NULL;
+}
+static int glUnmapBuffer(int target) {
+    return 0;
+}
+#endif
+
+#undef RESOLVE
 
 typedef void (GL UniformSetter)(int, int, const void *);
 typedef void (GL UniformMatrixSetter)(int, int, int, const void *);
@@ -415,6 +442,8 @@ static Viewport to_viewport(PyObject * obj, int x, int y, int width, int height)
     return res;
 }
 
+#ifndef WEB
+
 static void * load_opengl_function(PyObject * loader_function, const char * method) {
     PyObject * res = PyObject_CallFunction(loader_function, "(s)", method);
     if (!res) {
@@ -589,6 +618,8 @@ static void load_gl(PyObject * loader) {
 
     Py_DECREF(missing);
 }
+
+#endif
 
 typedef struct Limits {
     int max_uniform_buffer_bindings;
@@ -954,6 +985,7 @@ static GLObject * build_framebuffer(Context * self, PyObject * attachments) {
     return res;
 }
 
+#ifndef WEB
 static void bind_uniforms(Context * self, PyObject * uniform_layout, PyObject * uniform_data) {
     const UniformHeader * const header = (UniformHeader *)PyMemoryView_GET_BUFFER(uniform_layout)->buf;
     const char * const data = (char *)PyMemoryView_GET_BUFFER(uniform_data)->buf;
@@ -967,6 +999,42 @@ static void bind_uniforms(Context * self, PyObject * uniform_layout, PyObject * 
         }
     }
 }
+#else
+static void bind_uniforms(Context * self, PyObject * uniform_layout, PyObject * uniform_data) {
+    const UniformHeader * const header = (UniformHeader *)PyMemoryView_GET_BUFFER(uniform_layout)->buf;
+    const char * const data = (char *)PyMemoryView_GET_BUFFER(uniform_data)->buf;
+    for (int i = 0; i < header->count; ++i) {
+        const void * ptr = data + header->binding[i].offset;
+        switch (header->binding[i].function) {
+            case 0: glUniform1iv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 1: glUniform2iv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 2: glUniform3iv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 3: glUniform4iv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 4: glUniform1iv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 5: glUniform2iv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 6: glUniform3iv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 7: glUniform4iv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 8: glUniform1uiv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 9: glUniform2uiv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 10: glUniform3uiv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 11: glUniform4uiv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 12: glUniform1fv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 13: glUniform2fv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 14: glUniform3fv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 15: glUniform4fv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 16: glUniformMatrix2fv(header->binding[i].location, header->binding[i].count, 0, ptr); break;
+            case 17: glUniformMatrix2x3fv(header->binding[i].location, header->binding[i].count, 0, ptr); break;
+            case 18: glUniformMatrix2x4fv(header->binding[i].location, header->binding[i].count, 0, ptr); break;
+            case 19: glUniformMatrix3x2fv(header->binding[i].location, header->binding[i].count, 0, ptr); break;
+            case 20: glUniformMatrix3fv(header->binding[i].location, header->binding[i].count, 0, ptr); break;
+            case 21: glUniformMatrix3x4fv(header->binding[i].location, header->binding[i].count, 0, ptr); break;
+            case 22: glUniformMatrix4x2fv(header->binding[i].location, header->binding[i].count, 0, ptr); break;
+            case 23: glUniformMatrix4x3fv(header->binding[i].location, header->binding[i].count, 0, ptr); break;
+            case 24: glUniformMatrix4fv(header->binding[i].location, header->binding[i].count, 0, ptr); break;
+        }
+    }
+}
+#endif
 
 static GLObject * build_vertex_array(Context * self, PyObject * bindings) {
     GLObject * cache = (GLObject *)PyDict_GetItem(self->vertex_array_cache, bindings);
@@ -1518,7 +1586,7 @@ static PyObject * read_image_face(ImageFace * src, PyObject * size_arg, PyObject
     return res;
 }
 
-static Context * meth_init(PyObject * self, PyObject * args, PyObject * kwargs) {
+static PyObject * meth_init(PyObject * self, PyObject * args, PyObject * kwargs) {
     static char * keywords[] = {"loader", NULL};
 
     PyObject * loader = Py_None;
@@ -1531,6 +1599,8 @@ static Context * meth_init(PyObject * self, PyObject * args, PyObject * kwargs) 
         Py_RETURN_NONE;
     }
 
+    #ifndef WEB
+
     ModuleState * module_state = (ModuleState *)PyModule_GetState(self);
 
     if (loader == Py_None) {
@@ -1542,13 +1612,25 @@ static Context * meth_init(PyObject * self, PyObject * args, PyObject * kwargs) 
         Py_INCREF(loader);
     }
 
+    gl_loader = loader;
     load_gl(loader);
 
     if (PyErr_Occurred()) {
         return NULL;
     }
 
-    gl_loader = loader;
+    #else
+
+    PyObject * js = PyImport_ImportModule("js");
+    PyObject * pyodide_js = PyImport_ImportModule("pyodide_js");
+    PyObject * setup_gl = PyObject_CallMethod(js, "eval", "(s)", ZENGL_JS);
+    PyObject * wasm = PyObject_GetAttrString(pyodide_js, "_module");
+    PyObject_CallFunction(setup_gl, "(OO)", wasm, loader);
+
+    gl_loader = new_ref(loader);
+
+    #endif
+
     Py_RETURN_NONE;
 }
 
