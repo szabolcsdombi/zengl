@@ -140,7 +140,7 @@ class BoxGrid:
 class App:
     def __init__(self):
         self.wnd = glwindow.get_window()
-        self.ctx = zengl.context(glwindow.get_loader())
+        self.ctx = zengl.context()
         self.scene = BoxGrid(self.wnd.size)
 
     def update(self):

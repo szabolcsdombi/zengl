@@ -7,7 +7,7 @@ from crate import Crate
 class App:
     def __init__(self):
         self.wnd = glwindow.get_window()
-        self.ctx = zengl.context(glwindow.get_loader())
+        self.ctx = zengl.context()
         self.scene1 = Blending((256, 256), samples=4)
         self.scene1.image.clear_value = (0.15, 0.15, 0.15, 1.0)
         self.scene1.scale = 0.8

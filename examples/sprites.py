@@ -120,7 +120,7 @@ class Sprites:
 class App:
     def __init__(self):
         self.wnd = glwindow.get_window()
-        self.ctx = zengl.context(glwindow.get_loader())
+        self.ctx = zengl.context()
         self.scene = Sprites(self.wnd.size, 100)
 
     def update(self):

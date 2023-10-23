@@ -125,7 +125,7 @@ class Grass:
 class App:
     def __init__(self):
         self.wnd = glwindow.get_window()
-        self.ctx = zengl.context(glwindow.get_loader())
+        self.ctx = zengl.context()
         self.scene = Grass(self.wnd.size, 200)
 
     def update(self):

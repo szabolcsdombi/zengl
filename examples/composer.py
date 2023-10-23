@@ -10,7 +10,7 @@ class App:
     def __init__(self):
         self.wnd = glwindow.get_window()
         self.half_size = self.wnd.size[0] // 2, self.wnd.size[1] // 2
-        self.ctx = zengl.context(glwindow.get_loader())
+        self.ctx = zengl.context()
         self.scene1 = Logo(self.half_size)
         self.scene2 = WireframeTerrain(self.half_size)
         self.scene3 = Grass(self.half_size, 100)

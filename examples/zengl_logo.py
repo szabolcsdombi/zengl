@@ -115,7 +115,7 @@ class Logo:
 class App:
     def __init__(self):
         self.wnd = glwindow.get_window()
-        self.ctx = zengl.context(glwindow.get_loader())
+        self.ctx = zengl.context()
         self.logo = Logo(self.wnd.size, samples=16)
 
     def update(self):
