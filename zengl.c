@@ -209,10 +209,44 @@ RESOLVE(void, glSamplerParameterf, int, int, float);
 RESOLVE(void, glVertexAttribDivisor, int, int);
 
 #ifndef WEB
+
 RESOLVE(const char *, glGetString, int);
 RESOLVE(void *, glMapBufferRange, int, intptr, intptr, int);
 RESOLVE(int, glUnmapBuffer, int);
+
+typedef void (GL UniformSetter)(int, int, const void *);
+typedef void (GL UniformMatrixSetter)(int, int, int, const void *);
+
+static void * uniform_setter[25] = {
+    &glUniform1iv,
+    &glUniform2iv,
+    &glUniform3iv,
+    &glUniform4iv,
+    &glUniform1iv,
+    &glUniform2iv,
+    &glUniform3iv,
+    &glUniform4iv,
+    &glUniform1uiv,
+    &glUniform2uiv,
+    &glUniform3uiv,
+    &glUniform4uiv,
+    &glUniform1fv,
+    &glUniform2fv,
+    &glUniform3fv,
+    &glUniform4fv,
+    &glUniformMatrix2fv,
+    &glUniformMatrix2x3fv,
+    &glUniformMatrix2x4fv,
+    &glUniformMatrix3x2fv,
+    &glUniformMatrix3fv,
+    &glUniformMatrix3x4fv,
+    &glUniformMatrix4x2fv,
+    &glUniformMatrix4x3fv,
+    &glUniformMatrix4fv,
+};
+
 #else
+
 static const char * glGetString(int name) {
     switch (name) {
         case 0x1F00: return "WebKit";
@@ -222,20 +256,18 @@ static const char * glGetString(int name) {
     }
     return NULL;
 }
+
 static void * glMapBufferRange(int target, intptr offset, intptr length, int access) {
     return NULL;
 }
+
 static int glUnmapBuffer(int target) {
     return 0;
 }
+
 #endif
 
 #undef RESOLVE
-
-typedef void (GL UniformSetter)(int, int, const void *);
-typedef void (GL UniformMatrixSetter)(int, int, int, const void *);
-
-static void * uniform_setter[25];
 
 static PyObject * gl_loader;
 
@@ -589,32 +621,6 @@ static void load_gl(PyObject * loader) {
         PyErr_Format(PyExc_RuntimeError, "cannot load opengl %R", missing);
         return;
     }
-
-    uniform_setter[0] = glUniform1iv;
-    uniform_setter[1] = glUniform2iv;
-    uniform_setter[2] = glUniform3iv;
-    uniform_setter[3] = glUniform4iv;
-    uniform_setter[4] = glUniform1iv;
-    uniform_setter[5] = glUniform2iv;
-    uniform_setter[6] = glUniform3iv;
-    uniform_setter[7] = glUniform4iv;
-    uniform_setter[8] = glUniform1uiv;
-    uniform_setter[9] = glUniform2uiv;
-    uniform_setter[10] = glUniform3uiv;
-    uniform_setter[11] = glUniform4uiv;
-    uniform_setter[12] = glUniform1fv;
-    uniform_setter[13] = glUniform2fv;
-    uniform_setter[14] = glUniform3fv;
-    uniform_setter[15] = glUniform4fv;
-    uniform_setter[16] = glUniformMatrix2fv;
-    uniform_setter[17] = glUniformMatrix2x3fv;
-    uniform_setter[18] = glUniformMatrix2x4fv;
-    uniform_setter[19] = glUniformMatrix3x2fv;
-    uniform_setter[20] = glUniformMatrix3fv;
-    uniform_setter[21] = glUniformMatrix3x4fv;
-    uniform_setter[22] = glUniformMatrix4x2fv;
-    uniform_setter[23] = glUniformMatrix4x3fv;
-    uniform_setter[24] = glUniformMatrix4fv;
 
     Py_DECREF(missing);
 }
@@ -993,9 +999,9 @@ static void bind_uniforms(Context * self, PyObject * uniform_layout, PyObject * 
         const void * func = uniform_setter[header->binding[i].function];
         const void * ptr = data + header->binding[i].offset;
         if (header->binding[i].function & 0x10) {
-            (*(UniformMatrixSetter *)&func)(header->binding[i].location, header->binding[i].count, 0, ptr);
+            (*(UniformMatrixSetter *)func)(header->binding[i].location, header->binding[i].count, 0, ptr);
         } else {
-            (*(UniformSetter *)&func)(header->binding[i].location, header->binding[i].count, ptr);
+            (*(UniformSetter *)func)(header->binding[i].location, header->binding[i].count, ptr);
         }
     }
 }
