@@ -993,9 +993,9 @@ static void bind_uniforms(Context * self, PyObject * uniform_layout, PyObject * 
         const void * func = uniform_setter[header->binding[i].function];
         const void * ptr = data + header->binding[i].offset;
         if (header->binding[i].function & 0x10) {
-            (*(UniformMatrixSetter *)func)(header->binding[i].location, header->binding[i].count, 0, ptr);
+            (*(UniformMatrixSetter *)&func)(header->binding[i].location, header->binding[i].count, 0, ptr);
         } else {
-            (*(UniformSetter *)func)(header->binding[i].location, header->binding[i].count, ptr);
+            (*(UniformSetter *)&func)(header->binding[i].location, header->binding[i].count, ptr);
         }
     }
 }
