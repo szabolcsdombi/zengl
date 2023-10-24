@@ -89,7 +89,7 @@ typedef Py_ssize_t intptr;
 #define GL_TEXTURE_MAX_ANISOTROPY 0x84FE
 
 #ifndef WEB
-#define RESOLVE(type, name, ...) type (GL name)(__VA_ARGS__)
+#define RESOLVE(type, name, ...) static type (GL name)(__VA_ARGS__)
 #else
 #define RESOLVE(type, name, ...) extern type name(__VA_ARGS__) __asm__("zengl_" # name)
 #endif
