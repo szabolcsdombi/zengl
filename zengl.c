@@ -1605,8 +1605,6 @@ static PyObject * meth_init(PyObject * self, PyObject * args, PyObject * kwargs)
         Py_RETURN_NONE;
     }
 
-    #ifndef WEB
-
     ModuleState * module_state = (ModuleState *)PyModule_GetState(self);
 
     if (loader == Py_None) {
@@ -1618,7 +1616,8 @@ static PyObject * meth_init(PyObject * self, PyObject * args, PyObject * kwargs)
         Py_INCREF(loader);
     }
 
-    gl_loader = loader;
+    #ifndef WEB
+
     load_gl(loader);
 
     if (PyErr_Occurred()) {
@@ -1627,16 +1626,36 @@ static PyObject * meth_init(PyObject * self, PyObject * args, PyObject * kwargs)
 
     #else
 
-    PyObject * js = PyImport_ImportModule("js");
-    PyObject * pyodide_js = PyImport_ImportModule("pyodide_js");
-    PyObject * setup_gl = PyObject_CallMethod(js, "eval", "(s)", ZENGL_JS);
-    PyObject * wasm = PyObject_GetAttrString(pyodide_js, "_module");
-    PyObject_CallFunction(setup_gl, "(OO)", wasm, loader);
+    Py_INCREF(loader);
 
-    gl_loader = new_ref(loader);
+    PyObject * js = PyImport_ImportModule("js");
+    if (!js) {
+        return NULL;
+    }
+
+    PyObject * pyodide_js = PyImport_ImportModule("pyodide_js");
+    if (!pyodide_js) {
+        return NULL;
+    }
+
+    PyObject * setup_gl = PyObject_CallMethod(js, "eval", "(s)", ZENGL_JS);
+    if (!setup_gl) {
+        return NULL;
+    }
+
+    PyObject * setup_result = PyObject_CallFunction(setup_gl, "(OO)", pyodide_js, loader);
+    if (!setup_result) {
+        return NULL;
+    }
+
+    Py_DECREF(js);
+    Py_DECREF(pyodide_js);
+    Py_DECREF(setup_gl);
+    Py_DECREF(setup_result);
 
     #endif
 
+    gl_loader = loader;
     Py_RETURN_NONE;
 }
 

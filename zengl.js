@@ -1,4 +1,6 @@
-(wasm, gl) => {
+(pyodide, gl) => {
+  const wasm = pyodide._module;
+
   const textEncoder = new TextEncoder('utf-8');
   const textDecoder = new TextDecoder('utf-8');
 

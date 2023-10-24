@@ -1,5 +1,6 @@
 import re
 import struct
+import sys
 import textwrap
 
 VERTEX_FORMAT = {
@@ -245,7 +246,6 @@ UNIFORM_PACKER = {
 class DefaultLoader:
     def __init__(self):
         import ctypes
-        import sys
 
         if sys.platform.startswith('win'):
             lib = ctypes.WinDLL('Opengl32.dll')
@@ -267,9 +267,6 @@ class DefaultLoader:
             def loader(name):
                 return ctypes.cast(lib[name], ctypes.c_void_p).value
 
-        elif sys.platform.startswith('emscripten'):
-            loader = None
-
         self.load_opengl_function = loader
 
 
@@ -278,6 +275,21 @@ def loader(headless=False):
         import glcontext
 
         return glcontext.default_backend()(glversion=330, mode='standalone')
+
+    elif sys.platform.startswith('emscripten'):
+        import js
+
+        canvas = js.document.getElementById('canvas')
+        return canvas.getContext(
+            'webgl2',
+            powerPreference='high-performance',
+            premultipliedAlpha=False,
+            antialias=False,
+            alpha=False,
+            depth=False,
+            stencil=False,
+        )
+
     return DefaultLoader()
 
 
