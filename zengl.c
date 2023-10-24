@@ -3020,6 +3020,7 @@ static int Pipeline_set_viewport(Pipeline * self, PyObject * viewport, void * cl
     }
     return 0;
 }
+
 static PyObject * inspect_descriptor_set(DescriptorSet * set) {
     PyObject * res = PyList_New(0);
     for (int i = 0; i < set->uniform_buffers.binding_count; ++i) {
