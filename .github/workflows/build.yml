@@ -61,18 +61,18 @@ jobs:
       - name: coverage
         run: docker run --rm -t coverage
 
-  # codestyle:
-  #   name: codestyle
-  #   runs-on: ubuntu-latest
+  codestyle:
+    name: codestyle
+    runs-on: ubuntu-latest
 
-  #   steps:
-  #     - uses: actions/checkout@v3
+    steps:
+      - uses: actions/checkout@v3
 
-  #     - name: build
-  #       run: docker build . -f tests/codestyle/Dockerfile -t codestyle
+      - name: build
+        run: docker build . -f tests/codestyle/Dockerfile -t codestyle
 
-  #     - name: codestyle
-  #       run: docker run --rm -t codestyle
+      - name: codestyle
+        run: docker run --rm -t codestyle
 
   documentation:
     name: documentation
