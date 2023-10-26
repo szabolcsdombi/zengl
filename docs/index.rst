@@ -70,23 +70,27 @@ Concept
 Context
 -------
 
-.. py:method:: zengl.context(loader: ContextLoader) -> Context
+.. py:method:: zengl.context() -> Context
 
 All interactions with OpenGL are done by a Context object.
-There should be a single Context created per application.
-A Context is created with the help of a context loader.
-A context loader is an object implementing the load method to resolve OpenGL functions by name.
-This enables zengl to be entirely platform-independent.
+Only the first call to this method creates a new context.
+Multiple calls return the previously created context.
 
 .. py:method:: zengl.loader(headless: bool = False) -> ContextLoader
 
-This method provides a default context loader. It requires `glcontext` to be installed.
-ZenGL does not implement OpenGL function loading. glcontext is used when no alternatives are provided.
+This method provides a default context loader.
+Headless contexts require `glcontext` to be installed.
 
 .. note::
 
     Implementing a context loader enables zengl to run in custom environments.
     ZenGL uses a subset of the OpenGL 3.3 core, the list of methods can be found in the project source.
+    The implementation takes into account the OpenGL ES compatibility and can also work with a WebGL2 backend.
+
+.. py:method:: zengl.init(loader: ContextLoader)
+
+Initialize the OpenGL bindings.
+This method is automatically called by :py:meth:`zengl.context`.
 
 **Context for a window**
 
@@ -98,14 +102,18 @@ ZenGL does not implement OpenGL function loading. glcontext is used when no alte
 
 .. code-block::
 
-    ctx = zengl.context(zengl.loader(headless=True))
+    zengl.init(zengl.loader(headless=True))
+    ctx = zengl.context()
 
 **Rendering**
 
-.. py:method:: Context.new_frame(reset: bool = True, frame_time: bool = False)
+.. py:method:: Context.new_frame(reset: bool = True, clear: bool = True, frame_time: bool = False)
 
 **reset**
     | A boolean to clear ZenGL internals assuming OpenGL global state.
+
+**clear**
+    | A boolean to clear the default framebuffer.
 
 **frame_time**
     | A boolean to start a query with ``GL_TIME_ELAPSED``.
@@ -127,7 +135,11 @@ Buffer
 ------
 
 | Buffers hold vertex, index, and uniform data used by rendering.
-| Buffers are not variable-sized, they are allocated upfront in the device memory.
+| Buffers have a fixed size allocated upfront in the device memory.
+
+.. code-block::
+
+    vertex_buffer = ctx.buffer(open('sphere.mesh', 'rb').read())
 
 .. code-block::
 
