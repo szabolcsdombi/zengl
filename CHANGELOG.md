@@ -5,10 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-# [main](https://github.com/szabolcsdombi/zengl/compare/1.16.0...main)
+# [main](https://github.com/szabolcsdombi/zengl/compare/1.17.0...main)
 
-- Fixed `Context.new_frame` type hints
+# [1.17.0](https://github.com/szabolcsdombi/zengl/compare/1.16.0...1.17.0)
+
+- Removed the loader parameter from `zengl.context`
+- Implemented `zengl.init` with a loader parameter
+- Changed `zengl.context` to return the first created context
+- Fixed `Context.new_frame` type hints and documentation
 - Fixed rendering to the default framebuffer without depth and stencil test
+- Implemented a default loader for the web using the canvas by id
+- Improved the documentation
 
 # [1.16.0](https://github.com/szabolcsdombi/zengl/compare/1.15.0...1.16.0)
 
