@@ -132,7 +132,7 @@ class FontDemo:
         for c in text:
             glyph_index = self.glyph_lookup[ord(c)]
             idx = ((font_index * num_sizes + size_index) * num_glyphs + glyph_index) * 28
-            bbox, xoff, yoff, xadvance = self.glyph_struct.unpack(self.glyphs[idx : idx + 20])
+            bbox, xoff, yoff, xadvance = self.glyph_struct.unpack(self.glyphs[idx:idx + 20])
             at = self.instance_count * self.instance.size
             self.instance.pack_into(self.instances, at, cursor + xoff, y + yoff, bbox, col)
             self.instance_count += 1
