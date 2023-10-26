@@ -1,6 +1,6 @@
-import zipfile
-import struct
 import string
+import struct
+import zipfile
 
 import glwindow
 import zengl
