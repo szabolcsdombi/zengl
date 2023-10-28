@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 # [main](https://github.com/szabolcsdombi/zengl/compare/1.17.0...main)
 
+- Added subinterpreter support
+- Removed global reference for the default loader
+- Changed `MAX_ATTACHMENTS` to 8
+- Changed `MAX_BUFFER_BINDINGS` to 8
+- Changed `MAX_SAMPLER_BINDINGS` to 16
+
 # [1.17.0](https://github.com/szabolcsdombi/zengl/compare/1.16.0...1.17.0)
 
 - Removed the loader parameter from `zengl.context`
