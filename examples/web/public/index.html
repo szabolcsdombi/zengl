@@ -15,7 +15,7 @@
       const pyodide = await loadPyodide();
       await pyodide.loadPackage([
         'glwindow-0.1.0-cp311-cp311-emscripten_3_1_45_wasm32.whl',
-        'zengl-1.17.0-cp311-cp311-emscripten_3_1_45_wasm32.whl',
+        'zengl-1.18.0-cp311-cp311-emscripten_3_1_45_wasm32.whl',
         'numpy',
       ], { messageCallback() {} });
       const response = await fetch('examples.tar.gz');
