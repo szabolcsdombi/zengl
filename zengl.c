@@ -1,9 +1,9 @@
 #include <Python.h>
 #include <structmember.h>
 
-#define MAX_ATTACHMENTS 16
-#define MAX_BUFFER_BINDINGS 16
-#define MAX_SAMPLER_BINDINGS 64
+#define MAX_ATTACHMENTS 8
+#define MAX_BUFFER_BINDINGS 8
+#define MAX_SAMPLER_BINDINGS 16
 
 #ifdef _WIN32
 #define GL __stdcall *
