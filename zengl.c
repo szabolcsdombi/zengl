@@ -5,13 +5,284 @@
 #define MAX_BUFFER_BINDINGS 8
 #define MAX_SAMPLER_BINDINGS 16
 
+typedef struct VertexFormat {
+    int type;
+    int size;
+    int normalize;
+    int integer;
+} VertexFormat;
+
+typedef struct ImageFormat {
+    int internal_format;
+    int format;
+    int type;
+    int components;
+    int pixel_size;
+    int buffer;
+    int color;
+    int clear_type;
+    int flags;
+} ImageFormat;
+
+typedef struct UniformBinding {
+    int function;
+    int location;
+    int count;
+    int offset;
+} UniformBinding;
+
+typedef struct UniformHeader {
+    int count;
+    UniformBinding binding[1];
+} UniformHeader;
+
+typedef struct StencilSettings {
+    int fail_op;
+    int pass_op;
+    int depth_fail_op;
+    int compare_op;
+    int compare_mask;
+    int write_mask;
+    int reference;
+} StencilSettings;
+
+typedef struct Viewport {
+    int x;
+    int y;
+    int width;
+    int height;
+} Viewport;
+
+typedef union ClearValue {
+    float clear_floats[4];
+    int clear_ints[4];
+    unsigned clear_uints[4];
+} ClearValue;
+
+typedef struct IntPair {
+    int x;
+    int y;
+} IntPair;
+
+typedef struct Limits {
+    int max_uniform_buffer_bindings;
+    int max_uniform_block_size;
+    int max_combined_uniform_blocks;
+    int max_combined_texture_image_units;
+    int max_vertex_attribs;
+    int max_draw_buffers;
+    int max_samples;
+} Limits;
+
+typedef struct ModuleState {
+    PyObject * helper;
+    PyObject * empty_tuple;
+    PyObject * str_none;
+    PyObject * str_triangles;
+    PyObject * default_context;
+    PyTypeObject * Context_type;
+    PyTypeObject * Buffer_type;
+    PyTypeObject * Image_type;
+    PyTypeObject * Pipeline_type;
+    PyTypeObject * ImageFace_type;
+    PyTypeObject * DescriptorSet_type;
+    PyTypeObject * GlobalSettings_type;
+    PyTypeObject * GLObject_type;
+} ModuleState;
+
+typedef struct GCHeader {
+    PyObject_HEAD
+    struct GCHeader * gc_prev;
+    struct GCHeader * gc_next;
+} GCHeader;
+
+typedef struct GLObject {
+    PyObject_HEAD
+    int uses;
+    int obj;
+    PyObject * extra;
+} GLObject;
+
+typedef struct BufferBinding {
+    struct Buffer * buffer;
+    int offset;
+    int size;
+} BufferBinding;
+
+typedef struct SamplerBinding {
+    GLObject * sampler;
+    struct Image * image;
+} SamplerBinding;
+
+typedef struct DescriptorSetBuffers {
+    int binding_count;
+    BufferBinding binding[MAX_BUFFER_BINDINGS];
+} DescriptorSetBuffers;
+
+typedef struct DescriptorSetSamplers {
+    int binding_count;
+    SamplerBinding binding[MAX_SAMPLER_BINDINGS];
+} DescriptorSetSamplers;
+
+typedef struct DescriptorSet {
+    PyObject_HEAD
+    int uses;
+    DescriptorSetBuffers uniform_buffers;
+    DescriptorSetSamplers samplers;
+} DescriptorSet;
+
+typedef struct BlendState {
+    int op_color;
+    int op_alpha;
+    int src_color;
+    int dst_color;
+    int src_alpha;
+    int dst_alpha;
+} BlendState;
+
+typedef struct GlobalSettings {
+    PyObject_HEAD
+    int uses;
+    int attachments;
+    int cull_face;
+    int depth_enabled;
+    int depth_write;
+    int depth_func;
+    int stencil_enabled;
+    StencilSettings stencil_front;
+    StencilSettings stencil_back;
+    int blend_enabled;
+    BlendState blend;
+} GlobalSettings;
+
+typedef struct Context {
+    PyObject_HEAD
+    GCHeader * gc_prev;
+    GCHeader * gc_next;
+    ModuleState * module_state;
+    PyObject * descriptor_set_cache;
+    PyObject * global_settings_cache;
+    PyObject * sampler_cache;
+    PyObject * vertex_array_cache;
+    PyObject * framebuffer_cache;
+    PyObject * program_cache;
+    PyObject * shader_cache;
+    PyObject * includes;
+    GLObject * default_framebuffer;
+    PyObject * before_frame_callback;
+    PyObject * after_frame_callback;
+    PyObject * limits_dict;
+    PyObject * info_dict;
+    DescriptorSet * current_descriptor_set;
+    GlobalSettings * current_global_settings;
+    int is_mask_default;
+    int is_stencil_default;
+    int is_blend_default;
+    Viewport current_viewport;
+    int current_attachments;
+    int current_framebuffer;
+    int current_program;
+    int current_vertex_array;
+    int current_depth_mask;
+    int current_stencil_mask;
+    int frame_time_query;
+    int frame_time_query_running;
+    int frame_time;
+    int default_texture_unit;
+    int mapped_buffers;
+    int gles;
+    Limits limits;
+} Context;
+
+typedef struct Buffer {
+    PyObject_HEAD
+    GCHeader * gc_prev;
+    GCHeader * gc_next;
+    Context * ctx;
+    int buffer;
+    int target;
+    int size;
+    int dynamic;
+    int mapped;
+} Buffer;
+
+typedef struct Image {
+    PyObject_HEAD
+    GCHeader * gc_prev;
+    GCHeader * gc_next;
+    Context * ctx;
+    PyObject * size;
+    PyObject * format;
+    PyObject * faces;
+    PyObject * layers;
+    ImageFormat fmt;
+    ClearValue clear_value;
+    int image;
+    int width;
+    int height;
+    int samples;
+    int array;
+    int cubemap;
+    int target;
+    int renderbuffer;
+    int layer_count;
+    int level_count;
+} Image;
+
+typedef struct RenderParameters {
+    int vertex_count;
+    int instance_count;
+    int first_vertex;
+} RenderParameters;
+
+typedef struct Pipeline {
+    PyObject_HEAD
+    GCHeader * gc_prev;
+    GCHeader * gc_next;
+    Context * ctx;
+    DescriptorSet * descriptor_set;
+    GlobalSettings * global_settings;
+    GLObject * framebuffer;
+    GLObject * vertex_array;
+    GLObject * program;
+    PyObject * uniforms;
+    PyObject * uniform_layout;
+    PyObject * uniform_data;
+    PyObject * viewport_data;
+    PyObject * render_data;
+    RenderParameters params;
+    Viewport viewport;
+    int topology;
+    int index_type;
+    int index_size;
+} Pipeline;
+
+typedef struct ImageFace {
+    PyObject_HEAD
+    Context * ctx;
+    Image * image;
+    GLObject * framebuffer;
+    PyObject * size;
+    int width;
+    int height;
+    int layer;
+    int level;
+    int samples;
+    int flags;
+} ImageFace;
+
+typedef Py_ssize_t intptr;
+
+#ifndef WEB
 #ifdef _WIN32
 #define GL __stdcall *
 #else
 #define GL *
 #endif
-
-typedef Py_ssize_t intptr;
+#define RESOLVE(type, name, ...) static type (GL name)(__VA_ARGS__)
+#else
+#define RESOLVE(type, name, ...) extern type name(__VA_ARGS__) __asm__("zengl_" # name)
+#endif
 
 #define GL_COLOR_BUFFER_BIT 0x4000
 #define GL_FRONT 0x0404
@@ -87,12 +358,6 @@ typedef Py_ssize_t intptr;
 #define GL_TIME_ELAPSED 0x88BF
 #define GL_PRIMITIVE_RESTART_FIXED_INDEX 0x8D69
 #define GL_TEXTURE_MAX_ANISOTROPY 0x84FE
-
-#ifndef WEB
-#define RESOLVE(type, name, ...) static type (GL name)(__VA_ARGS__)
-#else
-#define RESOLVE(type, name, ...) extern type name(__VA_ARGS__) __asm__("zengl_" # name)
-#endif
 
 RESOLVE(void, glCullFace, int);
 RESOLVE(void, glClear, int);
@@ -394,6 +659,20 @@ static void load_gl(PyObject * loader) {
     Py_DECREF(missing);
 }
 
+static void bind_uniforms(Context * self, PyObject * uniform_layout, PyObject * uniform_data) {
+    const UniformHeader * const header = (UniformHeader *)PyMemoryView_GET_BUFFER(uniform_layout)->buf;
+    const char * const data = (char *)PyMemoryView_GET_BUFFER(uniform_data)->buf;
+    for (int i = 0; i < header->count; ++i) {
+        const void * func = uniform_setter[header->binding[i].function];
+        const void * ptr = data + header->binding[i].offset;
+        if (header->binding[i].function & 0x10) {
+            (*(UniformMatrixSetter *)func)(header->binding[i].location, header->binding[i].count, 0, ptr);
+        } else {
+            (*(UniformSetter *)func)(header->binding[i].location, header->binding[i].count, ptr);
+        }
+    }
+}
+
 #else
 
 static const char * glGetString(int name) {
@@ -414,68 +693,69 @@ static int glUnmapBuffer(int target) {
     return 0;
 }
 
+static void load_gl(PyObject * loader) {
+    PyObject * js = PyImport_ImportModule("js");
+    if (!js) {
+        return;
+    }
+
+    PyObject * pyodide_js = PyImport_ImportModule("pyodide_js");
+    if (!pyodide_js) {
+        return;
+    }
+
+    PyObject * setup_gl = PyObject_CallMethod(js, "eval", "(s)", ZENGL_JS);
+    if (!setup_gl) {
+        return;
+    }
+
+    PyObject * setup_result = PyObject_CallFunction(setup_gl, "(OO)", pyodide_js, loader);
+    if (!setup_result) {
+        return;
+    }
+
+    Py_DECREF(js);
+    Py_DECREF(pyodide_js);
+    Py_DECREF(setup_gl);
+    Py_DECREF(setup_result);
+}
+
+static void bind_uniforms(Context * self, PyObject * uniform_layout, PyObject * uniform_data) {
+    const UniformHeader * const header = (UniformHeader *)PyMemoryView_GET_BUFFER(uniform_layout)->buf;
+    const char * const data = (char *)PyMemoryView_GET_BUFFER(uniform_data)->buf;
+    for (int i = 0; i < header->count; ++i) {
+        const void * ptr = data + header->binding[i].offset;
+        switch (header->binding[i].function) {
+            case 0: glUniform1iv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 1: glUniform2iv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 2: glUniform3iv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 3: glUniform4iv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 4: glUniform1iv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 5: glUniform2iv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 6: glUniform3iv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 7: glUniform4iv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 8: glUniform1uiv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 9: glUniform2uiv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 10: glUniform3uiv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 11: glUniform4uiv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 12: glUniform1fv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 13: glUniform2fv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 14: glUniform3fv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 15: glUniform4fv(header->binding[i].location, header->binding[i].count, ptr); break;
+            case 16: glUniformMatrix2fv(header->binding[i].location, header->binding[i].count, 0, ptr); break;
+            case 17: glUniformMatrix2x3fv(header->binding[i].location, header->binding[i].count, 0, ptr); break;
+            case 18: glUniformMatrix2x4fv(header->binding[i].location, header->binding[i].count, 0, ptr); break;
+            case 19: glUniformMatrix3x2fv(header->binding[i].location, header->binding[i].count, 0, ptr); break;
+            case 20: glUniformMatrix3fv(header->binding[i].location, header->binding[i].count, 0, ptr); break;
+            case 21: glUniformMatrix3x4fv(header->binding[i].location, header->binding[i].count, 0, ptr); break;
+            case 22: glUniformMatrix4x2fv(header->binding[i].location, header->binding[i].count, 0, ptr); break;
+            case 23: glUniformMatrix4x3fv(header->binding[i].location, header->binding[i].count, 0, ptr); break;
+            case 24: glUniformMatrix4fv(header->binding[i].location, header->binding[i].count, 0, ptr); break;
+        }
+    }
+}
+
 #endif
-
-#undef RESOLVE
-
-typedef struct VertexFormat {
-    int type;
-    int size;
-    int normalize;
-    int integer;
-} VertexFormat;
-
-typedef struct ImageFormat {
-    int internal_format;
-    int format;
-    int type;
-    int components;
-    int pixel_size;
-    int buffer;
-    int color;
-    int clear_type;
-    int flags;
-} ImageFormat;
-
-typedef struct UniformBinding {
-    int function;
-    int location;
-    int count;
-    int offset;
-} UniformBinding;
-
-typedef struct UniformHeader {
-    int count;
-    UniformBinding binding[1];
-} UniformHeader;
-
-typedef struct StencilSettings {
-    int fail_op;
-    int pass_op;
-    int depth_fail_op;
-    int compare_op;
-    int compare_mask;
-    int write_mask;
-    int reference;
-} StencilSettings;
-
-typedef struct Viewport {
-    int x;
-    int y;
-    int width;
-    int height;
-} Viewport;
-
-typedef union ClearValue {
-    float clear_floats[4];
-    int clear_ints[4];
-    unsigned clear_uints[4];
-} ClearValue;
-
-typedef struct IntPair {
-    int x;
-    int y;
-} IntPair;
 
 static int to_int(PyObject * obj) {
     return (int)PyLong_AsLong(obj);
@@ -620,213 +900,6 @@ static Viewport to_viewport(PyObject * obj, int x, int y, int width, int height)
     }
     return res;
 }
-
-typedef struct Limits {
-    int max_uniform_buffer_bindings;
-    int max_uniform_block_size;
-    int max_combined_uniform_blocks;
-    int max_combined_texture_image_units;
-    int max_vertex_attribs;
-    int max_draw_buffers;
-    int max_samples;
-} Limits;
-
-typedef struct ModuleState {
-    PyObject * helper;
-    PyObject * empty_tuple;
-    PyObject * str_none;
-    PyObject * str_triangles;
-    PyObject * default_context;
-    PyTypeObject * Context_type;
-    PyTypeObject * Buffer_type;
-    PyTypeObject * Image_type;
-    PyTypeObject * Pipeline_type;
-    PyTypeObject * ImageFace_type;
-    PyTypeObject * DescriptorSet_type;
-    PyTypeObject * GlobalSettings_type;
-    PyTypeObject * GLObject_type;
-} ModuleState;
-
-typedef struct GCHeader {
-    PyObject_HEAD
-    struct GCHeader * gc_prev;
-    struct GCHeader * gc_next;
-} GCHeader;
-
-typedef struct GLObject {
-    PyObject_HEAD
-    int uses;
-    int obj;
-    PyObject * extra;
-} GLObject;
-
-typedef struct BufferBinding {
-    struct Buffer * buffer;
-    int offset;
-    int size;
-} BufferBinding;
-
-typedef struct SamplerBinding {
-    GLObject * sampler;
-    struct Image * image;
-} SamplerBinding;
-
-typedef struct DescriptorSetBuffers {
-    int binding_count;
-    BufferBinding binding[MAX_BUFFER_BINDINGS];
-} DescriptorSetBuffers;
-
-typedef struct DescriptorSetSamplers {
-    int binding_count;
-    SamplerBinding binding[MAX_SAMPLER_BINDINGS];
-} DescriptorSetSamplers;
-
-typedef struct DescriptorSet {
-    PyObject_HEAD
-    int uses;
-    DescriptorSetBuffers uniform_buffers;
-    DescriptorSetSamplers samplers;
-} DescriptorSet;
-
-typedef struct BlendState {
-    int op_color;
-    int op_alpha;
-    int src_color;
-    int dst_color;
-    int src_alpha;
-    int dst_alpha;
-} BlendState;
-
-typedef struct GlobalSettings {
-    PyObject_HEAD
-    int uses;
-    int attachments;
-    int cull_face;
-    int depth_enabled;
-    int depth_write;
-    int depth_func;
-    int stencil_enabled;
-    StencilSettings stencil_front;
-    StencilSettings stencil_back;
-    int blend_enabled;
-    BlendState blend;
-} GlobalSettings;
-
-typedef struct Context {
-    PyObject_HEAD
-    GCHeader * gc_prev;
-    GCHeader * gc_next;
-    ModuleState * module_state;
-    PyObject * descriptor_set_cache;
-    PyObject * global_settings_cache;
-    PyObject * sampler_cache;
-    PyObject * vertex_array_cache;
-    PyObject * framebuffer_cache;
-    PyObject * program_cache;
-    PyObject * shader_cache;
-    PyObject * includes;
-    GLObject * default_framebuffer;
-    PyObject * before_frame_callback;
-    PyObject * after_frame_callback;
-    PyObject * limits_dict;
-    PyObject * info_dict;
-    DescriptorSet * current_descriptor_set;
-    GlobalSettings * current_global_settings;
-    int is_mask_default;
-    int is_stencil_default;
-    int is_blend_default;
-    Viewport current_viewport;
-    int current_attachments;
-    int current_framebuffer;
-    int current_program;
-    int current_vertex_array;
-    int current_depth_mask;
-    int current_stencil_mask;
-    int frame_time_query;
-    int frame_time_query_running;
-    int frame_time;
-    int default_texture_unit;
-    int mapped_buffers;
-    int gles;
-    Limits limits;
-} Context;
-
-typedef struct Buffer {
-    PyObject_HEAD
-    GCHeader * gc_prev;
-    GCHeader * gc_next;
-    Context * ctx;
-    int buffer;
-    int target;
-    int size;
-    int dynamic;
-    int mapped;
-} Buffer;
-
-typedef struct Image {
-    PyObject_HEAD
-    GCHeader * gc_prev;
-    GCHeader * gc_next;
-    Context * ctx;
-    PyObject * size;
-    PyObject * format;
-    PyObject * faces;
-    PyObject * layers;
-    ImageFormat fmt;
-    ClearValue clear_value;
-    int image;
-    int width;
-    int height;
-    int samples;
-    int array;
-    int cubemap;
-    int target;
-    int renderbuffer;
-    int layer_count;
-    int level_count;
-} Image;
-
-typedef struct RenderParameters {
-    int vertex_count;
-    int instance_count;
-    int first_vertex;
-} RenderParameters;
-
-typedef struct Pipeline {
-    PyObject_HEAD
-    GCHeader * gc_prev;
-    GCHeader * gc_next;
-    Context * ctx;
-    DescriptorSet * descriptor_set;
-    GlobalSettings * global_settings;
-    GLObject * framebuffer;
-    GLObject * vertex_array;
-    GLObject * program;
-    PyObject * uniforms;
-    PyObject * uniform_layout;
-    PyObject * uniform_data;
-    PyObject * viewport_data;
-    PyObject * render_data;
-    RenderParameters params;
-    Viewport viewport;
-    int topology;
-    int index_type;
-    int index_size;
-} Pipeline;
-
-typedef struct ImageFace {
-    PyObject_HEAD
-    Context * ctx;
-    Image * image;
-    GLObject * framebuffer;
-    PyObject * size;
-    int width;
-    int height;
-    int layer;
-    int level;
-    int samples;
-    int flags;
-} ImageFace;
 
 static void bind_viewport(Context * self, Viewport * viewport) {
     Viewport * c = &self->current_viewport;
@@ -984,57 +1057,6 @@ static GLObject * build_framebuffer(Context * self, PyObject * attachments) {
     PyDict_SetItem(self->framebuffer_cache, attachments, (PyObject *)res);
     return res;
 }
-
-#ifndef WEB
-static void bind_uniforms(Context * self, PyObject * uniform_layout, PyObject * uniform_data) {
-    const UniformHeader * const header = (UniformHeader *)PyMemoryView_GET_BUFFER(uniform_layout)->buf;
-    const char * const data = (char *)PyMemoryView_GET_BUFFER(uniform_data)->buf;
-    for (int i = 0; i < header->count; ++i) {
-        const void * func = uniform_setter[header->binding[i].function];
-        const void * ptr = data + header->binding[i].offset;
-        if (header->binding[i].function & 0x10) {
-            (*(UniformMatrixSetter *)func)(header->binding[i].location, header->binding[i].count, 0, ptr);
-        } else {
-            (*(UniformSetter *)func)(header->binding[i].location, header->binding[i].count, ptr);
-        }
-    }
-}
-#else
-static void bind_uniforms(Context * self, PyObject * uniform_layout, PyObject * uniform_data) {
-    const UniformHeader * const header = (UniformHeader *)PyMemoryView_GET_BUFFER(uniform_layout)->buf;
-    const char * const data = (char *)PyMemoryView_GET_BUFFER(uniform_data)->buf;
-    for (int i = 0; i < header->count; ++i) {
-        const void * ptr = data + header->binding[i].offset;
-        switch (header->binding[i].function) {
-            case 0: glUniform1iv(header->binding[i].location, header->binding[i].count, ptr); break;
-            case 1: glUniform2iv(header->binding[i].location, header->binding[i].count, ptr); break;
-            case 2: glUniform3iv(header->binding[i].location, header->binding[i].count, ptr); break;
-            case 3: glUniform4iv(header->binding[i].location, header->binding[i].count, ptr); break;
-            case 4: glUniform1iv(header->binding[i].location, header->binding[i].count, ptr); break;
-            case 5: glUniform2iv(header->binding[i].location, header->binding[i].count, ptr); break;
-            case 6: glUniform3iv(header->binding[i].location, header->binding[i].count, ptr); break;
-            case 7: glUniform4iv(header->binding[i].location, header->binding[i].count, ptr); break;
-            case 8: glUniform1uiv(header->binding[i].location, header->binding[i].count, ptr); break;
-            case 9: glUniform2uiv(header->binding[i].location, header->binding[i].count, ptr); break;
-            case 10: glUniform3uiv(header->binding[i].location, header->binding[i].count, ptr); break;
-            case 11: glUniform4uiv(header->binding[i].location, header->binding[i].count, ptr); break;
-            case 12: glUniform1fv(header->binding[i].location, header->binding[i].count, ptr); break;
-            case 13: glUniform2fv(header->binding[i].location, header->binding[i].count, ptr); break;
-            case 14: glUniform3fv(header->binding[i].location, header->binding[i].count, ptr); break;
-            case 15: glUniform4fv(header->binding[i].location, header->binding[i].count, ptr); break;
-            case 16: glUniformMatrix2fv(header->binding[i].location, header->binding[i].count, 0, ptr); break;
-            case 17: glUniformMatrix2x3fv(header->binding[i].location, header->binding[i].count, 0, ptr); break;
-            case 18: glUniformMatrix2x4fv(header->binding[i].location, header->binding[i].count, 0, ptr); break;
-            case 19: glUniformMatrix3x2fv(header->binding[i].location, header->binding[i].count, 0, ptr); break;
-            case 20: glUniformMatrix3fv(header->binding[i].location, header->binding[i].count, 0, ptr); break;
-            case 21: glUniformMatrix3x4fv(header->binding[i].location, header->binding[i].count, 0, ptr); break;
-            case 22: glUniformMatrix4x2fv(header->binding[i].location, header->binding[i].count, 0, ptr); break;
-            case 23: glUniformMatrix4x3fv(header->binding[i].location, header->binding[i].count, 0, ptr); break;
-            case 24: glUniformMatrix4fv(header->binding[i].location, header->binding[i].count, 0, ptr); break;
-        }
-    }
-}
-#endif
 
 static GLObject * build_vertex_array(Context * self, PyObject * bindings) {
     GLObject * cache = (GLObject *)PyDict_GetItem(self->vertex_array_cache, bindings);
@@ -1608,8 +1630,6 @@ static PyObject * meth_init(PyObject * self, PyObject * args, PyObject * kwargs)
         Py_INCREF(loader);
     }
 
-    #ifndef WEB
-
     load_gl(loader);
 
     if (PyErr_Occurred()) {
@@ -1617,35 +1637,6 @@ static PyObject * meth_init(PyObject * self, PyObject * args, PyObject * kwargs)
     }
 
     Py_DECREF(loader);
-
-    #else
-
-    PyObject * js = PyImport_ImportModule("js");
-    if (!js) {
-        return NULL;
-    }
-
-    PyObject * pyodide_js = PyImport_ImportModule("pyodide_js");
-    if (!pyodide_js) {
-        return NULL;
-    }
-
-    PyObject * setup_gl = PyObject_CallMethod(js, "eval", "(s)", ZENGL_JS);
-    if (!setup_gl) {
-        return NULL;
-    }
-
-    PyObject * setup_result = PyObject_CallFunction(setup_gl, "(OO)", pyodide_js, loader);
-    if (!setup_result) {
-        return NULL;
-    }
-
-    Py_DECREF(js);
-    Py_DECREF(pyodide_js);
-    Py_DECREF(setup_gl);
-    Py_DECREF(setup_result);
-
-    #endif
 
     initialized = 1;
     Py_RETURN_NONE;
