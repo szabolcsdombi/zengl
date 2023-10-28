@@ -245,6 +245,155 @@ static void * uniform_setter[25] = {
     &glUniformMatrix4fv,
 };
 
+static void * load_opengl_function(PyObject * loader_function, const char * method) {
+    PyObject * res = PyObject_CallFunction(loader_function, "(s)", method);
+    if (!res) {
+        return NULL;
+    }
+    return PyLong_AsVoidPtr(res);
+}
+
+static void load_gl(PyObject * loader) {
+    PyObject * loader_function = PyObject_GetAttrString(loader, "load_opengl_function");
+
+    if (!loader_function) {
+        PyErr_Format(PyExc_ValueError, "invalid loader");
+        return;
+    }
+
+    PyObject * missing = PyList_New(0);
+
+    #define check(name) if (!name) { if (PyErr_Occurred()) return; PyList_Append(missing, PyUnicode_FromString(#name)); }
+    #define load(name) *(void **)&name = load_opengl_function(loader_function, #name); check(name)
+
+    load(glCullFace);
+    load(glClear);
+    load(glTexParameteri);
+    load(glTexImage2D);
+    load(glDepthMask);
+    load(glDisable);
+    load(glEnable);
+    load(glFlush);
+    load(glDepthFunc);
+    load(glReadBuffer);
+    load(glReadPixels);
+    load(glGetError);
+    load(glGetIntegerv);
+    load(glGetString);
+    load(glViewport);
+    load(glTexSubImage2D);
+    load(glBindTexture);
+    load(glDeleteTextures);
+    load(glGenTextures);
+    load(glTexImage3D);
+    load(glTexSubImage3D);
+    load(glActiveTexture);
+    load(glBlendFuncSeparate);
+    load(glGenQueries);
+    load(glBeginQuery);
+    load(glEndQuery);
+    load(glGetQueryObjectuiv);
+    load(glBindBuffer);
+    load(glDeleteBuffers);
+    load(glGenBuffers);
+    load(glBufferData);
+    load(glBufferSubData);
+    load(glUnmapBuffer);
+    load(glBlendEquationSeparate);
+    load(glDrawBuffers);
+    load(glStencilOpSeparate);
+    load(glStencilFuncSeparate);
+    load(glStencilMaskSeparate);
+    load(glAttachShader);
+    load(glCompileShader);
+    load(glCreateProgram);
+    load(glCreateShader);
+    load(glDeleteProgram);
+    load(glDeleteShader);
+    load(glEnableVertexAttribArray);
+    load(glGetActiveAttrib);
+    load(glGetActiveUniform);
+    load(glGetAttribLocation);
+    load(glGetProgramiv);
+    load(glGetProgramInfoLog);
+    load(glGetShaderiv);
+    load(glGetShaderInfoLog);
+    load(glGetUniformLocation);
+    load(glLinkProgram);
+    load(glShaderSource);
+    load(glUseProgram);
+    load(glUniform1i);
+    load(glUniform1fv);
+    load(glUniform2fv);
+    load(glUniform3fv);
+    load(glUniform4fv);
+    load(glUniform1iv);
+    load(glUniform2iv);
+    load(glUniform3iv);
+    load(glUniform4iv);
+    load(glUniformMatrix2fv);
+    load(glUniformMatrix3fv);
+    load(glUniformMatrix4fv);
+    load(glVertexAttribPointer);
+    load(glUniformMatrix2x3fv);
+    load(glUniformMatrix3x2fv);
+    load(glUniformMatrix2x4fv);
+    load(glUniformMatrix4x2fv);
+    load(glUniformMatrix3x4fv);
+    load(glUniformMatrix4x3fv);
+    load(glBindBufferRange);
+    load(glVertexAttribIPointer);
+    load(glUniform1uiv);
+    load(glUniform2uiv);
+    load(glUniform3uiv);
+    load(glUniform4uiv);
+    load(glClearBufferiv);
+    load(glClearBufferuiv);
+    load(glClearBufferfv);
+    load(glClearBufferfi);
+    load(glBindRenderbuffer);
+    load(glDeleteRenderbuffers);
+    load(glGenRenderbuffers);
+    load(glBindFramebuffer);
+    load(glDeleteFramebuffers);
+    load(glGenFramebuffers);
+    load(glFramebufferTexture2D);
+    load(glFramebufferRenderbuffer);
+    load(glGenerateMipmap);
+    load(glBlitFramebuffer);
+    load(glRenderbufferStorageMultisample);
+    load(glFramebufferTextureLayer);
+    load(glMapBufferRange);
+    load(glBindVertexArray);
+    load(glDeleteVertexArrays);
+    load(glGenVertexArrays);
+    load(glDrawArraysInstanced);
+    load(glDrawElementsInstanced);
+    load(glGetUniformBlockIndex);
+    load(glGetActiveUniformBlockiv);
+    load(glGetActiveUniformBlockName);
+    load(glUniformBlockBinding);
+    load(glFenceSync);
+    load(glDeleteSync);
+    load(glClientWaitSync);
+    load(glGenSamplers);
+    load(glDeleteSamplers);
+    load(glBindSampler);
+    load(glSamplerParameteri);
+    load(glSamplerParameterf);
+    load(glVertexAttribDivisor);
+
+    #undef load
+    #undef check
+
+    if (PyList_Size(missing)) {
+        PyErr_Format(PyExc_RuntimeError, "cannot load opengl %R", missing);
+        return;
+    }
+
+    Py_DECREF(missing);
+}
+
 #else
 
 static const char * glGetString(int name) {
@@ -268,8 +417,6 @@ static int glUnmapBuffer(int target) {
 #endif
 
 #undef RESOLVE
-
-static PyObject * gl_loader;
 
 typedef struct VertexFormat {
     int type;
@@ -473,159 +620,6 @@ static Viewport to_viewport(PyObject * obj, int x, int y, int width, int height)
     }
     return res;
 }
-
-#ifndef WEB
-
-static void * load_opengl_function(PyObject * loader_function, const char * method) {
-    PyObject * res = PyObject_CallFunction(loader_function, "(s)", method);
-    if (!res) {
-        return NULL;
-    }
-    return PyLong_AsVoidPtr(res);
-}
-
-static void load_gl(PyObject * loader) {
-    PyObject * loader_function = PyObject_GetAttrString(loader, "load_opengl_function");
-
-    if (!loader_function) {
-        PyErr_Format(PyExc_ValueError, "invalid loader");
-        return;
-    }
-
-    PyObject * missing = PyList_New(0);
-
-    #define check(name) if (!name) { if (PyErr_Occurred()) return; PyList_Append(missing, PyUnicode_FromString(#name)); }
-    #define load(name) *(void **)&name = load_opengl_function(loader_function, #name); check(name)
-
-    load(glCullFace);
-    load(glClear);
-    load(glTexParameteri);
-    load(glTexImage2D);
-    load(glDepthMask);
-    load(glDisable);
-    load(glEnable);
-    load(glFlush);
-    load(glDepthFunc);
-    load(glReadBuffer);
-    load(glReadPixels);
-    load(glGetError);
-    load(glGetIntegerv);
-    load(glGetString);
-    load(glViewport);
-    load(glTexSubImage2D);
-    load(glBindTexture);
-    load(glDeleteTextures);
-    load(glGenTextures);
-    load(glTexImage3D);
-    load(glTexSubImage3D);
-    load(glActiveTexture);
-    load(glBlendFuncSeparate);
-    load(glGenQueries);
-    load(glBeginQuery);
-    load(glEndQuery);
-    load(glGetQueryObjectuiv);
-    load(glBindBuffer);
-    load(glDeleteBuffers);
-    load(glGenBuffers);
-    load(glBufferData);
-    load(glBufferSubData);
-    load(glUnmapBuffer);
-    load(glBlendEquationSeparate);
-    load(glDrawBuffers);
-    load(glStencilOpSeparate);
-    load(glStencilFuncSeparate);
-    load(glStencilMaskSeparate);
-    load(glAttachShader);
-    load(glCompileShader);
-    load(glCreateProgram);
-    load(glCreateShader);
-    load(glDeleteProgram);
-    load(glDeleteShader);
-    load(glEnableVertexAttribArray);
-    load(glGetActiveAttrib);
-    load(glGetActiveUniform);
-    load(glGetAttribLocation);
-    load(glGetProgramiv);
-    load(glGetProgramInfoLog);
-    load(glGetShaderiv);
-    load(glGetShaderInfoLog);
-    load(glGetUniformLocation);
-    load(glLinkProgram);
-    load(glShaderSource);
-    load(glUseProgram);
-    load(glUniform1i);
-    load(glUniform1fv);
-    load(glUniform2fv);
-    load(glUniform3fv);
-    load(glUniform4fv);
-    load(glUniform1iv);
-    load(glUniform2iv);
-    load(glUniform3iv);
-    load(glUniform4iv);
-    load(glUniformMatrix2fv);
-    load(glUniformMatrix3fv);
-    load(glUniformMatrix4fv);
-    load(glVertexAttribPointer);
-    load(glUniformMatrix2x3fv);
-    load(glUniformMatrix3x2fv);
-    load(glUniformMatrix2x4fv);
-    load(glUniformMatrix4x2fv);
-    load(glUniformMatrix3x4fv);
-    load(glUniformMatrix4x3fv);
-    load(glBindBufferRange);
-    load(glVertexAttribIPointer);
-    load(glUniform1uiv);
-    load(glUniform2uiv);
-    load(glUniform3uiv);
-    load(glUniform4uiv);
-    load(glClearBufferiv);
-    load(glClearBufferuiv);
-    load(glClearBufferfv);
-    load(glClearBufferfi);
-    load(glBindRenderbuffer);
-    load(glDeleteRenderbuffers);
-    load(glGenRenderbuffers);
-    load(glBindFramebuffer);
-    load(glDeleteFramebuffers);
-    load(glGenFramebuffers);
-    load(glFramebufferTexture2D);
-    load(glFramebufferRenderbuffer);
-    load(glGenerateMipmap);
-    load(glBlitFramebuffer);
-    load(glRenderbufferStorageMultisample);
-    load(glFramebufferTextureLayer);
-    load(glMapBufferRange);
-    load(glBindVertexArray);
-    load(glDeleteVertexArrays);
-    load(glGenVertexArrays);
-    load(glDrawArraysInstanced);
-    load(glDrawElementsInstanced);
-    load(glGetUniformBlockIndex);
-    load(glGetActiveUniformBlockiv);
-    load(glGetActiveUniformBlockName);
-    load(glUniformBlockBinding);
-    load(glFenceSync);
-    load(glDeleteSync);
-    load(glClientWaitSync);
-    load(glGenSamplers);
-    load(glDeleteSamplers);
-    load(glBindSampler);
-    load(glSamplerParameteri);
-    load(glSamplerParameterf);
-    load(glVertexAttribDivisor);
-
-    #undef load
-    #undef check
-
-    if (PyList_Size(missing)) {
-        PyErr_Format(PyExc_RuntimeError, "cannot load opengl %R", missing);
-        return;
-    }
-
-    Py_DECREF(missing);
-}
-
-#endif
 
 typedef struct Limits {
     int max_uniform_buffer_bindings;
@@ -1592,6 +1586,8 @@ static PyObject * read_image_face(ImageFace * src, PyObject * size_arg, PyObject
     return res;
 }
 
+static int initialized;
+
 static PyObject * meth_init(PyObject * self, PyObject * args, PyObject * kwargs) {
     static char * keywords[] = {"loader", NULL};
 
@@ -1599,10 +1595,6 @@ static PyObject * meth_init(PyObject * self, PyObject * args, PyObject * kwargs)
 
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O", keywords, &loader)) {
         return NULL;
-    }
-
-    if (gl_loader) {
-        Py_RETURN_NONE;
     }
 
     ModuleState * module_state = (ModuleState *)PyModule_GetState(self);
@@ -1624,9 +1616,9 @@ static PyObject * meth_init(PyObject * self, PyObject * args, PyObject * kwargs)
         return NULL;
     }
 
-    #else
+    Py_DECREF(loader);
 
-    Py_INCREF(loader);
+    #else
 
     PyObject * js = PyImport_ImportModule("js");
     if (!js) {
@@ -1655,12 +1647,12 @@ static PyObject * meth_init(PyObject * self, PyObject * args, PyObject * kwargs)
 
     #endif
 
-    gl_loader = loader;
+    initialized = 1;
     Py_RETURN_NONE;
 }
 
 static Context * meth_context(PyObject * self) {
-    if (!gl_loader) {
+    if (!initialized) {
         Py_XDECREF(PyObject_CallMethod(self, "init", NULL));
         if (PyErr_Occurred()) {
             return NULL;
