@@ -32,4 +32,4 @@ jobs:
       - name: wheel
         env:
           ZENGL_WARNINGS: yes
-        run: python pip wheel .
+        run: python -m pip wheel .
