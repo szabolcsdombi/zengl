@@ -45,8 +45,10 @@ if os.getenv("ZENGL_WARNINGS"):
             "-Wdouble-promotion",
             "-Wno-unused-parameter",
             "-Wno-cast-function-type",
-            "-fsanitize=undefined",
             "-Werror",
+        ]
+        extra_link_args += [
+            "-fsanitize=undefined",
         ]
 
 if os.getenv("ZENGL_NO_STUBS"):
