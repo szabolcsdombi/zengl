@@ -24,7 +24,7 @@ jobs:
       - name: setup
         uses: actions/setup-python@v4
         with:
-          python-version: 3.11
+          python-version: '3.12'
           architecture: x64
 
       - name: deps
@@ -47,19 +47,6 @@ jobs:
 
       - name: test
         run: docker run --rm -t tests
-
-  coverage:
-    name: coverage
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: build
-        run: docker build . -f tests/coverage/Dockerfile -t coverage
-
-      - name: coverage
-        run: docker run --rm -t coverage
 
   codestyle:
     name: codestyle

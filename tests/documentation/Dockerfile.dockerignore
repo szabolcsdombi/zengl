@@ -6,3 +6,6 @@
 build
 dist
 downloads
+*.egg-info
+*.pyd
+*.so

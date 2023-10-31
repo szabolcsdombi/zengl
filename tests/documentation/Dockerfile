@@ -1,4 +1,4 @@
-FROM python:3.11.2
+FROM python:3.12.0
 RUN pip install -U pip wheel setuptools &&\
     pip install sphinx furo
 WORKDIR /app
