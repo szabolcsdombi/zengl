@@ -8,12 +8,12 @@ class Logo:
     def __init__(self, size, samples=4):
         self.ctx = zengl.context()
 
-        self.image = self.ctx.image(size, 'rgba8unorm', samples=samples)
-        self.depth = self.ctx.image(size, 'depth24plus', samples=samples)
-        self.output = self.image if self.image.samples == 1 else self.ctx.image(size, 'rgba8unorm')
+        self.image = self.ctx.image(size, "rgba8unorm", samples=samples)
+        self.depth = self.ctx.image(size, "depth24plus", samples=samples)
+        self.output = self.image if self.image.samples == 1 else self.ctx.image(size, "rgba8unorm")
 
         self.pipeline = self.ctx.pipeline(
-            vertex_shader='''
+            vertex_shader="""
                 #version 300 es
                 precision highp float;
 
@@ -73,8 +73,8 @@ class Logo:
                     gl_Position = mvp * vec4(rotation * v_vertex, 1.0);
                     v_color = hsv2rgb(vec3(float(gl_InstanceID) / 10.0, 1.0, 0.5));
                 }
-            ''',
-            fragment_shader='''
+            """,
+            fragment_shader="""
                 #version 300 es
                 precision highp float;
 
@@ -89,13 +89,13 @@ class Logo:
                     out_color = vec4(v_color * (u * v), 1.0);
                     out_color.rgb = pow(out_color.rgb, vec3(1.0 / 2.2));
                 }
-            ''',
+            """,
             uniforms={
-                'aspect': size[0] / size[1],
-                'time': 0.0,
+                "aspect": size[0] / size[1],
+                "time": 0.0,
             },
             framebuffer=[self.image, self.depth],
-            topology='triangle_strip',
+            topology="triangle_strip",
             vertex_count=4,
             instance_count=7,
         )
@@ -106,7 +106,7 @@ class Logo:
         self.time += 1.0 / 60.0
         self.image.clear()
         self.depth.clear()
-        self.pipeline.uniforms['time'][:] = struct.pack('f', self.time)
+        self.pipeline.uniforms["time"][:] = struct.pack("f", self.time)
         self.pipeline.render()
         if self.image != self.output:
             self.image.blit(self.output)
@@ -125,5 +125,5 @@ class App:
         self.ctx.end_frame()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     glwindow.run(App)

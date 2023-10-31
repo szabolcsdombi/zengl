@@ -17,6 +17,6 @@ for triangle_loop in mesh.loop_triangles:
         nx, ny, nz = loop.normal
         tx, ty, tz = loop.tangent
         bx, by, bz = loop.bitangent
-        buf.extend(struct.pack('3f3f3f3f2f', x, y, z, tx, ty, tz, bx, by, bz, nx, ny, nz, u, v))
+        buf.extend(struct.pack("3f3f3f3f2f", x, y, z, tx, ty, tz, bx, by, bz, nx, ny, nz, u, v))
 
-open('output.mesh.gz', 'wb').write(gzip.compress(buf))
+open("output.mesh.gz", "wb").write(gzip.compress(buf))

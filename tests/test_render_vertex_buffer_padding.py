@@ -3,7 +3,7 @@ import zengl
 
 
 def test(ctx: zengl.Context):
-    image = ctx.image((64, 64), 'rgba8unorm')
+    image = ctx.image((64, 64), "rgba8unorm")
     vertex_buffer = ctx.buffer(
         np.array(
             [
@@ -11,11 +11,11 @@ def test(ctx: zengl.Context):
                 [-999.0, -999.0, -0.05, 0.086, -999.0, 0.0, 0.0, 1.0, -999.0, -999.0, -999.0],
                 [-999.0, -999.0, -0.05, -0.086, -999.0, 0.0, 0.0, 1.0, -999.0, -999.0, -999.0],
             ],
-            'f4',
+            "f4",
         )
     )
     pipeline = ctx.pipeline(
-        vertex_shader='''
+        vertex_shader="""
             #version 330 core
 
             layout (location = 7) in vec2 in_vertex;
@@ -27,8 +27,8 @@ def test(ctx: zengl.Context):
                 v_color = in_color;
                 gl_Position = vec4(in_vertex + 0.5, 0.0, 1.0);
             }
-        ''',
-        fragment_shader='''
+        """,
+        fragment_shader="""
             #version 330 core
 
             in vec3 v_color;
@@ -38,10 +38,10 @@ def test(ctx: zengl.Context):
             void main() {
                 out_color = vec4(v_color, 1.0);
             }
-        ''',
+        """,
         framebuffer=[image],
-        topology='triangles',
-        vertex_buffers=zengl.bind(vertex_buffer, '8x 2f 4x 3f 12x', 7, 2),
+        topology="triangles",
+        vertex_buffers=zengl.bind(vertex_buffer, "8x 2f 4x 3f 12x", 7, 2),
         vertex_count=3,
     )
 
@@ -49,7 +49,7 @@ def test(ctx: zengl.Context):
     image.clear()
     pipeline.render()
     ctx.end_frame()
-    pixels = np.frombuffer(image.read(), 'u1').reshape(64, 64, 4)
+    pixels = np.frombuffer(image.read(), "u1").reshape(64, 64, 4)
     np.testing.assert_array_equal(
         pixels[[16, 16, 48, 48], [16, 48, 16, 48]],
         [

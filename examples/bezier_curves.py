@@ -20,7 +20,7 @@ def curve_mesh(N=16, M=128):
     y = np.concatenate([sy, vy, -sy[::-1]])
     z = np.concatenate([sz, vz, sz + 1.0])
 
-    return np.array([x, y, z]).T.astype('f4').tobytes()
+    return np.array([x, y, z]).T.astype("f4").tobytes()
 
 
 class Curves:
@@ -37,29 +37,46 @@ class Curves:
             x4, y4 = x2 - (np.cos(d) * scale * 0.5 + center[0]), y2 - (np.sin(d) * scale * 0.5 + center[1])
             r, g, b = hls_to_rgb(np.random.uniform(0.0, 1.0), 0.3, 1.0)
             s = np.random.uniform(5.0, 15.0) * scale / 300.0
-            curves.append([
-                x1, y1, x3, y3,
-                x2, y2, x4, y4,
-                r, g, b, s,
-            ])
+            curves.append(
+                [
+                    x1,
+                    y1,
+                    x3,
+                    y3,
+                    x2,
+                    y2,
+                    x4,
+                    y4,
+                    r,
+                    g,
+                    b,
+                    s,
+                ]
+            )
 
         self.scale = scale
         self.instance_count = instance_count
-        self.offset = np.random.uniform(0.0, np.pi * 2.0, (4, instance_count)).astype('f4')
-        self.curves = np.array(curves, 'f4')
+        self.offset = np.random.uniform(0.0, np.pi * 2.0, (4, instance_count)).astype("f4")
+        self.curves = np.array(curves, "f4")
 
     def instances(self, time):
-        return self.curves + np.array([
-            np.sin(self.offset[0] + time) * self.scale / 30.0,
-            np.cos(self.offset[0] + time) * self.scale / 30.0,
-            np.sin(self.offset[1] + time) * self.scale / 6.0,
-            np.cos(self.offset[1] + time) * self.scale / 6.0,
-            np.sin(self.offset[2] + time) * self.scale / 30.0,
-            np.cos(self.offset[2] + time) * self.scale / 30.0,
-            np.sin(self.offset[3] + time) * self.scale / 6.0,
-            np.cos(self.offset[3] + time) * self.scale / 6.0,
-            *np.zeros((4, self.instance_count), 'f4'),
-        ], 'f4').T
+        return (
+            self.curves
+            + np.array(
+                [
+                    np.sin(self.offset[0] + time) * self.scale / 30.0,
+                    np.cos(self.offset[0] + time) * self.scale / 30.0,
+                    np.sin(self.offset[1] + time) * self.scale / 6.0,
+                    np.cos(self.offset[1] + time) * self.scale / 6.0,
+                    np.sin(self.offset[2] + time) * self.scale / 30.0,
+                    np.cos(self.offset[2] + time) * self.scale / 30.0,
+                    np.sin(self.offset[3] + time) * self.scale / 6.0,
+                    np.cos(self.offset[3] + time) * self.scale / 6.0,
+                    *np.zeros((4, self.instance_count), "f4"),
+                ],
+                "f4",
+            ).T
+        )
 
 
 class BezierCurves:
@@ -67,14 +84,14 @@ class BezierCurves:
         self.ctx = zengl.context()
         self.curves = Curves((size[0] / 2.0, size[1] / 2.0), min(size) * 0.4)
 
-        self.image = self.ctx.image(size, 'rgba8unorm', samples=samples)
-        self.output = self.image if self.image.samples == 1 else self.ctx.image(size, 'rgba8unorm')
+        self.image = self.ctx.image(size, "rgba8unorm", samples=samples)
+        self.output = self.image if self.image.samples == 1 else self.ctx.image(size, "rgba8unorm")
 
         self.vertex_buffer = self.ctx.buffer(curve_mesh())
         self.instance_buffer = self.ctx.buffer(self.curves.instances(0.0))
 
         self.pipeline = self.ctx.pipeline(
-            vertex_shader='''
+            vertex_shader="""
                 #version 300 es
                 precision highp float;
 
@@ -112,8 +129,8 @@ class BezierCurves:
                     gl_Position = vec4((vert / screen_size) * 2.0 - 1.0, 0.0, 1.0);
                     v_color = in_color_and_size.rgb;
                 }
-            ''',
-            fragment_shader='''
+            """,
+            fragment_shader="""
                 #version 300 es
                 precision highp float;
 
@@ -124,17 +141,17 @@ class BezierCurves:
                 void main() {
                     out_color = vec4(pow(v_color, vec3(1.0 / 2.2)), 1.0);
                 }
-            ''',
+            """,
             includes={
-                'screen_size': f'vec2 screen_size = vec2({float(size[0])}, {float(size[1])});',
+                "screen_size": f"vec2 screen_size = vec2({float(size[0])}, {float(size[1])});",
             },
             framebuffer=[self.image],
-            topology='triangle_strip',
+            topology="triangle_strip",
             vertex_buffers=[
-                *zengl.bind(self.vertex_buffer, '3f', 0),
-                *zengl.bind(self.instance_buffer, '4f 4f 4f /i', 1, 2, 3),
+                *zengl.bind(self.vertex_buffer, "3f", 0),
+                *zengl.bind(self.instance_buffer, "4f 4f 4f /i", 1, 2, 3),
             ],
-            vertex_count=self.vertex_buffer.size // zengl.calcsize('3f'),
+            vertex_count=self.vertex_buffer.size // zengl.calcsize("3f"),
             instance_count=self.curves.instance_count,
         )
 
@@ -162,5 +179,5 @@ class App:
         self.ctx.end_frame()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     glwindow.run(App)

@@ -5,11 +5,11 @@ import zengl
 class HelloTriangle:
     def __init__(self, size, samples=4):
         self.ctx = zengl.context()
-        self.image = self.ctx.image(size, 'rgba8unorm', samples=samples)
-        self.output = self.image if self.image.samples == 1 else self.ctx.image(size, 'rgba8unorm')
+        self.image = self.ctx.image(size, "rgba8unorm", samples=samples)
+        self.output = self.image if self.image.samples == 1 else self.ctx.image(size, "rgba8unorm")
 
         self.pipeline = self.ctx.pipeline(
-            vertex_shader='''
+            vertex_shader="""
                 #version 300 es
                 precision highp float;
 
@@ -31,8 +31,8 @@ class HelloTriangle:
                     gl_Position = vec4(positions[gl_VertexID], 0.0, 1.0);
                     v_color = colors[gl_VertexID];
                 }
-            ''',
-            fragment_shader='''
+            """,
+            fragment_shader="""
                 #version 300 es
                 precision highp float;
 
@@ -44,9 +44,9 @@ class HelloTriangle:
                     out_color = vec4(v_color, 1.0);
                     out_color.rgb = pow(out_color.rgb, vec3(1.0 / 2.2));
                 }
-            ''',
+            """,
             framebuffer=[self.image],
-            topology='triangles',
+            topology="triangles",
             vertex_count=3,
         )
 
@@ -70,5 +70,5 @@ class App:
         self.ctx.end_frame()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     glwindow.run(App)

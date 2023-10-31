@@ -12,21 +12,21 @@ def grass_mesh():
         verts.append((-v * 0.03, u * u * 0.2, u))
         verts.append((v * 0.03, u * u * 0.2, u))
     verts.append((0.0, 0.2, 1.0))
-    verts = ','.join('vec3(%.8f, %.8f, %.8f)' % x for x in verts)
-    return f'vec3 grass[15] = vec3[]({verts});'
+    verts = ",".join("vec3(%.8f, %.8f, %.8f)" % x for x in verts)
+    return f"vec3 grass[15] = vec3[]({verts});"
 
 
 class Grass:
     def __init__(self, size, count, samples=4):
         self.ctx = zengl.context()
-        self.image = self.ctx.image(size, 'rgba8unorm', samples=samples)
-        self.depth = self.ctx.image(size, 'depth24plus', samples=samples)
-        self.output = self.image if self.image.samples == 1 else self.ctx.image(size, 'rgba8unorm')
+        self.image = self.ctx.image(size, "rgba8unorm", samples=samples)
+        self.depth = self.ctx.image(size, "depth24plus", samples=samples)
+        self.output = self.image if self.image.samples == 1 else self.ctx.image(size, "rgba8unorm")
 
         self.ubo_data = bytearray(64)
         self.uniform_buffer = self.ctx.buffer(self.ubo_data, uniform=True)
         self.pipeline = self.ctx.pipeline(
-            vertex_shader='''
+            vertex_shader="""
                 #version 300 es
                 precision highp float;
 
@@ -69,8 +69,8 @@ class Grass:
                     gl_Position = mvp * vec4(vert, 1.0);
                     v_data = vec2(data.w, v.z);
                 }
-            ''',
-            fragment_shader='''
+            """,
+            fragment_shader="""
                 #version 300 es
                 precision highp float;
 
@@ -83,26 +83,26 @@ class Grass:
                     vec3 gn = vec3(0.15, 0.83, 0.3);
                     out_color = vec4((yl + (gn - yl) * v_data.x) * v_data.y, 1.0);
                 }
-            ''',
+            """,
             includes={
-                'N': f'const int N = {count};',
-                'grass': grass_mesh(),
+                "N": f"const int N = {count};",
+                "grass": grass_mesh(),
             },
             layout=[
                 {
-                    'name': 'Common',
-                    'binding': 0,
+                    "name": "Common",
+                    "binding": 0,
                 },
             ],
             resources=[
                 {
-                    'type': 'uniform_buffer',
-                    'binding': 0,
-                    'buffer': self.uniform_buffer,
+                    "type": "uniform_buffer",
+                    "binding": 0,
+                    "buffer": self.uniform_buffer,
                 },
             ],
             framebuffer=[self.image, self.depth],
-            topology='triangle_strip',
+            topology="triangle_strip",
             instance_count=count * count,
             vertex_count=15,
         )
@@ -135,5 +135,5 @@ class App:
         self.ctx.end_frame()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     glwindow.run(App)

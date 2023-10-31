@@ -5,7 +5,7 @@ import zengl
 class Scene:
     def __init__(self, size):
         self.ctx = zengl.context()
-        self.image = self.ctx.image(size, 'rgba8unorm', bytes(size[0] * size[1] * 4))
+        self.image = self.ctx.image(size, "rgba8unorm", bytes(size[0] * size[1] * 4))
         self.output = self.image
 
     def render(self):
@@ -25,5 +25,5 @@ class App:
         self.ctx.end_frame()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     glwindow.run(App)

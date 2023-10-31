@@ -14,6 +14,6 @@ for triangle_loop in mesh.loop_triangles:
         x, y, z = mesh.vertices[loop.vertex_index].co
         r, g, b, _ = mesh.vertex_colors.active.data[loop_index].color
         nx, ny, nz = loop.normal
-        buf.extend(struct.pack('3f3f3f', x, y, z, nx, ny, nz, r, g, b))
+        buf.extend(struct.pack("3f3f3f", x, y, z, nx, ny, nz, r, g, b))
 
-open('output.mesh.gz', 'wb').write(gzip.compress(buf))
+open("output.mesh.gz", "wb").write(gzip.compress(buf))

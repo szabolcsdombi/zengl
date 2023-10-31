@@ -22,15 +22,15 @@ def create_terrain(size):
     Q = np.concatenate([A + B * size, A * size + B])
     Q[:, -1] = -1
 
-    return P.astype('f4').tobytes(), Q.astype('i4').tobytes()
+    return P.astype("f4").tobytes(), Q.astype("i4").tobytes()
 
 
 class WireframeTerrain:
     def __init__(self, size, samples=4):
         self.ctx = zengl.context()
-        self.image = self.ctx.image(size, 'rgba8unorm', samples=samples)
-        self.depth = self.ctx.image(size, 'depth24plus', samples=samples)
-        self.output = self.image if self.image.samples == 1 else self.ctx.image(size, 'rgba8unorm')
+        self.image = self.ctx.image(size, "rgba8unorm", samples=samples)
+        self.depth = self.ctx.image(size, "depth24plus", samples=samples)
+        self.output = self.image if self.image.samples == 1 else self.ctx.image(size, "rgba8unorm")
 
         vertex_data, index_data = create_terrain(64)
         self.vertex_buffer = self.ctx.buffer(vertex_data)
@@ -38,7 +38,7 @@ class WireframeTerrain:
         self.uniform_buffer = self.ctx.buffer(size=64, uniform=True)
 
         self.pipeline = self.ctx.pipeline(
-            vertex_shader='''
+            vertex_shader="""
                 #version 300 es
                 precision highp float;
 
@@ -51,8 +51,8 @@ class WireframeTerrain:
                 void main() {
                     gl_Position = mvp * vec4(in_vert, 1.0);
                 }
-            ''',
-            fragment_shader='''
+            """,
+            fragment_shader="""
                 #version 300 es
                 precision highp float;
 
@@ -61,23 +61,23 @@ class WireframeTerrain:
                 void main() {
                     out_color = vec4(1.0, 1.0, 1.0, 1.0);
                 }
-            ''',
+            """,
             layout=[
                 {
-                    'name': 'Common',
-                    'binding': 0,
+                    "name": "Common",
+                    "binding": 0,
                 },
             ],
             resources=[
                 {
-                    'type': 'uniform_buffer',
-                    'binding': 0,
-                    'buffer': self.uniform_buffer,
+                    "type": "uniform_buffer",
+                    "binding": 0,
+                    "buffer": self.uniform_buffer,
                 },
             ],
             framebuffer=[self.image, self.depth],
-            topology='line_strip',
-            vertex_buffers=zengl.bind(self.vertex_buffer, '3f', 0),
+            topology="line_strip",
+            vertex_buffers=zengl.bind(self.vertex_buffer, "3f", 0),
             index_buffer=self.index_buffer,
             vertex_count=self.index_buffer.size // 4,
         )
@@ -110,5 +110,5 @@ class App:
         self.ctx.end_frame()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     glwindow.run(App)

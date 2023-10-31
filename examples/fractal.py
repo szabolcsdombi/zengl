@@ -10,12 +10,12 @@ class Fractal:
         self.ctx = zengl.context()
         self.size = size
 
-        self.image = self.ctx.image(size, 'rgba8unorm')
+        self.image = self.ctx.image(size, "rgba8unorm")
         self.output = self.image
 
         self.uniform_buffer = self.ctx.buffer(size=32)
         self.pipeline = self.ctx.pipeline(
-            vertex_shader='''
+            vertex_shader="""
                 #version 300 es
                 precision highp float;
 
@@ -28,8 +28,8 @@ class Fractal:
                 void main() {
                     gl_Position = vec4(positions[gl_VertexID], 0.0, 1.0);
                 }
-            ''',
-            fragment_shader='''
+            """,
+            fragment_shader="""
                 #version 300 es
                 precision highp float;
 
@@ -61,22 +61,22 @@ class Fractal:
                         1.0
                     );
                 }
-            ''',
+            """,
             layout=[
                 {
-                    'name': 'Common',
-                    'binding': 0,
+                    "name": "Common",
+                    "binding": 0,
                 },
             ],
             resources=[
                 {
-                    'type': 'uniform_buffer',
-                    'binding': 0,
-                    'buffer': self.uniform_buffer,
+                    "type": "uniform_buffer",
+                    "binding": 0,
+                    "buffer": self.uniform_buffer,
                 },
             ],
             framebuffer=[self.image],
-            topology='triangles',
+            topology="triangles",
             vertex_count=3,
         )
 
@@ -85,7 +85,7 @@ class Fractal:
     def render(self):
         self.time += 1.0 / 60.0
         center = 0.25 + math.cos(self.time * 1.3) * 0.04, 0.55 + math.sin(self.time * 1.3) * 0.04
-        self.uniform_buffer.write(struct.pack('2f2fi', *self.size, *center, 100))
+        self.uniform_buffer.write(struct.pack("2f2fi", *self.size, *center, 100))
         self.image.clear()
         self.pipeline.render()
 
@@ -103,5 +103,5 @@ class App:
         self.ctx.end_frame()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     glwindow.run(App)

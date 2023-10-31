@@ -5,7 +5,7 @@ import zengl
 def test_camera():
     camera = zengl.camera((4.0, 3.0, 2.0), (0.0, 0.0, 1.0))
     np.testing.assert_almost_equal(
-        np.frombuffer(camera, 'f4').reshape(4, 4),
+        np.frombuffer(camera, "f4").reshape(4, 4),
         [
             [-1.039230465888977, -0.2717464864253998, -0.7846214771270752, -0.7844645380973816],
             [1.3856406211853027, -0.20380987226963043, -0.5884661078453064, -0.588348388671875],
@@ -26,7 +26,7 @@ def test_camera():
     )
 
     np.testing.assert_almost_equal(
-        np.frombuffer(camera, 'f4').reshape(4, 4),
+        np.frombuffer(camera, "f4").reshape(4, 4),
         [
             [1.090432047843933, 0.05827002227306366, 0.723190188407898, 0.6543149352073669],
             [0.9194796085357666, -0.46960100531578064, -0.7975368499755859, -0.721580982208252],
@@ -48,7 +48,7 @@ def test_camera():
     )
 
     np.testing.assert_almost_equal(
-        np.frombuffer(camera, 'f4').reshape(4, 4),
+        np.frombuffer(camera, "f4").reshape(4, 4),
         [
             [1.090432047843933, 0.05827002227306366, 0.6887525916099548, 0.6543149352073669],
             [0.9194796085357666, -0.46960100531578064, -0.759558916091919, -0.721580982208252],
@@ -70,7 +70,7 @@ def test_camera():
     )
 
     np.testing.assert_almost_equal(
-        np.frombuffer(camera, 'f4').reshape(4, 4),
+        np.frombuffer(camera, "f4").reshape(4, 4),
         [
             [0.06684909760951996, -0.1612476259469986, -0.016263799741864204, 0.0],
             [-0.029283832758665085, -0.10246407985687256, 0.03485099971294403, 0.0],
@@ -93,7 +93,7 @@ def test_camera():
     )
 
     np.testing.assert_almost_equal(
-        np.frombuffer(camera, 'f4').reshape(4, 4),
+        np.frombuffer(camera, "f4").reshape(4, 4),
         [
             [0.06684909760951996, -0.1612476259469986, -0.008131899870932102, 0.0],
             [-0.029283832758665085, -0.10246407985687256, 0.017425499856472015, 0.0],

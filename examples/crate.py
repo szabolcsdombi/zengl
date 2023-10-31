@@ -12,23 +12,23 @@ import assets
 class Crate:
     def __init__(self, size, texture=None, samples=4):
         self.ctx = zengl.context()
-        self.image = self.ctx.image(size, 'rgba8unorm', samples=samples)
-        self.depth = self.ctx.image(size, 'depth24plus', samples=samples)
-        self.output = self.image if self.image.samples == 1 else self.ctx.image(size, 'rgba8unorm')
+        self.image = self.ctx.image(size, "rgba8unorm", samples=samples)
+        self.depth = self.ctx.image(size, "depth24plus", samples=samples)
+        self.output = self.image if self.image.samples == 1 else self.ctx.image(size, "rgba8unorm")
 
-        model = objloader.Obj.open(assets.get('box.obj')).pack('vx vy vz nx ny nz tx ty')
+        model = objloader.Obj.open(assets.get("box.obj")).pack("vx vy vz nx ny nz tx ty")
         self.vertex_buffer = self.ctx.buffer(model)
 
         self.texture = texture
         if self.texture is None:
-            img = Image.open(assets.get('crate.png')).convert('RGBA')
-            self.texture = self.ctx.image(img.size, 'rgba8unorm', img.tobytes())
+            img = Image.open(assets.get("crate.png")).convert("RGBA")
+            self.texture = self.ctx.image(img.size, "rgba8unorm", img.tobytes())
 
         self.ubo = bytearray(80)
         self.uniform_buffer = self.ctx.buffer(self.ubo, uniform=True)
 
         self.pipeline = self.ctx.pipeline(
-            vertex_shader='''
+            vertex_shader="""
                 #version 300 es
                 precision highp float;
 
@@ -51,8 +51,8 @@ class Crate:
                     v_norm = in_norm;
                     v_text = in_text;
                 }
-            ''',
-            fragment_shader='''
+            """,
+            fragment_shader="""
                 #version 300 es
                 precision highp float;
 
@@ -73,34 +73,34 @@ class Crate:
                     float lum = clamp(dot(normalize(light - v_vert), normalize(v_norm)), 0.0, 1.0) * 0.6 + 0.4;
                     out_color = vec4(texture(Texture, v_text).rgb * lum, 1.0);
                 }
-            ''',
+            """,
             layout=[
                 {
-                    'name': 'Common',
-                    'binding': 0,
+                    "name": "Common",
+                    "binding": 0,
                 },
                 {
-                    'name': 'Texture',
-                    'binding': 0,
+                    "name": "Texture",
+                    "binding": 0,
                 },
             ],
             resources=[
                 {
-                    'type': 'uniform_buffer',
-                    'binding': 0,
-                    'buffer': self.uniform_buffer,
+                    "type": "uniform_buffer",
+                    "binding": 0,
+                    "buffer": self.uniform_buffer,
                 },
                 {
-                    'type': 'sampler',
-                    'binding': 0,
-                    'image': self.texture,
+                    "type": "sampler",
+                    "binding": 0,
+                    "image": self.texture,
                 },
             ],
             framebuffer=[self.image, self.depth],
-            topology='triangles',
-            cull_face='back',
-            vertex_buffers=zengl.bind(self.vertex_buffer, '3f 3f 2f', 0, 1, 2),
-            vertex_count=self.vertex_buffer.size // zengl.calcsize('3f 3f 2f'),
+            topology="triangles",
+            cull_face="back",
+            vertex_buffers=zengl.bind(self.vertex_buffer, "3f 3f 2f", 0, 1, 2),
+            vertex_count=self.vertex_buffer.size // zengl.calcsize("3f 3f 2f"),
         )
 
         self.aspect = size[0] / size[1]
@@ -110,7 +110,7 @@ class Crate:
         self.time += 1.0 / 60.0
         eye = (math.cos(self.time * 0.6) * 3.0, math.sin(self.time * 0.6) * 3.0, 1.5)
         self.ubo[:64] = zengl.camera(eye, (0.0, 0.0, 0.0), aspect=self.aspect, fov=45.0)
-        self.ubo[64:] = struct.pack('3f4x', *eye)
+        self.ubo[64:] = struct.pack("3f4x", *eye)
         self.uniform_buffer.write(self.ubo)
         self.image.clear()
         self.depth.clear()
@@ -132,5 +132,5 @@ class App:
         self.ctx.end_frame()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     glwindow.run(App)

@@ -5,8 +5,8 @@ from monkey import Monkey
 
 def gaussian_kernel(s):
     c = [2.718281828459045 ** (-x * x / (s * s / 4.0)) for x in range(-s, s + 1)]
-    v = ', '.join(f'{x / sum(c):.8f}' for x in c)
-    return f'const int N = {s * 2 + 1};\nfloat coeff[N] = float[]({v});'
+    v = ", ".join(f"{x / sum(c):.8f}" for x in c)
+    return f"const int N = {s * 2 + 1};\nfloat coeff[N] = float[]({v});"
 
 
 class Blur1D:
@@ -14,7 +14,7 @@ class Blur1D:
         self.ctx = zengl.context()
 
         self.pipeline = self.ctx.pipeline(
-            vertex_shader='''
+            vertex_shader="""
                 #version 300 es
                 precision highp float;
 
@@ -27,8 +27,8 @@ class Blur1D:
                 void main() {
                     gl_Position = vec4(positions[gl_VertexID], 0.0, 1.0);
                 }
-            ''',
-            fragment_shader='''
+            """,
+            fragment_shader="""
                 #version 300 es
                 precision highp float;
 
@@ -55,28 +55,28 @@ class Blur1D:
                     }
                     out_color = vec4(color, 1.0);
                 }
-            ''',
+            """,
             includes={
-                'kernel': gaussian_kernel(19),
+                "kernel": gaussian_kernel(19),
             },
             layout=[
                 {
-                    'name': 'Texture',
-                    'binding': 0,
+                    "name": "Texture",
+                    "binding": 0,
                 },
             ],
             resources=[
                 {
-                    'type': 'sampler',
-                    'binding': 0,
-                    'image': src,
+                    "type": "sampler",
+                    "binding": 0,
+                    "image": src,
                 },
             ],
             uniforms={
-                'mode': ['x', 'y'].index(mode),
+                "mode": ["x", "y"].index(mode),
             },
             framebuffer=[dst],
-            topology='triangles',
+            topology="triangles",
             vertex_count=3,
         )
 
@@ -88,9 +88,9 @@ class Blur2D:
     def __init__(self, src: zengl.Image, dst: zengl.Image):
         self.ctx = zengl.context()
 
-        self.temp = self.ctx.image(src.size, 'rgba8unorm')
-        self.blur_x = Blur1D(src, self.temp, 'x')
-        self.blur_y = Blur1D(self.temp, dst, 'y')
+        self.temp = self.ctx.image(src.size, "rgba8unorm")
+        self.blur_x = Blur1D(src, self.temp, "x")
+        self.blur_y = Blur1D(self.temp, dst, "y")
 
     def render(self):
         self.blur_x.render()
@@ -113,5 +113,5 @@ class App:
         self.ctx.end_frame()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     glwindow.run(App)

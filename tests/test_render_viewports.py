@@ -3,9 +3,9 @@ import zengl
 
 
 def test(ctx: zengl.Context):
-    image = ctx.image((64, 64), 'rgba8unorm')
+    image = ctx.image((64, 64), "rgba8unorm")
     pipeline = ctx.pipeline(
-        vertex_shader='''
+        vertex_shader="""
             #version 330 core
 
             vec2 positions[3] = vec2[](
@@ -17,8 +17,8 @@ def test(ctx: zengl.Context):
             void main() {
                 gl_Position = vec4(positions[gl_VertexID], 0.0, 1.0);
             }
-        ''',
-        fragment_shader='''
+        """,
+        fragment_shader="""
             #version 330 core
 
             layout (location = 0) out vec4 out_color;
@@ -26,10 +26,10 @@ def test(ctx: zengl.Context):
             void main() {
                 out_color = vec4(0.0, 0.0, 1.0, 1.0);
             }
-        ''',
+        """,
         framebuffer=[image],
         viewport=(32, 32, 32, 32),
-        topology='triangles',
+        topology="triangles",
         vertex_count=3,
     )
 
@@ -44,7 +44,7 @@ def test(ctx: zengl.Context):
     np.testing.assert_array_equal(pipeline.viewport, [0, 0, 32, 32])
 
     ctx.end_frame()
-    pixels = np.frombuffer(image.read(), 'u1').reshape(64, 64, 4)
+    pixels = np.frombuffer(image.read(), "u1").reshape(64, 64, 4)
     np.testing.assert_array_equal(
         pixels[[16, 16, 48, 48], [16, 48, 16, 48]],
         [

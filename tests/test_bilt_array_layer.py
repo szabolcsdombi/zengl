@@ -3,8 +3,8 @@ import zengl
 
 
 def test_blit_array_layer(ctx: zengl.Context):
-    array = ctx.image((64, 64), 'rgba8unorm', np.full((3, 64, 64, 4), (200, 100, 0, 255), 'u1'), array=3, levels=2)
-    image = ctx.image((64, 64), 'rgba8unorm')
+    array = ctx.image((64, 64), "rgba8unorm", np.full((3, 64, 64, 4), (200, 100, 0, 255), "u1"), array=3, levels=2)
+    image = ctx.image((64, 64), "rgba8unorm")
 
     ctx.new_frame()
     image.clear()
@@ -12,7 +12,7 @@ def test_blit_array_layer(ctx: zengl.Context):
     array.face(1).clear()
     array.face(2).blit(image.face())
     ctx.end_frame()
-    pixels = np.frombuffer(image.read(), 'u1').reshape(64, 64, 4)
+    pixels = np.frombuffer(image.read(), "u1").reshape(64, 64, 4)
     np.testing.assert_array_equal(
         pixels[[16, 16, 48, 48], [16, 48, 16, 48]],
         [
@@ -29,7 +29,7 @@ def test_blit_array_layer(ctx: zengl.Context):
     array.face(2).clear()
     array.face(2).blit(image.face())
     ctx.end_frame()
-    pixels = np.frombuffer(image.read(), 'u1').reshape(64, 64, 4)
+    pixels = np.frombuffer(image.read(), "u1").reshape(64, 64, 4)
     np.testing.assert_array_equal(
         pixels[[16, 16, 48, 48], [16, 48, 16, 48]],
         [
@@ -45,7 +45,7 @@ def test_blit_array_layer(ctx: zengl.Context):
     image.clear()
     array.face(layer=2, level=1).blit(image.face(), target_viewport=(0, 0, 32, 32))
     ctx.end_frame()
-    pixels = np.frombuffer(image.read(), 'u1').reshape(64, 64, 4)
+    pixels = np.frombuffer(image.read(), "u1").reshape(64, 64, 4)
     np.testing.assert_array_equal(
         pixels[[16, 16, 48, 48], [16, 48, 16, 48]],
         [

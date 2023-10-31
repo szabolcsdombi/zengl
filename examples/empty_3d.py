@@ -8,16 +8,16 @@ import zengl
 class Scene:
     def __init__(self, size, samples=4):
         self.ctx = zengl.context()
-        self.image = self.ctx.image(size, 'rgba8unorm', samples=samples)
-        self.depth = self.ctx.image(size, 'depth24plus', samples=samples)
-        self.output = self.image if self.image.samples == 1 else self.ctx.image(size, 'rgba8unorm')
+        self.image = self.ctx.image(size, "rgba8unorm", samples=samples)
+        self.depth = self.ctx.image(size, "depth24plus", samples=samples)
+        self.output = self.image if self.image.samples == 1 else self.ctx.image(size, "rgba8unorm")
 
-        model = struct.pack('3f3f3f', -0.866, -0.5, 0.0, 0.866, -0.5, 0.0, 0.0, 1.0, 0.0)
+        model = struct.pack("3f3f3f", -0.866, -0.5, 0.0, 0.866, -0.5, 0.0, 0.0, 1.0, 0.0)
 
         self.vertex_buffer = self.ctx.buffer(model)
         self.uniform_buffer = self.ctx.buffer(size=64, uniform=True)
         self.pipeline = self.ctx.pipeline(
-            vertex_shader='''
+            vertex_shader="""
                 #version 300 es
                 precision highp float;
 
@@ -30,8 +30,8 @@ class Scene:
                 void main() {
                     gl_Position = mvp * vec4(in_vert, 1.0);
                 }
-            ''',
-            fragment_shader='''
+            """,
+            fragment_shader="""
                 #version 300 es
                 precision highp float;
 
@@ -40,25 +40,25 @@ class Scene:
                 void main() {
                     out_color = vec4(1.0, 1.0, 1.0, 1.0);
                 }
-            ''',
+            """,
             layout=[
                 {
-                    'name': 'Common',
-                    'binding': 0,
+                    "name": "Common",
+                    "binding": 0,
                 },
             ],
             resources=[
                 {
-                    'type': 'uniform_buffer',
-                    'binding': 0,
-                    'buffer': self.uniform_buffer,
+                    "type": "uniform_buffer",
+                    "binding": 0,
+                    "buffer": self.uniform_buffer,
                 },
             ],
             framebuffer=[self.image, self.depth],
-            topology='triangles',
-            cull_face='back',
-            vertex_buffers=zengl.bind(self.vertex_buffer, '3f', 0),
-            vertex_count=self.vertex_buffer.size // zengl.calcsize('3f'),
+            topology="triangles",
+            cull_face="back",
+            vertex_buffers=zengl.bind(self.vertex_buffer, "3f", 0),
+            vertex_count=self.vertex_buffer.size // zengl.calcsize("3f"),
         )
 
         self.aspect = size[0] / size[1]
@@ -89,5 +89,5 @@ class App:
         self.ctx.end_frame()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     glwindow.run(App)

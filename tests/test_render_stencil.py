@@ -4,7 +4,7 @@ import zengl
 
 def make_pipeline(ctx, framebuffer, color, stencil):
     return ctx.pipeline(
-        vertex_shader='''
+        vertex_shader="""
             #version 330 core
 
             vec2 positions[3] = vec2[](
@@ -16,8 +16,8 @@ def make_pipeline(ctx, framebuffer, color, stencil):
             void main() {
                 gl_Position = vec4(positions[gl_VertexID] + 0.5, 0.0, 1.0);
             }
-        ''',
-        fragment_shader='''
+        """,
+        fragment_shader="""
             #version 330 core
 
             uniform vec3 color;
@@ -27,26 +27,26 @@ def make_pipeline(ctx, framebuffer, color, stencil):
             void main() {
                 out_color = vec4(color, 1.0);
             }
-        ''',
+        """,
         uniforms={
-            'color': color,
+            "color": color,
         },
         stencil={
-            'both': stencil,
+            "both": stencil,
         },
         depth={
-            'func': 'always',
-            'write': False,
+            "func": "always",
+            "write": False,
         },
         framebuffer=framebuffer,
-        topology='triangles',
+        topology="triangles",
         vertex_count=3,
     )
 
 
 def test(ctx: zengl.Context):
-    image = ctx.image((64, 64), 'rgba8unorm')
-    stencil = ctx.image((64, 64), 'depth24plus-stencil8')
+    image = ctx.image((64, 64), "rgba8unorm")
+    stencil = ctx.image((64, 64), "depth24plus-stencil8")
     stencil.clear_value = 1.0, 0
 
     pipeline_1 = make_pipeline(
@@ -54,13 +54,13 @@ def test(ctx: zengl.Context):
         [image, stencil],
         (1.0, 0.0, 0.0),
         {
-            'fail_op': 'replace',
-            'pass_op': 'replace',
-            'depth_fail_op': 'replace',
-            'compare_op': 'always',
-            'compare_mask': 1,
-            'write_mask': 1,
-            'reference': 1,
+            "fail_op": "replace",
+            "pass_op": "replace",
+            "depth_fail_op": "replace",
+            "compare_op": "always",
+            "compare_mask": 1,
+            "write_mask": 1,
+            "reference": 1,
         },
     )
 
@@ -69,13 +69,13 @@ def test(ctx: zengl.Context):
         [image, stencil],
         (0.0, 1.0, 0.0),
         {
-            'fail_op': 'keep',
-            'pass_op': 'keep',
-            'depth_fail_op': 'keep',
-            'compare_op': 'equal',
-            'compare_mask': 0xFF,
-            'write_mask': 0xFF,
-            'reference': 20,
+            "fail_op": "keep",
+            "pass_op": "keep",
+            "depth_fail_op": "keep",
+            "compare_op": "equal",
+            "compare_mask": 0xFF,
+            "write_mask": 0xFF,
+            "reference": 20,
         },
     )
 
@@ -84,13 +84,13 @@ def test(ctx: zengl.Context):
         [image, stencil],
         (0.0, 0.0, 1.0),
         {
-            'fail_op': 'keep',
-            'pass_op': 'keep',
-            'depth_fail_op': 'keep',
-            'compare_op': 'equal',
-            'compare_mask': 0xFF,
-            'write_mask': 0xFF,
-            'reference': 1,
+            "fail_op": "keep",
+            "pass_op": "keep",
+            "depth_fail_op": "keep",
+            "compare_op": "equal",
+            "compare_mask": 0xFF,
+            "write_mask": 0xFF,
+            "reference": 1,
         },
     )
 
@@ -100,7 +100,7 @@ def test(ctx: zengl.Context):
     pipeline_1.render()
     ctx.end_frame()
 
-    pixels = np.frombuffer(image.read(), 'u1').reshape(64, 64, 4)
+    pixels = np.frombuffer(image.read(), "u1").reshape(64, 64, 4)
     np.testing.assert_array_equal(
         pixels[[16, 16, 48, 48], [16, 48, 16, 48]],
         [
@@ -115,7 +115,7 @@ def test(ctx: zengl.Context):
     pipeline_2.render()
     ctx.end_frame()
 
-    pixels = np.frombuffer(image.read(), 'u1').reshape(64, 64, 4)
+    pixels = np.frombuffer(image.read(), "u1").reshape(64, 64, 4)
     np.testing.assert_array_equal(
         pixels[[16, 16, 48, 48], [16, 48, 16, 48]],
         [
@@ -130,7 +130,7 @@ def test(ctx: zengl.Context):
     pipeline_3.render()
     ctx.end_frame()
 
-    pixels = np.frombuffer(image.read(), 'u1').reshape(64, 64, 4)
+    pixels = np.frombuffer(image.read(), "u1").reshape(64, 64, 4)
     np.testing.assert_array_equal(
         pixels[[16, 16, 48, 48], [16, 48, 16, 48]],
         [
