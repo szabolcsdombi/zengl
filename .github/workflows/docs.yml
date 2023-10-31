@@ -1,0 +1,23 @@
+name: docs
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+  workflow_dispatch:
+
+jobs:
+  docs:
+    name: docs
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: build
+        run: docker build . -f tests/docs/Dockerfile -t docs
+
+      - name: docs
+        run: docker run --rm -t docs

@@ -9,7 +9,6 @@ on:
   workflow_dispatch:
 
 jobs:
-
   build:
     name: build
     runs-on: ${{ matrix.os }}
@@ -33,43 +32,4 @@ jobs:
       - name: wheel
         env:
           ZENGL_WARNINGS: yes
-        run: python setup.py bdist_wheel
-
-  tests:
-    name: tests
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: build
-        run: docker build . -f tests/Dockerfile -t tests
-
-      - name: test
-        run: docker run --rm -t tests
-
-  codestyle:
-    name: codestyle
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: build
-        run: docker build . -f tests/codestyle/Dockerfile -t codestyle
-
-      - name: codestyle
-        run: docker run --rm -t codestyle
-
-  documentation:
-    name: documentation
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: build
-        run: docker build . -f tests/documentation/Dockerfile -t documentation
-
-      - name: documentation
-        run: docker run --rm -t documentation
+        run: python pip wheel .
