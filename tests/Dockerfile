@@ -6,6 +6,6 @@ RUN pip install -U pip wheel setuptools &&\
 WORKDIR /app
 COPY . .
 RUN python3 -m build --no-isolation
-ENV ZENGL_COVERAGE=yes LIBGL_ALWAYS_SOFTWARE=1
+ENV ZENGL_COVERAGE=yes ZENGL_WARNINGS=yes LIBGL_ALWAYS_SOFTWARE=1
 RUN python3 setup.py build_ext --inplace && cp build/temp.*/zengl.gcno .
 CMD python3 -X dev -m pytest -s -vvv tests && gcovr
