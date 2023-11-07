@@ -1388,7 +1388,7 @@ static GLObject * compile_program(Context * self, PyObject * includes, PyObject 
         PyObject * log_text = PyBytes_FromStringAndSize(NULL, log_size);
         glGetProgramInfoLog(program, log_size, &log_size, PyBytes_AsString(log_text));
         PyObject * vert_code = PyTuple_GetItem(vert_pair, 0);
-        PyObject * frag_code = PyTuple_GetItem(frag_pair, 1);
+        PyObject * frag_code = PyTuple_GetItem(frag_pair, 0);
         Py_XDECREF(PyObject_CallMethod(self->module_state->helper, "linker_error", "(OON)", vert_code, frag_code, log_text));
         return NULL;
     }
