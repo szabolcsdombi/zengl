@@ -250,6 +250,7 @@ class Buffer:
 
 class Image:
     size: Tuple[int, int]
+    format: ImageFormat
     samples: int
     color: bool
     clear_value: Iterable[int | float] | int | float
