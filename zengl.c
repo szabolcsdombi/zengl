@@ -189,7 +189,6 @@ typedef struct Context {
     int frame_time_query_running;
     int frame_time;
     int default_texture_unit;
-    int mapped_buffers;
     int gles;
     Limits limits;
 } Context;
@@ -203,7 +202,6 @@ typedef struct Buffer {
     int target;
     int size;
     int dynamic;
-    int mapped;
 } Buffer;
 
 typedef struct Image {
@@ -476,8 +474,6 @@ RESOLVE(void, glVertexAttribDivisor, int, int);
 #ifndef WEB
 
 RESOLVE(const char *, glGetString, int);
-RESOLVE(void *, glMapBufferRange, int, intptr, intptr, int);
-RESOLVE(int, glUnmapBuffer, int);
 
 typedef void (GL UniformSetter)(int, int, const void *);
 typedef void (GL UniformMatrixSetter)(int, int, int, const void *);
@@ -563,7 +559,6 @@ static void load_gl(PyObject * loader) {
     load(glGenBuffers);
     load(glBufferData);
     load(glBufferSubData);
-    load(glUnmapBuffer);
     load(glBlendEquationSeparate);
     load(glDrawBuffers);
     load(glStencilOpSeparate);
@@ -628,7 +623,6 @@ static void load_gl(PyObject * loader) {
     load(glBlitFramebuffer);
     load(glRenderbufferStorageMultisample);
     load(glFramebufferTextureLayer);
-    load(glMapBufferRange);
     load(glBindVertexArray);
     load(glDeleteVertexArrays);
     load(glGenVertexArrays);
@@ -683,14 +677,6 @@ static const char * glGetString(int name) {
         case 0x8B8C: return "WebGL GLSL ES 3.00 (OpenGL ES GLSL ES 3.0)";
     }
     return NULL;
-}
-
-static void * glMapBufferRange(int target, intptr offset, intptr length, int access) {
-    return NULL;
-}
-
-static int glUnmapBuffer(int target) {
-    return 0;
 }
 
 static void load_gl(PyObject * loader) {
@@ -1695,7 +1681,6 @@ static Context * meth_context(PyObject * self) {
     res->frame_time_query_running = 0;
     res->frame_time = 0;
     res->default_texture_unit = 0;
-    res->mapped_buffers = 0;
     res->gles = 0;
 
     memset(&res->limits, 0, sizeof(res->limits));
@@ -1832,7 +1817,6 @@ static Buffer * Context_meth_buffer(Context * self, PyObject * args, PyObject * 
     res->target = target;
     res->size = size;
     res->dynamic = dynamic;
-    res->mapped = 0;
 
     if (data != Py_None) {
         Py_XDECREF(PyObject_CallMethod((PyObject *)res, "write", "N", data));
@@ -2582,11 +2566,6 @@ static PyObject * Buffer_meth_write(Buffer * self, PyObject * args, PyObject * k
         return NULL;
     }
 
-    if (self->mapped) {
-        PyErr_Format(PyExc_RuntimeError, "already mapped");
-        return NULL;
-    }
-
     if (offset < 0 || offset > self->size) {
         PyErr_Format(PyExc_ValueError, "invalid offset");
         return NULL;
@@ -2619,76 +2598,6 @@ static PyObject * Buffer_meth_write(Buffer * self, PyObject * args, PyObject * k
     }
 
     Py_DECREF(mem);
-    Py_RETURN_NONE;
-}
-
-static PyObject * Buffer_meth_map(Buffer * self, PyObject * args, PyObject * kwargs) {
-    static char * keywords[] = {"size", "offset", "discard", NULL};
-
-    PyObject * size_arg = Py_None;
-    PyObject * offset_arg = Py_None;
-    int discard = 0;
-
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|OOp", keywords, &size_arg, &offset_arg, &discard)) {
-        return NULL;
-    }
-
-    int size = self->size;
-    int offset = 0;
-
-    if (size_arg != Py_None && !PyLong_CheckExact(size_arg)) {
-        PyErr_Format(PyExc_TypeError, "the size must be an int or None");
-        return NULL;
-    }
-
-    if (offset_arg != Py_None && !PyLong_CheckExact(offset_arg)) {
-        PyErr_Format(PyExc_TypeError, "the offset must be an int or None");
-        return NULL;
-    }
-
-    if (size_arg != Py_None) {
-        size = to_int(size_arg);
-    }
-
-    if (offset_arg != Py_None) {
-        offset = to_int(offset_arg);
-    }
-
-    if (self->mapped) {
-        PyErr_Format(PyExc_RuntimeError, "already mapped");
-        return NULL;
-    }
-
-    if (size_arg == Py_None && offset_arg != Py_None) {
-        PyErr_Format(PyExc_ValueError, "the size is required when the offset is not None");
-        return NULL;
-    }
-
-    if (size <= 0 || size > self->size) {
-        PyErr_Format(PyExc_ValueError, "invalid size");
-        return NULL;
-    }
-
-    if (offset < 0 || offset + size > self->size) {
-        PyErr_Format(PyExc_ValueError, "invalid offset");
-        return NULL;
-    }
-
-    self->mapped = 1;
-    self->ctx->mapped_buffers += 1;
-    const int access = discard ? GL_MAP_READ_BIT | GL_MAP_WRITE_BIT : GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_WRITE_BIT;
-    glBindBuffer(GL_ARRAY_BUFFER, self->buffer);
-    void * ptr = glMapBufferRange(GL_ARRAY_BUFFER, offset, size, access);
-    return PyMemoryView_FromMemory((char *)ptr, size, PyBUF_WRITE);
-}
-
-static PyObject * Buffer_meth_unmap(Buffer * self, PyObject * args) {
-    if (self->mapped) {
-        self->mapped = 0;
-        self->ctx->mapped_buffers -= 1;
-        glBindBuffer(GL_ARRAY_BUFFER, self->buffer);
-        glUnmapBuffer(GL_ARRAY_BUFFER);
-    }
     Py_RETURN_NONE;
 }
 
@@ -3317,8 +3226,6 @@ static PyMemberDef Context_members[] = {
 
 static PyMethodDef Buffer_methods[] = {
     {"write", (PyCFunction)Buffer_meth_write, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"map", (PyCFunction)Buffer_meth_map, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"unmap", (PyCFunction)Buffer_meth_unmap, METH_NOARGS, NULL},
     {0},
 };
 
