@@ -45,9 +45,6 @@ def test_buffer_write_error(ctx: zengl.Context):
     with pytest.raises(ValueError):
         buf.write(b'aaaaaaaaaa', offset=4)
 
-    with pytest.raises(ValueError):
-        buf.write(b'aaaaaaaaaa', size=-1)
-
 
 def test_buffer_copy_error(ctx: zengl.Context):
     buf1 = ctx.buffer(b'aaaaaaaaaa')
@@ -58,9 +55,6 @@ def test_buffer_copy_error(ctx: zengl.Context):
 
     with pytest.raises(ValueError):
         buf2.write(buf1.view(), offset=4)
-
-    with pytest.raises(ValueError):
-        buf2.write(buf1.view(), size=-1)
 
 
 def test_buffer_data_and_size(ctx: zengl.Context):

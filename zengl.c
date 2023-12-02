@@ -85,6 +85,7 @@ typedef struct ModuleState {
     PyTypeObject * Image_type;
     PyTypeObject * Pipeline_type;
     PyTypeObject * ImageFace_type;
+    PyTypeObject * BufferView_type;
     PyTypeObject * DescriptorSet_type;
     PyTypeObject * GlobalSettings_type;
     PyTypeObject * GLObject_type;
@@ -268,6 +269,13 @@ typedef struct ImageFace {
     int samples;
     int flags;
 } ImageFace;
+
+typedef struct BufferView {
+    PyObject_HEAD
+    int buffer;
+    int offset;
+    int size;
+} BufferView;
 
 typedef Py_ssize_t intptr;
 
@@ -2613,19 +2621,27 @@ static PyObject * Buffer_meth_write(Buffer * self, PyObject * args, PyObject * k
         return NULL;
     }
 
-    if (PyTuple_CheckExact(data) && PyTuple_Size(data) == 3 && Py_TYPE(PyTuple_GetItem(data, 0)) == self->ctx->module_state->Buffer_type) {
-        Buffer * src = (Buffer *)PyTuple_GetItem(data, 0);
-        int read_offset = to_int(PyTuple_GetItem(data, 1));
-        int size = to_int(PyTuple_GetItem(data, 2));
-        if (size + offset > self->size || size > src->size) {
+    BufferView * buffer_view = NULL;
+
+    if (Py_TYPE(data) == self->ctx->module_state->Buffer_type) {
+        buffer_view = (BufferView *)PyObject_CallMethod(data, "view", NULL);
+    }
+
+    if (Py_TYPE(data) == self->ctx->module_state->BufferView_type) {
+        buffer_view = (BufferView *)new_ref(data);
+    }
+
+    if (buffer_view) {
+        if (buffer_view->size + offset > self->size) {
             PyErr_Format(PyExc_ValueError, "invalid size");
             return NULL;
         }
-        glBindBuffer(GL_COPY_READ_BUFFER, src->buffer);
+        glBindBuffer(GL_COPY_READ_BUFFER, buffer_view->buffer);
         glBindBuffer(GL_COPY_WRITE_BUFFER, self->buffer);
-        glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, read_offset, offset, size);
+        glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, buffer_view->offset, offset, buffer_view->size);
         glBindBuffer(GL_COPY_READ_BUFFER, 0);
         glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
+        Py_DECREF(buffer_view);
         Py_RETURN_NONE;
     }
 
@@ -2721,24 +2737,36 @@ static PyObject * Buffer_meth_read(Buffer * self, PyObject * args, PyObject * kw
     Py_RETURN_NONE;
 }
 
-static PyObject * Buffer_meth_view(Buffer * self, PyObject * args, PyObject * kwargs) {
+static BufferView * Buffer_meth_view(Buffer * self, PyObject * args, PyObject * kwargs) {
     static char * keywords[] = {"size", "offset", NULL};
 
     PyObject * size_arg = Py_None;
     int offset = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|iO", keywords, &size_arg, &offset)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|Oi", keywords, &size_arg, &offset)) {
         return NULL;
     }
 
-    int size = self->size;
+    int size = self->size - offset;
     if (size_arg != Py_None) {
         size = to_int(size_arg);
     }
 
-    // TODO: check
+    if (offset < 0 || offset > self->size) {
+        PyErr_Format(PyExc_ValueError, "invalid offset");
+        return NULL;
+    }
 
-    return Py_BuildValue("(Oii)", self, offset, size);
+    if (size < 0 || offset + size > self->size) {
+        PyErr_Format(PyExc_ValueError, "invalid size");
+        return NULL;
+    }
+
+    BufferView * res = PyObject_New(BufferView, self->ctx->module_state->BufferView_type);
+    res->buffer = self->buffer;
+    res->offset = offset;
+    res->size = size;
+    return res;
 }
 
 static PyObject * Image_meth_clear(Image * self, PyObject * args) {
@@ -3368,6 +3396,10 @@ static void ImageFace_dealloc(ImageFace * self) {
     Py_TYPE(self)->tp_free(self);
 }
 
+static void BufferView_dealloc(BufferView * self) {
+    Py_TYPE(self)->tp_free(self);
+}
+
 static void DescriptorSet_dealloc(DescriptorSet * self) {
     Py_TYPE(self)->tp_free(self);
 }
@@ -3517,6 +3549,11 @@ static PyType_Slot ImageFace_slots[] = {
     {0},
 };
 
+static PyType_Slot BufferView_slots[] = {
+    {Py_tp_dealloc, (void *)BufferView_dealloc},
+    {0},
+};
+
 static PyType_Slot DescriptorSet_slots[] = {
     {Py_tp_dealloc, (void *)DescriptorSet_dealloc},
     {0},
@@ -3537,6 +3574,7 @@ static PyType_Spec Buffer_spec = {"zengl.Buffer", sizeof(Buffer), 0, Py_TPFLAGS_
 static PyType_Spec Image_spec = {"zengl.Image", sizeof(Image), 0, Py_TPFLAGS_DEFAULT, Image_slots};
 static PyType_Spec Pipeline_spec = {"zengl.Pipeline", sizeof(Pipeline), 0, Py_TPFLAGS_DEFAULT, Pipeline_slots};
 static PyType_Spec ImageFace_spec = {"zengl.ImageFace", sizeof(ImageFace), 0, Py_TPFLAGS_DEFAULT, ImageFace_slots};
+static PyType_Spec BufferView_spec = {"zengl.BufferView", sizeof(BufferView), 0, Py_TPFLAGS_DEFAULT, BufferView_slots};
 static PyType_Spec DescriptorSet_spec = {"zengl.DescriptorSet", sizeof(DescriptorSet), 0, Py_TPFLAGS_DEFAULT, DescriptorSet_slots};
 static PyType_Spec GlobalSettings_spec = {"zengl.GlobalSettings", sizeof(GlobalSettings), 0, Py_TPFLAGS_DEFAULT, GlobalSettings_slots};
 static PyType_Spec GLObject_spec = {"zengl.GLObject", sizeof(GLObject), 0, Py_TPFLAGS_DEFAULT, GLObject_slots};
@@ -3558,6 +3596,7 @@ static int module_exec(PyObject * self) {
     state->Image_type = (PyTypeObject *)PyType_FromSpec(&Image_spec);
     state->Pipeline_type = (PyTypeObject *)PyType_FromSpec(&Pipeline_spec);
     state->ImageFace_type = (PyTypeObject *)PyType_FromSpec(&ImageFace_spec);
+    state->BufferView_type = (PyTypeObject *)PyType_FromSpec(&BufferView_spec);
     state->DescriptorSet_type = (PyTypeObject *)PyType_FromSpec(&DescriptorSet_spec);
     state->GlobalSettings_type = (PyTypeObject *)PyType_FromSpec(&GlobalSettings_spec);
     state->GLObject_type = (PyTypeObject *)PyType_FromSpec(&GLObject_spec);
@@ -3566,6 +3605,7 @@ static int module_exec(PyObject * self) {
     PyModule_AddObject(self, "Buffer", new_ref(state->Buffer_type));
     PyModule_AddObject(self, "Image", new_ref(state->Image_type));
     PyModule_AddObject(self, "ImageFace", new_ref(state->ImageFace_type));
+    PyModule_AddObject(self, "BufferView", new_ref(state->BufferView_type));
     PyModule_AddObject(self, "Pipeline", new_ref(state->Pipeline_type));
 
     PyModule_AddObject(self, "loader", PyObject_GetAttrString(state->helper, "loader"));
