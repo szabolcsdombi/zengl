@@ -404,6 +404,9 @@
     zengl_glDrawElementsInstanced(mode, count, type, indices, instancecount) {
       gl.drawElementsInstanced(mode, count, type, indices, instancecount);
     },
+    zengl_glCopyBufferSubData(readTarget, writeTarget, readOffset, writeOffset, size) {
+      gl.copyBufferSubData(readTarget, writeTarget, readOffset, writeOffset, size);
+    },
     zengl_glGetUniformBlockIndex(program, uniformBlockName) {
       return gl.getUniformBlockIndex(glo[program], getString(uniformBlockName));
     },

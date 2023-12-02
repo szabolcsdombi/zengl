@@ -340,6 +340,8 @@ typedef Py_ssize_t intptr;
 #define GL_RENDERBUFFER 0x8D41
 #define GL_MAX_SAMPLES 0x8D57
 #define GL_FRAMEBUFFER_SRGB 0x8DB9
+#define GL_COPY_READ_BUFFER 0x8F36
+#define GL_COPY_WRITE_BUFFER 0x8F37
 #define GL_UNIFORM_BUFFER 0x8A11
 #define GL_MAX_COMBINED_UNIFORM_BLOCKS 0x8A2E
 #define GL_MAX_UNIFORM_BUFFER_BINDINGS 0x8A2F
@@ -455,6 +457,7 @@ RESOLVE(void, glDeleteVertexArrays, int, const int *);
 RESOLVE(void, glGenVertexArrays, int, int *);
 RESOLVE(void, glDrawArraysInstanced, int, int, int, int);
 RESOLVE(void, glDrawElementsInstanced, int, int, int, intptr, int);
+RESOLVE(void, glCopyBufferSubData, int, int, intptr, intptr, intptr);
 RESOLVE(int, glGetUniformBlockIndex, int, const char *);
 RESOLVE(void, glGetActiveUniformBlockiv, int, int, int, int *);
 RESOLVE(void, glGetActiveUniformBlockName, int, int, int, int *, char *);
@@ -627,6 +630,7 @@ static void load_gl(PyObject * loader) {
     load(glGenVertexArrays);
     load(glDrawArraysInstanced);
     load(glDrawElementsInstanced);
+    load(glCopyBufferSubData);
     load(glGetUniformBlockIndex);
     load(glGetActiveUniformBlockiv);
     load(glGetActiveUniformBlockName);
@@ -2570,30 +2574,48 @@ static PyObject * Buffer_meth_write(Buffer * self, PyObject * args, PyObject * k
         return NULL;
     }
 
+    if (PyTuple_CheckExact(data) && PyTuple_Size(data) == 3 && Py_TYPE(PyTuple_GetItem(data, 0)) == self->ctx->module_state->Buffer_type) {
+        Buffer * src = (Buffer *)PyTuple_GetItem(data, 0);
+        int read_offset = to_int(PyTuple_GetItem(data, 1));
+        int size = to_int(PyTuple_GetItem(data, 2));
+        if (size + offset > self->size || size > src->size) {
+            PyErr_Format(PyExc_ValueError, "invalid size");
+            return NULL;
+        }
+        glBindBuffer(GL_COPY_READ_BUFFER, src->buffer);
+        glBindBuffer(GL_COPY_WRITE_BUFFER, self->buffer);
+        glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, read_offset, offset, size);
+        glBindBuffer(GL_COPY_READ_BUFFER, 0);
+        glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
+        Py_RETURN_NONE;
+    }
+
     PyObject * mem = contiguous(data);
     if (!mem) {
         return NULL;
     }
 
     Py_buffer * view = PyMemoryView_GET_BUFFER(mem);
+    char * ptr = (char *)view->buf;
     int size = (int)view->len;
 
-    if (size + offset > self->size) {
+    if (size < 0 || size + offset > self->size) {
         PyErr_Format(PyExc_ValueError, "invalid size");
         return NULL;
     }
 
-    if (self->target == GL_ELEMENT_ARRAY_BUFFER) {
-        bind_vertex_array(self->ctx, 0);
-    }
+    if (size) {
+        if (self->target == GL_ELEMENT_ARRAY_BUFFER) {
+            bind_vertex_array(self->ctx, 0);
+        }
 
-    if (self->target == GL_UNIFORM_BUFFER) {
-        self->ctx->current_descriptor_set = NULL;
-    }
+        if (self->target == GL_UNIFORM_BUFFER) {
+            self->ctx->current_descriptor_set = NULL;
+        }
 
-    if (view->len) {
         glBindBuffer(self->target, self->buffer);
-        glBufferSubData(self->target, offset, size, view->buf);
+        glBufferSubData(self->target, offset, size, ptr);
+        glBindBuffer(self->target, 0);
     }
 
     Py_DECREF(mem);
@@ -2658,6 +2680,26 @@ static PyObject * Buffer_meth_read(Buffer * self, PyObject * args, PyObject * kw
     }
 
     Py_RETURN_NONE;
+}
+
+static PyObject * Buffer_meth_view(Buffer * self, PyObject * args, PyObject * kwargs) {
+    static char * keywords[] = {"size", "offset", NULL};
+
+    PyObject * size_arg = Py_None;
+    int offset = 0;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|iO", keywords, &size_arg, &offset)) {
+        return NULL;
+    }
+
+    int size = self->size;
+    if (size_arg != Py_None) {
+        size = to_int(size_arg);
+    }
+
+    // TODO: check
+
+    return Py_BuildValue("(Oii)", self, offset, size);
 }
 
 static PyObject * Image_meth_clear(Image * self, PyObject * args) {
@@ -3286,6 +3328,7 @@ static PyMemberDef Context_members[] = {
 static PyMethodDef Buffer_methods[] = {
     {"write", (PyCFunction)Buffer_meth_write, METH_VARARGS | METH_KEYWORDS, NULL},
     {"read", (PyCFunction)Buffer_meth_read, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"view", (PyCFunction)Buffer_meth_view, METH_VARARGS | METH_KEYWORDS, NULL},
     {0},
 };
 
