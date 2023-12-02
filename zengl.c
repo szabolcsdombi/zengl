@@ -1869,7 +1869,7 @@ static Buffer * Context_meth_buffer(Context * self, PyObject * args, PyObject * 
     res->dynamic = dynamic;
 
     if (data != Py_None) {
-        Py_XDECREF(PyObject_CallMethod((PyObject *)res, "write", "N", data));
+        Py_XDECREF(PyObject_CallMethod((PyObject *)res, "write", "(N)", data));
         if (PyErr_Occurred()) {
             return NULL;
         }
@@ -2041,7 +2041,7 @@ static Image * Context_meth_image(Context * self, PyObject * args, PyObject * kw
     }
 
     if (data != Py_None) {
-        Py_XDECREF(PyObject_CallMethod((PyObject *)res, "write", "O", data));
+        Py_XDECREF(PyObject_CallMethod((PyObject *)res, "write", "(O)", data));
         if (PyErr_Occurred()) {
             return NULL;
         }
