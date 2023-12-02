@@ -272,7 +272,7 @@ typedef struct ImageFace {
 
 typedef struct BufferView {
     PyObject_HEAD
-    int buffer;
+    Buffer * buffer;
     int offset;
     int size;
 } BufferView;
@@ -2636,7 +2636,7 @@ static PyObject * Buffer_meth_write(Buffer * self, PyObject * args, PyObject * k
             PyErr_Format(PyExc_ValueError, "invalid size");
             return NULL;
         }
-        glBindBuffer(GL_COPY_READ_BUFFER, buffer_view->buffer);
+        glBindBuffer(GL_COPY_READ_BUFFER, buffer_view->buffer->buffer);
         glBindBuffer(GL_COPY_WRITE_BUFFER, self->buffer);
         glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, buffer_view->offset, offset, buffer_view->size);
         glBindBuffer(GL_COPY_READ_BUFFER, 0);
@@ -2678,19 +2678,13 @@ static PyObject * Buffer_meth_write(Buffer * self, PyObject * args, PyObject * k
 }
 
 static PyObject * Buffer_meth_read(Buffer * self, PyObject * args, PyObject * kwargs) {
-    static char * keywords[] = {"size", "offset", "into", "write_offset", NULL};
+    static char * keywords[] = {"size", "offset", "into", NULL};
 
     PyObject * size_arg = Py_None;
     int offset = 0;
     PyObject * into = Py_None;
-    int write_offset = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|OiOi", keywords, &size_arg, &offset, &into, &write_offset)) {
-        return NULL;
-    }
-
-    if (write_offset < 0) {
-        PyErr_Format(PyExc_ValueError, "invalid write offset");
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|OiO", keywords, &size_arg, &offset, &into)) {
         return NULL;
     }
 
@@ -2734,6 +2728,33 @@ static PyObject * Buffer_meth_read(Buffer * self, PyObject * args, PyObject * kw
         return res;
     }
 
+    if (Py_TYPE(into) == self->ctx->module_state->Buffer_type) {
+        PyObject * chunk = PyObject_CallMethod((PyObject *)self, "view", "(ii)", size, offset);
+        return PyObject_CallMethod(into, "write", "(N)", chunk);
+    }
+
+    if (Py_TYPE(into) == self->ctx->module_state->BufferView_type) {
+        BufferView * buffer_view = (BufferView *)into;
+        if (size > buffer_view->size) {
+            PyErr_Format(PyExc_ValueError, "invalid size");
+            return NULL;
+        }
+        PyObject * chunk = PyObject_CallMethod((PyObject *)self, "view", "(ii)", size, offset);
+        return PyObject_CallMethod((PyObject *)buffer_view->buffer, "write", "(N)", chunk);
+    }
+
+    Py_buffer view;
+    if (PyObject_GetBuffer(into, &view, PyBUF_C_CONTIGUOUS | PyBUF_WRITABLE)) {
+        return NULL;
+    }
+
+    if (size > (int)view.len) {
+        PyErr_Format(PyExc_ValueError, "invalid size");
+        return NULL;
+    }
+
+    glGetBufferSubData(self->target, offset, size, view.buf);
+    PyBuffer_Release(&view);
     Py_RETURN_NONE;
 }
 
@@ -2763,7 +2784,7 @@ static BufferView * Buffer_meth_view(Buffer * self, PyObject * args, PyObject * 
     }
 
     BufferView * res = PyObject_New(BufferView, self->ctx->module_state->BufferView_type);
-    res->buffer = self->buffer;
+    res->buffer = (Buffer *)new_ref(self);
     res->offset = offset;
     res->size = size;
     return res;
@@ -3397,6 +3418,7 @@ static void ImageFace_dealloc(ImageFace * self) {
 }
 
 static void BufferView_dealloc(BufferView * self) {
+    Py_DECREF(self->buffer);
     Py_TYPE(self)->tp_free(self);
 }
 
