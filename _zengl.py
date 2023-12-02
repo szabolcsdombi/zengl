@@ -259,7 +259,7 @@ class DefaultLoader:
         elif sys.platform.startswith("linux"):
             lib = ctypes.CDLL("libGL.so")
             proc = ctypes.cast(lib.glXGetProcAddress, ctypes.CFUNCTYPE(ctypes.c_ulonglong, ctypes.c_char_p))
-            if not lib.glxGetCurrentContext():
+            if not lib.glXGetCurrentContext():
                 raise RuntimeError('Cannot detect window with OpenGL support')
 
             def loader(name):
