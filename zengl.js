@@ -156,6 +156,9 @@
     zengl_glBufferSubData(target, offset, size, data) {
       gl.bufferSubData(target, offset, wasm.HEAPU8.subarray(data, data + size));
     },
+    zengl_glGetBufferSubData(target, offset, size, data) {
+      gl.getBufferSubData(target, offset, wasm.HEAPU8.subarray(data, data + size));
+    },
     zengl_glBlendEquationSeparate(modeRGB, modeAlpha) {
       gl.blendEquationSeparate(modeRGB, modeAlpha);
     },

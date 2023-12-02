@@ -385,6 +385,7 @@ RESOLVE(void, glDeleteBuffers, int, const int *);
 RESOLVE(void, glGenBuffers, int, int *);
 RESOLVE(void, glBufferData, int, intptr, const void *, int);
 RESOLVE(void, glBufferSubData, int, intptr, intptr, const void *);
+RESOLVE(void, glGetBufferSubData, int, intptr, intptr, void *);
 RESOLVE(void, glBlendEquationSeparate, int, int);
 RESOLVE(void, glDrawBuffers, int, const int *);
 RESOLVE(void, glStencilOpSeparate, int, int, int, int);
@@ -556,6 +557,7 @@ static void load_gl(PyObject * loader) {
     load(glGenBuffers);
     load(glBufferData);
     load(glBufferSubData);
+    load(glGetBufferSubData);
     load(glBlendEquationSeparate);
     load(glDrawBuffers);
     load(glStencilOpSeparate);
@@ -2598,6 +2600,66 @@ static PyObject * Buffer_meth_write(Buffer * self, PyObject * args, PyObject * k
     Py_RETURN_NONE;
 }
 
+static PyObject * Buffer_meth_read(Buffer * self, PyObject * args, PyObject * kwargs) {
+    static char * keywords[] = {"size", "offset", "into", "write_offset", NULL};
+
+    PyObject * size_arg = Py_None;
+    int offset = 0;
+    PyObject * into = Py_None;
+    int write_offset = 0;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|OiOi", keywords, &size_arg, &offset, &into, &write_offset)) {
+        return NULL;
+    }
+
+    if (write_offset < 0) {
+        PyErr_Format(PyExc_ValueError, "invalid write offset");
+        return NULL;
+    }
+
+    if (offset < 0 || offset > self->size) {
+        PyErr_Format(PyExc_ValueError, "invalid offset");
+        return NULL;
+    }
+
+    if (size_arg != Py_None && !PyLong_CheckExact(size_arg)) {
+        PyErr_Format(PyExc_TypeError, "the size must be an int");
+        return NULL;
+    }
+
+    int size = self->size - offset;
+    if (size_arg != Py_None) {
+        size = to_int(size_arg);
+        if (size < 0) {
+            PyErr_Format(PyExc_ValueError, "invalid size");
+            return NULL;
+        }
+    }
+
+    if (size < 0 || size + offset > self->size) {
+        PyErr_Format(PyExc_ValueError, "invalid size");
+        return NULL;
+    }
+
+    if (self->target == GL_ELEMENT_ARRAY_BUFFER) {
+        bind_vertex_array(self->ctx, 0);
+    }
+
+    if (self->target == GL_UNIFORM_BUFFER) {
+        self->ctx->current_descriptor_set = NULL;
+    }
+
+    glBindBuffer(self->target, self->buffer);
+
+    if (into == Py_None) {
+        PyObject * res = PyBytes_FromStringAndSize(NULL, size);
+        glGetBufferSubData(self->target, offset, size, PyBytes_AS_STRING(res));
+        return res;
+    }
+
+    Py_RETURN_NONE;
+}
+
 static PyObject * Image_meth_clear(Image * self, PyObject * args) {
     const int count = (int)PyTuple_Size(self->layers);
     for (int i = 0; i < count; ++i) {
@@ -3223,6 +3285,7 @@ static PyMemberDef Context_members[] = {
 
 static PyMethodDef Buffer_methods[] = {
     {"write", (PyCFunction)Buffer_meth_write, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"read", (PyCFunction)Buffer_meth_read, METH_VARARGS | METH_KEYWORDS, NULL},
     {0},
 };
 
