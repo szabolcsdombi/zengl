@@ -1548,34 +1548,38 @@ static PyObject * blit_image_face(ImageFace * src, PyObject * dst, PyObject * sr
     Py_RETURN_NONE;
 }
 
-static PyObject * read_image_face(ImageFace * src, PyObject * size_arg, PyObject * offset_arg, PyObject * into) {
+int parse_size_and_offset(ImageFace * self, PyObject * size_arg, PyObject * offset_arg, IntPair * size, IntPair * offset) {
     if (size_arg == Py_None && offset_arg != Py_None) {
         PyErr_Format(PyExc_ValueError, "the size is required when the offset is not None");
-        return NULL;
+        return 0;
     }
 
-    IntPair size = to_int_pair(size_arg, src->width, src->height);
+    *size = to_int_pair(size_arg, self->width, self->height);
     if (PyErr_Occurred()) {
         PyErr_Format(PyExc_TypeError, "the size must be a tuple of 2 ints");
-        return NULL;
+        return 0;
     }
 
-    IntPair offset = to_int_pair(offset_arg, 0, 0);
+    *offset = to_int_pair(offset_arg, 0, 0);
     if (PyErr_Occurred()) {
         PyErr_Format(PyExc_TypeError, "the offset must be a tuple of 2 ints");
-        return NULL;
+        return 0;
     }
 
-    if (size.x <= 0 || size.y <= 0 || size.x > src->width || size.y > src->height) {
+    if (size->x <= 0 || size->y <= 0 || size->x > self->width || size->y > self->height) {
         PyErr_Format(PyExc_ValueError, "invalid size");
-        return NULL;
+        return 0;
     }
 
-    if (offset.x < 0 || offset.y < 0 || size.x + offset.x > src->width || size.y + offset.y > src->height) {
+    if (offset->x < 0 || offset->y < 0 || size->x + offset->x > self->width || size->y + offset->y > self->height) {
         PyErr_Format(PyExc_ValueError, "invalid offset");
-        return NULL;
+        return 0;
     }
 
+    return 1;
+}
+
+static PyObject * read_image_face(ImageFace * src, IntPair size, IntPair offset, PyObject * into) {
     if (src->image->samples > 1) {
         PyObject * temp = PyObject_CallMethod((PyObject *)src->image->ctx, "image", "((ii)O)", size.x, size.y, src->image->format);
         if (!temp) {
@@ -1611,20 +1615,32 @@ static PyObject * read_image_face(ImageFace * src, PyObject * size_arg, PyObject
         return res;
     }
 
+    BufferView * buffer_view = NULL;
+
     if (Py_TYPE(into) == src->ctx->module_state->Buffer_type) {
-        Buffer * dst = (Buffer *)into;
-        if (write_size > dst->size) {
-            PyErr_Format(PyExc_ValueError, "invalid write size");
+        buffer_view = (BufferView *)PyObject_CallMethod(into, "view", NULL);
+    }
+
+    if (Py_TYPE(into) == src->ctx->module_state->BufferView_type) {
+        buffer_view = (BufferView *)new_ref(into);
+    }
+
+    if (buffer_view) {
+        if (write_size > buffer_view->size) {
+            PyErr_Format(PyExc_ValueError, "invalid size");
             return NULL;
         }
-        glBindBuffer(GL_PIXEL_PACK_BUFFER, dst->buffer);
-        glReadPixels(offset.x, offset.y, size.x, size.y, src->image->fmt.format, src->image->fmt.type, NULL);
+
+        char * ptr = (char *)(intptr)buffer_view->offset;
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, buffer_view->buffer->buffer);
+        glReadPixels(offset.x, offset.y, size.x, size.y, src->image->fmt.format, src->image->fmt.type, ptr);
         glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+        Py_DECREF(buffer_view);
         Py_RETURN_NONE;
     }
 
     Py_buffer view;
-    if (PyObject_GetBuffer(into, &view, PyBUF_CONTIG)) {
+    if (PyObject_GetBuffer(into, &view, PyBUF_C_CONTIGUOUS | PyBUF_WRITABLE)) {
         return NULL;
     }
 
@@ -2971,28 +2987,34 @@ static PyObject * Image_meth_read(Image * self, PyObject * args, PyObject * kwar
         return NULL;
     }
 
+    IntPair size, offset;
+    ImageFace * first_layer = (ImageFace *)PyTuple_GetItem(self->layers, 0);
+    if (!parse_size_and_offset(first_layer, size_arg, offset_arg, &size, &offset)) {
+        return NULL;
+    }
+
     if (self->array || self->cubemap) {
         if (into != Py_None) {
             // TODO:
             return NULL;
         }
-        PyObject * chunks = PyTuple_New(self->layer_count);
+
+        int write_size = size.x * size.y * self->fmt.pixel_size;
+        PyObject * res = PyBytes_FromStringAndSize(NULL, write_size * self->layer_count);
         for (int i = 0; i < self->layer_count; ++i) {
             ImageFace * src = (ImageFace *)PyTuple_GetItem(self->layers, i);
-            PyObject * chunk = read_image_face(src, size_arg, offset_arg, Py_None);
-            if (!chunk) {
+            PyObject * chunk = PyMemoryView_FromMemory(PyBytes_AS_STRING(res) + write_size * i, write_size, PyBUF_WRITE);
+            PyObject * temp = read_image_face(src, size, offset, chunk);
+            if (!temp) {
                 return NULL;
             }
-            PyTuple_SetItem(chunks, i, chunk);
+            Py_DECREF(chunk);
+            Py_DECREF(temp);
         }
-        PyObject * sep = PyBytes_FromStringAndSize(NULL, 0);
-        PyObject * res = PyObject_CallMethod(sep, "join", "(N)", chunks);
-        Py_DECREF(sep);
         return res;
     }
 
-    ImageFace * src = (ImageFace *)PyTuple_GetItem(self->layers, 0);
-    return read_image_face(src, size_arg, offset_arg, into);
+    return read_image_face(first_layer, size, offset, into);
 }
 
 static PyObject * Image_meth_blit(Image * self, PyObject * args, PyObject * kwargs) {
@@ -3233,7 +3255,12 @@ static PyObject * ImageFace_meth_read(ImageFace * self, PyObject * args, PyObjec
         return NULL;
     }
 
-    return read_image_face(self, size_arg, offset_arg, into);
+    IntPair size, offset;
+    if (!parse_size_and_offset(self, size_arg, offset_arg, &size, &offset)) {
+        return NULL;
+    }
+
+    return read_image_face(self, size, offset, into);
 }
 
 static PyObject * ImageFace_meth_blit(ImageFace * self, PyObject * args, PyObject * kwargs) {
