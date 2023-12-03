@@ -100,3 +100,23 @@ def test_buffer_read_error(ctx: zengl.Context):
 
     with pytest.raises(ValueError):
         buf.read(size=-1)
+
+
+def test_buffer_read_into(ctx: zengl.Context):
+    buf = ctx.buffer(b'0123456789')
+
+    mem = memoryview(bytearray(10))
+    buf.read(into=mem)
+    assert bytes(mem) == b'0123456789'
+
+    mem = memoryview(bytearray(4))
+    buf.read(4, into=mem)
+    assert bytes(mem) == b'0123'
+
+    mem = memoryview(bytearray(5))
+    buf.read(offset=5, into=mem)
+    assert bytes(mem) == b'56789'
+
+    mem = memoryview(bytearray(3))
+    buf.read(offset=6, size=3, into=mem)
+    assert bytes(mem) == b'678'
