@@ -79,6 +79,8 @@ typedef struct ModuleState {
     PyObject * empty_tuple;
     PyObject * str_none;
     PyObject * str_triangles;
+    PyObject * str_static_draw;
+    PyObject * str_dynamic_draw;
     PyObject * default_context;
     PyTypeObject * Context_type;
     PyTypeObject * Buffer_type;
@@ -202,7 +204,7 @@ typedef struct Buffer {
     int buffer;
     int target;
     int size;
-    int dynamic;
+    int access;
 } Buffer;
 
 typedef struct Image {
@@ -802,6 +804,17 @@ static int get_image_format(PyObject * helper, PyObject * name, ImageFormat * re
     res->color = to_int(PyTuple_GetItem(tup, 6));
     res->flags = to_int(PyTuple_GetItem(tup, 7));
     res->clear_type = PyUnicode_AsUTF8(PyTuple_GetItem(tup, 8))[0];
+    return 1;
+}
+
+static int get_buffer_access(PyObject * helper, PyObject * name, int * res) {
+    PyObject * lookup = PyObject_GetAttrString(helper, "BUFFER_ACCESS");
+    PyObject * value = PyDict_GetItem(lookup, name);
+    Py_DECREF(lookup);
+    if (!value) {
+        return 0;
+    }
+    *res = to_int(value);
     return 1;
 }
 
@@ -1805,16 +1818,16 @@ static Context * meth_context(PyObject * self) {
 }
 
 static Buffer * Context_meth_buffer(Context * self, PyObject * args, PyObject * kwargs) {
-    static char * keywords[] = {"data", "size", "dynamic", "index", "uniform", "external", NULL};
+    static char * keywords[] = {"data", "size", "access", "index", "uniform", "external", NULL};
 
     PyObject * data = Py_None;
     PyObject * size_arg = Py_None;
-    int dynamic = 1;
+    PyObject * access_arg = Py_None;
     int index = 0;
     int uniform = 0;
     int external = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O$Opppi", keywords, &data, &size_arg, &dynamic, &index, &uniform, &external)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O$OOppi", keywords, &data, &size_arg, &access_arg, &index, &uniform, &external)) {
         return NULL;
     }
 
@@ -1856,13 +1869,23 @@ static Buffer * Context_meth_buffer(Context * self, PyObject * args, PyObject * 
         }
     }
 
+    if (access_arg == Py_None) {
+        access_arg = uniform ? self->module_state->str_dynamic_draw : self->module_state->str_static_draw;
+    }
+
+    int access;
+    if (!get_buffer_access(self->module_state->helper, access_arg, &access)) {
+        PyErr_Format(PyExc_ValueError, "invalid access");
+        return NULL;
+    }
+
     int buffer = 0;
     if (external) {
         buffer = external;
     } else {
         glGenBuffers(1, &buffer);
         glBindBuffer(target, buffer);
-        glBufferData(target, size, NULL, dynamic ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
+        glBufferData(target, size, NULL, access);
     }
 
     Buffer * res = PyObject_New(Buffer, self->module_state->Buffer_type);
@@ -1876,7 +1899,7 @@ static Buffer * Context_meth_buffer(Context * self, PyObject * args, PyObject * 
     res->buffer = buffer;
     res->target = target;
     res->size = size;
-    res->dynamic = dynamic;
+    res->access = access;
 
     if (data != Py_None) {
         Py_XDECREF(PyObject_CallMethod((PyObject *)res, "write", "(N)", data));
@@ -3641,6 +3664,8 @@ static int module_exec(PyObject * self) {
     state->empty_tuple = PyTuple_New(0);
     state->str_none = PyUnicode_FromString("none");
     state->str_triangles = PyUnicode_FromString("triangles");
+    state->str_static_draw = PyUnicode_FromString("static_draw");
+    state->str_dynamic_draw = PyUnicode_FromString("dynamic_draw");
     state->default_context = new_ref(Py_None);
     state->Context_type = (PyTypeObject *)PyType_FromSpec(&Context_spec);
     state->Buffer_type = (PyTypeObject *)PyType_FromSpec(&Buffer_spec);
@@ -3687,6 +3712,8 @@ static void module_free(PyObject * self) {
         Py_DECREF(state->empty_tuple);
         Py_DECREF(state->str_none);
         Py_DECREF(state->str_triangles);
+        Py_DECREF(state->str_static_draw);
+        Py_DECREF(state->str_dynamic_draw);
         Py_DECREF(state->default_context);
         Py_DECREF(state->Context_type);
         Py_DECREF(state->Buffer_type);

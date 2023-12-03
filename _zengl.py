@@ -117,6 +117,18 @@ SHORT_VERTEX_FORMAT = {
     "4i": ("sint32x4", 16),
 }
 
+BUFFER_ACCESS = {
+    'stream_draw': 0x88E0,
+    'stream_read': 0x88E1,
+    'stream_copy': 0x88E2,
+    'static_draw': 0x88E4,
+    'static_read': 0x88E5,
+    'static_copy': 0x88E6,
+    'dynamic_draw': 0x88E8,
+    'dynamic_read': 0x88E9,
+    'dynamic_copy': 0x88EA,
+}
+
 CULL_FACE = {
     "front": 0x0404,
     "back": 0x0405,
