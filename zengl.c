@@ -251,6 +251,11 @@ typedef struct Pipeline {
     PyObject * uniform_data;
     PyObject * viewport_data;
     PyObject * render_data;
+    PyObject * framebuffer_attachments;
+    PyObject * vertex_array_bindings;
+    PyObject * resource_bindings;
+    PyObject * settings;
+    PyObject * layout;
     RenderParameters params;
     Viewport viewport;
     int topology;
@@ -2118,7 +2123,7 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
     PyObject * depth = Py_None;
     PyObject * stencil = Py_None;
     PyObject * blend = Py_None;
-    PyObject * framebuffer_attachments = NULL;
+    PyObject * framebuffer_arg = NULL;
     PyObject * vertex_buffers = self->module_state->empty_tuple;
     PyObject * index_buffer = Py_None;
     int short_index = 0;
@@ -2148,7 +2153,7 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
         &depth,
         &stencil,
         &blend,
-        &framebuffer_attachments,
+        &framebuffer_arg,
         &vertex_buffers,
         &index_buffer,
         &short_index,
@@ -2182,12 +2187,12 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
         return NULL;
     }
 
-    if (!framebuffer_attachments) {
+    if (!framebuffer_arg) {
         PyErr_Format(PyExc_TypeError, "no framebuffer was specified");
         return NULL;
     }
 
-    if (framebuffer_attachments == Py_None && viewport == Py_None) {
+    if (framebuffer_arg == Py_None && viewport == Py_None) {
         PyErr_Format(PyExc_TypeError, "no viewport was specified");
         return NULL;
     }
@@ -2215,6 +2220,8 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
 
     int index_size = short_index ? 2 : 4;
     int index_type = index_buffer != Py_None ? (short_index ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT) : 0;
+
+    Py_INCREF(layout);
 
     GLObject * program = compile_program(self, includes != Py_None ? includes : self->includes, vertex_shader, fragment_shader, layout);
     if (!program) {
@@ -2252,6 +2259,8 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
         return NULL;
     }
 
+    Py_DECREF(validate);
+
     PyObject * layout_bindings = PyObject_CallMethod(self->module_state->helper, "layout_bindings", "(O)", layout);
     if (!layout_bindings) {
         return NULL;
@@ -2273,25 +2282,25 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
 
     Py_DECREF(layout_bindings);
 
-    PyObject * attachments = PyObject_CallMethod(self->module_state->helper, "framebuffer_attachments", "(O)", framebuffer_attachments);
-    if (!attachments) {
+    PyObject * framebuffer_attachments = PyObject_CallMethod(self->module_state->helper, "framebuffer_attachments", "(O)", framebuffer_arg);
+    if (!framebuffer_attachments) {
         return NULL;
     }
-    if (attachments != Py_None && viewport == Py_None) {
-        PyObject * size = PyTuple_GetItem(attachments, 0);
+
+    if (framebuffer_attachments != Py_None && viewport == Py_None) {
+        PyObject * size = PyTuple_GetItem(framebuffer_attachments, 0);
         viewport_value.width = to_int(PyTuple_GetItem(size, 0));
         viewport_value.height = to_int(PyTuple_GetItem(size, 1));
     }
 
-    GLObject * framebuffer = build_framebuffer(self, attachments);
+    GLObject * framebuffer = build_framebuffer(self, framebuffer_attachments);
 
-    PyObject * bindings = PyObject_CallMethod(self->module_state->helper, "vertex_array_bindings", "(OO)", vertex_buffers, index_buffer);
-    if (!bindings) {
+    PyObject * vertex_array_bindings = PyObject_CallMethod(self->module_state->helper, "vertex_array_bindings", "(OO)", vertex_buffers, index_buffer);
+    if (!vertex_array_bindings) {
         return NULL;
     }
 
-    GLObject * vertex_array = build_vertex_array(self, bindings);
-    Py_DECREF(bindings);
+    GLObject * vertex_array = build_vertex_array(self, vertex_array_bindings);
 
     PyObject * resource_bindings = PyObject_CallMethod(self->module_state->helper, "resource_bindings", "(O)", resources);
     if (!resource_bindings) {
@@ -2299,15 +2308,13 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
     }
 
     DescriptorSet * descriptor_set = build_descriptor_set(self, resource_bindings);
-    Py_DECREF(resource_bindings);
 
-    PyObject * settings = PyObject_CallMethod(self->module_state->helper, "settings", "(OOOON)", cull_face, depth, stencil, blend, attachments);
+    PyObject * settings = PyObject_CallMethod(self->module_state->helper, "settings", "(OOOOO)", cull_face, depth, stencil, blend, framebuffer_attachments);
     if (!settings) {
         return NULL;
     }
 
     GlobalSettings * global_settings = build_global_settings(self, settings);
-    Py_DECREF(settings);
 
     int topology;
     if (!get_topology(self->module_state->helper, topology_arg, &topology)) {
@@ -2339,6 +2346,11 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
     res->uniform_data = uniform_data;
     res->viewport_data = viewport_data;
     res->render_data = render_data;
+    res->framebuffer_attachments = framebuffer_attachments;
+    res->vertex_array_bindings = vertex_array_bindings;
+    res->resource_bindings = resource_bindings;
+    res->settings = settings;
+    res->layout = layout;
     res->topology = topology;
     res->viewport = viewport_value;
     res->params.vertex_count = vertex_count;
