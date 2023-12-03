@@ -2750,7 +2750,7 @@ static PyObject * Buffer_meth_read(Buffer * self, PyObject * args, PyObject * kw
             return NULL;
         }
         PyObject * chunk = PyObject_CallMethod((PyObject *)self, "view", "(ii)", size, offset);
-        return PyObject_CallMethod((PyObject *)buffer_view->buffer, "write", "(N)", chunk);
+        return PyObject_CallMethod((PyObject *)buffer_view->buffer, "write", "(Ni)", chunk, buffer_view->offset);
     }
 
     Py_buffer view;

@@ -28,11 +28,27 @@ def test_buffer_copy(ctx: zengl.Context):
     assert buf2.read() == b'aaaaaaaaaa'
 
 
+def test_buffer_copy_with_read(ctx: zengl.Context):
+    buf1 = ctx.buffer(b'aaaaaaaaaa')
+    buf2 = ctx.buffer(b'bbbbbbbbbb')
+    assert buf2.read() == b'bbbbbbbbbb'
+    buf1.read(into=buf2)
+    assert buf2.read() == b'aaaaaaaaaa'
+
+
 def test_buffer_copy_offset(ctx: zengl.Context):
     buf1 = ctx.buffer(b'aaaaaaaaaa')
     buf2 = ctx.buffer(b'bbbbbbbbbb')
     assert buf2.read() == b'bbbbbbbbbb'
     buf2.write(buf1.view(4), offset=4)
+    assert buf2.read() == b'bbbbaaaabb'
+
+
+def test_buffer_copy_offset_with_read(ctx: zengl.Context):
+    buf1 = ctx.buffer(b'aaaaaaaaaa')
+    buf2 = ctx.buffer(b'bbbbbbbbbb')
+    assert buf2.read() == b'bbbbbbbbbb'
+    buf1.read(size=4, into=buf2.view(offset=4, size=4))
     assert buf2.read() == b'bbbbaaaabb'
 
 
