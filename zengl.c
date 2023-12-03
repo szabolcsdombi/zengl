@@ -1548,7 +1548,7 @@ static PyObject * blit_image_face(ImageFace * src, PyObject * dst, PyObject * sr
     Py_RETURN_NONE;
 }
 
-static PyObject * read_image_face(ImageFace * src, PyObject * size_arg, PyObject * offset_arg, PyObject * into, int write_offset) {
+static PyObject * read_image_face(ImageFace * src, PyObject * size_arg, PyObject * offset_arg, PyObject * into) {
     if (size_arg == Py_None && offset_arg != Py_None) {
         PyErr_Format(PyExc_ValueError, "the size is required when the offset is not None");
         return NULL;
@@ -1576,11 +1576,6 @@ static PyObject * read_image_face(ImageFace * src, PyObject * size_arg, PyObject
         return NULL;
     }
 
-    if (write_offset < 0) {
-        PyErr_Format(PyExc_ValueError, "invalid write offset");
-        return NULL;
-    }
-
     if (src->image->samples > 1) {
         PyObject * temp = PyObject_CallMethod((PyObject *)src->image->ctx, "image", "((ii)O)", size.x, size.y, src->image->format);
         if (!temp) {
@@ -1593,7 +1588,7 @@ static PyObject * read_image_face(ImageFace * src, PyObject * size_arg, PyObject
         }
         Py_DECREF(blit);
 
-        PyObject * res = PyObject_CallMethod(temp, "read", "(OOOi)", Py_None, Py_None, into, write_offset);
+        PyObject * res = PyObject_CallMethod(temp, "read", "(OOO)", Py_None, Py_None, into);
         if (!res) {
             return NULL;
         }
@@ -1618,13 +1613,12 @@ static PyObject * read_image_face(ImageFace * src, PyObject * size_arg, PyObject
 
     if (Py_TYPE(into) == src->ctx->module_state->Buffer_type) {
         Buffer * dst = (Buffer *)into;
-        char * ptr = NULL;
-        if (write_size + write_offset > dst->size) {
+        if (write_size > dst->size) {
             PyErr_Format(PyExc_ValueError, "invalid write size");
             return NULL;
         }
         glBindBuffer(GL_PIXEL_PACK_BUFFER, dst->buffer);
-        glReadPixels(offset.x, offset.y, size.x, size.y, src->image->fmt.format, src->image->fmt.type, ptr + write_offset);
+        glReadPixels(offset.x, offset.y, size.x, size.y, src->image->fmt.format, src->image->fmt.type, NULL);
         glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
         Py_RETURN_NONE;
     }
@@ -1634,12 +1628,12 @@ static PyObject * read_image_face(ImageFace * src, PyObject * size_arg, PyObject
         return NULL;
     }
 
-    if (write_size + write_offset > (int)view.len) {
+    if (write_size > (int)view.len) {
         PyErr_Format(PyExc_ValueError, "invalid write size");
         return NULL;
     }
 
-    glReadPixels(offset.x, offset.y, size.x, size.y, src->image->fmt.format, src->image->fmt.type, (char *)view.buf + write_size);
+    glReadPixels(offset.x, offset.y, size.x, size.y, src->image->fmt.format, src->image->fmt.type, view.buf);
     PyBuffer_Release(&view);
     Py_RETURN_NONE;
 }
@@ -2967,14 +2961,13 @@ static PyObject * Image_meth_mipmaps(Image * self, PyObject * args) {
 }
 
 static PyObject * Image_meth_read(Image * self, PyObject * args, PyObject * kwargs) {
-    static char * keywords[] = {"size", "offset", "into", "write_offset", NULL};
+    static char * keywords[] = {"size", "offset", "into", NULL};
 
     PyObject * size_arg = Py_None;
     PyObject * offset_arg = Py_None;
     PyObject * into = Py_None;
-    int write_offset = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|OOOi", keywords, &size_arg, &offset_arg, &into, &write_offset)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|OOO", keywords, &size_arg, &offset_arg, &into)) {
         return NULL;
     }
 
@@ -2986,7 +2979,7 @@ static PyObject * Image_meth_read(Image * self, PyObject * args, PyObject * kwar
         PyObject * chunks = PyTuple_New(self->layer_count);
         for (int i = 0; i < self->layer_count; ++i) {
             ImageFace * src = (ImageFace *)PyTuple_GetItem(self->layers, i);
-            PyObject * chunk = read_image_face(src, size_arg, offset_arg, Py_None, 0);
+            PyObject * chunk = read_image_face(src, size_arg, offset_arg, Py_None);
             if (!chunk) {
                 return NULL;
             }
@@ -2999,7 +2992,7 @@ static PyObject * Image_meth_read(Image * self, PyObject * args, PyObject * kwar
     }
 
     ImageFace * src = (ImageFace *)PyTuple_GetItem(self->layers, 0);
-    return read_image_face(src, size_arg, offset_arg, into, write_offset);
+    return read_image_face(src, size_arg, offset_arg, into);
 }
 
 static PyObject * Image_meth_blit(Image * self, PyObject * args, PyObject * kwargs) {
@@ -3230,18 +3223,17 @@ static PyObject * ImageFace_meth_clear(ImageFace * self, PyObject * args) {
 }
 
 static PyObject * ImageFace_meth_read(ImageFace * self, PyObject * args, PyObject * kwargs) {
-    static char * keywords[] = {"size", "offset", "into", "write_offset", NULL};
+    static char * keywords[] = {"size", "offset", "into", NULL};
 
     PyObject * size_arg = Py_None;
     PyObject * offset_arg = Py_None;
     PyObject * into = Py_None;
-    int write_offset = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|OOOi", keywords, &size_arg, &write_offset)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|OOO", keywords, &size_arg, &offset_arg, &into)) {
         return NULL;
     }
 
-    return read_image_face(self, size_arg, offset_arg, into, write_offset);
+    return read_image_face(self, size_arg, offset_arg, into);
 }
 
 static PyObject * ImageFace_meth_blit(ImageFace * self, PyObject * args, PyObject * kwargs) {
