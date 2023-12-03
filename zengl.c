@@ -2811,21 +2811,15 @@ static PyObject * Image_meth_clear(Image * self, PyObject * args) {
 }
 
 static PyObject * Image_meth_write(Image * self, PyObject * args, PyObject * kwargs) {
-    static char * keywords[] = {"data", "size", "offset", "layer", "level", "read_offset", NULL};
+    static char * keywords[] = {"data", "size", "offset", "layer", "level", NULL};
 
     PyObject * data;
     PyObject * size_arg = Py_None;
     PyObject * offset_arg = Py_None;
     PyObject * layer_arg = Py_None;
     int level = 0;
-    int read_offset = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|OOOii", keywords, &data, &size_arg, &offset_arg, &layer_arg, &level, &read_offset)) {
-        return NULL;
-    }
-
-    if (read_offset < 0) {
-        PyErr_Format(PyExc_ValueError, "invalid read offset");
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|OOOi", keywords, &data, &size_arg, &offset_arg, &layer_arg, &level)) {
         return NULL;
     }
 
@@ -2901,10 +2895,24 @@ static PyObject * Image_meth_write(Image * self, PyObject * args, PyObject * kwa
     glActiveTexture(self->ctx->default_texture_unit);
     glBindTexture(self->target, self->image);
 
+    BufferView * buffer_view = NULL;
+
     if (Py_TYPE(data) == self->ctx->module_state->Buffer_type) {
-        Buffer * src = (Buffer *)data;
-        char * ptr = (char *)(long long)read_offset;
-        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, src->buffer);
+        buffer_view = (BufferView *)PyObject_CallMethod(data, "view", NULL);
+    }
+
+    if (Py_TYPE(data) == self->ctx->module_state->BufferView_type) {
+        buffer_view = (BufferView *)new_ref(data);
+    }
+
+    if (buffer_view) {
+        if (buffer_view->size != expected_size) {
+            PyErr_Format(PyExc_ValueError, "invalid data size, expected %d, got %d", expected_size, buffer_view->size);
+            return NULL;
+        }
+
+        char * ptr = (char *)(intptr)buffer_view->offset;
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, buffer_view->buffer->buffer);
 
         if (self->cubemap) {
             int stride = padded_row * size.y;
@@ -2928,6 +2936,8 @@ static PyObject * Image_meth_write(Image * self, PyObject * args, PyObject * kwa
         }
 
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
+        Py_DECREF(buffer_view);
         Py_RETURN_NONE;
     }
 
@@ -2937,7 +2947,7 @@ static PyObject * Image_meth_write(Image * self, PyObject * args, PyObject * kwa
     }
 
     Py_buffer * view = PyMemoryView_GET_BUFFER(mem);
-    int data_size = (int)view->len - read_offset;
+    int data_size = (int)view->len;
 
     if (data_size != expected_size) {
         PyErr_Format(PyExc_ValueError, "invalid data size, expected %d, got %d", expected_size, data_size);
