@@ -240,6 +240,7 @@ typedef struct Pipeline {
     GCHeader * gc_prev;
     GCHeader * gc_next;
     Context * ctx;
+    PyObject * create_kwargs;
     DescriptorSet * descriptor_set;
     GlobalSettings * global_settings;
     GLObject * framebuffer;
@@ -250,11 +251,6 @@ typedef struct Pipeline {
     PyObject * uniform_data;
     PyObject * viewport_data;
     PyObject * render_data;
-    PyObject * framebuffer_attachments;
-    PyObject * vertex_array_bindings;
-    PyObject * resource_bindings;
-    PyObject * settings;
-    PyObject * layout;
     RenderParameters params;
     Viewport viewport;
     int topology;
@@ -2088,6 +2084,11 @@ static Image * Context_meth_image(Context * self, PyObject * args, PyObject * kw
 }
 
 static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObject * kwargs) {
+    if (PyTuple_Size(args) || !kwargs) {
+        PyErr_Format(PyExc_TypeError, "pipeline only takes keyword-only arguments");
+        return NULL;
+    }
+
     static char * keywords[] = {
         "vertex_shader",
         "fragment_shader",
@@ -2137,10 +2138,34 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
     PyObject * render_data = Py_None;
     PyObject * includes = Py_None;
 
+    Pipeline * template = (Pipeline *)PyDict_GetItemString(kwargs, "template");
+    PyObject * create_kwargs;
+
+    if (template && Py_TYPE(template) != self->module_state->Pipeline_type) {
+        PyErr_Format(PyExc_ValueError, "invalid template");
+        return NULL;
+    }
+
+    if (template) {
+        PyObject * vertex_shader = PyDict_GetItemString(kwargs, "vertex_shader");
+        PyObject * fragment_shader = PyDict_GetItemString(kwargs, "fragment_shader");
+        PyObject * layout = PyDict_GetItemString(kwargs, "layout");
+        PyObject * includes = PyDict_GetItemString(kwargs, "includes");
+        if (vertex_shader || fragment_shader || layout || includes) {
+            PyErr_Format(PyExc_ValueError, "cannot use template with vertex_shader, fragment_shader, layout or includes specified");
+            return NULL;
+        }
+        create_kwargs = PyDict_Copy(template->create_kwargs);
+        PyDict_Update(create_kwargs, kwargs);
+        PyDict_DelItemString(create_kwargs, "template");
+    } else {
+        create_kwargs = PyDict_Copy(kwargs);
+    }
+
     int args_ok = PyArg_ParseTupleAndKeywords(
         args,
-        kwargs,
-        "|O!O!OOOOOOOOOpOOiiiOOOOO",
+        create_kwargs,
+        "|$O!O!OOOOOOOOOpOOiiiOOOOO",
         keywords,
         &PyUnicode_Type,
         &vertex_shader,
@@ -2217,14 +2242,25 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
         return NULL;
     }
 
+    int topology;
+    if (!get_topology(self->module_state->helper, topology_arg, &topology)) {
+        PyErr_Format(PyExc_ValueError, "invalid topology");
+        return NULL;
+    }
+
     int index_size = short_index ? 2 : 4;
     int index_type = index_buffer != Py_None ? (short_index ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT) : 0;
 
-    Py_INCREF(layout);
+    GLObject * program;
 
-    GLObject * program = compile_program(self, includes != Py_None ? includes : self->includes, vertex_shader, fragment_shader, layout);
-    if (!program) {
-        return NULL;
+    if (template) {
+        program = (GLObject *)new_ref(template->program);
+        program->uses += 1;
+    } else {
+        program = compile_program(self, includes != Py_None ? includes : self->includes, vertex_shader, fragment_shader, layout);
+        if (!program) {
+            return NULL;
+        }
     }
 
     PyObject * uniform_layout = NULL;
@@ -2258,8 +2294,6 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
         return NULL;
     }
 
-    Py_DECREF(validate);
-
     PyObject * layout_bindings = PyObject_CallMethod(self->module_state->helper, "layout_bindings", "(O)", layout);
     if (!layout_bindings) {
         return NULL;
@@ -2278,8 +2312,6 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
             glUniformBlockBinding(program->obj, index, binding);
         }
     }
-
-    Py_DECREF(layout_bindings);
 
     PyObject * framebuffer_attachments = PyObject_CallMethod(self->module_state->helper, "framebuffer_attachments", "(O)", framebuffer_arg);
     if (!framebuffer_attachments) {
@@ -2300,6 +2332,9 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
     }
 
     GLObject * vertex_array = build_vertex_array(self, vertex_array_bindings);
+    if (!vertex_array) {
+        return NULL;
+    }
 
     PyObject * resource_bindings = PyObject_CallMethod(self->module_state->helper, "resource_bindings", "(O)", resources);
     if (!resource_bindings) {
@@ -2315,11 +2350,12 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
 
     GlobalSettings * global_settings = build_global_settings(self, settings);
 
-    int topology;
-    if (!get_topology(self->module_state->helper, topology_arg, &topology)) {
-        PyErr_Format(PyExc_ValueError, "invalid topology");
-        return NULL;
-    }
+    Py_DECREF(validate);
+    Py_DECREF(layout_bindings);
+    Py_DECREF(framebuffer_attachments);
+    Py_DECREF(vertex_array_bindings);
+    Py_DECREF(resource_bindings);
+    Py_DECREF(settings);
 
     Pipeline * res = PyObject_New(Pipeline, self->module_state->Pipeline_type);
     res->gc_prev = self->gc_prev;
@@ -2337,6 +2373,7 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
     }
 
     res->ctx = self;
+    res->create_kwargs = create_kwargs;
     res->framebuffer = framebuffer;
     res->vertex_array = vertex_array;
     res->program = program;
@@ -2345,11 +2382,6 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
     res->uniform_data = uniform_data;
     res->viewport_data = viewport_data;
     res->render_data = render_data;
-    res->framebuffer_attachments = framebuffer_attachments;
-    res->vertex_array_bindings = vertex_array_bindings;
-    res->resource_bindings = resource_bindings;
-    res->settings = settings;
-    res->layout = layout;
     res->topology = topology;
     res->viewport = viewport_value;
     res->params.vertex_count = vertex_count;
