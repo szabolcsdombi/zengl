@@ -182,7 +182,6 @@ typedef struct Context {
     int is_stencil_default;
     int is_blend_default;
     Viewport current_viewport;
-    int current_attachments;
     int current_framebuffer;
     int current_program;
     int current_vertex_array;
@@ -1746,10 +1745,10 @@ static Context * meth_context(PyObject * self) {
     res->is_mask_default = 0;
     res->is_stencil_default = 0;
     res->is_blend_default = 0;
-    res->current_viewport.x = 0;
-    res->current_viewport.y = 0;
-    res->current_viewport.width = 0;
-    res->current_viewport.height = 0;
+    res->current_viewport.x = -1;
+    res->current_viewport.y = -1;
+    res->current_viewport.width = -1;
+    res->current_viewport.height = -1;
     res->current_framebuffer = -1;
     res->current_program = -1;
     res->current_vertex_array = -1;
@@ -2527,7 +2526,12 @@ static void release_framebuffer(Context * self, GLObject * framebuffer) {
     if (!framebuffer->uses) {
         remove_dict_value(self->framebuffer_cache, (PyObject *)framebuffer);
         if (self->current_framebuffer == framebuffer->obj) {
-            self->current_framebuffer = 0;
+            bind_framebuffer(self, 0);
+            self->current_framebuffer = -1;
+            self->current_viewport.x = -1;
+            self->current_viewport.y = -1;
+            self->current_viewport.width = -1;
+            self->current_viewport.height = -1;
         }
         if (framebuffer->obj) {
             glDeleteFramebuffers(1, &framebuffer->obj);
@@ -2540,7 +2544,8 @@ static void release_program(Context * self, GLObject * program) {
     if (!program->uses) {
         remove_dict_value(self->program_cache, (PyObject *)program);
         if (self->current_program == program->obj) {
-            self->current_program = 0;
+            bind_program(self, 0);
+            self->current_program = -1;
         }
         glDeleteProgram(program->obj);
     }
@@ -2551,7 +2556,8 @@ static void release_vertex_array(Context * self, GLObject * vertex_array) {
     if (!vertex_array->uses) {
         remove_dict_value(self->vertex_array_cache, (PyObject *)vertex_array);
         if (self->current_vertex_array == vertex_array->obj) {
-            self->current_vertex_array = 0;
+            bind_vertex_array(self, 0);
+            self->current_vertex_array = -1;
         }
         glDeleteVertexArrays(1, &vertex_array->obj);
     }
