@@ -425,15 +425,15 @@ def framebuffer_attachments(attachments):
     return size, tuple(attachments), depth_stencil_attachment
 
 
-def settings(cull_face, depth, stencil, blend, attachments, limits):
+def settings(cull_face, depth, stencil, blend, attachments, info):
     if attachments:
         num_color_attachments = len(attachments[1])
         has_depth = attachments[2] is not None and attachments[2].flags & 2
         has_stencil = attachments[2] is not None and attachments[2].flags & 4
     else:
         num_color_attachments = 1
-        has_depth = limits["default_framebuffer"]["depth_bits"] > 0
-        has_stencil = limits["default_framebuffer"]["stencil_bits"] > 0
+        has_depth = info["default_framebuffer"]["depth_bits"] > 0
+        has_stencil = info["default_framebuffer"]["stencil_bits"] > 0
 
     res = [num_color_attachments, CULL_FACE[cull_face]]
 
@@ -597,7 +597,7 @@ def layout_bindings(layout):
     return res
 
 
-def validate(interface, layout, resources, vertex_buffers, limits):
+def validate(interface, layout, resources, vertex_buffers, info):
     attributes, uniforms, uniform_buffers = interface
     attributes = [
         {
@@ -628,7 +628,7 @@ def validate(interface, layout, resources, vertex_buffers, limits):
     layout_map = {obj["name"]: obj for obj in layout}
     uniform_buffer_resources = {obj["binding"]: obj for obj in resources if obj["type"] == "uniform_buffer"}
     sampler_resources = {obj["binding"]: obj for obj in resources if obj["type"] == "sampler"}
-    max_uniform_block_size = limits["max_uniform_block_size"]
+    max_uniform_block_size = info["max_uniform_block_size"]
 
     for obj in uniform_buffers:
         if obj["size"] > max_uniform_block_size:

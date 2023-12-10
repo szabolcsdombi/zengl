@@ -174,7 +174,6 @@ typedef struct Context {
     GLObject * default_framebuffer;
     PyObject * before_frame_callback;
     PyObject * after_frame_callback;
-    PyObject * limits_dict;
     PyObject * info_dict;
     DescriptorSet * current_descriptor_set;
     GlobalSettings * current_global_settings;
@@ -1744,7 +1743,6 @@ static Context * meth_context(PyObject * self) {
     res->default_framebuffer = default_framebuffer;
     res->before_frame_callback = new_ref(Py_None);
     res->after_frame_callback = new_ref(Py_None);
-    res->limits_dict = NULL;
     res->info_dict = NULL;
     res->current_descriptor_set = NULL;
     res->current_global_settings = NULL;
@@ -1799,8 +1797,12 @@ static Context * meth_context(PyObject * self) {
     glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_FRAMEBUFFER_ATTACHMENT_STENCIL_SIZE, &stencil_size);
     glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING, &color_encoding);
 
-    res->limits_dict = Py_BuildValue(
-        "{sisisisisisisis{s(iiii)sisi}}",
+    res->info_dict = Py_BuildValue(
+        "{szszszszsisisisisisisis{s(iiii)sisisOsO}}",
+        "vendor", glGetString(GL_VENDOR),
+        "renderer", glGetString(GL_RENDERER),
+        "version", glGetString(GL_VERSION),
+        "glsl", glGetString(GL_SHADING_LANGUAGE_VERSION),
         "max_uniform_buffer_bindings", res->limits.max_uniform_buffer_bindings,
         "max_uniform_block_size", res->limits.max_uniform_block_size,
         "max_combined_uniform_blocks", res->limits.max_combined_uniform_blocks,
@@ -1811,16 +1813,7 @@ static Context * meth_context(PyObject * self) {
         "default_framebuffer",
         "color_bits", red_size, green_size, blue_size, alpha_size,
         "depth_bits", depth_size,
-        "stencil_bits", stencil_size
-    );
-
-    res->info_dict = Py_BuildValue(
-        "{szszszszs{sOsO}}",
-        "vendor", glGetString(GL_VENDOR),
-        "renderer", glGetString(GL_RENDERER),
-        "version", glGetString(GL_VERSION),
-        "glsl", glGetString(GL_SHADING_LANGUAGE_VERSION),
-        "default_framebuffer",
+        "stencil_bits", stencil_size,
         "hdr", (red_size > 8 && green_size > 8 && blue_size > 8) ? Py_True : Py_False,
         "srgb", color_encoding != GL_LINEAR ? Py_True : Py_False
     );
@@ -2320,7 +2313,7 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
         layout,
         resources,
         vertex_buffers,
-        self->limits_dict
+        self->info_dict
     );
 
     if (!validate) {
@@ -2385,7 +2378,7 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
         stencil,
         blend,
         framebuffer_attachments,
-        self->limits_dict
+        self->info_dict
     );
 
     if (!settings) {
@@ -3526,7 +3519,6 @@ static void Context_dealloc(Context * self) {
     Py_DECREF(self->default_framebuffer);
     Py_DECREF(self->before_frame_callback);
     Py_DECREF(self->after_frame_callback);
-    Py_DECREF(self->limits_dict);
     Py_DECREF(self->info_dict);
     Py_TYPE(self)->tp_free(self);
 }
@@ -3601,7 +3593,6 @@ static PyGetSetDef Context_getset[] = {
 
 static PyMemberDef Context_members[] = {
     {"includes", T_OBJECT, offsetof(Context, includes), READONLY, NULL},
-    {"limits", T_OBJECT, offsetof(Context, limits_dict), READONLY, NULL},
     {"info", T_OBJECT, offsetof(Context, info_dict), READONLY, NULL},
     {"before_frame", T_OBJECT, offsetof(Context, before_frame_callback), 0, NULL},
     {"after_frame", T_OBJECT, offsetof(Context, after_frame_callback), 0, NULL},
