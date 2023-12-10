@@ -156,6 +156,9 @@
     zengl_glBufferSubData(target, offset, size, data) {
       gl.bufferSubData(target, offset, wasm.HEAPU8.subarray(data, data + size));
     },
+    zengl_glGetBufferSubData(target, offset, size, data) {
+      gl.getBufferSubData(target, offset, wasm.HEAPU8.subarray(data, data + size));
+    },
     zengl_glBlendEquationSeparate(modeRGB, modeAlpha) {
       gl.blendEquationSeparate(modeRGB, modeAlpha);
     },
@@ -400,6 +403,9 @@
     },
     zengl_glDrawElementsInstanced(mode, count, type, indices, instancecount) {
       gl.drawElementsInstanced(mode, count, type, indices, instancecount);
+    },
+    zengl_glCopyBufferSubData(readTarget, writeTarget, readOffset, writeOffset, size) {
+      gl.copyBufferSubData(readTarget, writeTarget, readOffset, writeOffset, size);
     },
     zengl_glGetUniformBlockIndex(program, uniformBlockName) {
       return gl.getUniformBlockIndex(glo[program], getString(uniformBlockName));

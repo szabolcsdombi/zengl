@@ -68,6 +68,7 @@ IMAGE_FORMAT = {
     "rg32float": (0x8230, 0x8227, 0x1406, 0x1800, 2, 8, 1, 1, "f"),
     "rgba32float": (0x8814, 0x1908, 0x1406, 0x1800, 4, 16, 1, 1, "f"),
     "rgba8unorm-srgb": (0x8C43, 0x1908, 0x1401, 0x1800, 4, 4, 1, 1, "f"),
+    "rgb10a2unorm": (0x8059, 0x1908, 0x8368, 0x1800, 4, 4, 1, 1, "f"),
     "depth16unorm": (0x81A5, 0x1902, 0x1403, 0x1801, 1, 2, 0, 2, "f"),
     "depth24plus": (0x81A6, 0x1902, 0x1405, 0x1801, 1, 4, 0, 2, "f"),
     "depth24plus-stencil8": (0x88F0, 0x84F9, 0x84FA, 0x84F9, 2, 4, 0, 6, "x"),
@@ -115,6 +116,18 @@ SHORT_VERTEX_FORMAT = {
     "2i": ("sint32x2", 8),
     "3i": ("sint32x3", 12),
     "4i": ("sint32x4", 16),
+}
+
+BUFFER_ACCESS = {
+    'stream_draw': 0x88E0,
+    'stream_read': 0x88E1,
+    'stream_copy': 0x88E2,
+    'static_draw': 0x88E4,
+    'static_read': 0x88E5,
+    'static_copy': 0x88E6,
+    'dynamic_draw': 0x88E8,
+    'dynamic_read': 0x88E9,
+    'dynamic_copy': 0x88EA,
 }
 
 CULL_FACE = {
@@ -259,7 +272,7 @@ class DefaultLoader:
         elif sys.platform.startswith("linux"):
             lib = ctypes.CDLL("libGL.so")
             proc = ctypes.cast(lib.glXGetProcAddress, ctypes.CFUNCTYPE(ctypes.c_ulonglong, ctypes.c_char_p))
-            if not lib.glxGetCurrentContext():
+            if not lib.glXGetCurrentContext():
                 raise RuntimeError('Cannot detect window with OpenGL support')
 
             def loader(name):
