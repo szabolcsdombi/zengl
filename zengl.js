@@ -373,6 +373,9 @@
     zengl_glFramebufferRenderbuffer(target, attachment, renderbuffertarget, renderbuffer) {
       gl.framebufferRenderbuffer(target, attachment, renderbuffertarget, glo[renderbuffer]);
     },
+    zengl_glGetFramebufferAttachmentParameteriv(target, attachment, pname, params) {
+      wasm.HEAP32[params >> 2] = gl.getFramebufferAttachmentParameter(target, attachment, pname);
+    },
     zengl_glGenerateMipmap(target) {
       gl.generateMipmap(target);
     },
