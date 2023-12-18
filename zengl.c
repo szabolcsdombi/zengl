@@ -1760,10 +1760,10 @@ static Context * meth_context(PyObject * self) {
     res->current_viewport.y = -1;
     res->current_viewport.width = -1;
     res->current_viewport.height = -1;
-    res->current_read_framebuffer = -1;
-    res->current_draw_framebuffer = -1;
-    res->current_program = -1;
-    res->current_vertex_array = -1;
+    res->current_read_framebuffer = 0;
+    res->current_draw_framebuffer = 0;
+    res->current_program = 0;
+    res->current_vertex_array = 0;
     res->current_depth_mask = 0;
     res->current_stencil_mask = 0;
     res->frame_time_query = 0;
