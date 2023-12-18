@@ -181,7 +181,8 @@ typedef struct Context {
     int is_stencil_default;
     int is_blend_default;
     Viewport current_viewport;
-    int current_framebuffer;
+    int current_read_framebuffer;
+    int current_draw_framebuffer;
     int current_program;
     int current_vertex_array;
     int current_depth_mask;
@@ -355,7 +356,6 @@ typedef Py_ssize_t intptr;
 #define GL_COLOR_ATTACHMENT0 0x8CE0
 #define GL_DEPTH_ATTACHMENT 0x8D00
 #define GL_STENCIL_ATTACHMENT 0x8D20
-#define GL_FRAMEBUFFER 0x8D40
 #define GL_RENDERBUFFER 0x8D41
 #define GL_MAX_SAMPLES 0x8D57
 #define GL_FRAMEBUFFER_SRGB 0x8DB9
@@ -970,10 +970,17 @@ static void bind_global_settings(Context * self, GlobalSettings * settings) {
     self->current_global_settings = settings;
 }
 
-static void bind_framebuffer(Context * self, int framebuffer) {
-    if (self->current_framebuffer != framebuffer) {
-        self->current_framebuffer = framebuffer;
-        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+static void bind_read_framebuffer(Context * self, int framebuffer) {
+    if (self->current_read_framebuffer != framebuffer) {
+        self->current_read_framebuffer = framebuffer;
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
+    }
+}
+
+static void bind_draw_framebuffer(Context * self, int framebuffer) {
+    if (self->current_draw_framebuffer != framebuffer) {
+        self->current_draw_framebuffer = framebuffer;
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer);
     }
 }
 
@@ -1032,18 +1039,19 @@ static GLObject * build_framebuffer(Context * self, PyObject * attachments) {
 
     int framebuffer = 0;
     glGenFramebuffers(1, &framebuffer);
-    bind_framebuffer(self, framebuffer);
+    bind_draw_framebuffer(self, framebuffer);
+    bind_read_framebuffer(self, framebuffer);
     int color_attachment_count = (int)PyTuple_Size(color_attachments);
     for (int i = 0; i < color_attachment_count; ++i) {
         ImageFace * face = (ImageFace *)PyTuple_GetItem(color_attachments, i);
         if (face->image->renderbuffer) {
-            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_RENDERBUFFER, face->image->image);
+            glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_RENDERBUFFER, face->image->image);
         } else if (face->image->cubemap) {
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_CUBE_MAP_POSITIVE_X + face->layer, face->image->image, face->level);
+            glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_CUBE_MAP_POSITIVE_X + face->layer, face->image->image, face->level);
         } else if (face->image->array) {
-            glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, face->image->image, face->level, face->layer);
+            glFramebufferTextureLayer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, face->image->image, face->level, face->layer);
         } else {
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, face->image->image, face->level);
+            glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, face->image->image, face->level);
         }
     }
 
@@ -1052,13 +1060,13 @@ static GLObject * build_framebuffer(Context * self, PyObject * attachments) {
         int buffer = face->image->fmt.buffer;
         int attachment = buffer == GL_DEPTH ? GL_DEPTH_ATTACHMENT : buffer == GL_STENCIL ? GL_STENCIL_ATTACHMENT : GL_DEPTH_STENCIL_ATTACHMENT;
         if (face->image->renderbuffer) {
-            glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachment, GL_RENDERBUFFER, face->image->image);
+            glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, attachment, GL_RENDERBUFFER, face->image->image);
         } else if (face->image->cubemap) {
-            glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_CUBE_MAP_POSITIVE_X + face->layer, face->image->image, face->level);
+            glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attachment, GL_TEXTURE_CUBE_MAP_POSITIVE_X + face->layer, face->image->image, face->level);
         } else if (face->image->array) {
-            glFramebufferTextureLayer(GL_FRAMEBUFFER, attachment, face->image->image, face->level, face->layer);
+            glFramebufferTextureLayer(GL_DRAW_FRAMEBUFFER, attachment, face->image->image, face->level, face->layer);
         } else {
-            glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, face->image->image, face->level);
+            glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attachment, GL_TEXTURE_2D, face->image->image, face->level);
         }
     }
 
@@ -1554,14 +1562,13 @@ static PyObject * blit_image_face(ImageFace * src, PyObject * dst, PyObject * sr
     }
 
     int target_framebuffer = target ? target->framebuffer->obj : src->ctx->default_framebuffer->obj;
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, src->framebuffer->obj);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, target_framebuffer);
+    bind_read_framebuffer(src->image->ctx, src->framebuffer->obj);
+    bind_draw_framebuffer(src->image->ctx, target_framebuffer);
     glBlitFramebuffer(
         sv.x, sv.y, sv.x + sv.width, sv.y + sv.height,
         tv.x, tv.y, tv.x + tv.width, tv.y + tv.height,
         GL_COLOR_BUFFER_BIT, filter ? GL_LINEAR : GL_NEAREST
     );
-    src->image->ctx->current_framebuffer = -1;
 
     if (disable_srgb) {
         glEnable(GL_FRAMEBUFFER_SRGB);
@@ -1629,7 +1636,7 @@ static PyObject * read_image_face(ImageFace * src, IntPair size, IntPair offset,
 
     int write_size = size.x * size.y * src->image->fmt.pixel_size;
 
-    bind_framebuffer(src->ctx, src->framebuffer->obj);
+    bind_draw_framebuffer(src->ctx, src->framebuffer->obj);
 
     if (into == Py_None) {
         PyObject * res = PyBytes_FromStringAndSize(NULL, write_size);
@@ -1753,7 +1760,8 @@ static Context * meth_context(PyObject * self) {
     res->current_viewport.y = -1;
     res->current_viewport.width = -1;
     res->current_viewport.height = -1;
-    res->current_framebuffer = -1;
+    res->current_read_framebuffer = -1;
+    res->current_draw_framebuffer = -1;
     res->current_program = -1;
     res->current_vertex_array = -1;
     res->current_depth_mask = 0;
@@ -2434,7 +2442,7 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
 static PyObject * Context_meth_new_frame(Context * self, PyObject * args, PyObject * kwargs) {
     static char * keywords[] = {"reset", "clear", "frame_time", NULL};
 
-    int reset = 1;
+    int reset = 0;
     int clear = 1;
     int frame_time = 0;
 
@@ -2460,7 +2468,8 @@ static PyObject * Context_meth_new_frame(Context * self, PyObject * args, PyObje
         self->current_viewport.y = -1;
         self->current_viewport.width = -1;
         self->current_viewport.height = -1;
-        self->current_framebuffer = -1;
+        self->current_read_framebuffer = -1;
+        self->current_draw_framebuffer = -1;
         self->current_program = -1;
         self->current_vertex_array = -1;
         self->current_depth_mask = 0;
@@ -2468,7 +2477,7 @@ static PyObject * Context_meth_new_frame(Context * self, PyObject * args, PyObje
     }
 
     if (clear) {
-        bind_framebuffer(self, self->default_framebuffer->obj);
+        bind_draw_framebuffer(self, self->default_framebuffer->obj);
         glClear(GL_COLOR_BUFFER_BIT);
     }
 
@@ -2502,7 +2511,7 @@ static PyObject * Context_meth_end_frame(Context * self, PyObject * args, PyObje
     }
 
     if (clean) {
-        bind_framebuffer(self, 0);
+        bind_draw_framebuffer(self, 0);
         bind_program(self, 0);
         bind_vertex_array(self, 0);
 
@@ -2594,9 +2603,9 @@ static void release_framebuffer(Context * self, GLObject * framebuffer) {
     framebuffer->uses -= 1;
     if (!framebuffer->uses) {
         remove_dict_value(self->framebuffer_cache, (PyObject *)framebuffer);
-        if (self->current_framebuffer == framebuffer->obj) {
-            bind_framebuffer(self, 0);
-            self->current_framebuffer = -1;
+        if (self->current_draw_framebuffer == framebuffer->obj) {
+            bind_draw_framebuffer(self, 0);
+            self->current_draw_framebuffer = -1;
             self->current_viewport.x = -1;
             self->current_viewport.y = -1;
             self->current_viewport.width = -1;
@@ -2914,7 +2923,7 @@ static PyObject * Image_meth_clear(Image * self, PyObject * args) {
     const int count = (int)PyTuple_Size(self->layers);
     for (int i = 0; i < count; ++i) {
         ImageFace * face = (ImageFace *)PyTuple_GetItem(self->layers, i);
-        bind_framebuffer(self->ctx, face->framebuffer->obj);
+        bind_draw_framebuffer(self->ctx, face->framebuffer->obj);
         clear_bound_image(self);
     }
     Py_RETURN_NONE;
@@ -3269,7 +3278,7 @@ static PyObject * Pipeline_meth_render(Pipeline * self, PyObject * args) {
     Viewport * viewport = (Viewport *)PyMemoryView_GET_BUFFER(self->viewport_data)->buf;
     bind_viewport(self->ctx, viewport);
     bind_global_settings(self->ctx, self->global_settings);
-    bind_framebuffer(self->ctx, self->framebuffer->obj);
+    bind_draw_framebuffer(self->ctx, self->framebuffer->obj);
     bind_program(self->ctx, self->program->obj);
     bind_vertex_array(self->ctx, self->vertex_array->obj);
     bind_descriptor_set(self->ctx, self->descriptor_set);
@@ -3359,7 +3368,7 @@ static PyObject * meth_inspect(PyObject * self, PyObject * arg) {
 }
 
 static PyObject * ImageFace_meth_clear(ImageFace * self, PyObject * args) {
-    bind_framebuffer(self->ctx, self->framebuffer->obj);
+    bind_draw_framebuffer(self->ctx, self->framebuffer->obj);
     clear_bound_image(self->image);
     Py_RETURN_NONE;
 }
