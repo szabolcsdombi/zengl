@@ -2603,17 +2603,15 @@ static void release_framebuffer(Context * self, GLObject * framebuffer) {
     framebuffer->uses -= 1;
     if (!framebuffer->uses) {
         remove_dict_value(self->framebuffer_cache, (PyObject *)framebuffer);
-        if (self->current_draw_framebuffer == framebuffer->obj) {
-            bind_draw_framebuffer(self, 0);
-            self->current_draw_framebuffer = -1;
-            self->current_viewport.x = -1;
-            self->current_viewport.y = -1;
-            self->current_viewport.width = -1;
-            self->current_viewport.height = -1;
-        }
         if (framebuffer->obj) {
+            bind_draw_framebuffer(self, 0);
+            bind_read_framebuffer(self, 0);
             glDeleteFramebuffers(1, &framebuffer->obj);
         }
+        self->current_viewport.x = -1;
+        self->current_viewport.y = -1;
+        self->current_viewport.width = -1;
+        self->current_viewport.height = -1;
     }
 }
 
@@ -2621,10 +2619,7 @@ static void release_program(Context * self, GLObject * program) {
     program->uses -= 1;
     if (!program->uses) {
         remove_dict_value(self->program_cache, (PyObject *)program);
-        if (self->current_program == program->obj) {
-            bind_program(self, 0);
-            self->current_program = -1;
-        }
+        bind_program(self, 0);
         glDeleteProgram(program->obj);
     }
 }
@@ -2633,10 +2628,7 @@ static void release_vertex_array(Context * self, GLObject * vertex_array) {
     vertex_array->uses -= 1;
     if (!vertex_array->uses) {
         remove_dict_value(self->vertex_array_cache, (PyObject *)vertex_array);
-        if (self->current_vertex_array == vertex_array->obj) {
-            bind_vertex_array(self, 0);
-            self->current_vertex_array = -1;
-        }
+        bind_vertex_array(self, 0);
         glDeleteVertexArrays(1, &vertex_array->obj);
     }
 }
