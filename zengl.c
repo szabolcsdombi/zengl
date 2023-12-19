@@ -1636,7 +1636,7 @@ static PyObject * read_image_face(ImageFace * src, IntPair size, IntPair offset,
 
     int write_size = size.x * size.y * src->image->fmt.pixel_size;
 
-    bind_draw_framebuffer(src->ctx, src->framebuffer->obj);
+    bind_read_framebuffer(src->ctx, src->framebuffer->obj);
 
     if (into == Py_None) {
         PyObject * res = PyBytes_FromStringAndSize(NULL, write_size);
