@@ -425,15 +425,15 @@ def framebuffer_attachments(attachments):
     return size, tuple(attachments), depth_stencil_attachment
 
 
-def settings(cull_face, depth, stencil, blend, attachments, info):
+def settings(cull_face, depth, stencil, blend, attachments):
     if attachments:
         num_color_attachments = len(attachments[1])
         has_depth = attachments[2] is not None and attachments[2].flags & 2
         has_stencil = attachments[2] is not None and attachments[2].flags & 4
     else:
         num_color_attachments = 1
-        has_depth = info["default_framebuffer"]["depth_bits"] > 0
-        has_stencil = info["default_framebuffer"]["stencil_bits"] > 0
+        has_depth = False
+        has_stencil = False
 
     res = [num_color_attachments, CULL_FACE[cull_face]]
 

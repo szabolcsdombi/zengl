@@ -293,7 +293,6 @@ typedef Py_ssize_t intptr;
 #endif
 
 #define GL_COLOR_BUFFER_BIT 0x4000
-#define GL_FRONT_LEFT 0x0400
 #define GL_FRONT 0x0404
 #define GL_BACK 0x0405
 #define GL_CULL_FACE 0x0B44
@@ -342,13 +341,6 @@ typedef Py_ssize_t intptr;
 #define GL_PIXEL_UNPACK_BUFFER 0x88EC
 #define GL_SRGB8_ALPHA8 0x8C43
 #define GL_TEXTURE_2D_ARRAY 0x8C1A
-#define GL_FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING 0x8210
-#define GL_FRAMEBUFFER_ATTACHMENT_RED_SIZE 0x8212
-#define GL_FRAMEBUFFER_ATTACHMENT_GREEN_SIZE 0x8213
-#define GL_FRAMEBUFFER_ATTACHMENT_BLUE_SIZE 0x8214
-#define GL_FRAMEBUFFER_ATTACHMENT_ALPHA_SIZE 0x8215
-#define GL_FRAMEBUFFER_ATTACHMENT_DEPTH_SIZE 0x8216
-#define GL_FRAMEBUFFER_ATTACHMENT_STENCIL_SIZE 0x8217
 #define GL_DEPTH_STENCIL_ATTACHMENT 0x821A
 #define GL_DEPTH_STENCIL 0x84F9
 #define GL_READ_FRAMEBUFFER 0x8CA8
@@ -467,7 +459,6 @@ RESOLVE(void, glDeleteFramebuffers, int, const int *);
 RESOLVE(void, glGenFramebuffers, int, int *);
 RESOLVE(void, glFramebufferTexture2D, int, int, int, int, int);
 RESOLVE(void, glFramebufferRenderbuffer, int, int, int, int);
-RESOLVE(void, glGetFramebufferAttachmentParameteriv, int, int, int, int *);
 RESOLVE(void, glGenerateMipmap, int);
 RESOLVE(void, glBlitFramebuffer, int, int, int, int, int, int, int, int, int, int);
 RESOLVE(void, glRenderbufferStorageMultisample, int, int, int, int, int);
@@ -641,7 +632,6 @@ static void load_gl(PyObject * loader) {
     load(glGenFramebuffers);
     load(glFramebufferTexture2D);
     load(glFramebufferRenderbuffer);
-    load(glGetFramebufferAttachmentParameteriv);
     load(glGenerateMipmap);
     load(glBlitFramebuffer);
     load(glRenderbufferStorageMultisample);
@@ -1789,24 +1779,8 @@ static Context * meth_context(PyObject * self) {
         res->limits.max_combined_texture_image_units = MAX_SAMPLER_BINDINGS;
     }
 
-    int color_encoding = 0;
-    int red_size = 0;
-    int green_size = 0;
-    int blue_size = 0;
-    int alpha_size = 0;
-    int depth_size = 0;
-    int stencil_size = 0;
-
-    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER, GL_BACK, GL_FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING, &color_encoding);
-    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER, GL_BACK, GL_FRAMEBUFFER_ATTACHMENT_RED_SIZE, &red_size);
-    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER, GL_BACK, GL_FRAMEBUFFER_ATTACHMENT_GREEN_SIZE, &green_size);
-    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER, GL_BACK, GL_FRAMEBUFFER_ATTACHMENT_BLUE_SIZE, &blue_size);
-    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER, GL_BACK, GL_FRAMEBUFFER_ATTACHMENT_ALPHA_SIZE, &alpha_size);
-    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER, GL_DEPTH, GL_FRAMEBUFFER_ATTACHMENT_DEPTH_SIZE, &depth_size);
-    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER, GL_STENCIL, GL_FRAMEBUFFER_ATTACHMENT_STENCIL_SIZE, &stencil_size);
-
     res->info_dict = Py_BuildValue(
-        "{szszszszsisisisisisisis{s(iiii)sisisOsO}}",
+        "{szszszszsisisisisisisi}",
         "vendor", glGetString(GL_VENDOR),
         "renderer", glGetString(GL_RENDERER),
         "version", glGetString(GL_VERSION),
@@ -1817,13 +1791,7 @@ static Context * meth_context(PyObject * self) {
         "max_combined_texture_image_units", res->limits.max_combined_texture_image_units,
         "max_vertex_attribs", res->limits.max_vertex_attribs,
         "max_draw_buffers", res->limits.max_draw_buffers,
-        "max_samples", res->limits.max_samples,
-        "default_framebuffer",
-        "color_bits", red_size, green_size, blue_size, alpha_size,
-        "depth_bits", depth_size,
-        "stencil_bits", stencil_size,
-        "hdr", (red_size > 8 && green_size > 8 && blue_size > 8) ? Py_True : Py_False,
-        "srgb", color_encoding != GL_LINEAR ? Py_True : Py_False
+        "max_samples", res->limits.max_samples
     );
 
     PyObject * detect_gles = PyObject_CallMethod(module_state->helper, "detect_gles", "(O)", res->info_dict);
@@ -2380,13 +2348,12 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
     PyObject * settings = PyObject_CallMethod(
         self->module_state->helper,
         "settings",
-        "(OOOOOO)",
+        "(OOOOO)",
         cull_face,
         depth,
         stencil,
         blend,
-        framebuffer_attachments,
-        self->info_dict
+        framebuffer_attachments
     );
 
     if (!settings) {
