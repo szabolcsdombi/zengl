@@ -1775,6 +1775,10 @@ static Context * meth_context(PyObject * self) {
         res->limits.max_uniform_buffer_bindings = MAX_BUFFER_BINDINGS;
     }
 
+    if (res->limits.max_combined_uniform_blocks > MAX_BUFFER_BINDINGS) {
+        res->limits.max_combined_uniform_blocks = MAX_BUFFER_BINDINGS;
+    }
+
     if (res->limits.max_combined_texture_image_units > MAX_SAMPLER_BINDINGS) {
         res->limits.max_combined_texture_image_units = MAX_SAMPLER_BINDINGS;
     }
