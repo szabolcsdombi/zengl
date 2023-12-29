@@ -14,7 +14,7 @@
     (async () => {
       const pyodide = await loadPyodide();
       await pyodide.loadPackage([
-        'zengl-1.18.0-cp311-cp311-emscripten_3_1_45_wasm32.whl',
+        'zengl-2.1.0-cp311-cp311-emscripten_3_1_45_wasm32.whl',
       ]);
       pyodide.runPython(`
         import zengl
