@@ -1707,7 +1707,7 @@ static PyObject * meth_init(PyObject * self, PyObject * args, PyObject * kwargs)
     Py_RETURN_NONE;
 }
 
-static Context * meth_context(PyObject * self) {
+static Context * meth_context(PyObject * self, PyObject * args) {
     if (!initialized) {
         Py_XDECREF(PyObject_CallMethod(self, "init", NULL));
         if (PyErr_Occurred()) {
