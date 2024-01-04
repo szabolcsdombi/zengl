@@ -87,7 +87,8 @@
       return gl.getError();
     },
     zengl_glGetIntegerv(pname, data) {
-      wasm.HEAP32[data >> 2] = gl.getParameter(pname);
+      const value = gl.getParameter(pname);
+      wasm.HEAP32[data >> 2] = Math.min(value, 0x7ffffff);
     },
     zengl_glViewport(x, y, width, height) {
       gl.viewport(x, y, width, height);

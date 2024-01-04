@@ -1707,6 +1707,21 @@ static PyObject * meth_init(PyObject * self, PyObject * args, PyObject * kwargs)
     Py_RETURN_NONE;
 }
 
+static int get_limit(int pname, int min, int max) {
+    int value = 0;
+    glGetIntegerv(pname, &value);
+    if (value < 0) {
+        value = 0x7fffffff;
+    }
+    if (value < min) {
+        value = min;
+    }
+    if (value > max) {
+        value = max;
+    }
+    return value;
+}
+
 static Context * meth_context(PyObject * self, PyObject * args) {
     if (!initialized) {
         Py_XDECREF(PyObject_CallMethod(self, "init", NULL));
@@ -1762,26 +1777,13 @@ static Context * meth_context(PyObject * self, PyObject * args) {
     res->default_texture_unit = 0;
     res->gles = 0;
 
-    memset(&res->limits, 0, sizeof(res->limits));
-    glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &res->limits.max_uniform_buffer_bindings);
-    glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &res->limits.max_uniform_block_size);
-    glGetIntegerv(GL_MAX_COMBINED_UNIFORM_BLOCKS, &res->limits.max_combined_uniform_blocks);
-    glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &res->limits.max_combined_texture_image_units);
-    glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &res->limits.max_vertex_attribs);
-    glGetIntegerv(GL_MAX_DRAW_BUFFERS, &res->limits.max_draw_buffers);
-    glGetIntegerv(GL_MAX_SAMPLES, &res->limits.max_samples);
-
-    if (res->limits.max_uniform_buffer_bindings > MAX_BUFFER_BINDINGS) {
-        res->limits.max_uniform_buffer_bindings = MAX_BUFFER_BINDINGS;
-    }
-
-    if (res->limits.max_combined_uniform_blocks > MAX_BUFFER_BINDINGS) {
-        res->limits.max_combined_uniform_blocks = MAX_BUFFER_BINDINGS;
-    }
-
-    if (res->limits.max_combined_texture_image_units > MAX_SAMPLER_BINDINGS) {
-        res->limits.max_combined_texture_image_units = MAX_SAMPLER_BINDINGS;
-    }
+    res->limits.max_uniform_buffer_bindings = get_limit(GL_MAX_UNIFORM_BUFFER_BINDINGS, 8, MAX_BUFFER_BINDINGS);
+    res->limits.max_uniform_block_size = get_limit(GL_MAX_UNIFORM_BLOCK_SIZE, 0x4000, 0x40000000);
+    res->limits.max_combined_uniform_blocks = get_limit(GL_MAX_COMBINED_UNIFORM_BLOCKS, 8, MAX_BUFFER_BINDINGS);
+    res->limits.max_combined_texture_image_units = get_limit(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, 8, MAX_SAMPLER_BINDINGS);
+    res->limits.max_vertex_attribs = get_limit(GL_MAX_VERTEX_ATTRIBS, 8, 64);
+    res->limits.max_draw_buffers = get_limit(GL_MAX_DRAW_BUFFERS, 8, 64);
+    res->limits.max_samples = get_limit(GL_MAX_SAMPLES, 1, 16);
 
     res->info_dict = Py_BuildValue(
         "{szszszszsisisisisisisi}",
@@ -1806,8 +1808,7 @@ static Context * meth_context(PyObject * self, PyObject * args) {
     res->gles = PyObject_IsTrue(detect_gles);
     Py_DECREF(detect_gles);
 
-    int max_texture_image_units = 0;
-    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &max_texture_image_units);
+    int max_texture_image_units = get_limit(GL_MAX_TEXTURE_IMAGE_UNITS, 8, MAX_SAMPLER_BINDINGS + 1);
     res->default_texture_unit = GL_TEXTURE0 + max_texture_image_units - 1;
 
     glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
