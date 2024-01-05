@@ -1,0 +1,13 @@
+.git
+.github
+.gitignore
+.pytest_cache
+.vscode
+
+build
+dist
+downloads
+
+*.egg-info
+*.pyd
+*.so

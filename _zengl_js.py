@@ -1,6 +1,5 @@
-(pyodide, gl) => {
-  const wasm = pyodide._module;
-
+zengl_js = """
+(wasm, gl) => {
   const textEncoder = new TextEncoder('utf-8');
   const textDecoder = new TextDecoder('utf-8');
 
@@ -44,7 +43,7 @@
   let glid = 1;
   glo[0] = null;
 
-  wasm.mergeLibSymbols({
+  return {
     zengl_glCullFace(mode) {
       gl.cullFace(mode);
     },
@@ -457,5 +456,6 @@
     zengl_glVertexAttribDivisor(index, divisor) {
       gl.vertexAttribDivisor(index, divisor);
     },
-  });
+  };
 }
+"""

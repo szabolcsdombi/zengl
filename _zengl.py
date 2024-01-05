@@ -284,6 +284,18 @@ class DefaultLoader:
             def loader(name):
                 return ctypes.cast(lib[name], ctypes.c_void_p).value
 
+        elif sys.platform.startswith("emscripten"):
+            lib = ctypes.CDLL(None)
+
+            def loader(name):
+                return ctypes.cast(lib[name], ctypes.c_void_p).value
+
+        elif sys.platform.startswith("wasi"):
+            lib = ctypes.CDLL(None)
+
+            def loader(name):
+                return ctypes.cast(lib[name], ctypes.c_void_p).value
+
         self.load_opengl_function = loader
 
 
@@ -293,11 +305,26 @@ def loader(headless=False):
 
         return glcontext.default_backend()(glversion=330, mode="standalone")
 
-    elif sys.platform.startswith("emscripten"):
+    if sys.platform == "emscripten" and "pyodide" in sys.modules:
         import js
+        import pyodide_js
+        import _zengl_js
 
-        canvas = js.document.getElementById("canvas")
-        return canvas.getContext(
+        canvas = pyodide_js.canvas.getCanvas3D()
+
+        if not canvas:
+            canvas = js.document.getElementById("canvas")
+
+        if not canvas:
+            canvas = js.document.createElement("canvas")
+            canvas.id = "canvas"
+            canvas.style.position = "fixed"
+            canvas.style.top = "0"
+            canvas.style.right = "0"
+            js.document.body.appendChild(canvas)
+            pyodide_js.canvas.setCanvas3D(canvas)
+
+        gl = canvas.getContext(
             "webgl2",
             powerPreference="high-performance",
             premultipliedAlpha=False,
@@ -306,6 +333,10 @@ def loader(headless=False):
             depth=False,
             stencil=False,
         )
+
+        callback = js.eval(_zengl_js.zengl_js)
+        symbols = callback(pyodide_js._module, gl)
+        pyodide_js._module.mergeLibSymbols(symbols)
 
     return DefaultLoader()
 

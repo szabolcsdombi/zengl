@@ -281,15 +281,16 @@ typedef struct BufferView {
 
 typedef Py_ssize_t intptr;
 
-#ifndef WEB
 #ifdef _WIN32
-#define GL __stdcall *
+#define GL __stdcall
 #else
-#define GL *
+#define GL
 #endif
-#define RESOLVE(type, name, ...) static type (GL name)(__VA_ARGS__)
+
+#ifndef EXTERN_GL
+#define RESOLVE(type, name, ...) static type (GL * name)(__VA_ARGS__)
 #else
-#define RESOLVE(type, name, ...) extern type name(__VA_ARGS__) __asm__("zengl_" # name)
+#define RESOLVE(type, name, ...) extern type GL name(__VA_ARGS__) __asm__("zengl_" # name)
 #endif
 
 #define GL_COLOR_BUFFER_BIT 0x4000
@@ -484,7 +485,7 @@ RESOLVE(void, glSamplerParameteri, int, int, int);
 RESOLVE(void, glSamplerParameterf, int, int, float);
 RESOLVE(void, glVertexAttribDivisor, int, int);
 
-#ifndef WEB
+#ifndef EXTERN_GL
 
 static void * load_opengl_function(PyObject * loader_function, const char * method) {
     PyObject * res = PyObject_CallFunction(loader_function, "(s)", method);

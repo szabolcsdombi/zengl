@@ -20,16 +20,9 @@ if sys.platform.startswith("darwin"):
     extra_compile_args = ["-Wno-writable-strings"]
 
 if os.getenv("PYODIDE"):
-    import re
-
-    with open("zengl.js") as f:
-        zengl_js = re.sub(r"\s+", " ", f.read(), flags=re.M)
-
     define_macros = [
-        ("ZENGL_JS", f'"{zengl_js}"'),
-        ("WEB", None),
+        ("EXTERN_GL", None),
     ]
-    stubs = {}
 
 if os.getenv("ZENGL_COVERAGE"):
     extra_compile_args += ["-O0", "--coverage"]
@@ -69,7 +62,7 @@ setup(
     name="zengl",
     version="2.1.0",
     ext_modules=[ext],
-    py_modules=["_zengl"],
+    py_modules=["_zengl", "_zengl_js"],
     license="MIT",
     python_requires=">=3.6",
     platforms=["any"],
