@@ -380,6 +380,7 @@ RESOLVE(void, glReadBuffer, int);
 RESOLVE(void, glReadPixels, int, int, int, int, int, int, void *);
 RESOLVE(int, glGetError);
 RESOLVE(void, glGetIntegerv, int, int *);
+RESOLVE(const char *, glGetString, int);
 RESOLVE(void, glViewport, int, int, int, int);
 RESOLVE(void, glTexSubImage2D, int, int, int, int, int, int, int, int, const void *);
 RESOLVE(void, glBindTexture, int, int);
@@ -484,8 +485,6 @@ RESOLVE(void, glSamplerParameterf, int, int, float);
 RESOLVE(void, glVertexAttribDivisor, int, int);
 
 #ifndef WEB
-
-RESOLVE(const char *, glGetString, int);
 
 typedef void (GL UniformSetter)(int, int, const void *);
 typedef void (GL UniformMatrixSetter)(int, int, int, const void *);
@@ -682,16 +681,6 @@ static void bind_uniforms(Context * self, PyObject * uniform_layout, PyObject * 
 }
 
 #else
-
-static const char * glGetString(int name) {
-    switch (name) {
-        case 0x1F00: return "WebKit";
-        case 0x1F01: return "WebKit WebGL";
-        case 0x1F02: return "WebGL 2.0 (OpenGL ES 3.0)";
-        case 0x8B8C: return "WebGL GLSL ES 3.00 (OpenGL ES GLSL ES 3.0)";
-    }
-    return NULL;
-}
 
 static void load_gl(PyObject * loader) {
     PyObject * js = PyImport_ImportModule("js");

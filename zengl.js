@@ -90,6 +90,9 @@
       const value = gl.getParameter(pname);
       wasm.HEAP32[data >> 2] = Math.min(value, 0x7ffffff);
     },
+    zengl_glGetString(pname) {
+      return wasm.allocateUTF8(gl.getParameter(pname));
+    },
     zengl_glViewport(x, y, width, height) {
       gl.viewport(x, y, width, height);
     },
