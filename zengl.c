@@ -486,37 +486,6 @@ RESOLVE(void, glVertexAttribDivisor, int, int);
 
 #ifndef WEB
 
-typedef void (GL UniformSetter)(int, int, const void *);
-typedef void (GL UniformMatrixSetter)(int, int, int, const void *);
-
-static void * uniform_setter[25] = {
-    &glUniform1iv,
-    &glUniform2iv,
-    &glUniform3iv,
-    &glUniform4iv,
-    &glUniform1iv,
-    &glUniform2iv,
-    &glUniform3iv,
-    &glUniform4iv,
-    &glUniform1uiv,
-    &glUniform2uiv,
-    &glUniform3uiv,
-    &glUniform4uiv,
-    &glUniform1fv,
-    &glUniform2fv,
-    &glUniform3fv,
-    &glUniform4fv,
-    &glUniformMatrix2fv,
-    &glUniformMatrix2x3fv,
-    &glUniformMatrix2x4fv,
-    &glUniformMatrix3x2fv,
-    &glUniformMatrix3fv,
-    &glUniformMatrix3x4fv,
-    &glUniformMatrix4x2fv,
-    &glUniformMatrix4x3fv,
-    &glUniformMatrix4fv,
-};
-
 static void * load_opengl_function(PyObject * loader_function, const char * method) {
     PyObject * res = PyObject_CallFunction(loader_function, "(s)", method);
     if (!res) {
@@ -666,48 +635,12 @@ static void load_gl(PyObject * loader) {
     Py_DECREF(missing);
 }
 
-static void bind_uniforms(Context * self, PyObject * uniform_layout, PyObject * uniform_data) {
-    const UniformHeader * const header = (UniformHeader *)PyMemoryView_GET_BUFFER(uniform_layout)->buf;
-    const char * const data = (char *)PyMemoryView_GET_BUFFER(uniform_data)->buf;
-    for (int i = 0; i < header->count; ++i) {
-        const void * func = uniform_setter[header->binding[i].function];
-        const void * ptr = data + header->binding[i].offset;
-        if (header->binding[i].function & 0x10) {
-            (*(UniformMatrixSetter *)func)(header->binding[i].location, header->binding[i].count, 0, ptr);
-        } else {
-            (*(UniformSetter *)func)(header->binding[i].location, header->binding[i].count, ptr);
-        }
-    }
-}
-
 #else
 
 static void load_gl(PyObject * loader) {
-    PyObject * js = PyImport_ImportModule("js");
-    if (!js) {
-        return;
-    }
-
-    PyObject * pyodide_js = PyImport_ImportModule("pyodide_js");
-    if (!pyodide_js) {
-        return;
-    }
-
-    PyObject * setup_gl = PyObject_CallMethod(js, "eval", "(s)", ZENGL_JS);
-    if (!setup_gl) {
-        return;
-    }
-
-    PyObject * setup_result = PyObject_CallFunction(setup_gl, "(OO)", pyodide_js, loader);
-    if (!setup_result) {
-        return;
-    }
-
-    Py_DECREF(js);
-    Py_DECREF(pyodide_js);
-    Py_DECREF(setup_gl);
-    Py_DECREF(setup_result);
 }
+
+#endif
 
 static void bind_uniforms(Context * self, PyObject * uniform_layout, PyObject * uniform_data) {
     const UniformHeader * const header = (UniformHeader *)PyMemoryView_GET_BUFFER(uniform_layout)->buf;
@@ -743,8 +676,6 @@ static void bind_uniforms(Context * self, PyObject * uniform_layout, PyObject * 
         }
     }
 }
-
-#endif
 
 static int to_int(PyObject * obj) {
     return (int)PyLong_AsLong(obj);
