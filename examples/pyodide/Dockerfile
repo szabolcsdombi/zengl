@@ -9,5 +9,5 @@ COPY zengl-stubs /zengl/zengl-stubs
 COPY setup.py MANIFEST.in README.md zengl.c _zengl.py _zengl_js.py /zengl/
 RUN pyodide build /zengl -o /web/
 
-COPY examples/web/public /web
+COPY examples/pyodide/public /web
 CMD python -m http.server -d web

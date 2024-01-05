@@ -25,7 +25,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Build
-        run: docker build . -f examples/web/Dockerfile -t build && docker run --rm -v `pwd`/pages:/pages build cp -r /web /pages/
+        run: docker build . -f examples/pyodide/Dockerfile -t build && docker run --rm -v `pwd`/pages:/pages build cp -r /web /pages/
       - name: Setup Pages
         uses: actions/configure-pages@v3
       - name: Upload artifact
