@@ -15,7 +15,7 @@
       const pyodide = await loadPyodide();
       pyodide.canvas.setCanvas3D(document.getElementById("canvas"));
       await pyodide.loadPackage([
-        'zengl-2.1.0-cp311-cp311-emscripten_3_1_45_wasm32.whl',
+        'zengl-2.2.0-cp311-cp311-emscripten_3_1_45_wasm32.whl',
       ]);
       const main = await fetch('main.py');
       pyodide.runPython(await main.text());
