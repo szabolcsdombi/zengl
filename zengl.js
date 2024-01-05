@@ -283,7 +283,7 @@
       gl.uniform4iv(glo[location], wasm.HEAP32.subarray(value >> 2, (value >> 2) + count * 4));
     },
     zengl_glUniformMatrix2fv(location, count, transpose, value) {
-      gl.uniformMatrix2fv(glo[location], transpose, transpose, wasm.HEAPF32.subarray(value >> 2, (value >> 2) + count * 4));
+      gl.uniformMatrix2fv(glo[location], transpose, wasm.HEAPF32.subarray(value >> 2, (value >> 2) + count * 4));
     },
     zengl_glUniformMatrix3fv(location, count, transpose, value) {
       gl.uniformMatrix3fv(glo[location], transpose, wasm.HEAPF32.subarray(value >> 2, (value >> 2) + count * 9));
