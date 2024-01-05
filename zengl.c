@@ -1520,7 +1520,7 @@ static PyObject * blit_image_face(ImageFace * src, PyObject * dst, PyObject * sr
         srgb = src->image->fmt.internal_format == GL_SRGB8_ALPHA8 ? Py_True : Py_False;
     }
 
-    const int disable_srgb = !PyObject_IsTrue(srgb);
+    const int disable_srgb = !src->ctx->gles && !PyObject_IsTrue(srgb);
 
     if (tv.x < 0 || tv.y < 0 || tv.width <= 0 || tv.height <= 0 || (target && (tv.x + tv.width > target->width || tv.y + tv.height > target->height))) {
         PyErr_Format(PyExc_ValueError, "the target viewport is out of range");
