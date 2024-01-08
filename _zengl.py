@@ -312,10 +312,10 @@ def loader(headless=False):
 
         canvas = pyodide_js.canvas.getCanvas3D()
 
-        if not canvas:
+        if canvas is None:
             canvas = js.document.getElementById("canvas")
 
-        if not canvas:
+        if canvas is None:
             canvas = js.document.createElement("canvas")
             canvas.id = "canvas"
             canvas.style.position = "fixed"
