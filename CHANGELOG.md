@@ -14,7 +14,28 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 # [2.2.0](https://github.com/szabolcsdombi/zengl/compare/2.1.0...2.2.0)
 
+- Fixed `zengl.context` broken signature in the web build
+- Fixed limits minimum and maximum values
+- Added complete `Context.info` support in the web build
+- Added pyscript and pygbag support alongside the pyodide support
+
 # [2.1.0](https://github.com/szabolcsdombi/zengl/compare/1.18.0...2.1.0)
+
+- Fixed custom glsl linker error callback
+- Added missing `Image.format` typehints
+- Added proper error message for a missing window in the default loader
+- Removed `Buffer.map` and `Buffer.unmap`
+- Implemented `Buffer.read` and `Buffer.view`
+- Implemented `into` parameter for `Image.read` and `Buffer.read`
+- Added support for Buffer sourced data
+- Removed `dynamic` flag from `Context.buffer`
+- Added `access` flag to `Context.buffer`
+- Removed `Context.limits`
+- Added limits to `Context.info`
+- Changed framebuffer handling to only use the draw or read framebuffer binding
+- Removed default framebuffer detection
+- Fixed `zengl.max_combined_uniform_blocks` maximum value
+- Fixed catching empty include statements
 
 # [1.18.0](https://github.com/szabolcsdombi/zengl/compare/1.17.0...1.18.0)
 
@@ -36,7 +57,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 # [1.16.0](https://github.com/szabolcsdombi/zengl/compare/1.15.0...1.16.0)
 
-- Added index, and uniform parameters form `Context.buffer` for better web support
+- Added `index`, and `uniform` parameters for `Context.buffer`
 - Fixed clear in `Context.new_frame` for a nonzero default framebuffer
 - Removed deprecated `load` method support from the loader
 
