@@ -74,7 +74,7 @@ with open("README.md") as readme:
 
 setup(
     name="zengl",
-    version="2.2.2",
+    version="2.3.0",
     ext_modules=[ext],
     py_modules=["_zengl", "_zengl_js"],
     license="MIT",
