@@ -340,10 +340,6 @@ def loader(headless=False):
     return DefaultLoader()
 
 
-def detect_gles(info):
-    return info["version"].startswith("OpenGL ES") or info["version"].startswith("WebGL")
-
-
 def calcsize(layout):
     nodes = layout.split(" ")
     if nodes[-1] == "/i":

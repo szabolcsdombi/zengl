@@ -191,7 +191,8 @@ typedef struct Context {
     int frame_time_query_running;
     int frame_time;
     int default_texture_unit;
-    int gles;
+    int is_gles;
+    int is_webgl;
     Limits limits;
 } Context;
 
@@ -674,6 +675,15 @@ static void bind_uniforms(Context * self, PyObject * uniform_layout, PyObject * 
             case 24: glUniformMatrix4fv(header->binding[i].location, header->binding[i].count, 0, ptr); break;
         }
     }
+}
+
+static int startswith(const char * str, const char * prefix) {
+    while (*prefix && *str) {
+        if (*prefix++ != *str++) {
+            return 0;
+        }
+    }
+    return 1;
 }
 
 static int to_int(PyObject * obj) {
@@ -1680,7 +1690,8 @@ static Context * meth_context(PyObject * self, PyObject * args) {
     res->frame_time_query_running = 0;
     res->frame_time = 0;
     res->default_texture_unit = 0;
-    res->gles = 0;
+    res->is_gles = 0;
+    res->is_webgl = 0;
 
     res->limits.max_uniform_buffer_bindings = get_limit(GL_MAX_UNIFORM_BUFFER_BINDINGS, 8, MAX_BUFFER_BINDINGS);
     res->limits.max_uniform_block_size = get_limit(GL_MAX_UNIFORM_BLOCK_SIZE, 0x4000, 0x40000000);
@@ -1705,19 +1716,17 @@ static Context * meth_context(PyObject * self, PyObject * args) {
         "max_samples", res->limits.max_samples
     );
 
-    PyObject * detect_gles = PyObject_CallMethod(module_state->helper, "detect_gles", "(O)", res->info_dict);
-    if (!detect_gles) {
-        return NULL;
-    }
-
-    res->gles = PyObject_IsTrue(detect_gles);
-    Py_DECREF(detect_gles);
+    const char * version = PyUnicode_AsUTF8(PyDict_GetItemString(res->info_dict, "version"));
+    res->is_gles = startswith(version, "OpenGL ES");
+    res->is_webgl = startswith(version, "WebGL");
 
     int max_texture_image_units = get_limit(GL_MAX_TEXTURE_IMAGE_UNITS, 8, MAX_SAMPLER_BINDINGS + 1);
     res->default_texture_unit = GL_TEXTURE0 + max_texture_image_units - 1;
 
-    glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
-    if (!res->gles) {
+    if (!res->is_webgl) {
+        glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
+    }
+    if (!res->is_gles) {
         glEnable(GL_PROGRAM_POINT_SIZE);
         glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
     }
@@ -2366,8 +2375,10 @@ static PyObject * Context_meth_new_frame(Context * self, PyObject * args, PyObje
         self->frame_time = 0;
     }
 
-    glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
-    if (!self->gles) {
+    if (!self->is_webgl) {
+        glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
+    }
+    if (!self->is_gles) {
         glEnable(GL_PROGRAM_POINT_SIZE);
         glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
     }
@@ -2400,8 +2411,10 @@ static PyObject * Context_meth_end_frame(Context * self, PyObject * args, PyObje
         glDisable(GL_STENCIL_TEST);
         glDisable(GL_BLEND);
 
-        glDisable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
-        if (!self->gles) {
+        if (!self->is_webgl) {
+            glDisable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
+        }
+        if (!self->is_gles) {
             glDisable(GL_PROGRAM_POINT_SIZE);
             glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
         }
