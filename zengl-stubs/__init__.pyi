@@ -265,7 +265,7 @@ class ContextLoader(Protocol):
 
 class Buffer:
     size: int
-    def read(self, size: int | None = None, offset: int = 0, into=None) -> None: ...
+    def read(self, size: int | None = None, offset: int = 0, into=None) -> bytes: ...
     def write(self, data: Data, offset: int = 0) -> None: ...
     def view(self, size: int | None = None, offset: int = 0) -> BufferView: ...
 
@@ -287,7 +287,7 @@ class Image:
     ) -> None: ...
     def mipmaps(self) -> None: ...
     def read(
-        self, size: Tuple[int, int] | None = None, *, offset: Tuple[int, int] | None = None, into=None
+        self, size: Tuple[int, int] | None = None, offset: Tuple[int, int] | None = None, into=None
     ) -> bytes: ...
     def blit(
         self,
@@ -317,7 +317,7 @@ class Context:
         self,
         data: Data | None = None,
         size: int | None = None,
-        dynamic: BufferAccess | None = None,
+        access: BufferAccess | None = None,
         index: bool = False,
         uniform: bool = False,
         external: int = 0,

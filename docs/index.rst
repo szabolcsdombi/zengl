@@ -16,7 +16,7 @@ ZenGL is a minimalist Python module providing exactly **one** way to render scen
 - **high-performance**
 - **simple** - *buffers, images, pipelines and there you go*
 - **easy-to-learn** - *it is simply OpenGL with no magic added*
-- **verbose** - *most common mistakes are catched and reported in a clear and understandable way*
+- **verbose** - *most common mistakes are caught and reported in a clear and understandable way*
 - **robust** - *there is no global state or external trouble-maker affecting the render*
 - **backward-compatible** - *it requires OpenGL 3.3 - it is just enough*
 - **cached** - *most OpenGL objects are reused between renders*
@@ -147,13 +147,13 @@ Buffer
 
 .. code-block::
 
-    index_buffer = ctx.buffer(np.array([0, 1, 2], 'i4'))
+    index_buffer = ctx.buffer(np.array([0, 1, 2], 'i4'), index=True)
 
 .. code-block::
 
     vertex_buffer = ctx.buffer(size=1024)
 
-.. py:method:: Context.buffer(data, size, dynamic, index, uniform, external) -> Buffer
+.. py:method:: Context.buffer(data, size, access, index, uniform, external) -> Buffer
 
 **data**
     | The buffer content, represented as ``bytes`` or a buffer for example a numpy array.
@@ -164,19 +164,25 @@ Buffer
     | The size of the buffer. It must be None if the data parameter was provided.
     | The default value is None and it means the size of the data.
 
-**dynamic**
-    | A boolean to enable ``GL_DYNAMIC_DRAW`` on buffer creation.
-    | When this flag is False the ``GL_STATIC_DRAW`` is used.
-    | The default value is True.
+**access**
+    | Specifies the expected access pattern of the data store.
+    | Possible values are:
+    | - "stream_draw"
+    | - "stream_read"
+    | - "stream_copy"
+    | - "static_draw"
+    | - "static_read"
+    | - "static_copy"
+    | - "dynamic_draw"
+    | - "dynamic_read"
+    | - "dynamic_copy"
 
 **index**
     | Modifies the write operation to use the element array buffer binding.
-    | Only useful for the webgl compatibility.
     | The default value is False.
 
 **uniform**
     | Modifies the write operation to use the uniform buffer binding.
-    | Only useful for the webgl compatibility.
     | The default value is False.
 
 **external**
@@ -191,25 +197,18 @@ Buffer
 **offset**
     | An int, representing the write offset in bytes.
 
-.. py:method:: Buffer.map(size, offset, discard) -> memoryview
+.. py:method:: Buffer.read(size, offset, into) -> bytes
 
 **size**
-    | An int, representing the size of the buffer in bytes to be mapped.
+    | An int, representing the size of the buffer in bytes to be read.
     | The default value is None and it means the entire buffer.
 
 **offset**
-    | An int, representing the offset in bytes for the mapping.
+    | An int, representing the offset in bytes for the read.
     | When the offset is not None the size must also be defined.
     | The default value is None and it means the beginning of the buffer.
 
-**discard**
-    | A boolean to enable the ``GL_MAP_INVALIDATE_RANGE_BIT``
-    | When this flag is True, the content of the buffer is undefined.
-    | The default value is False.
-
-.. py:method:: Buffer.unmap()
-
-    Unmap the buffer.
+.. py:method:: Buffer.view(size, offset) -> BufferView
 
 .. py:attribute:: Buffer.size
 
@@ -358,7 +357,7 @@ Generate mipmaps for the image.
 Pipeline
 --------
 
-.. py:method:: Context.pipeline(vertex_shader, fragment_shader, layout, resources, depth, stencil, blending, polygon_offset, color_mask, framebuffer, vertex_buffers, index_buffer, short_index, primitive_restart, cull_face, topology, vertex_count, instance_count, first_vertex, viewport, skip_validation) -> Pipeline
+.. py:method:: Context.pipeline(vertex_shader, fragment_shader, layout, resources, uniforms, depth, stencil, blend, framebuffer, vertex_buffers, index_buffer, short_index, cull_face, topology, vertex_count, instance_count, first_vertex, viewport, uniform_data, viewport_data, render_data, includes, template) -> Pipeline
 
 **vertex_shader**
     | The vertex shader code.
@@ -383,15 +382,6 @@ Pipeline
 
 **blend**
     | The blend settings
-
-**polygon_offset**
-    | The polygon offset
-
-**color_mask**
-    | The color mask, defined as a single integer.
-    | The bits of the color mask grouped in fours represent the color mask for the attachments.
-    | The bits in the groups of four represent the mask for the red, green, blue, and alpha channels.
-    | It is easier to understand it from the `implementation <https://github.com/szabolcsdombi/zengl/search?l=C%2B%2B&q=color_mask>`_.
 
 **framebuffer**
     | A list of images representing the framebuffer for the rendering.
@@ -451,6 +441,25 @@ Pipeline
     | The render viewport, defined as tuples of four ints in (x, y, width, height) format.
     | The default is the full size of the framebuffer.
 
+**uniform_data**
+    | Memoryview to use as the source of uniform values.
+
+**viewport_data**
+    | Memoryview to use as the source of viewport value.
+    | It must points to a memory of (x, y, width, height) integers.
+
+**render_data**
+    | Memoryview to use as the source of render parameters.
+    | It must points to a memory of (vertex_count, instance_count, first_vertex) integers.
+
+**includes**
+    | A dictionary to use for resolving the includes.
+    | The default value is None and it means :py:attr:`Context.includes`.
+
+**template**
+    | A Pipeline object to use as the default settings.
+    | Setting a template fixes the shader source and layout definition.
+
 .. py:attribute:: Pipeline.vertex_count
 
     | The number of vertices or the number of elements to draw.
@@ -478,7 +487,7 @@ Pipeline
 Shader Code
 -----------
 
-- **do** use ``#version 330`` as the first line in the shader.
+- **do** use ``#version 330 core`` or ``#version 300 es`` as the first line in the shader.
 - **do** use ``layout (std140)`` for uniform buffers.
 - **do** use ``layout (location = ...)`` for the vertex shader inputs.
 - **do** use ``layout (location = ...)`` for the fragment shader outputs.
@@ -603,41 +612,31 @@ Interoperability
 
 | Some window implementations expose a framebuffer object for drawing.
 | Detecting this framebuffer is an error-prone and non-reliable solution.
-| The recommended way is to change :py:attr:`Context.screen` to the frambuffer object.
-| Do not change the :py:attr:`Pipeline._framebuffer`. It is for a different purpose.
+| The recommended way is to change :py:attr:`Context.screen` to the framebuffer object.
 
-| Running zengl alongside another renderer is not supported.
+| Running zengl alongside other rendering libraries is not recommended.
 | However, to port existing code to zengl, some interoperability may be necessary.
 | OpenGL objects can be extracted with :py:meth:`zengl.inspect`.
 | It is possible to interact with these objects using the OpenGL API directly.
 
 .. py:method:: zengl.inspect(obj: Buffer | Image | Pipeline)
 
-Returns an object with all of the OpenGL objects.
+Returns a dictionary with all of the OpenGL objects.
 
 .. py:attribute:: Context.screen
 
 | An integer representing the default framebuffer object.
 | You may want to change this attribute when using PyQt.
 
-.. py:attribute:: Pipeline._framebuffer
-
-| An integer value of the framebuffer object used by the pipeline.
-| This attribute can be changed.
-
-.. py:method:: Context.reset()
-
-| Reset assumptions on the current global OpenGL state. Assume a dirty OpenGL context.
-
 Utils
 -----
 
 .. py:attribute:: Context.info
 
-| The GL_VENDOR, GL_RENDERER, and GL_VERSION strings as a tuple.
-
-.. py:attribute:: Context.limits
-
+- vendor
+- renderer
+- version
+- glsl
 - max_uniform_buffer_bindings
 - max_uniform_block_size
 - max_combined_uniform_blocks
@@ -660,7 +659,7 @@ Utils
 
     mvp = zengl.camera(eye=(4.0, 3.0, 2.0), target=(0.0, 0.0, 0.0), aspect=16.0 / 9.0, fov=45.0)
 
-.. py:method:: zengl.bind(buffer: Buffer, layout: str, *attributes: Iterable[int]) -> List[VertexBufferBinding]
+.. py:method:: zengl.bind(buffer: Buffer, layout: str, *attributes: int) -> List[VertexBufferBinding]
 
 | Helper function for binding a single buffer to multiple vertex attributes.
 | The -1 is a special value allowed in the attributes to represent not yet implemented attributes.
