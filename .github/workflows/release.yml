@@ -3,16 +3,6 @@ name: release
 on:
   workflow_dispatch:
 
-env:
-  CIBW_REPAIR_WHEEL_COMMAND_LINUX: >
-    auditwheel repair -w {dest_dir} {wheel} &&
-    pipx run abi3audit --strict --report {wheel}
-  CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
-    delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel} &&
-    pipx run abi3audit --strict --report {wheel}
-  CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: >
-    pipx run abi3audit --strict --report {wheel}
-
 jobs:
 
   sdist:
@@ -46,6 +36,51 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-20.04, windows-2019, macos-11]
+
+    env:
+      CIBW_BUILD: cp38-* cp39-* cp310-*
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: setup
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+          architecture: x64
+
+      - name: deps
+        run: python -m pip install cibuildwheel==2.16.2
+
+      - name: wheels
+        run: python -m cibuildwheel --output-dir package
+
+      - name: upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: package
+          path: package/*.whl
+
+  universal:
+    name: Build universal wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-20.04, windows-2019, macos-11]
+
+    env:
+      CIBW_BUILD: cp312-*
+
+      CIBW_REPAIR_WHEEL_COMMAND_LINUX: >
+        auditwheel repair -w {dest_dir} {wheel} &&
+        pipx run abi3audit --strict --report {wheel}
+
+      CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
+        delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel} &&
+        pipx run abi3audit --strict --report {wheel}
+
+      CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: >
+        pipx run abi3audit --strict --report {wheel}
 
     steps:
       - uses: actions/checkout@v3
