@@ -949,7 +949,7 @@ static GLObject * build_framebuffer(Context * self, PyObject * attachments) {
     GLObject * cache = (GLObject *)PyDict_GetItem(self->framebuffer_cache, attachments);
     if (cache) {
         cache->uses += 1;
-        Py_INCREF(cache);
+        Py_INCREF((PyObject *)cache);
         return cache;
     }
 
@@ -1010,7 +1010,7 @@ static GLObject * build_vertex_array(Context * self, PyObject * bindings) {
     GLObject * cache = (GLObject *)PyDict_GetItem(self->vertex_array_cache, bindings);
     if (cache) {
         cache->uses += 1;
-        Py_INCREF(cache);
+        Py_INCREF((PyObject *)cache);
         return cache;
     }
 
@@ -1061,7 +1061,7 @@ static GLObject * build_sampler(Context * self, PyObject * params) {
     GLObject * cache = (GLObject *)PyDict_GetItem(self->sampler_cache, params);
     if (cache) {
         cache->uses += 1;
-        Py_INCREF(cache);
+        Py_INCREF((PyObject *)cache);
         return cache;
     }
 
@@ -1143,7 +1143,7 @@ static DescriptorSet * build_descriptor_set(Context * self, PyObject * bindings)
     DescriptorSet * cache = (DescriptorSet *)PyDict_GetItem(self->descriptor_set_cache, bindings);
     if (cache) {
         cache->uses += 1;
-        Py_INCREF(cache);
+        Py_INCREF((PyObject *)cache);
         return cache;
     }
 
@@ -1160,7 +1160,7 @@ static GlobalSettings * build_global_settings(Context * self, PyObject * setting
     GlobalSettings * cache = (GlobalSettings *)PyDict_GetItem(self->global_settings_cache, settings);
     if (cache) {
         cache->uses += 1;
-        Py_INCREF(cache);
+        Py_INCREF((PyObject *)cache);
         return cache;
     }
 
@@ -1212,7 +1212,7 @@ static GLObject * compile_shader(Context * self, PyObject * pair) {
     GLObject * cache = (GLObject *)PyDict_GetItem(self->shader_cache, pair);
     if (cache) {
         cache->uses += 1;
-        Py_INCREF(cache);
+        Py_INCREF((PyObject *)cache);
         return cache;
     }
 
@@ -1299,7 +1299,7 @@ static GLObject * compile_program(Context * self, PyObject * includes, PyObject 
     GLObject * cache = (GLObject *)PyDict_GetItem(self->program_cache, tup);
     if (cache) {
         cache->uses += 1;
-        Py_INCREF(cache);
+        Py_INCREF((PyObject *)cache);
         return cache;
     }
 
@@ -1354,7 +1354,7 @@ static GLObject * compile_program(Context * self, PyObject * includes, PyObject 
 static ImageFace * build_image_face(Image * self, PyObject * key) {
     ImageFace * cache = (ImageFace *)PyDict_GetItem(self->faces, key);
     if (cache) {
-        Py_INCREF(cache);
+        Py_INCREF((PyObject *)cache);
         return cache;
     }
 
@@ -1813,7 +1813,7 @@ static Buffer * Context_meth_buffer(Context * self, PyObject * args, PyObject * 
     res->gc_next = (GCHeader *)self;
     res->gc_prev->gc_next = (GCHeader *)res;
     res->gc_next->gc_prev = (GCHeader *)res;
-    Py_INCREF(res);
+    Py_INCREF((PyObject *)res);
 
     res->ctx = self;
     res->buffer = buffer;
@@ -1960,7 +1960,7 @@ static Image * Context_meth_image(Context * self, PyObject * args, PyObject * kw
     res->gc_next = (GCHeader *)self;
     res->gc_prev->gc_next = (GCHeader *)res;
     res->gc_next->gc_prev = (GCHeader *)res;
-    Py_INCREF(res);
+    Py_INCREF((PyObject *)res);
 
     res->ctx = self;
     res->size = Py_BuildValue("(ii)", width, height);
@@ -2061,7 +2061,7 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
     Pipeline * template = (Pipeline *)PyDict_GetItemString(kwargs, "template");
     PyObject * create_kwargs;
 
-    if (template && Py_TYPE(template) != self->module_state->Pipeline_type) {
+    if (template && Py_TYPE((PyObject *)template) != self->module_state->Pipeline_type) {
         PyErr_Format(PyExc_ValueError, "invalid template");
         return NULL;
     }
@@ -2292,7 +2292,7 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
     res->gc_next = (GCHeader *)self;
     res->gc_prev->gc_next = (GCHeader *)res;
     res->gc_next->gc_prev = (GCHeader *)res;
-    Py_INCREF(res);
+    Py_INCREF((PyObject *)res);
 
     if (viewport_data == Py_None) {
         viewport_data = PyMemoryView_FromMemory((char *)&res->viewport, sizeof(res->viewport), PyBUF_WRITE);
@@ -2463,11 +2463,11 @@ static void release_descriptor_set(Context * self, DescriptorSet * set) {
             }
         }
         for (int i = 0; i < set->uniform_buffers.binding_count; ++i) {
-            Py_XDECREF(set->uniform_buffers.binding[i].buffer);
+            Py_XDECREF((PyObject *)set->uniform_buffers.binding[i].buffer);
         }
         for (int i = 0; i < set->samplers.binding_count; ++i) {
-            Py_XDECREF(set->samplers.binding[i].sampler);
-            Py_XDECREF(set->samplers.binding[i].image);
+            Py_XDECREF((PyObject *)set->samplers.binding[i].sampler);
+            Py_XDECREF((PyObject *)set->samplers.binding[i].image);
         }
         remove_dict_value(self->descriptor_set_cache, (PyObject *)set);
         if (self->current_descriptor_set == set) {
@@ -2570,7 +2570,7 @@ static PyObject * Context_meth_release(Context * self, PyObject * arg) {
         GCHeader * it = self->gc_next;
         while (it != (GCHeader *)self) {
             GCHeader * next = it->gc_next;
-            if (Py_TYPE(it) == self->module_state->Pipeline_type) {
+            if (Py_TYPE((PyObject *)it) == self->module_state->Pipeline_type) {
                 Py_DECREF(Context_meth_release(self, (PyObject *)it));
             }
             it = next;
@@ -2578,9 +2578,9 @@ static PyObject * Context_meth_release(Context * self, PyObject * arg) {
         it = self->gc_next;
         while (it != (GCHeader *)self) {
             GCHeader * next = it->gc_next;
-            if (Py_TYPE(it) == self->module_state->Buffer_type) {
+            if (Py_TYPE((PyObject *)it) == self->module_state->Buffer_type) {
                 Py_DECREF(Context_meth_release(self, (PyObject *)it));
-            } else if (Py_TYPE(it) == self->module_state->Image_type) {
+            } else if (Py_TYPE((PyObject *)it) == self->module_state->Image_type) {
                 Py_DECREF(Context_meth_release(self, (PyObject *)it));
             }
             it = next;
