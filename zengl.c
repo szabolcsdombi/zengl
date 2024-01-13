@@ -678,7 +678,10 @@ static void bind_uniforms(Context * self, PyObject * uniform_layout, PyObject * 
 }
 
 static int startswith(const char * str, const char * prefix) {
-    while (*prefix && *str) {
+    if (!str) {
+        return 0;
+    }
+    while (*prefix) {
         if (*prefix++ != *str++) {
             return 0;
         }
@@ -1701,11 +1704,16 @@ static Context * meth_context(PyObject * self, PyObject * args) {
     res->limits.max_draw_buffers = get_limit(GL_MAX_DRAW_BUFFERS, 8, 64);
     res->limits.max_samples = get_limit(GL_MAX_SAMPLES, 1, 16);
 
+    const char * version = glGetString(GL_VERSION);
+
+    res->is_gles = startswith(version, "OpenGL ES");
+    res->is_webgl = startswith(version, "WebGL");
+
     res->info_dict = Py_BuildValue(
         "{szszszszsisisisisisisi}",
         "vendor", glGetString(GL_VENDOR),
         "renderer", glGetString(GL_RENDERER),
-        "version", glGetString(GL_VERSION),
+        "version", version,
         "glsl", glGetString(GL_SHADING_LANGUAGE_VERSION),
         "max_uniform_buffer_bindings", res->limits.max_uniform_buffer_bindings,
         "max_uniform_block_size", res->limits.max_uniform_block_size,
@@ -1715,10 +1723,6 @@ static Context * meth_context(PyObject * self, PyObject * args) {
         "max_draw_buffers", res->limits.max_draw_buffers,
         "max_samples", res->limits.max_samples
     );
-
-    const char * version = PyUnicode_AsUTF8(PyDict_GetItemString(res->info_dict, "version"));
-    res->is_gles = startswith(version, "OpenGL ES");
-    res->is_webgl = startswith(version, "WebGL");
 
     int max_texture_image_units = get_limit(GL_MAX_TEXTURE_IMAGE_UNITS, 8, MAX_SAMPLER_BINDINGS + 1);
     res->default_texture_unit = GL_TEXTURE0 + max_texture_image_units - 1;
