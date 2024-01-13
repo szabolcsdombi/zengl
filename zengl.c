@@ -791,29 +791,13 @@ static int valid_mem(PyObject * mem, Py_ssize_t size) {
     if (!PyMemoryView_Check(mem)) {
         return 0;
     }
-    Py_buffer * view = PyMemoryView_GET_BUFFER(mem);
-    return PyBuffer_IsContiguous(view, 'C') && (size < 0 || view->len == size);
-}
-
-static PyObject * contiguous(PyObject * data) {
-    PyObject * mem = PyMemoryView_FromObject(data);
-    if (!mem) {
-        return NULL;
+    Py_buffer view;
+    if (PyObject_GetBuffer(mem, &view, PyBUF_SIMPLE)) {
+        return 0;
     }
-
-    if (PyBuffer_IsContiguous(PyMemoryView_GET_BUFFER(mem), 'C')) {
-        return mem;
-    }
-
-    PyObject * bytes = PyObject_Bytes(mem);
-    Py_XDECREF(mem);
-    if (!bytes) {
-        return NULL;
-    }
-
-    PyObject * res = PyMemoryView_FromObject(bytes);
-    Py_XDECREF(bytes);
-    return res;
+    int mem_size = (int)view.len;
+    PyBuffer_Release(&view);
+    return size < 0 || mem_size == size;
 }
 
 static IntPair to_int_pair(PyObject * obj, int x, int y) {
@@ -1775,11 +1759,16 @@ static Buffer * Context_meth_buffer(Context * self, PyObject * args, PyObject * 
     int target = uniform ? GL_UNIFORM_BUFFER : index ? GL_ELEMENT_ARRAY_BUFFER : GL_ARRAY_BUFFER;
 
     if (data != Py_None) {
-        data = PyMemoryView_FromObject(data);
-        if (PyErr_Occurred()) {
+        data = PyMemoryView_GetContiguous(data, PyBUF_READ, 'C');
+        if (!data) {
             return NULL;
         }
-        size = (int)PyMemoryView_GET_BUFFER(data)->len;
+        Py_buffer view;
+        if (PyObject_GetBuffer(data, &view, PyBUF_SIMPLE)) {
+            return NULL;
+        }
+        size = (int)view.len;
+        PyBuffer_Release(&view);
         if (size == 0) {
             PyErr_Format(PyExc_ValueError, "invalid size");
             return NULL;
@@ -2650,21 +2639,24 @@ static PyObject * Buffer_meth_write(Buffer * self, PyObject * args, PyObject * k
         Py_RETURN_NONE;
     }
 
-    PyObject * mem = contiguous(data);
+    PyObject * mem = PyMemoryView_GetContiguous(data, PyBUF_READ, 'C');
     if (!mem) {
         return NULL;
     }
 
-    Py_buffer * view = PyMemoryView_GET_BUFFER(mem);
-    char * ptr = (char *)view->buf;
-    int size = (int)view->len;
+    Py_buffer view;
+    if (PyObject_GetBuffer(mem, &view, PyBUF_SIMPLE)) {
+        return NULL;
+    }
+    char * ptr = (char *)view.buf;
+    int data_size = (int)view.len;
 
-    if (size < 0 || size + offset > self->size) {
+    if (data_size + offset > self->size) {
         PyErr_Format(PyExc_ValueError, "invalid size");
         return NULL;
     }
 
-    if (size) {
+    if (data_size) {
         if (self->target == GL_ELEMENT_ARRAY_BUFFER) {
             bind_vertex_array(self->ctx, 0);
         }
@@ -2674,10 +2666,11 @@ static PyObject * Buffer_meth_write(Buffer * self, PyObject * args, PyObject * k
         }
 
         glBindBuffer(self->target, self->buffer);
-        glBufferSubData(self->target, offset, size, ptr);
+        glBufferSubData(self->target, offset, data_size, ptr);
         glBindBuffer(self->target, 0);
     }
 
+    PyBuffer_Release(&view);
     Py_DECREF(mem);
     Py_RETURN_NONE;
 }
@@ -2936,13 +2929,16 @@ static PyObject * Image_meth_write(Image * self, PyObject * args, PyObject * kwa
         Py_RETURN_NONE;
     }
 
-    PyObject * mem = contiguous(data);
+    PyObject * mem = PyMemoryView_GetContiguous(data, PyBUF_READ, 'C');
     if (!mem) {
         return NULL;
     }
 
-    Py_buffer * view = PyMemoryView_GET_BUFFER(mem);
-    int data_size = (int)view->len;
+    Py_buffer view;
+    if (PyObject_GetBuffer(mem, &view, PyBUF_SIMPLE)) {
+        return NULL;
+    }
+    int data_size = (int)view.len;
 
     if (data_size != expected_size) {
         PyErr_Format(PyExc_ValueError, "invalid data size, expected %d, got %d", expected_size, data_size);
@@ -2953,23 +2949,24 @@ static PyObject * Image_meth_write(Image * self, PyObject * args, PyObject * kwa
         int stride = padded_row * size.y;
         if (layer_arg != Py_None) {
             int face = GL_TEXTURE_CUBE_MAP_POSITIVE_X + layer;
-            glTexSubImage2D(face, level, offset.x, offset.y, size.x, size.y, self->fmt.format, self->fmt.type, view->buf);
+            glTexSubImage2D(face, level, offset.x, offset.y, size.x, size.y, self->fmt.format, self->fmt.type, view.buf);
         } else {
             for (int i = 0; i < 6; ++i) {
                 int face = GL_TEXTURE_CUBE_MAP_POSITIVE_X + i;
-                glTexSubImage2D(face, level, offset.x, offset.y, size.x, size.y, self->fmt.format, self->fmt.type, (char *)view->buf + stride * i);
+                glTexSubImage2D(face, level, offset.x, offset.y, size.x, size.y, self->fmt.format, self->fmt.type, (char *)view.buf + stride * i);
             }
         }
     } else if (self->array) {
         if (layer_arg != Py_None) {
-            glTexSubImage3D(self->target, level, offset.x, offset.y, layer, size.x, size.y, 1, self->fmt.format, self->fmt.type, view->buf);
+            glTexSubImage3D(self->target, level, offset.x, offset.y, layer, size.x, size.y, 1, self->fmt.format, self->fmt.type, view.buf);
         } else {
-            glTexSubImage3D(self->target, level, offset.x, offset.y, 0, size.x, size.y, self->array, self->fmt.format, self->fmt.type, view->buf);
+            glTexSubImage3D(self->target, level, offset.x, offset.y, 0, size.x, size.y, self->array, self->fmt.format, self->fmt.type, view.buf);
         }
     } else {
-        glTexSubImage2D(self->target, level, offset.x, offset.y, size.x, size.y, self->fmt.format, self->fmt.type, view->buf);
+        glTexSubImage2D(self->target, level, offset.x, offset.y, size.x, size.y, self->fmt.format, self->fmt.type, view.buf);
     }
 
+    PyBuffer_Release(&view);
     Py_DECREF(mem);
     Py_RETURN_NONE;
 }
