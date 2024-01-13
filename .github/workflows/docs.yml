@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: build
-        run: docker build . -f tests/docs/Dockerfile -t docs
+        run: docker build . -f tests/docs/Containerfile -t docs
 
       - name: docs
         run: docker run --rm -t docs

@@ -1,6 +1,6 @@
 .github/** linguist-detectable=false
 examples/** linguist-documentation=false
-**/Dockerfile linguist-detectable=false
+**/Containerfile linguist-detectable=false
 *.html linguist-detectable=false
 *.css linguist-detectable=false
 *.js linguist-detectable=false

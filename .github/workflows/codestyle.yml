@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: build
-        run: docker build . -f tests/codestyle/Dockerfile -t codestyle
+        run: docker build . -f tests/codestyle/Containerfile -t codestyle
 
       - name: codestyle
         run: docker run --rm -t codestyle
