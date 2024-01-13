@@ -252,6 +252,10 @@ typedef struct Pipeline {
     PyObject * uniform_data;
     PyObject * viewport_data;
     PyObject * render_data;
+    Py_buffer uniform_layout_buffer;
+    Py_buffer uniform_data_buffer;
+    Py_buffer viewport_data_buffer;
+    Py_buffer render_data_buffer;
     RenderParameters params;
     Viewport viewport;
     int topology;
@@ -642,9 +646,9 @@ static void load_gl(PyObject * loader) {
 
 #endif
 
-static void bind_uniforms(Context * self, PyObject * uniform_layout, PyObject * uniform_data) {
-    const UniformHeader * const header = (UniformHeader *)PyMemoryView_GET_BUFFER(uniform_layout)->buf;
-    const char * const data = (char *)PyMemoryView_GET_BUFFER(uniform_data)->buf;
+static void bind_uniforms(Pipeline * self) {
+    const UniformHeader * const header = (UniformHeader *)self->uniform_layout_buffer.buf;
+    const char * const data = (char *)self->uniform_data_buffer.buf;
     for (int i = 0; i < header->count; ++i) {
         const void * ptr = data + header->binding[i].offset;
         switch (header->binding[i].function) {
@@ -2280,6 +2284,11 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
     res->gc_next->gc_prev = (GCHeader *)res;
     Py_INCREF((PyObject *)res);
 
+    memset(&res->uniform_layout_buffer, 0, sizeof(Py_buffer));
+    memset(&res->uniform_data_buffer, 0, sizeof(Py_buffer));
+    memset(&res->viewport_data_buffer, 0, sizeof(Py_buffer));
+    memset(&res->render_data_buffer, 0, sizeof(Py_buffer));
+
     if (viewport_data == Py_None) {
         viewport_data = PyMemoryView_FromMemory((char *)&res->viewport, sizeof(res->viewport), PyBUF_WRITE);
     }
@@ -2287,6 +2296,18 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
     if (render_data == Py_None) {
         render_data = PyMemoryView_FromMemory((char *)&res->params, sizeof(res->params), PyBUF_WRITE);
     }
+
+    if (uniform_data == Py_None) {
+        uniform_data = NULL;
+    }
+
+    if (uniforms) {
+        PyObject_GetBuffer(uniform_layout, &res->uniform_layout_buffer, PyBUF_SIMPLE);
+        PyObject_GetBuffer(uniform_data, &res->uniform_data_buffer, PyBUF_SIMPLE);
+    }
+
+    PyObject_GetBuffer(viewport_data, &res->viewport_data_buffer, PyBUF_SIMPLE);
+    PyObject_GetBuffer(render_data, &res->render_data_buffer, PyBUF_SIMPLE);
 
     res->ctx = self;
     res->create_kwargs = create_kwargs;
@@ -2542,6 +2563,12 @@ static PyObject * Context_meth_release(Context * self, PyObject * arg) {
         release_framebuffer(self, pipeline->framebuffer);
         release_program(self, pipeline->program);
         release_vertex_array(self, pipeline->vertex_array);
+        if (pipeline->uniforms) {
+            PyBuffer_Release(&pipeline->uniform_layout_buffer);
+            PyBuffer_Release(&pipeline->uniform_data_buffer);
+        }
+        PyBuffer_Release(&pipeline->viewport_data_buffer);
+        PyBuffer_Release(&pipeline->render_data_buffer);
         Py_DECREF(pipeline);
     } else if (PyUnicode_CheckExact(arg) && !PyUnicode_CompareWithASCIIString(arg, "shader_cache")) {
         PyObject * key = NULL;
@@ -3146,7 +3173,7 @@ static int Image_set_clear_value(Image * self, PyObject * value, void * closure)
 }
 
 static PyObject * Pipeline_meth_render(Pipeline * self, PyObject * args) {
-    Viewport * viewport = (Viewport *)PyMemoryView_GET_BUFFER(self->viewport_data)->buf;
+    Viewport * viewport = (Viewport *)self->viewport_data_buffer.buf;
     bind_viewport(self->ctx, viewport);
     bind_global_settings(self->ctx, self->global_settings);
     bind_draw_framebuffer(self->ctx, self->framebuffer->obj);
@@ -3154,9 +3181,9 @@ static PyObject * Pipeline_meth_render(Pipeline * self, PyObject * args) {
     bind_vertex_array(self->ctx, self->vertex_array->obj);
     bind_descriptor_set(self->ctx, self->descriptor_set);
     if (self->uniforms) {
-        bind_uniforms(self->ctx, self->uniform_layout, self->uniform_data);
+        bind_uniforms(self);
     }
-    RenderParameters * params = (RenderParameters *)PyMemoryView_GET_BUFFER(self->render_data)->buf;
+    RenderParameters * params = (RenderParameters *)self->render_data_buffer.buf;
     if (self->index_type) {
         intptr offset = (intptr)params->first_vertex * (intptr)self->index_size;
         glDrawElementsInstanced(self->topology, params->vertex_count, self->index_type, offset, params->instance_count);
