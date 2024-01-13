@@ -1018,21 +1018,20 @@ static GLObject * build_vertex_array(Context * self, PyObject * bindings) {
     }
 
     int length = (int)PyTuple_Size(bindings);
-    PyObject ** seq = PySequence_Fast_ITEMS(bindings);
-    PyObject * index_buffer = seq[0];
+    PyObject * index_buffer = PyTuple_GetItem(bindings, 0);
 
     int vertex_array = 0;
     glGenVertexArrays(1, &vertex_array);
     bind_vertex_array(self, vertex_array);
 
     for (int i = 1; i < length; i += 6) {
-        Buffer * buffer = (Buffer *)seq[i + 0];
-        int location = to_int(seq[i + 1]);
-        int offset = to_int(seq[i + 2]);
-        int stride = to_int(seq[i + 3]);
-        int divisor = to_int(seq[i + 4]);
+        Buffer * buffer = (Buffer *)PyTuple_GetItem(bindings, i + 0);
+        int location = to_int(PyTuple_GetItem(bindings, i + 1));
+        int offset = to_int(PyTuple_GetItem(bindings, i + 2));
+        int stride = to_int(PyTuple_GetItem(bindings, i + 3));
+        int divisor = to_int(PyTuple_GetItem(bindings, i + 4));
         VertexFormat fmt;
-        if (!get_vertex_format(self->module_state->helper, seq[i + 5], &fmt)) {
+        if (!get_vertex_format(self->module_state->helper, PyTuple_GetItem(bindings, i + 5), &fmt)) {
             PyErr_Format(PyExc_ValueError, "invalid vertex format");
             return NULL;
         }
@@ -1068,27 +1067,25 @@ static GLObject * build_sampler(Context * self, PyObject * params) {
         return cache;
     }
 
-    PyObject ** seq = PySequence_Fast_ITEMS(params);
-
     int sampler = 0;
     glGenSamplers(1, &sampler);
-    glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, to_int(seq[0]));
-    glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, to_int(seq[1]));
-    glSamplerParameterf(sampler, GL_TEXTURE_MIN_LOD, to_float(seq[2]));
-    glSamplerParameterf(sampler, GL_TEXTURE_MAX_LOD, to_float(seq[3]));
+    glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, to_int(PyTuple_GetItem(params, 0)));
+    glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, to_int(PyTuple_GetItem(params, 1)));
+    glSamplerParameterf(sampler, GL_TEXTURE_MIN_LOD, to_float(PyTuple_GetItem(params, 2)));
+    glSamplerParameterf(sampler, GL_TEXTURE_MAX_LOD, to_float(PyTuple_GetItem(params, 3)));
 
-    float lod_bias = to_float(seq[4]);
+    float lod_bias = to_float(PyTuple_GetItem(params, 4));
     if (lod_bias != 0.0f) {
         glSamplerParameterf(sampler, GL_TEXTURE_LOD_BIAS, lod_bias);
     }
 
-    glSamplerParameteri(sampler, GL_TEXTURE_WRAP_S, to_int(seq[5]));
-    glSamplerParameteri(sampler, GL_TEXTURE_WRAP_T, to_int(seq[6]));
-    glSamplerParameteri(sampler, GL_TEXTURE_WRAP_R, to_int(seq[7]));
-    glSamplerParameteri(sampler, GL_TEXTURE_COMPARE_MODE, to_int(seq[8]));
-    glSamplerParameteri(sampler, GL_TEXTURE_COMPARE_FUNC, to_int(seq[9]));
+    glSamplerParameteri(sampler, GL_TEXTURE_WRAP_S, to_int(PyTuple_GetItem(params, 5)));
+    glSamplerParameteri(sampler, GL_TEXTURE_WRAP_T, to_int(PyTuple_GetItem(params, 6)));
+    glSamplerParameteri(sampler, GL_TEXTURE_WRAP_R, to_int(PyTuple_GetItem(params, 7)));
+    glSamplerParameteri(sampler, GL_TEXTURE_COMPARE_MODE, to_int(PyTuple_GetItem(params, 8)));
+    glSamplerParameteri(sampler, GL_TEXTURE_COMPARE_FUNC, to_int(PyTuple_GetItem(params, 9)));
 
-    float max_anisotropy = to_float(seq[10]);
+    float max_anisotropy = to_float(PyTuple_GetItem(params, 10));
     if (max_anisotropy != 1.0f) {
         glSamplerParameterf(sampler, GL_TEXTURE_MAX_ANISOTROPY, max_anisotropy);
     }
@@ -1107,13 +1104,12 @@ static DescriptorSetBuffers build_descriptor_set_buffers(Context * self, PyObjec
     memset(&res, 0, sizeof(res));
 
     int length = (int)PyTuple_Size(bindings);
-    PyObject ** seq = PySequence_Fast_ITEMS(bindings);
 
     for (int i = 0; i < length; i += 4) {
-        int binding = to_int(seq[i + 0]);
-        Buffer * buffer = (Buffer *)seq[i + 1];
-        int offset = to_int(seq[i + 2]);
-        int size = to_int(seq[i + 3]);
+        int binding = to_int(PyTuple_GetItem(bindings, i + 0));
+        Buffer * buffer = (Buffer *)PyTuple_GetItem(bindings, i + 1);
+        int offset = to_int(PyTuple_GetItem(bindings, i + 2));
+        int size = to_int(PyTuple_GetItem(bindings, i + 3));
         res.binding[binding].buffer = (Buffer *)new_ref(buffer);
         res.binding[binding].offset = offset;
         res.binding[binding].size = size;
@@ -1128,12 +1124,11 @@ static DescriptorSetSamplers build_descriptor_set_samplers(Context * self, PyObj
     memset(&res, 0, sizeof(res));
 
     int length = (int)PyTuple_Size(bindings);
-    PyObject ** seq = PySequence_Fast_ITEMS(bindings);
 
     for (int i = 0; i < length; i += 3) {
-        int binding = to_int(seq[i + 0]);
-        Image * image = (Image *)seq[i + 1];
-        GLObject * sampler = build_sampler(self, seq[i + 2]);
+        int binding = to_int(PyTuple_GetItem(bindings, i + 0));
+        Image * image = (Image *)PyTuple_GetItem(bindings, i + 1);
+        GLObject * sampler = build_sampler(self, PyTuple_GetItem(bindings, i + 2));
         res.binding[binding].sampler = sampler;
         res.binding[binding].image = (Image *)new_ref(image);
         res.binding_count = res.binding_count > (binding + 1) ? res.binding_count : (binding + 1);
@@ -1167,44 +1162,42 @@ static GlobalSettings * build_global_settings(Context * self, PyObject * setting
         return cache;
     }
 
-    PyObject ** seq = PySequence_Fast_ITEMS(settings);
-
     GlobalSettings * res = PyObject_New(GlobalSettings, self->module_state->GlobalSettings_type);
     res->uses = 1;
 
     int it = 0;
-    res->attachments = to_int(seq[it++]);
-    res->cull_face = to_int(seq[it++]);
-    res->depth_enabled = PyObject_IsTrue(seq[it++]);
+    res->attachments = to_int(PyTuple_GetItem(settings, it++));
+    res->cull_face = to_int(PyTuple_GetItem(settings, it++));
+    res->depth_enabled = PyObject_IsTrue(PyTuple_GetItem(settings, it++));
     if (res->depth_enabled) {
-        res->depth_func = to_int(seq[it++]);
-        res->depth_write = PyObject_IsTrue(seq[it++]);
+        res->depth_func = to_int(PyTuple_GetItem(settings, it++));
+        res->depth_write = PyObject_IsTrue(PyTuple_GetItem(settings, it++));
     }
-    res->stencil_enabled = PyObject_IsTrue(seq[it++]);
+    res->stencil_enabled = PyObject_IsTrue(PyTuple_GetItem(settings, it++));
     if (res->stencil_enabled) {
-        res->stencil_front.fail_op = to_int(seq[it++]);
-        res->stencil_front.pass_op = to_int(seq[it++]);
-        res->stencil_front.depth_fail_op = to_int(seq[it++]);
-        res->stencil_front.compare_op = to_int(seq[it++]);
-        res->stencil_front.compare_mask = to_int(seq[it++]);
-        res->stencil_front.write_mask = to_int(seq[it++]);
-        res->stencil_front.reference = to_int(seq[it++]);
-        res->stencil_back.fail_op = to_int(seq[it++]);
-        res->stencil_back.pass_op = to_int(seq[it++]);
-        res->stencil_back.depth_fail_op = to_int(seq[it++]);
-        res->stencil_back.compare_op = to_int(seq[it++]);
-        res->stencil_back.compare_mask = to_int(seq[it++]);
-        res->stencil_back.write_mask = to_int(seq[it++]);
-        res->stencil_back.reference = to_int(seq[it++]);
+        res->stencil_front.fail_op = to_int(PyTuple_GetItem(settings, it++));
+        res->stencil_front.pass_op = to_int(PyTuple_GetItem(settings, it++));
+        res->stencil_front.depth_fail_op = to_int(PyTuple_GetItem(settings, it++));
+        res->stencil_front.compare_op = to_int(PyTuple_GetItem(settings, it++));
+        res->stencil_front.compare_mask = to_int(PyTuple_GetItem(settings, it++));
+        res->stencil_front.write_mask = to_int(PyTuple_GetItem(settings, it++));
+        res->stencil_front.reference = to_int(PyTuple_GetItem(settings, it++));
+        res->stencil_back.fail_op = to_int(PyTuple_GetItem(settings, it++));
+        res->stencil_back.pass_op = to_int(PyTuple_GetItem(settings, it++));
+        res->stencil_back.depth_fail_op = to_int(PyTuple_GetItem(settings, it++));
+        res->stencil_back.compare_op = to_int(PyTuple_GetItem(settings, it++));
+        res->stencil_back.compare_mask = to_int(PyTuple_GetItem(settings, it++));
+        res->stencil_back.write_mask = to_int(PyTuple_GetItem(settings, it++));
+        res->stencil_back.reference = to_int(PyTuple_GetItem(settings, it++));
     }
-    res->blend_enabled = to_int(seq[it++]);
+    res->blend_enabled = to_int(PyTuple_GetItem(settings, it++));
     if (res->blend_enabled) {
-        res->blend.op_color = to_int(seq[it++]);
-        res->blend.op_alpha = to_int(seq[it++]);
-        res->blend.src_color = to_int(seq[it++]);
-        res->blend.dst_color = to_int(seq[it++]);
-        res->blend.src_alpha = to_int(seq[it++]);
-        res->blend.dst_alpha = to_int(seq[it++]);
+        res->blend.op_color = to_int(PyTuple_GetItem(settings, it++));
+        res->blend.op_alpha = to_int(PyTuple_GetItem(settings, it++));
+        res->blend.src_color = to_int(PyTuple_GetItem(settings, it++));
+        res->blend.dst_color = to_int(PyTuple_GetItem(settings, it++));
+        res->blend.src_alpha = to_int(PyTuple_GetItem(settings, it++));
+        res->blend.dst_alpha = to_int(PyTuple_GetItem(settings, it++));
     }
 
     PyDict_SetItem(self->global_settings_cache, settings, (PyObject *)res);
@@ -1268,7 +1261,7 @@ static PyObject * program_interface(Context * self, int program) {
         char name[256] = {0};
         glGetActiveAttrib(program, i, 256, &length, &size, &type, name);
         int location = glGetAttribLocation(program, name);
-        PyList_SET_ITEM(attributes, i, Py_BuildValue("{sssisisi}", "name", name, "location", location, "gltype", type, "size", size));
+        PyList_SetItem(attributes, i, Py_BuildValue("{sssisisi}", "name", name, "location", location, "gltype", type, "size", size));
     }
 
     for (int i = 0; i < num_uniforms; ++i) {
@@ -1278,7 +1271,7 @@ static PyObject * program_interface(Context * self, int program) {
         char name[256] = {0};
         glGetActiveUniform(program, i, 256, &length, &size, &type, name);
         int location = glGetUniformLocation(program, name);
-        PyList_SET_ITEM(uniforms, i, Py_BuildValue("{sssisisi}", "name", name, "location", location, "gltype", type, "size", size));
+        PyList_SetItem(uniforms, i, Py_BuildValue("{sssisisi}", "name", name, "location", location, "gltype", type, "size", size));
     }
 
     for (int i = 0; i < num_uniform_buffers; ++i) {
@@ -1287,7 +1280,7 @@ static PyObject * program_interface(Context * self, int program) {
         char name[256] = {0};
         glGetActiveUniformBlockiv(program, i, GL_UNIFORM_BLOCK_DATA_SIZE, &size);
         glGetActiveUniformBlockName(program, i, 256, &length, name);
-        PyList_SET_ITEM(uniform_buffers, i, Py_BuildValue("{sssi}", "name", name, "size", size));
+        PyList_SetItem(uniform_buffers, i, Py_BuildValue("{sssi}", "name", name, "size", size));
     }
 
     return Py_BuildValue("(NNN)", attributes, uniforms, uniform_buffers);
@@ -3116,15 +3109,14 @@ static int Image_set_clear_value(Image * self, PyObject * value, void * closure)
         }
         return 0;
     }
-    PyObject * values = PySequence_Fast(value, "");
+    PyObject * values = PySequence_Tuple(value);
     if (!values) {
         PyErr_Clear();
         PyErr_Format(PyExc_TypeError, "the clear value must be a tuple");
         return -1;
     }
 
-    int size = (int)PySequence_Fast_GET_SIZE(values);
-    PyObject ** seq = PySequence_Fast_ITEMS(values);
+    int size = (int)PyTuple_Size(values);
 
     if (size != self->fmt.components) {
         Py_DECREF(values);
@@ -3134,19 +3126,19 @@ static int Image_set_clear_value(Image * self, PyObject * value, void * closure)
 
     if (self->fmt.clear_type == 'f') {
         for (int i = 0; i < self->fmt.components; ++i) {
-            self->clear_value.clear_floats[i] = to_float(seq[i]);
+            self->clear_value.clear_floats[i] = to_float(PyTuple_GetItem(values, i));
         }
     } else if (self->fmt.clear_type == 'i') {
         for (int i = 0; i < self->fmt.components; ++i) {
-            self->clear_value.clear_ints[i] = to_int(seq[i]);
+            self->clear_value.clear_ints[i] = to_int(PyTuple_GetItem(values, i));
         }
     } else if (self->fmt.clear_type == 'u') {
         for (int i = 0; i < self->fmt.components; ++i) {
-            self->clear_value.clear_uints[i] = to_uint(seq[i]);
+            self->clear_value.clear_uints[i] = to_uint(PyTuple_GetItem(values, i));
         }
     } else if (self->fmt.clear_type == 'x') {
-        self->clear_value.clear_floats[0] = to_float(seq[0]);
-        self->clear_value.clear_ints[1] = to_int(seq[1]);
+        self->clear_value.clear_floats[0] = to_float(PyTuple_GetItem(values, 0));
+        self->clear_value.clear_ints[1] = to_int(PyTuple_GetItem(values, 1));
     }
     if (PyErr_Occurred()) {
         Py_DECREF(values);
