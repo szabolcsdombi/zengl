@@ -734,7 +734,7 @@ static int get_image_format(PyObject * helper, PyObject * name, ImageFormat * re
     res->pixel_size = to_int(PyTuple_GetItem(tup, 5));
     res->color = to_int(PyTuple_GetItem(tup, 6));
     res->flags = to_int(PyTuple_GetItem(tup, 7));
-    res->clear_type = PyUnicode_AsUTF8(PyTuple_GetItem(tup, 8))[0];
+    res->clear_type = PyUnicode_AsUTF8AndSize(PyTuple_GetItem(tup, 8), NULL)[0];
     return 1;
 }
 
@@ -2228,11 +2228,11 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
         PyObject * obj = PyList_GetItem(layout_bindings, i);
         PyObject * name = PyTuple_GetItem(obj, 0);
         int binding = to_int(PyTuple_GetItem(obj, 1));
-        int location = glGetUniformLocation(program->obj, PyUnicode_AsUTF8(name));
+        int location = glGetUniformLocation(program->obj, PyUnicode_AsUTF8AndSize(name, NULL));
         if (location >= 0) {
             glUniform1i(location, binding);
         } else {
-            int index = glGetUniformBlockIndex(program->obj, PyUnicode_AsUTF8(name));
+            int index = glGetUniformBlockIndex(program->obj, PyUnicode_AsUTF8AndSize(name, NULL));
             glUniformBlockBinding(program->obj, index, binding);
         }
     }
