@@ -681,6 +681,13 @@ static void bind_uniforms(Pipeline * self) {
     }
 }
 
+static void zeromem(void * data, int size) {
+    unsigned char * ptr = data;
+    while (size--) {
+        *ptr++ = 0;
+    }
+}
+
 static int startswith(const char * str, const char * prefix) {
     if (!str) {
         return 0;
@@ -1089,7 +1096,7 @@ static GLObject * build_sampler(Context * self, PyObject * params) {
 
 static DescriptorSetBuffers build_descriptor_set_buffers(Context * self, PyObject * bindings) {
     DescriptorSetBuffers res;
-    memset(&res, 0, sizeof(res));
+    zeromem(&res, sizeof(res));
 
     int length = (int)PyTuple_Size(bindings);
 
@@ -1109,7 +1116,7 @@ static DescriptorSetBuffers build_descriptor_set_buffers(Context * self, PyObjec
 
 static DescriptorSetSamplers build_descriptor_set_samplers(Context * self, PyObject * bindings) {
     DescriptorSetSamplers res;
-    memset(&res, 0, sizeof(res));
+    zeromem(&res, sizeof(res));
 
     int length = (int)PyTuple_Size(bindings);
 
@@ -2284,10 +2291,10 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
     res->gc_next->gc_prev = (GCHeader *)res;
     Py_INCREF((PyObject *)res);
 
-    memset(&res->uniform_layout_buffer, 0, sizeof(Py_buffer));
-    memset(&res->uniform_data_buffer, 0, sizeof(Py_buffer));
-    memset(&res->viewport_data_buffer, 0, sizeof(Py_buffer));
-    memset(&res->render_data_buffer, 0, sizeof(Py_buffer));
+    zeromem(&res->uniform_layout_buffer, sizeof(Py_buffer));
+    zeromem(&res->uniform_data_buffer, sizeof(Py_buffer));
+    zeromem(&res->viewport_data_buffer, sizeof(Py_buffer));
+    zeromem(&res->render_data_buffer, sizeof(Py_buffer));
 
     if (viewport_data == Py_None) {
         viewport_data = PyMemoryView_FromMemory((char *)&res->viewport, sizeof(res->viewport), PyBUF_WRITE);
