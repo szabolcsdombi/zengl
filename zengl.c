@@ -1554,7 +1554,7 @@ static PyObject * read_image_face(ImageFace * src, IntPair size, IntPair offset,
     }
 
     Py_buffer view;
-    if (PyObject_GetBuffer(into, &view, PyBUF_C_CONTIGUOUS | PyBUF_WRITABLE)) {
+    if (PyObject_GetBuffer(into, &view, PyBUF_WRITABLE)) {
         return NULL;
     }
 
@@ -2742,7 +2742,7 @@ static PyObject * Buffer_meth_read(Buffer * self, PyObject * args, PyObject * kw
     }
 
     Py_buffer view;
-    if (PyObject_GetBuffer(into, &view, PyBUF_C_CONTIGUOUS | PyBUF_WRITABLE)) {
+    if (PyObject_GetBuffer(into, &view, PyBUF_WRITABLE)) {
         return NULL;
     }
 
