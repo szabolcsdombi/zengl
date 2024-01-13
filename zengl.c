@@ -1541,7 +1541,7 @@ static PyObject * read_image_face(ImageFace * src, IntPair size, IntPair offset,
 
     if (into == Py_None) {
         PyObject * res = PyBytes_FromStringAndSize(NULL, write_size);
-        glReadPixels(offset.x, offset.y, size.x, size.y, src->image->fmt.format, src->image->fmt.type, PyBytes_AS_STRING(res));
+        glReadPixels(offset.x, offset.y, size.x, size.y, src->image->fmt.format, src->image->fmt.type, PyBytes_AsString(res));
         return res;
     }
 
@@ -2729,7 +2729,7 @@ static PyObject * Buffer_meth_read(Buffer * self, PyObject * args, PyObject * kw
 
     if (into == Py_None) {
         PyObject * res = PyBytes_FromStringAndSize(NULL, size);
-        glGetBufferSubData(self->target, offset, size, PyBytes_AS_STRING(res));
+        glGetBufferSubData(self->target, offset, size, PyBytes_AsString(res));
         return res;
     }
 
@@ -3008,7 +3008,7 @@ static PyObject * Image_meth_read(Image * self, PyObject * args, PyObject * kwar
         PyObject * res = PyBytes_FromStringAndSize(NULL, write_size * self->layer_count);
         for (int i = 0; i < self->layer_count; ++i) {
             ImageFace * src = (ImageFace *)PyTuple_GetItem(self->layers, i);
-            PyObject * chunk = PyMemoryView_FromMemory(PyBytes_AS_STRING(res) + write_size * i, write_size, PyBUF_WRITE);
+            PyObject * chunk = PyMemoryView_FromMemory(PyBytes_AsString(res) + write_size * i, write_size, PyBUF_WRITE);
             PyObject * temp = read_image_face(src, size, offset, chunk);
             if (!temp) {
                 return NULL;
