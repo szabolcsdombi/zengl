@@ -138,7 +138,6 @@ ImageFormat = Literal[
     "r32float",
     "rg32float",
     "rgba32float",
-    "rgba8unorm-srgb",
     "depth16unorm",
     "depth24plus",
     "depth24plus-stencil8",
@@ -224,13 +223,6 @@ class BlendSettings(TypedDict, total=False):
     src_alpha: BlendConstant
     dst_alpha: BlendConstant
 
-class DefaultFramebufferInfo(TypedDict):
-    color_bits: Tuple[int, int, int, int]
-    depth_bits: int
-    stencil_bits: int
-    hdr: bool
-    srgb: bool
-
 class Info(TypedDict):
     vendor: str
     renderer: str
@@ -243,7 +235,6 @@ class Info(TypedDict):
     max_vertex_attribs: int
     max_draw_buffers: int
     max_samples: int
-    default_framebuffer: DefaultFramebufferInfo
 
 class ImageFace:
     image: Image
@@ -257,7 +248,6 @@ class ImageFace:
         target_viewport: Viewport | None = None,
         source_viewport: Viewport | None = None,
         filter: bool = True,
-        srgb: bool | None = None,
     ) -> None: ...
 
 class ContextLoader(Protocol):
@@ -293,7 +283,6 @@ class Image:
         target_viewport: Viewport | None = None,
         source_viewport: Viewport | None = None,
         filter: bool = True,
-        srgb: bool | None = None,
     ) -> None: ...
 
 class Pipeline:

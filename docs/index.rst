@@ -271,7 +271,7 @@ Image
     | An OpenGL Texture Object returned by glGenTextures.
     | The default value is 0.
 
-.. py:method:: Image.blit(target, target_viewport, source_viewport, filter, srgb)
+.. py:method:: Image.blit(target, target_viewport, source_viewport, filter)
 
 **target**
     | The target image to copy to. The default value is None and it means to copy to the screen.
@@ -282,10 +282,6 @@ Image
 **filter**
     | A boolean to enable linear filtering for scaled images. By default it is True.
       It has no effect if the source and target viewports have the same size.
-
-**srgb**
-    | A boolean to enable linear to srgb conversion.
-    | By default it is None and it means False except for srgb source images.
 
 .. py:method:: Image.clear()
 
@@ -707,7 +703,6 @@ rgba16float          GL_RGBA16F            GL_RGBA            GL_FLOAT
 r32float             GL_R32F               GL_RED             GL_FLOAT
 rg32float            GL_RG32F              GL_RG              GL_FLOAT
 rgba32float          GL_RGBA32F            GL_RGBA            GL_FLOAT
-rgba8unorm-srgb      GL_RGBA8              GL_RGBA            GL_UNSIGNED_BYTE
 depth16unorm         GL_DEPTH_COMPONENT16  GL_DEPTH_COMPONENT GL_UNSIGNED_SHORT
 depth24plus          GL_DEPTH_COMPONENT24  GL_DEPTH_COMPONENT GL_UNSIGNED_INT
 depth24plus-stencil8 GL_DEPTH_COMPONENT24  GL_DEPTH_COMPONENT GL_UNSIGNED_INT

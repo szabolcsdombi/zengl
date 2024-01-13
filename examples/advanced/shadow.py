@@ -9,7 +9,7 @@ from window import Window
 window = Window()
 ctx = zengl.context()
 
-image = ctx.image(window.size, 'rgba8unorm-srgb', samples=4)
+image = ctx.image(window.size, 'rgba8unorm', samples=4)
 depth = ctx.image(window.size, 'depth24plus', samples=4)
 image.clear_value = (0.03, 0.03, 0.03, 1.0)
 
@@ -152,7 +152,7 @@ def create_render_pipeline(vertex_buffer, uniform_buffer, framebuffer):
                         color += v_color * lambertian * light_color[light_index].rgb * light_coef +
                             specular * light_color[light_index].rgb * light_coef;
                     }
-                    out_color = vec4(color, 1.0);
+                    out_color = vec4(pow(color, vec3(1.0 / 2.2)), 1.0);
                 }
             }
         ''',

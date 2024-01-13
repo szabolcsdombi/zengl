@@ -15,7 +15,7 @@ pack = zipfile.ZipFile(assets.get('metal_plate_1k.gltf.zip'))
 img1 = Image.open(pack.open('textures/metal_plate_diff_1k.jpg')).convert('RGBA')
 img2 = Image.open(pack.open('textures/metal_plate_rough_1k.jpg')).convert('RGBA')
 img3 = Image.open(pack.open('textures/metal_plate_nor_gl_1k.jpg')).convert('RGBA')
-texture1 = ctx.image(img1.size, 'rgba8unorm-srgb', img1.tobytes())
+texture1 = ctx.image(img1.size, 'rgba8unorm', img1.tobytes())
 texture2 = ctx.image(img2.size, 'rgba8unorm', img2.tobytes())
 texture3 = ctx.image(img3.size, 'rgba8unorm', img3.tobytes())
 
@@ -96,7 +96,7 @@ pipeline = ctx.pipeline(
             vec3 surface_normal = texture(Texture3, v_text).rgb;
             float rought = texture(Texture2, v_text).r;
             float spec = pow(max(dot(normal, halfway_dir), 0.0), shininess) * rought;
-            vec3 color = texture(Texture1, v_text).rgb + vec3(1.0, 1.0, 1.0) * spec;
+            vec3 color = pow(texture(Texture1, v_text).rgb, vec3(2.2)) + vec3(1.0, 1.0, 1.0) * spec;
             out_color = vec4(pow(color, vec3(1.0 / 2.2)), 1.0);
         }
     ''',

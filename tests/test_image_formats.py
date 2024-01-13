@@ -33,7 +33,6 @@ IMAGE_FORMATS = [
     "r32float",
     "rg32float",
     "rgba32float",
-    "rgba8unorm-srgb",
     "depth16unorm",
     "depth24plus",
     "depth24plus-stencil8",

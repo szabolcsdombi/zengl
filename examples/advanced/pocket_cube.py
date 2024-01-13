@@ -89,7 +89,7 @@ def make_rotations(axis, angle, sign, count):
 window = Window()
 ctx = zengl.context()
 
-image = ctx.image(window.size, 'rgba8unorm-srgb', samples=4)
+image = ctx.image(window.size, 'rgba8unorm', samples=4)
 depth = ctx.image(window.size, 'depth24plus', samples=4)
 image.clear_value = (0.03, 0.03, 0.03, 1.0)
 
@@ -161,7 +161,7 @@ cube = ctx.pipeline(
         void main() {
             vec3 light = vec3(4.0, 3.0, 10.0);
             float lum = dot(normalize(light), normalize(v_normal)) * 0.7 + 0.3;
-            out_color = vec4(v_color * lum, 1.0);
+            out_color = vec4(pow(v_color * lum, vec3(1.0 / 2.2)), 1.0);
         }
     ''',
     layout=[

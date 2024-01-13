@@ -5,7 +5,7 @@ from window import Window
 window = Window((720, 720))
 ctx = zengl.context()
 
-image = ctx.image(window.size, 'rgba8unorm-srgb')
+image = ctx.image(window.size, 'rgba8unorm')
 
 pipeline = ctx.pipeline(
     vertex_shader='''
@@ -47,10 +47,10 @@ pipeline = ctx.pipeline(
 
         vec2 brick_coordinates(vec2 uv, BrickTexture mt) {
             vec2 b = uv * mt.scale / mt.brick_size;
-            if (int(floor(b.y) + 1) % mt.offset_frequency == 0) {
+            if (int(floor(b.y) + 1.0) % mt.offset_frequency == 0) {
                 b.x += mt.offset;
             }
-            if (int(floor(b.y) + 1) % mt.squash_frequency == 0) {
+            if (int(floor(b.y) + 1.0) % mt.squash_frequency == 0) {
                 b.x *= mt.squash;
             }
             return b;
@@ -88,7 +88,7 @@ pipeline = ctx.pipeline(
             mt.color3 = vec3(0.0, 0.0, 0.0);
 
             vec3 color = brick_color(uv, mt);
-            out_color = vec4(color, 1.0);
+            out_color = vec4(pow(color, vec3(1.0 / 2.2)), 1.0);
         }
     ''',
     uniforms={

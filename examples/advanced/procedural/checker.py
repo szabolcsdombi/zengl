@@ -5,7 +5,7 @@ from window import Window
 window = Window((720, 720))
 ctx = zengl.context()
 
-image = ctx.image(window.size, 'rgba8unorm-srgb')
+image = ctx.image(window.size, 'rgba8unorm')
 
 pipeline = ctx.pipeline(
     vertex_shader='''
@@ -48,7 +48,7 @@ pipeline = ctx.pipeline(
             mt.color2 = vec3(0.8, 0.8, 0.8);
 
             vec3 color = checker_color(uv, mt);
-            out_color = vec4(color, 1.0);
+            out_color = vec4(pow(color, vec3(1.0 / 2.2)), 1.0);
         }
     ''',
     uniforms={

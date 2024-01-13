@@ -16,13 +16,13 @@ img_norm = Image.open(pack.open('wine_barrel_01_nor_gl_2k.jpg'))
 window = Window()
 ctx = zengl.context()
 
-image = ctx.image(window.size, 'rgba8unorm-srgb', samples=4)
+image = ctx.image(window.size, 'rgba8unorm', samples=4)
 depth = ctx.image(window.size, 'depth24plus', samples=4)
 image.clear_value = (1.0, 1.0, 1.0, 1.0)
 
 vertex_buffer = ctx.buffer(pack.read('wine_barrel_01.mesh'))  # https://polyhaven.com/a/wine_barrel_01
 
-texture_diff = ctx.image(img_diff.size, 'rgba8unorm-srgb', img_diff.tobytes('raw', 'RGBA', 0, -1))
+texture_diff = ctx.image(img_diff.size, 'rgba8unorm', img_diff.tobytes('raw', 'RGBA', 0, -1))
 texture_arm = ctx.image(img_arm.size, 'rgba8unorm', img_arm.tobytes('raw', 'RGBA', 0, -1))
 texture_norm = ctx.image(img_norm.size, 'rgba8unorm', img_norm.tobytes('raw', 'RGBA', 0, -1))
 
@@ -93,8 +93,8 @@ crate = ctx.pipeline(
             vec3 surface_normal = texture(Texture3, v_texcoord).rgb;
             float rought = texture(Texture2, v_texcoord).g;
             float spec = pow(max(dot(normal, halfway_dir), 0.0), shininess) * rought;
-            vec3 color = texture(Texture1, v_texcoord).rgb + vec3(1.0, 1.0, 1.0) * spec;
-            out_color = vec4(color, 1.0);
+            vec3 color = pow(texture(Texture1, v_texcoord).rgb, vec3(2.2)) + vec3(1.0, 1.0, 1.0) * spec;
+            out_color = vec4(pow(color, vec3(1.0 / 2.2)), 1.0);
         }
     ''',
     layout=[
@@ -156,5 +156,5 @@ while window.update():
     image.clear()
     depth.clear()
     crate.render()
-    image.blit(srgb=True)
+    image.blit()
     ctx.end_frame()

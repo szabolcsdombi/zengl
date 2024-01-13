@@ -340,7 +340,6 @@ typedef Py_ssize_t intptr;
 #define GL_SHADING_LANGUAGE_VERSION 0x8B8C
 #define GL_PIXEL_PACK_BUFFER 0x88EB
 #define GL_PIXEL_UNPACK_BUFFER 0x88EC
-#define GL_SRGB8_ALPHA8 0x8C43
 #define GL_TEXTURE_2D_ARRAY 0x8C1A
 #define GL_DEPTH_STENCIL_ATTACHMENT 0x821A
 #define GL_DEPTH_STENCIL 0x84F9
@@ -351,7 +350,6 @@ typedef Py_ssize_t intptr;
 #define GL_STENCIL_ATTACHMENT 0x8D20
 #define GL_RENDERBUFFER 0x8D41
 #define GL_MAX_SAMPLES 0x8D57
-#define GL_FRAMEBUFFER_SRGB 0x8DB9
 #define GL_COPY_READ_BUFFER 0x8F36
 #define GL_COPY_WRITE_BUFFER 0x8F37
 #define GL_UNIFORM_BUFFER 0x8A11
@@ -1403,7 +1401,7 @@ static void clear_bound_image(Image * self) {
     }
 }
 
-static PyObject * blit_image_face(ImageFace * src, PyObject * dst, PyObject * src_viewport, PyObject * dst_viewport, int filter, PyObject * srgb) {
+static PyObject * blit_image_face(ImageFace * src, PyObject * dst, PyObject * src_viewport, PyObject * dst_viewport, int filter) {
     if (Py_TYPE(dst) == src->image->ctx->module_state->Image_type) {
         Image * image = (Image *)dst;
         if (image->array || image->cubemap) {
@@ -1437,12 +1435,6 @@ static PyObject * blit_image_face(ImageFace * src, PyObject * dst, PyObject * sr
         return NULL;
     }
 
-    if (srgb == Py_None) {
-        srgb = src->image->fmt.internal_format == GL_SRGB8_ALPHA8 ? Py_True : Py_False;
-    }
-
-    const int disable_srgb = !src->ctx->gles && !PyObject_IsTrue(srgb);
-
     if (tv.x < 0 || tv.y < 0 || tv.width <= 0 || tv.height <= 0 || (target && (tv.x + tv.width > target->width || tv.y + tv.height > target->height))) {
         PyErr_Format(PyExc_ValueError, "the target viewport is out of range");
         return NULL;
@@ -1468,10 +1460,6 @@ static PyObject * blit_image_face(ImageFace * src, PyObject * dst, PyObject * sr
         return NULL;
     }
 
-    if (disable_srgb) {
-        glDisable(GL_FRAMEBUFFER_SRGB);
-    }
-
     int target_framebuffer = target ? target->framebuffer->obj : src->ctx->default_framebuffer->obj;
     bind_read_framebuffer(src->image->ctx, src->framebuffer->obj);
     bind_draw_framebuffer(src->image->ctx, target_framebuffer);
@@ -1480,10 +1468,6 @@ static PyObject * blit_image_face(ImageFace * src, PyObject * dst, PyObject * sr
         tv.x, tv.y, tv.x + tv.width, tv.y + tv.height,
         GL_COLOR_BUFFER_BIT, filter ? GL_LINEAR : GL_NEAREST
     );
-
-    if (disable_srgb) {
-        glEnable(GL_FRAMEBUFFER_SRGB);
-    }
 
     Py_RETURN_NONE;
 }
@@ -1736,7 +1720,6 @@ static Context * meth_context(PyObject * self, PyObject * args) {
     if (!res->gles) {
         glEnable(GL_PROGRAM_POINT_SIZE);
         glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-        glEnable(GL_FRAMEBUFFER_SRGB);
     }
 
     PyObject * old_context = module_state->default_context;
@@ -2387,7 +2370,6 @@ static PyObject * Context_meth_new_frame(Context * self, PyObject * args, PyObje
     if (!self->gles) {
         glEnable(GL_PROGRAM_POINT_SIZE);
         glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-        glEnable(GL_FRAMEBUFFER_SRGB);
     }
     Py_RETURN_NONE;
 }
@@ -2422,7 +2404,6 @@ static PyObject * Context_meth_end_frame(Context * self, PyObject * args, PyObje
         if (!self->gles) {
             glDisable(GL_PROGRAM_POINT_SIZE);
             glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-            glDisable(GL_FRAMEBUFFER_SRGB);
         }
     }
 
@@ -3032,20 +3013,19 @@ static PyObject * Image_meth_read(Image * self, PyObject * args, PyObject * kwar
 }
 
 static PyObject * Image_meth_blit(Image * self, PyObject * args, PyObject * kwargs) {
-    static char * keywords[] = {"target", "target_viewport", "source_viewport", "filter", "srgb", NULL};
+    static char * keywords[] = {"target", "target_viewport", "source_viewport", "filter", NULL};
 
     PyObject * target = Py_None;
     PyObject * target_viewport = Py_None;
     PyObject * source_viewport = Py_None;
     int filter = 1;
-    PyObject * srgb = Py_None;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|OOOpO", keywords, &target, &target_viewport, &source_viewport, &filter, &srgb)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|OOOp", keywords, &target, &target_viewport, &source_viewport, &filter)) {
         return NULL;
     }
 
     ImageFace * src = (ImageFace *)PyTuple_GetItem(self->layers, 0);
-    return blit_image_face(src, target, source_viewport, target_viewport, filter, srgb);
+    return blit_image_face(src, target, source_viewport, target_viewport, filter);
 }
 
 static ImageFace * Image_meth_face(Image * self, PyObject * args, PyObject * kwargs) {
@@ -3278,19 +3258,18 @@ static PyObject * ImageFace_meth_read(ImageFace * self, PyObject * args, PyObjec
 }
 
 static PyObject * ImageFace_meth_blit(ImageFace * self, PyObject * args, PyObject * kwargs) {
-    static char * keywords[] = {"target", "target_viewport", "source_viewport", "filter", "srgb", NULL};
+    static char * keywords[] = {"target", "target_viewport", "source_viewport", "filter", NULL};
 
     PyObject * target = Py_None;
     PyObject * target_viewport = Py_None;
     PyObject * source_viewport = Py_None;
     int filter = 1;
-    PyObject * srgb = Py_None;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|OOOpO", keywords, &target, &target_viewport, &source_viewport, &filter, &srgb)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|OOOp", keywords, &target, &target_viewport, &source_viewport, &filter)) {
         return NULL;
     }
 
-    return blit_image_face(self, target, source_viewport, target_viewport, filter, srgb);
+    return blit_image_face(self, target, source_viewport, target_viewport, filter);
 }
 
 typedef struct vec3 {

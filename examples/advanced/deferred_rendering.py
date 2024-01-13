@@ -21,11 +21,11 @@ def gen_sphere(radius, res=100):
 window = Window()
 ctx = zengl.context()
 
-image = ctx.image(window.size, 'rgba8unorm-srgb')
+# image = ctx.image(window.size, 'rgba8unorm')
 
 vertex = ctx.image(window.size, 'rgba32float')
 normal = ctx.image(window.size, 'rgba32float')
-color = ctx.image(window.size, 'rgba8unorm-srgb')
+color = ctx.image(window.size, 'rgba8unorm')
 depth = ctx.image(window.size, 'depth24plus')
 color.clear_value = (0.2, 0.2, 0.2, 1.0)
 normal.clear_value = (0.0, 0.0, 0.0, 1.0)
@@ -71,9 +71,10 @@ pipeline = ctx.pipeline(
         layout (location = 2) out vec3 out_color;
 
         void main() {
+            vec3 color = vec3(1.0, 1.0, 1.0);
             out_vertex = v_vertex;
             out_normal = v_normal;
-            out_color = vec3(1.0, 1.0, 1.0);
+            out_color = pow(color, vec3(1.0 / 2.2));
         }
     ''',
     layout=[
@@ -139,7 +140,7 @@ lights = ctx.pipeline(
             ivec2 t = ivec2(gl_FragCoord.xy);
             vec3 vertex = texelFetch(Vertex, t, 0).xyz;
             vec3 normal = texelFetch(Normal, t, 0).xyz;
-            vec3 color = texelFetch(Color, t, 0).rgb;
+            vec3 color = pow(texelFetch(Color, t, 0).rgb, vec3(2.2));
 
             float falloff = clamp(v_size - length(v_position - vertex), 0.0, 1.0);
             float lum = dot(normalize(v_position - vertex), normalize(normal)) * falloff;
@@ -186,7 +187,8 @@ lights = ctx.pipeline(
             'image': color,
         },
     ],
-    framebuffer=[image],
+    framebuffer=None,
+    viewport=(0, 0, *window.size),
     topology='triangles',
     cull_face='back',
     vertex_buffers=[
@@ -224,9 +226,7 @@ while window.update():
     light_instances[:, 3] = (radius1 + radius2) / 2.0 + (radius1 - radius2) * np.sin(offset + window.time)
     light_instance_buffer.write(light_instances.tobytes())
     lights.instance_count = 49
-    image.clear()
     depth.clear()
     pipeline.render()
     lights.render()
-    image.blit()
     ctx.end_frame()
