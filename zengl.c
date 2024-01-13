@@ -3406,11 +3406,11 @@ static void Context_dealloc(Context * self) {
     Py_DECREF(self->before_frame_callback);
     Py_DECREF(self->after_frame_callback);
     Py_DECREF(self->info_dict);
-    Py_TYPE(self)->tp_free(self);
+    PyObject_Del(self);
 }
 
 static void Buffer_dealloc(Buffer * self) {
-    Py_TYPE(self)->tp_free(self);
+    PyObject_Del(self);
 }
 
 static void Image_dealloc(Image * self) {
@@ -3418,7 +3418,7 @@ static void Image_dealloc(Image * self) {
     Py_DECREF(self->format);
     Py_DECREF(self->faces);
     Py_DECREF(self->layers);
-    Py_TYPE(self)->tp_free(self);
+    PyObject_Del(self);
 }
 
 static void Pipeline_dealloc(Pipeline * self) {
@@ -3432,33 +3432,33 @@ static void Pipeline_dealloc(Pipeline * self) {
     Py_XDECREF(self->uniform_data);
     Py_DECREF(self->viewport_data);
     Py_DECREF(self->render_data);
-    Py_TYPE(self)->tp_free(self);
+    PyObject_Del(self);
 }
 
 static void ImageFace_dealloc(ImageFace * self) {
     Py_DECREF(self->framebuffer);
     Py_DECREF(self->size);
-    Py_TYPE(self)->tp_free(self);
+    PyObject_Del(self);
 }
 
 static void BufferView_dealloc(BufferView * self) {
     Py_DECREF(self->buffer);
-    Py_TYPE(self)->tp_free(self);
+    PyObject_Del(self);
 }
 
 static void DescriptorSet_dealloc(DescriptorSet * self) {
-    Py_TYPE(self)->tp_free(self);
+    PyObject_Del(self);
 }
 
 static void GlobalSettings_dealloc(GlobalSettings * self) {
-    Py_TYPE(self)->tp_free(self);
+    PyObject_Del(self);
 }
 
 static void GLObject_dealloc(GLObject * self) {
     if (self->extra) {
         Py_DECREF(self->extra);
     }
-    Py_TYPE(self)->tp_free(self);
+    PyObject_Del(self);
 }
 
 static PyMethodDef Context_methods[] = {
