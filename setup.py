@@ -3,6 +3,7 @@ import sys
 
 from setuptools import Extension, setup
 
+py_limited_api = False
 extra_compile_args = []
 extra_link_args = []
 define_macros = []
@@ -13,16 +14,11 @@ stubs = {
     "include_package_data": True,
 }
 
-if sys.platform.startswith("linux"):
-    extra_compile_args = []
-
 if sys.platform.startswith("darwin"):
-    extra_compile_args = ["-Wno-writable-strings"]
+    extra_compile_args += ["-Wno-writable-strings"]
 
 if os.getenv("PYODIDE"):
-    define_macros = [
-        ("EXTERN_GL", None),
-    ]
+    define_macros += [("EXTERN_GL", None)]
 
 if os.getenv("ZENGL_COVERAGE"):
     extra_compile_args += ["-O0", "--coverage"]
@@ -47,12 +43,17 @@ if os.getenv("ZENGL_WARNINGS"):
 if os.getenv("ZENGL_NO_STUBS"):
     stubs = {}
 
+# if sys.hexversion >= 0x030B0000:
+#     define_macros += [("Py_LIMITED_API", 0x030B0000)]
+#     py_limited_api = True
+
 ext = Extension(
     name="zengl",
     sources=["zengl.c"],
     extra_compile_args=extra_compile_args,
     extra_link_args=extra_link_args,
     define_macros=define_macros,
+    py_limited_api=py_limited_api,
 )
 
 with open("README.md") as readme:
