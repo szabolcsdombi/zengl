@@ -7,6 +7,7 @@ py_limited_api = False
 extra_compile_args = []
 extra_link_args = []
 define_macros = []
+cmdclass = {}
 
 stubs = {
     "packages": ["zengl-stubs"],
@@ -43,9 +44,21 @@ if os.getenv("ZENGL_WARNINGS"):
 if os.getenv("ZENGL_NO_STUBS"):
     stubs = {}
 
-# if sys.hexversion >= 0x030B0000:
-#     define_macros += [("Py_LIMITED_API", 0x030B0000)]
-#     py_limited_api = True
+if sys.hexversion >= 0x030B0000:
+    from wheel.bdist_wheel import bdist_wheel
+
+    class bdist_wheel_abi3(bdist_wheel):
+        def get_tag(self):
+            python, abi, plat = super().get_tag()
+
+            if python.startswith("cp"):
+                return "cp311", "abi3", plat
+
+            return python, abi, plat
+
+    cmdclass = {"cmdclass": {"bdist_wheel": bdist_wheel_abi3}}
+    define_macros += [("Py_LIMITED_API", 0x030B0000)]
+    py_limited_api = True
 
 ext = Extension(
     name="zengl",
@@ -117,5 +130,6 @@ setup(
         "gpu",
         "webgl",
     ],
+    **cmdclass,
     **stubs,
 )
