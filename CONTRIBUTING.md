@@ -15,6 +15,5 @@ Please try to adopt the following aspects:
 - GLSL code is not considered an asset file.
 - Examples should be self contained single file demos or project like subfolders in the example folder.
 - External links to ZenGL examples are also welcome.
-- Preview images should be tinyfied [](https://tinypng.com/) and uploaded to the [zengl-example-images](https://github.com/szabolcsdombi/) repository.
 
 Thank you for contributing.
