@@ -1488,7 +1488,7 @@ static PyObject * blit_image_face(ImageFace * src, PyObject * dst, PyObject * sr
     Py_RETURN_NONE;
 }
 
-int parse_size_and_offset(ImageFace * self, PyObject * size_arg, PyObject * offset_arg, IntPair * size, IntPair * offset) {
+static int parse_size_and_offset(ImageFace * self, PyObject * size_arg, PyObject * offset_arg, IntPair * size, IntPair * offset) {
     if (size_arg == Py_None && offset_arg != Py_None) {
         PyErr_Format(PyExc_ValueError, "the size is required when the offset is not None");
         return 0;
