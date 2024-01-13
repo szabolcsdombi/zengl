@@ -85,7 +85,7 @@ def export_material_node_color_mesh(obj):
     for triangle_loop in mesh.loop_triangles:
         for loop_index in triangle_loop.loops:
             loop = mesh.loops[loop_index]
-            shader = mesh.materials[triangle_loop.material_index].node_tree.nodes['Principled BSDF']
+            shader = mesh.materials[triangle_loop.material_index].node_tree.nodes["Principled BSDF"]
             x, y, z = mesh.vertices[loop.vertex_index].co
             r, g, b, _ = shader.inputs[0].default_value
             r, g, b = color_byte(r), color_byte(g), color_byte(b)
@@ -160,9 +160,9 @@ def export_world_transform(obj):
     rw, rx, ry, rz = obj.matrix_world.to_quaternion()
     sx, sy, sz = obj.matrix_world.to_scale()
     return {
-        'position': (x, y, z),
-        'rotation': (rx, ry, rz, rw),
-        'scale': (sx, sy, sz),
+        "position": (x, y, z),
+        "rotation": (rx, ry, rz, rw),
+        "scale": (sx, sy, sz),
     }
 
 

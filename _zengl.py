@@ -119,15 +119,15 @@ SHORT_VERTEX_FORMAT = {
 }
 
 BUFFER_ACCESS = {
-    'stream_draw': 0x88E0,
-    'stream_read': 0x88E1,
-    'stream_copy': 0x88E2,
-    'static_draw': 0x88E4,
-    'static_read': 0x88E5,
-    'static_copy': 0x88E6,
-    'dynamic_draw': 0x88E8,
-    'dynamic_read': 0x88E9,
-    'dynamic_copy': 0x88EA,
+    "stream_draw": 0x88E0,
+    "stream_read": 0x88E1,
+    "stream_copy": 0x88E2,
+    "static_draw": 0x88E4,
+    "static_read": 0x88E5,
+    "static_copy": 0x88E6,
+    "dynamic_draw": 0x88E8,
+    "dynamic_read": 0x88E9,
+    "dynamic_copy": 0x88EA,
 }
 
 CULL_FACE = {
@@ -264,7 +264,7 @@ class DefaultLoader:
             lib = ctypes.WinDLL("Opengl32.dll")
             proc = ctypes.cast(lib.wglGetProcAddress, ctypes.CFUNCTYPE(ctypes.c_ulonglong, ctypes.c_char_p))
             if not lib.wglGetCurrentContext():
-                raise RuntimeError('Cannot detect window with OpenGL support')
+                raise RuntimeError("Cannot detect window with OpenGL support")
 
             def loader(name):
                 return proc(name.encode()) or ctypes.cast(lib[name], ctypes.c_void_p).value
@@ -273,7 +273,7 @@ class DefaultLoader:
             lib = ctypes.CDLL("libGL.so")
             proc = ctypes.cast(lib.glXGetProcAddress, ctypes.CFUNCTYPE(ctypes.c_ulonglong, ctypes.c_char_p))
             if not lib.glXGetCurrentContext():
-                raise RuntimeError('Cannot detect window with OpenGL support')
+                raise RuntimeError("Cannot detect window with OpenGL support")
 
             def loader(name):
                 return proc(name.encode()) or ctypes.cast(lib[name], ctypes.c_void_p).value
