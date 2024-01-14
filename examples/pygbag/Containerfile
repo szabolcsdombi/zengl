@@ -9,7 +9,8 @@ COPY zengl-stubs /zengl/zengl-stubs
 COPY setup.py MANIFEST.in README.md zengl.c _zengl.py _zengl_js.py /zengl/
 RUN cd /zengl/ && /opt/python-wasm-sdk/python3-wasm setup.py bdist_wheel
 RUN unzip /zengl/dist/zengl-2.3.0-cp311-abi3-wasm32_bi_emscripten.whl -d /web/
+RUN mv /web/zengl.abi3.so /web/zengl.cpython-311-wasm32-emscripten.so
 
 COPY examples/pygbag/public /web
-RUN python3 -m pygbag --build --template noctx.tmpl /web/
-CMD python3 -m http.server -d web/build/web
+RUN sed -i 's/args.bind/"0.0.0.0"/g' /usr/local/lib/python3.10/dist-packages/pygbag/testserver.py
+CMD pygbag --no_opt --template noctx.tmpl /web/
