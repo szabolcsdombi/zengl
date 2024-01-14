@@ -22,16 +22,7 @@ ZenGL is a low level library, it adds no magic on the rendering side. All you ne
 
 ZenGL runs Natively (Desktop OpenGL), on top of Angle (DirectX, Vulkan, Metal), or WebGL2 (In the Browser).
 
-## Examples
-
-ZenGL also works from the Browser ([In-Browser Examples](https://szabolcsdombi.github.io/zengl/))
-
-### Native Examples
-
-```
-pip install -r examples/requirements.txt
-python examples/example_browser.py
-```
+## [Examples](./examples/)
 
 [![bezier_curves](https://user-images.githubusercontent.com/11232402/235417415-f04815bf-3380-45fa-9804-f9f36016f46c.png)](#native-examples)
 [![deferred_rendering](https://user-images.githubusercontent.com/11232402/235417431-4dd870ea-1804-4b00-bfd2-49e3ca72e2b1.png)](#native-examples)
