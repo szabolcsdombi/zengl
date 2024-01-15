@@ -1,4 +1,3 @@
-zengl_js = """
 (wasm, gl) => {
   const textEncoder = new TextEncoder('utf-8');
   const textDecoder = new TextDecoder('utf-8');
@@ -458,4 +457,3 @@ zengl_js = """
     },
   };
 }
-"""

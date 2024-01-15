@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 
 from setuptools import Extension, setup
@@ -19,7 +20,9 @@ if sys.platform.startswith("darwin"):
     extra_compile_args += ["-Wno-writable-strings"]
 
 if os.getenv("PYODIDE"):
-    define_macros += [("EXTERN_GL", None)]
+    with open("zengl.js") as zengl_js:
+        code = re.sub(r"\s+", " ", zengl_js.read())
+        define_macros += [("EXTERN_GL", f'"{code}"')]
 
 if os.getenv("ZENGL_COVERAGE"):
     extra_compile_args += ["-O0", "--coverage"]
@@ -76,9 +79,8 @@ setup(
     name="zengl",
     version="2.3.0",
     ext_modules=[ext],
-    py_modules=["_zengl", "_zengl_js"],
+    py_modules=["_zengl"],
     license="MIT",
-    python_requires=">=3.6",
     platforms=["any"],
     description="Self-Contained OpenGL Rendering Pipelines for Python",
     long_description=long_description,

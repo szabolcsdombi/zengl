@@ -6,7 +6,7 @@ RUN git clone https://github.com/emscripten-core/emsdk.git $EMSDK &&\
     python -c "from pyodide_build.build_env import init_environment; init_environment()"
 
 COPY zengl-stubs /zengl/zengl-stubs
-COPY setup.py MANIFEST.in README.md zengl.c _zengl.py _zengl_js.py /zengl/
+COPY setup.py MANIFEST.in README.md zengl.c _zengl.py zengl.js /zengl/
 RUN pyodide build /zengl -o /web/
 
 COPY examples/pyodide/public /web

@@ -3686,6 +3686,12 @@ static int module_exec(PyObject * self) {
     PyModule_AddObject(self, "calcsize", PyObject_GetAttrString(state->helper, "calcsize"));
     PyModule_AddObject(self, "bind", PyObject_GetAttrString(state->helper, "bind"));
 
+    #ifdef EXTERN_GL
+    PyModule_AddObject(self, "_extern_gl", PyUnicode_FromString(EXTERN_GL));
+    #else
+    PyModule_AddObject(self, "_extern_gl", new_ref(Py_None));
+    #endif
+
     PyModule_AddObject(self, "__version__", PyUnicode_FromString("2.3.0"));
 
     return 0;

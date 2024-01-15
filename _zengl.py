@@ -260,8 +260,8 @@ class DefaultLoader:
         import ctypes
 
         if sys.platform.startswith("win"):
-            lib = ctypes.WinDLL("Opengl32.dll")
-            proc = ctypes.cast(lib.wglGetProcAddress, ctypes.CFUNCTYPE(ctypes.c_ulonglong, ctypes.c_char_p))
+            lib = ctypes.WinDLL("opengl32.dll")
+            proc = ctypes.cast(lib.wglGetProcAddress, ctypes.WINFUNCTYPE(ctypes.c_ulonglong, ctypes.c_char_p))
             if not lib.wglGetCurrentContext():
                 raise RuntimeError("Cannot detect window with OpenGL support")
 
@@ -298,44 +298,96 @@ class DefaultLoader:
         self.load_opengl_function = loader
 
 
+def headless_context_windows():
+    from ctypes import c_int, c_void_p, cast, create_string_buffer, windll
+
+    GetModuleHandle = windll.kernel32.GetModuleHandleA
+    GetModuleHandle.restype = c_void_p
+    RegisterClass = windll.user32.RegisterClassA
+    RegisterClass.argtypes = [c_void_p]
+    CreateWindow = windll.user32.CreateWindowExA
+    CreateWindow.argtypes = [c_int] + [c_void_p] * 2 + [c_int] * 5 + [c_void_p] * 4
+    CreateWindow.restype = c_void_p
+    GetDC = windll.user32.GetDC
+    GetDC.argtypes = [c_void_p]
+    GetDC.restype = c_void_p
+    DescribePixelFormat = windll.gdi32.DescribePixelFormat
+    DescribePixelFormat.argtypes = [c_void_p, c_int, c_int, c_void_p]
+    SetPixelFormat = windll.gdi32.SetPixelFormat
+    SetPixelFormat.argtypes = [c_void_p, c_int, c_void_p]
+    wglCreateContext = windll.opengl32.wglCreateContext
+    wglCreateContext.argtypes = [c_void_p]
+    wglCreateContext.restype = c_void_p
+    wglMakeCurrent = windll.opengl32.wglMakeCurrent
+    wglMakeCurrent.argtypes = [c_void_p, c_void_p]
+    DefWindowProc = cast(windll.user32.DefWindowProcA, c_void_p).value
+    hinstance = GetModuleHandle(0)
+    classname = cast(b"glwindow", c_void_p).value
+    wndclass = struct.pack("IQ8xQ32xQ", 32, DefWindowProc, hinstance, classname)
+    RegisterClass(wndclass)
+    hwnd = CreateWindow(0, classname, 0, 0, 0, 0, 0, 0, 0, 0, hinstance, 0)
+    hdc = GetDC(hwnd)
+    pfd = create_string_buffer(40)
+    DescribePixelFormat(hdc, 1, 40, pfd)
+    SetPixelFormat(hdc, 1, pfd)
+    hglrc = wglCreateContext(hdc)
+    wglMakeCurrent(hdc, hglrc)
+
+
+def headless_context_glcontext():
+    import glcontext
+
+    glcontext.default_backend()(glversion=330, mode="standalone")
+
+
+def web_context_pyodide():
+    import js
+    import pyodide_js
+    import zengl
+
+    canvas = pyodide_js.canvas.getCanvas3D()
+
+    if canvas is None:
+        canvas = js.document.getElementById("canvas")
+
+    if canvas is None:
+        canvas = js.document.createElement("canvas")
+        canvas.id = "canvas"
+        canvas.style.position = "fixed"
+        canvas.style.top = "0"
+        canvas.style.right = "0"
+        canvas.style.zIndex = "10"
+        js.document.body.appendChild(canvas)
+        pyodide_js.canvas.setCanvas3D(canvas)
+
+    gl = canvas.getContext(
+        "webgl2",
+        powerPreference="high-performance",
+        premultipliedAlpha=False,
+        antialias=False,
+        alpha=False,
+        depth=False,
+        stencil=False,
+    )
+
+    callback = js.window.eval(zengl._extern_gl)
+    symbols = callback(pyodide_js._module, gl)
+    pyodide_js._module.mergeLibSymbols(symbols)
+
+
 def loader(headless=False):
     if headless:
-        import glcontext
+        if sys.platform.startswith("win"):
+            headless_context_windows()
 
-        return glcontext.default_backend()(glversion=330, mode="standalone")
+        else:
+            headless_context_glcontext()
 
-    if sys.platform == "emscripten" and "pyodide" in sys.modules:
-        import js
-        import pyodide_js
-        import _zengl_js
+    if sys.platform.startswith("emscripten"):
+        import zengl
 
-        canvas = pyodide_js.canvas.getCanvas3D()
-
-        if canvas is None:
-            canvas = js.document.getElementById("canvas")
-
-        if canvas is None:
-            canvas = js.document.createElement("canvas")
-            canvas.id = "canvas"
-            canvas.style.position = "fixed"
-            canvas.style.top = "0"
-            canvas.style.right = "0"
-            js.document.body.appendChild(canvas)
-            pyodide_js.canvas.setCanvas3D(canvas)
-
-        gl = canvas.getContext(
-            "webgl2",
-            powerPreference="high-performance",
-            premultipliedAlpha=False,
-            antialias=False,
-            alpha=False,
-            depth=False,
-            stencil=False,
-        )
-
-        callback = js.eval(_zengl_js.zengl_js)
-        symbols = callback(pyodide_js._module, gl)
-        pyodide_js._module.mergeLibSymbols(symbols)
+        if zengl._extern_gl:
+            web_context_pyodide()
 
     return DefaultLoader()
 
