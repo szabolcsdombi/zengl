@@ -269,13 +269,23 @@ class DefaultLoader:
                 return proc(name.encode()) or ctypes.cast(lib[name], ctypes.c_void_p).value
 
         elif sys.platform.startswith("linux"):
-            lib = ctypes.CDLL("libGL.so")
-            proc = ctypes.cast(lib.glXGetProcAddress, ctypes.CFUNCTYPE(ctypes.c_ulonglong, ctypes.c_char_p))
-            if not lib.glXGetCurrentContext():
-                raise RuntimeError("Cannot detect window with OpenGL support")
+            try:
+                lib = ctypes.CDLL("libEGL.so")
+                proc = ctypes.cast(lib.eglGetProcAddress, ctypes.CFUNCTYPE(ctypes.c_ulonglong, ctypes.c_char_p))
+                if not lib.eglGetCurrentContext():
+                    raise RuntimeError("Cannot detect window with OpenGL support")
 
-            def loader(name):
-                return proc(name.encode()) or ctypes.cast(lib[name], ctypes.c_void_p).value
+                def loader(name):
+                    return proc(name.encode())
+
+            except:
+                lib = ctypes.CDLL("libGL.so")
+                proc = ctypes.cast(lib.glXGetProcAddress, ctypes.CFUNCTYPE(ctypes.c_ulonglong, ctypes.c_char_p))
+                if not lib.glXGetCurrentContext():
+                    raise RuntimeError("Cannot detect window with OpenGL support")
+
+                def loader(name):
+                    return proc(name.encode()) or ctypes.cast(lib[name], ctypes.c_void_p).value
 
         elif sys.platform.startswith("darwin"):
             lib = ctypes.CDLL("/System/Library/Frameworks/OpenGL.framework/OpenGL")
