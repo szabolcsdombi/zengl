@@ -582,6 +582,10 @@ def settings(cull_face, depth, stencil, blend, attachments):
     return tuple(res)
 
 
+def shader_source(source: str) -> bytes:
+    return source.encode()
+
+
 def program(vertex_shader, fragment_shader, layout, includes):
     def include(match):
         name = match.group(1)
@@ -592,11 +596,11 @@ def program(vertex_shader, fragment_shader, layout, includes):
 
     vert = textwrap.dedent(vertex_shader).strip()
     vert = re.sub(r'#include\s+"([^"]*)"', include, vert)
-    vert = vert.encode().replace(b"\r", b"")
+    vert = shader_source(vert)
 
     frag = textwrap.dedent(fragment_shader).strip()
     frag = re.sub(r'#include\s+"([^"]*)"', include, frag)
-    frag = frag.encode().replace(b"\r", b"")
+    frag = shader_source(frag)
 
     bindings = []
     for obj in sorted(layout, key=lambda x: x["name"]):
