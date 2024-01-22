@@ -259,6 +259,9 @@ class DefaultLoader:
     def __init__(self):
         import ctypes
 
+        def funcptr(lib, name):
+            return ctypes.cast(getattr(lib, name, 0), ctypes.c_void_p).value or 0
+
         if sys.platform.startswith("win"):
             lib = ctypes.WinDLL("opengl32.dll")
             proc = ctypes.cast(lib.wglGetProcAddress, ctypes.WINFUNCTYPE(ctypes.c_ulonglong, ctypes.c_char_p))
@@ -266,7 +269,7 @@ class DefaultLoader:
                 raise RuntimeError("Cannot detect window with OpenGL support")
 
             def loader(name):
-                return proc(name.encode()) or ctypes.cast(lib[name], ctypes.c_void_p).value
+                return proc(name.encode()) or funcptr(lib, name)
 
         elif sys.platform.startswith("linux"):
             try:
@@ -285,25 +288,25 @@ class DefaultLoader:
                     raise RuntimeError("Cannot detect window with OpenGL support")
 
                 def loader(name):
-                    return proc(name.encode()) or ctypes.cast(lib[name], ctypes.c_void_p).value
+                    return proc(name.encode()) or funcptr(lib, name)
 
         elif sys.platform.startswith("darwin"):
             lib = ctypes.CDLL("/System/Library/Frameworks/OpenGL.framework/OpenGL")
 
             def loader(name):
-                return ctypes.cast(lib[name], ctypes.c_void_p).value
+                return funcptr(lib, name)
 
         elif sys.platform.startswith("emscripten"):
             lib = ctypes.CDLL(None)
 
             def loader(name):
-                return ctypes.cast(lib[name], ctypes.c_void_p).value
+                return funcptr(lib, name)
 
         elif sys.platform.startswith("wasi"):
             lib = ctypes.CDLL(None)
 
             def loader(name):
-                return ctypes.cast(lib[name], ctypes.c_void_p).value
+                return funcptr(lib, name)
 
         self.load_opengl_function = loader
 
