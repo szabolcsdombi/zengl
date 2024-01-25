@@ -1,4 +1,16 @@
 # pygame-ce == 2.4.0
+# Multiple windows using pygame-ce Window(opengl=True) instances
+# Steps:
+# - ZenGL creates a headless context, this is the main OpenGL context
+# - pygame-ce creates multiple windows
+#     at the moment the Window(opengl=True) does not create a context
+#     this is corrected by calling into sdl2 directly from ctypes
+#     please also note that wglMakeCurrent and SDL_GL_MakeCurrent are not interchangeable
+# - wglShareLists is used to share OpenGL resources between the window and ZenGL
+# - for each window a framebuffer is created (framebuffer objects are not shared)
+# - ZenGL renders into different images
+# - every window blits its own image to the screen
+# - DwmFlush is called for proper vsync control, every window has swap control off
 
 import ctypes
 import math
