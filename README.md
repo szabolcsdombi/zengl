@@ -73,16 +73,18 @@ It is supported to create pipelines on the fly or template them for certain use-
 
 ## Disambiguation
 
-- ZenGL Images are OpenGL [Texture Objects](https://www.khronos.org/opengl/wiki/Texture) or OpenGL [Renderbuffer Objects](https://www.khronos.org/opengl/wiki/Renderbuffer_Object).
-- ZenGL Buffers are OpenGL [Buffer Objects](https://www.khronos.org/opengl/wiki/Buffer_Object).
-- ZenGL Pipelines contain an OpenGL [Vertex Array Object](https://www.khronos.org/opengl/wiki/Vertex_Specification#Vertex_Array_Object), an OpenGL [Program Object](https://www.khronos.org/opengl/wiki/GLSL_Object#Program_objects), and an OpenGL [Framebuffer Object](https://www.khronos.org/opengl/wiki/Framebuffer).
+- ZenGL is a drop-in replacement for pure OpenGL code
+- Using ZenGL requires some OpenGL knowledge
+- ZenGL Images are OpenGL [Texture Objects](https://www.khronos.org/opengl/wiki/Texture) or OpenGL [Renderbuffer Objects](https://www.khronos.org/opengl/wiki/Renderbuffer_Object)
+- ZenGL Buffers are OpenGL [Buffer Objects](https://www.khronos.org/opengl/wiki/Buffer_Object)
+- ZenGL Pipelines contain an OpenGL [Vertex Array Object](https://www.khronos.org/opengl/wiki/Vertex_Specification#Vertex_Array_Object), an OpenGL [Program Object](https://www.khronos.org/opengl/wiki/GLSL_Object#Program_objects), and an OpenGL [Framebuffer Object](https://www.khronos.org/opengl/wiki/Framebuffer)
 - ZenGL Pielines may also contain OpenGL [Sampler Objects](https://www.khronos.org/opengl/wiki/Sampler_Object)
-- Creating ZenGL Pipelines does not necessarily compile the shader from source.
-- The ZenGL Shader Cache exists independently from the Pipeline objects.
-- A Framebuffer is always represented by a Python list of ZenGL Images.
-- There is no `Pipeline.clear()` method, individual images must be cleared independently.
+- Creating ZenGL Pipelines does not necessarily compile the shader from source
+- The ZenGL Shader Cache exists independently from the Pipeline objects
+- A Framebuffer is always represented by a Python list of ZenGL Images
+- There is no `Pipeline.clear()` method, individual images must be cleared independently
 - GLSL Uniform Blocks and sampler2D objects are bound in the Pipeline layout
-- Textures are bound in the Pipeline resources
+- Textures and Uniform Buffers are bound in the Pipeline resources
 
 ## [Examples](./examples/)
 
