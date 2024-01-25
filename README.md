@@ -12,15 +12,77 @@ pip install zengl
 
 ## Concept
 
-ZenGL provides a simple, structured way to render with OpenGL in Python.
+ZenGL is a low level graphics library.
 
-Pipelines are self-contained, no global state affects the render.
+- ZenGL turns OpenGL into Vulkan like [Rendering Pipelines](https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkGraphicsPipelineCreateInfo.html)
+- ZenGL uses **OpenGL 3.3 Core** and **OpenGL 3.0 ES** - runs everywhere
+- ZenGL provides a developer friendly experience in protyping complex scenes
 
-State changes between pipelines are optimized; framebuffers, descriptor sets are re-used.
+ZenGL emerged from an experimental version of [ModernGL](https://github.com/moderngl/moderngl).
+To keep ModernGL backward compatible, ZenGL was re-designed from the ground-up to support a strict subset of OpenGL.
+On the other hand, ModernGL supports a wide variety of OpenGL versions and extensions.
 
-ZenGL is a low level library, it adds no magic on the rendering side. All you need to know is OpenGL.
+ZenGL is "ModernGL hard mode"
 
-ZenGL runs Natively (Desktop OpenGL), on top of Angle (DirectX, Vulkan, Metal), or WebGL2 (In the Browser).
+ZenGL intentionally does not support:
+
+- Transform Feedback
+- Geometry Shaders
+- Tesselation
+- Compute Shaders
+- 3D Textures
+- Storage Buffers
+
+Most of the above can be implemented in a more hardware friendly way using the existing ZenGL API.
+Interoperability with other modules is also possible. Using such may reduce the application's portablity.
+It is even possible to use direct OpenGL calls together with ZenGL, however this is likely not necessary.
+
+It is common to render directly to the screen with OpenGL.
+With ZenGL, the right way is to render to a framebuffer and blit the final image to the screen.
+This allows fine-grained control of the framebuffer format, guaranteed multisampling settings, correct depth/stencil precison.
+It is also possible to render directly to the screen, however this feature is designed to be used for the postprocessing step.
+
+This design allows ZenGL to support:
+
+- Rendering without a window
+- Rendering to multiple windows
+- Rendering to HDR monitors
+- Refreshing the screen without re-rendering the scene
+- Apply post-processing without changing how the scene is rendered
+- Making reusable shaders and components
+- Taking screenshots or exporting a video
+
+The [default framebuffer](https://www.khronos.org/opengl/wiki/Default_Framebuffer) in OpenGL is highly dependent on how the Window is created.
+It is often necessary to configure the Window to provide the proper depth precision, stencil buffer, multisampling and double buffering.
+Often the "best pixel format" lacks all of these features on purpose. ZenGL aims to allow choosing these pixel formats and ensures the user specifies the rendering requirements.
+It is even possible to render low-resolution images and upscale them for high-resolution monitors.
+Tearing can be easily prevented by decoupling the scene rendering from the screen updates.
+
+ZenGL was designed for Prototyping
+
+It is tempting to start a project with Vulkan, however even getting a simple scene rendered requires tremendous work and advanced tooling to compile shaders ahead of time. ZenGL provides self-contained Pipelines which can be easily ported to Vulkan.
+ZenGL code is verbose and easy to read.
+
+ZenGL support multiple design patters
+
+Many libraries enfore certain design patterns.
+ZenGL avoids this by providing cached pipeline creation, pipeline templating and lean resourece and framebuffer definition.
+It is supported to create pipelines on the fly or template them for certain use-cases.
+
+> TODO: examples for such patters
+
+## Disambiguation
+
+- ZenGL Images are OpenGL [Texture Objects](https://www.khronos.org/opengl/wiki/Texture) or OpenGL [Renderbuffer Objects](https://www.khronos.org/opengl/wiki/Renderbuffer_Object).
+- ZenGL Buffers are OpenGL [Buffer Objects](https://www.khronos.org/opengl/wiki/Buffer_Object).
+- ZenGL Pipelines contain an OpenGL [Vertex Array Object](https://www.khronos.org/opengl/wiki/Vertex_Specification#Vertex_Array_Object), an OpenGL [Program Object](https://www.khronos.org/opengl/wiki/GLSL_Object#Program_objects), and an OpenGL [Framebuffer Object](https://www.khronos.org/opengl/wiki/Framebuffer).
+- ZenGL Pielines may also contain OpenGL [Sampler Objects](https://www.khronos.org/opengl/wiki/Sampler_Object)
+- Creating ZenGL Pipelines does not necessarily compile the shader from source.
+- The ZenGL Shader Cache exists independently from the Pipeline objects.
+- A Framebuffer is always represented by a Python list of ZenGL Images.
+- There is no `Pipeline.clear()` method, individual images must be cleared independently.
+- GLSL Uniform Blocks and sampler2D objects are bound in the Pipeline layout
+- Textures are bound in the Pipeline resources
 
 ## [Examples](./examples/)
 
