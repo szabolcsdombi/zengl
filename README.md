@@ -193,3 +193,12 @@ pipeline.uniforms['iterations'][:] = struct.pack('i', 50) # writable memoryview
 # rendering
 pipeline.render() # no parameters for hot code
 ```
+
+## Contributing
+
+Report issues using the [Issue Tracker](https://github.com/szabolcsdombi/zengl/issues).
+Ask questions on the [Discussions](https://github.com/szabolcsdombi/zengl/discussions) tab.
+
+### Code of Conduct
+
+Commit to kindness, inclusivity, and mutual respect in all interactions.
