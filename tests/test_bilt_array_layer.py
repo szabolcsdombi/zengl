@@ -43,7 +43,7 @@ def test_blit_array_layer(ctx: zengl.Context):
     ctx.new_frame()
     array.mipmaps()
     image.clear()
-    array.face(layer=2, level=1).blit(image.face(), target_viewport=(0, 0, 32, 32))
+    array.face(layer=2, level=1).blit(image.face(), size=(32, 32))
     ctx.end_frame()
     pixels = np.frombuffer(image.read(), "u1").reshape(64, 64, 4)
     np.testing.assert_array_equal(

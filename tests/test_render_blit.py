@@ -85,8 +85,8 @@ def test_blit_viewport(ctx: zengl.Context):
     temp.clear()
     image.clear()
     pipeline.render()
-    temp.blit(image, source_viewport=(16, 16, 32, 32), target_viewport=(0, 0, 32, 32))
-    temp.blit(image, source_viewport=(16, 16, 32, 32), target_viewport=(32, 32, 32, 32))
+    temp.blit(image, offset=(0, 0), size=(32, 32), crop=(16, 16, 32, 32))
+    temp.blit(image, offset=(32, 32), size=(32, 32), crop=(16, 16, 32, 32))
     ctx.end_frame()
     pixels = np.frombuffer(image.read(), "u1").reshape(64, 64, 4)
     np.testing.assert_array_equal(
