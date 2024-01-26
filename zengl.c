@@ -813,40 +813,44 @@ static int valid_mem(PyObject * mem, Py_ssize_t size) {
     return size < 0 || mem_size == size;
 }
 
-static IntPair to_int_pair(PyObject * obj, int x, int y) {
-    IntPair res;
+static int to_int_pair(IntPair * value, PyObject * obj, int x, int y) {
     if (obj != Py_None) {
         if (PySequence_Size(obj) != 2) {
-            PyErr_Format(PyExc_ValueError, "");
-            return res;
+            return 0;
         }
-        res.x = to_int(PySequence_GetItem(obj, 0));
-        res.y = to_int(PySequence_GetItem(obj, 1));
+        value->x = to_int(PySequence_GetItem(obj, 0));
+        value->y = to_int(PySequence_GetItem(obj, 1));
+        if (PyErr_Occurred()) {
+            PyErr_Clear();
+            return 0;
+        }
     } else {
-        res.x = x;
-        res.y = y;
+        value->x = x;
+        value->y = y;
     }
-    return res;
+    return 1;
 }
 
-static Viewport to_viewport(PyObject * obj, int x, int y, int width, int height) {
-    Viewport res;
+static int to_viewport(Viewport * value, PyObject * obj, int x, int y, int width, int height) {
     if (obj != Py_None) {
         if (PySequence_Size(obj) != 4) {
-            PyErr_Format(PyExc_ValueError, "");
-            return res;
+            return 0;
         }
-        res.x = to_int(PySequence_GetItem(obj, 0));
-        res.y = to_int(PySequence_GetItem(obj, 1));
-        res.width = to_int(PySequence_GetItem(obj, 2));
-        res.height = to_int(PySequence_GetItem(obj, 3));
+        value->x = to_int(PySequence_GetItem(obj, 0));
+        value->y = to_int(PySequence_GetItem(obj, 1));
+        value->width = to_int(PySequence_GetItem(obj, 2));
+        value->height = to_int(PySequence_GetItem(obj, 3));
+        if (PyErr_Occurred()) {
+            PyErr_Clear();
+            return 0;
+        }
     } else {
-        res.x = x;
-        res.y = y;
-        res.width = width;
-        res.height = height;
+        value->x = x;
+        value->y = y;
+        value->width = width;
+        value->height = height;
     }
-    return res;
+    return 1;
 }
 
 static void bind_viewport(Context * self, Viewport * viewport) {
@@ -1439,20 +1443,20 @@ static PyObject * blit_image_face(ImageFace * src, PyObject * target_arg, PyObje
         return NULL;
     }
 
-    Viewport crop = to_viewport(crop_arg, 0, 0, src->width, src->height);
-    if (PyErr_Occurred()) {
+    Viewport crop;
+    if (!to_viewport(&crop, crop_arg, 0, 0, src->width, src->height)) {
         PyErr_Format(PyExc_TypeError, "the crop must be a tuple of 4 ints");
         return NULL;
     }
 
-    IntPair offset = to_int_pair(offset_arg, 0, 0);
-    if (PyErr_Occurred()) {
+    IntPair offset;
+    if (!to_int_pair(&offset, offset_arg, 0, 0)) {
         PyErr_Format(PyExc_TypeError, "the offset must be a tuple of 2 ints");
         return 0;
     }
 
-    IntPair size = to_int_pair(size_arg, crop.width, crop.height);
-    if (PyErr_Occurred()) {
+    IntPair size;
+    if (!to_int_pair(&size, size_arg, crop.width, crop.height)) {
         PyErr_Format(PyExc_TypeError, "the size must be a tuple of 2 ints");
         return 0;
     }
@@ -1490,14 +1494,12 @@ static int parse_size_and_offset(ImageFace * self, PyObject * size_arg, PyObject
         return 0;
     }
 
-    *size = to_int_pair(size_arg, self->width, self->height);
-    if (PyErr_Occurred()) {
+    if (!to_int_pair(size, size_arg, self->width, self->height)) {
         PyErr_Format(PyExc_TypeError, "the size must be a tuple of 2 ints");
         return 0;
     }
 
-    *offset = to_int_pair(offset_arg, 0, 0);
-    if (PyErr_Occurred()) {
+    if (!to_int_pair(offset, offset_arg, 0, 0)) {
         PyErr_Format(PyExc_TypeError, "the offset must be a tuple of 2 ints");
         return 0;
     }
@@ -2164,8 +2166,8 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
         return NULL;
     }
 
-    Viewport viewport_value = to_viewport(viewport, 0, 0, 0, 0);
-    if (PyErr_Occurred()) {
+    Viewport viewport_value;
+    if (!to_viewport(&viewport_value, viewport, 0, 0, 0, 0)) {
         PyErr_Format(PyExc_TypeError, "the viewport must be a tuple of 4 ints");
         return NULL;
     }
@@ -2866,14 +2868,14 @@ static PyObject * Image_meth_write(Image * self, PyObject * args, PyObject * kwa
         layer = to_int(layer_arg);
     }
 
-    IntPair size = to_int_pair(size_arg, least_one(self->width >> level), least_one(self->height >> level));
-    if (PyErr_Occurred()) {
+    IntPair size;
+    if (!to_int_pair(&size, size_arg, least_one(self->width >> level), least_one(self->height >> level))) {
         PyErr_Format(PyExc_TypeError, "the size must be a tuple of 2 ints");
         return NULL;
     }
 
-    IntPair offset = to_int_pair(offset_arg, 0, 0);
-    if (PyErr_Occurred()) {
+    IntPair offset;
+    if (!to_int_pair(&offset, offset_arg, 0, 0)) {
         PyErr_Format(PyExc_TypeError, "the offset must be a tuple of 2 ints");
         return NULL;
     }
@@ -3217,8 +3219,7 @@ static PyObject * Pipeline_get_viewport(Pipeline * self, void * closure) {
 }
 
 static int Pipeline_set_viewport(Pipeline * self, PyObject * viewport, void * closure) {
-    self->viewport = to_viewport(viewport, 0, 0, 0, 0);
-    if (PyErr_Occurred()) {
+    if (!to_viewport(&self->viewport, viewport, 0, 0, 0, 0)) {
         PyErr_Format(PyExc_TypeError, "the viewport must be a tuple of 4 ints");
         return -1;
     }
