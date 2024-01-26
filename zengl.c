@@ -1522,8 +1522,7 @@ static PyObject * read_image_face(ImageFace * src, IntPair size, IntPair offset,
             return NULL;
         }
 
-        // TODO:
-        PyObject * blit = PyObject_CallMethod((PyObject *)src, "blit", "(O(iiii)(iiii))", temp, 0, 0, size.x, size.y, offset.x, offset.y, size.x, size.y);
+        PyObject * blit = PyObject_CallMethod((PyObject *)src, "blit", "(O(ii)(ii)(iiii))", temp, 0, 0, size.x, size.y, offset.x, offset.y, size.x, size.y);
         if (!blit) {
             return NULL;
         }
