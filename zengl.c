@@ -298,6 +298,8 @@ typedef Py_ssize_t intptr;
 #define RESOLVE(type, name, ...) extern type GL name(__VA_ARGS__) __asm__("zengl_" # name)
 #endif
 
+#define GL_DEPTH_BUFFER_BIT 0x0100
+#define GL_STENCIL_BUFFER_BIT 0x0400
 #define GL_COLOR_BUFFER_BIT 0x4000
 #define GL_FRONT 0x0404
 #define GL_BACK 0x0405
@@ -1410,57 +1412,25 @@ static void clear_bound_image(Image * self) {
     }
 }
 
-static PyObject * blit_image_face(ImageFace * src, PyObject * dst, PyObject * src_viewport, PyObject * dst_viewport, int filter) {
-    if (Py_TYPE(dst) == src->image->ctx->module_state->Image_type) {
-        Image * image = (Image *)dst;
+static PyObject * blit_image_face(ImageFace * src, PyObject * target_arg, PyObject * offset_arg, PyObject * size_arg, PyObject * crop_arg, int filter) {
+    if (Py_TYPE(target_arg) == src->image->ctx->module_state->Image_type) {
+        Image * image = (Image *)target_arg;
         if (image->array || image->cubemap) {
             PyErr_Format(PyExc_TypeError, "cannot blit to whole cubemap or array images");
             return NULL;
         }
-        dst = PyTuple_GetItem(image->layers, 0);
+        target_arg = PyTuple_GetItem(image->layers, 0);
     }
 
-    if (dst != Py_None && Py_TYPE(dst) != src->image->ctx->module_state->ImageFace_type) {
+    if (target_arg != Py_None && Py_TYPE(target_arg) != src->image->ctx->module_state->ImageFace_type) {
         PyErr_Format(PyExc_TypeError, "target must be an Image or ImageFace or None");
         return NULL;
     }
 
-    ImageFace * target = dst != Py_None ? (ImageFace *)dst : NULL;
+    ImageFace * target = target_arg != Py_None ? (ImageFace *)target_arg : NULL;
 
-    if (target && target->image->samples > 1) {
-        PyErr_Format(PyExc_TypeError, "cannot blit to multisampled images");
-        return NULL;
-    }
-
-    Viewport tv = to_viewport(dst_viewport, 0, 0, target ? target->width : src->width, target ? target->height : src->height);
-    if (PyErr_Occurred()) {
-        PyErr_Format(PyExc_TypeError, "the target viewport must be a tuple of 4 ints");
-        return NULL;
-    }
-
-    Viewport sv = to_viewport(src_viewport, 0, 0, src->width, src->height);
-    if (PyErr_Occurred()) {
-        PyErr_Format(PyExc_TypeError, "the source viewport must be a tuple of 4 ints");
-        return NULL;
-    }
-
-    if (tv.x < 0 || tv.y < 0 || tv.width <= 0 || tv.height <= 0 || (target && (tv.x + tv.width > target->width || tv.y + tv.height > target->height))) {
-        PyErr_Format(PyExc_ValueError, "the target viewport is out of range");
-        return NULL;
-    }
-
-    if (sv.x < 0 || sv.y < 0 || sv.width <= 0 || sv.height <= 0 || sv.x + sv.width > src->width || sv.y + sv.height > src->height) {
-        PyErr_Format(PyExc_ValueError, "the source viewport is out of range");
-        return NULL;
-    }
-
-    if (!src->image->fmt.color) {
-        PyErr_Format(PyExc_TypeError, "cannot blit depth or stencil images");
-        return NULL;
-    }
-
-    if (target && !target->image->fmt.color) {
-        PyErr_Format(PyExc_TypeError, "cannot blit to depth or stencil images");
+    if (target && src->image->fmt.color != target->image->fmt.color) {
+        PyErr_Format(PyExc_TypeError, "cannot blit between color and depth images");
         return NULL;
     }
 
@@ -1469,13 +1439,46 @@ static PyObject * blit_image_face(ImageFace * src, PyObject * dst, PyObject * sr
         return NULL;
     }
 
+    Viewport crop = to_viewport(crop_arg, 0, 0, src->width, src->height);
+    if (PyErr_Occurred()) {
+        PyErr_Format(PyExc_TypeError, "the crop must be a tuple of 4 ints");
+        return NULL;
+    }
+
+    IntPair offset = to_int_pair(offset_arg, 0, 0);
+    if (PyErr_Occurred()) {
+        PyErr_Format(PyExc_TypeError, "the offset must be a tuple of 2 ints");
+        return 0;
+    }
+
+    IntPair size = to_int_pair(size_arg, crop.width, crop.height);
+    if (PyErr_Occurred()) {
+        PyErr_Format(PyExc_TypeError, "the size must be a tuple of 2 ints");
+        return 0;
+    }
+
+    int scaled = (crop.width != size.x && crop.width != -size.x) || (crop.height != size.y && crop.height != -size.y);
+    if (src->image->samples > 1 && scaled) {
+        PyErr_Format(PyExc_TypeError, "multisampled images cannot be scaled");
+        return NULL;
+    }
+
+    if (!target && src->image->samples > 1 && src->image->ctx->is_gles) {
+        PyErr_Format(PyExc_TypeError, "multisampled images needs to be downsampled before blitting to the screen");
+        return NULL;
+    }
+
+    offset.x -= size.x < 0 ? size.x : 0;
+    offset.y -= size.y < 0 ? size.y : 0;
+
+    int buffer = src->image->fmt.color ? GL_COLOR_BUFFER_BIT : (GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     int target_framebuffer = target ? target->framebuffer->obj : src->ctx->default_framebuffer->obj;
     bind_read_framebuffer(src->image->ctx, src->framebuffer->obj);
     bind_draw_framebuffer(src->image->ctx, target_framebuffer);
     glBlitFramebuffer(
-        sv.x, sv.y, sv.x + sv.width, sv.y + sv.height,
-        tv.x, tv.y, tv.x + tv.width, tv.y + tv.height,
-        GL_COLOR_BUFFER_BIT, filter ? GL_LINEAR : GL_NEAREST
+        crop.x, crop.y, crop.x + crop.width, crop.y + crop.height,
+        offset.x, offset.y, offset.x + size.x, offset.y + size.y,
+        buffer, filter ? GL_LINEAR : GL_NEAREST
     );
 
     Py_RETURN_NONE;
@@ -1519,6 +1522,7 @@ static PyObject * read_image_face(ImageFace * src, IntPair size, IntPair offset,
             return NULL;
         }
 
+        // TODO:
         PyObject * blit = PyObject_CallMethod((PyObject *)src, "blit", "(O(iiii)(iiii))", temp, 0, 0, size.x, size.y, offset.x, offset.y, size.x, size.y);
         if (!blit) {
             return NULL;
@@ -3062,19 +3066,20 @@ static PyObject * Image_meth_read(Image * self, PyObject * args, PyObject * kwar
 }
 
 static PyObject * Image_meth_blit(Image * self, PyObject * args, PyObject * kwargs) {
-    static char * keywords[] = {"target", "target_viewport", "source_viewport", "filter", NULL};
+    static char * keywords[] = {"target", "offset", "size", "crop", "filter", NULL};
 
     PyObject * target = Py_None;
-    PyObject * target_viewport = Py_None;
-    PyObject * source_viewport = Py_None;
-    int filter = 1;
+    PyObject * offset = Py_None;
+    PyObject * size = Py_None;
+    PyObject * crop = Py_None;
+    int filter = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|OOOp", keywords, &target, &target_viewport, &source_viewport, &filter)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|OOOOp", keywords, &target, &offset, &size, &crop, &filter)) {
         return NULL;
     }
 
     ImageFace * src = (ImageFace *)PyTuple_GetItem(self->layers, 0);
-    return blit_image_face(src, target, source_viewport, target_viewport, filter);
+    return blit_image_face(src, target, offset, size, crop, filter);
 }
 
 static ImageFace * Image_meth_face(Image * self, PyObject * args, PyObject * kwargs) {
@@ -3306,18 +3311,19 @@ static PyObject * ImageFace_meth_read(ImageFace * self, PyObject * args, PyObjec
 }
 
 static PyObject * ImageFace_meth_blit(ImageFace * self, PyObject * args, PyObject * kwargs) {
-    static char * keywords[] = {"target", "target_viewport", "source_viewport", "filter", NULL};
+    static char * keywords[] = {"target", "offset", "size", "crop", "filter", NULL};
 
     PyObject * target = Py_None;
-    PyObject * target_viewport = Py_None;
-    PyObject * source_viewport = Py_None;
-    int filter = 1;
+    PyObject * offset = Py_None;
+    PyObject * size = Py_None;
+    PyObject * crop = Py_None;
+    int filter = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|OOOp", keywords, &target, &target_viewport, &source_viewport, &filter)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|OOOOp", keywords, &target, &offset, &size, &crop, &filter)) {
         return NULL;
     }
 
-    return blit_image_face(self, target, source_viewport, target_viewport, filter);
+    return blit_image_face(self, target, offset, size, crop, filter);
 }
 
 typedef struct vec3 {

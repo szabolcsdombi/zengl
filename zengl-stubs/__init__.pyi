@@ -245,9 +245,10 @@ class ImageFace:
     def blit(
         self,
         target: ImageFace,
-        target_viewport: Viewport | None = None,
-        source_viewport: Viewport | None = None,
-        filter: bool = True,
+        offset: Tuple[int, int] | None = None,
+        size: Tuple[int, int] | None = None,
+        crop: Viewport | None = None,
+        filter: bool = False,
     ) -> None: ...
 
 class ContextLoader(Protocol):
@@ -280,9 +281,10 @@ class Image:
     def blit(
         self,
         target: Image | None = None,
-        target_viewport: Viewport | None = None,
-        source_viewport: Viewport | None = None,
-        filter: bool = True,
+        offset: Tuple[int, int] | None = None,
+        size: Tuple[int, int] | None = None,
+        crop: Viewport | None = None,
+        filter: bool = False,
     ) -> None: ...
 
 class Pipeline:
