@@ -2341,7 +2341,7 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
 static PyObject * Context_meth_new_frame(Context * self, PyObject * args, PyObject * kwargs) {
     static char * keywords[] = {"reset", "clear", "frame_time", NULL};
 
-    int reset = 0;
+    int reset = 1;
     int clear = 1;
     int frame_time = 0;
 
