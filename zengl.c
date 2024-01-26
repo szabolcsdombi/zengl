@@ -814,6 +814,10 @@ static int valid_mem(PyObject * mem, Py_ssize_t size) {
 static IntPair to_int_pair(PyObject * obj, int x, int y) {
     IntPair res;
     if (obj != Py_None) {
+        if (PySequence_Size(obj) != 2) {
+            PyErr_Format(PyExc_ValueError, "");
+            return res;
+        }
         res.x = to_int(PySequence_GetItem(obj, 0));
         res.y = to_int(PySequence_GetItem(obj, 1));
     } else {
@@ -826,6 +830,10 @@ static IntPair to_int_pair(PyObject * obj, int x, int y) {
 static Viewport to_viewport(PyObject * obj, int x, int y, int width, int height) {
     Viewport res;
     if (obj != Py_None) {
+        if (PySequence_Size(obj) != 4) {
+            PyErr_Format(PyExc_ValueError, "");
+            return res;
+        }
         res.x = to_int(PySequence_GetItem(obj, 0));
         res.y = to_int(PySequence_GetItem(obj, 1));
         res.width = to_int(PySequence_GetItem(obj, 2));
