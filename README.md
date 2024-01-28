@@ -97,9 +97,7 @@ It is supported to create pipelines on the fly or template them for certain use-
 [![rigged_objects](https://user-images.githubusercontent.com/11232402/235417459-79483b7f-6581-4788-a662-ef81087334b6.png)](#native-examples)
 [![wireframe](https://user-images.githubusercontent.com/11232402/235417465-f3f54a9b-624b-4fa1-88b6-f725ac468e78.png)](#native-examples)
 
-### Complete Pipeline Definition
-
-Probably the only documentation needed.
+### Simple Pipeline Definition
 
 ```py
 pipeline = ctx.pipeline(
@@ -194,12 +192,3 @@ pipeline.uniforms['iterations'][:] = struct.pack('i', 50) # writable memoryview
 pipeline.render() # no parameters for hot code
 ```
 
-## Contributing
-
-Report issues using the [Issue Tracker](https://github.com/szabolcsdombi/zengl/issues).
-
-Ask questions on the [Discussions](https://github.com/szabolcsdombi/zengl/discussions) tab.
-
-### Code of Conduct
-
-Commit to kindness, inclusivity, and mutual respect in all interactions.
