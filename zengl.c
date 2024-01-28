@@ -2547,49 +2547,59 @@ static void release_vertex_array(Context * self, GLObject * vertex_array) {
     }
 }
 
+static void release_gc_object(GCHeader * obj) {
+    obj->gc_prev->gc_next = obj->gc_next;
+    obj->gc_next->gc_prev = obj->gc_prev;
+    obj->gc_next = NULL;
+    obj->gc_prev = NULL;
+}
+
 static PyObject * Context_meth_release(Context * self, PyObject * arg) {
     if (Py_TYPE(arg) == self->module_state->Buffer_type) {
         Buffer * buffer = (Buffer *)arg;
-        buffer->gc_prev->gc_next = buffer->gc_next;
-        buffer->gc_next->gc_prev = buffer->gc_prev;
-        glDeleteBuffers(1, &buffer->buffer);
-        Py_DECREF(buffer);
+        if (buffer->gc_prev) {
+            release_gc_object((GCHeader *)buffer);
+            glDeleteBuffers(1, &buffer->buffer);
+            Py_DECREF(buffer);
+        }
     } else if (Py_TYPE(arg) == self->module_state->Image_type) {
         Image * image = (Image *)arg;
-        image->gc_prev->gc_next = image->gc_next;
-        image->gc_next->gc_prev = image->gc_prev;
-        if (image->faces) {
-            PyObject * key = NULL;
-            PyObject * value = NULL;
-            Py_ssize_t pos = 0;
-            while (PyDict_Next(image->faces, &pos, &key, &value)) {
-                ImageFace * face = (ImageFace *)value;
-                release_framebuffer(self, face->framebuffer);
+        if (image->gc_prev) {
+            release_gc_object((GCHeader *)image);
+            if (image->faces) {
+                PyObject * key = NULL;
+                PyObject * value = NULL;
+                Py_ssize_t pos = 0;
+                while (PyDict_Next(image->faces, &pos, &key, &value)) {
+                    ImageFace * face = (ImageFace *)value;
+                    release_framebuffer(self, face->framebuffer);
+                }
+                PyDict_Clear(image->faces);
             }
-            PyDict_Clear(image->faces);
+            if (image->renderbuffer) {
+                glDeleteRenderbuffers(1, &image->image);
+            } else {
+                glDeleteTextures(1, &image->image);
+            }
+            Py_DECREF(image);
         }
-        if (image->renderbuffer) {
-            glDeleteRenderbuffers(1, &image->image);
-        } else {
-            glDeleteTextures(1, &image->image);
-        }
-        Py_DECREF(image);
     } else if (Py_TYPE(arg) == self->module_state->Pipeline_type) {
         Pipeline * pipeline = (Pipeline *)arg;
-        pipeline->gc_prev->gc_next = pipeline->gc_next;
-        pipeline->gc_next->gc_prev = pipeline->gc_prev;
-        release_descriptor_set(self, pipeline->descriptor_set);
-        release_global_settings(self, pipeline->global_settings);
-        release_framebuffer(self, pipeline->framebuffer);
-        release_program(self, pipeline->program);
-        release_vertex_array(self, pipeline->vertex_array);
-        if (pipeline->uniforms) {
-            PyBuffer_Release(&pipeline->uniform_layout_buffer);
-            PyBuffer_Release(&pipeline->uniform_data_buffer);
+        if (pipeline->gc_prev) {
+            release_gc_object((GCHeader *)pipeline);
+            release_descriptor_set(self, pipeline->descriptor_set);
+            release_global_settings(self, pipeline->global_settings);
+            release_framebuffer(self, pipeline->framebuffer);
+            release_program(self, pipeline->program);
+            release_vertex_array(self, pipeline->vertex_array);
+            if (pipeline->uniforms) {
+                PyBuffer_Release(&pipeline->uniform_layout_buffer);
+                PyBuffer_Release(&pipeline->uniform_data_buffer);
+            }
+            PyBuffer_Release(&pipeline->viewport_data_buffer);
+            PyBuffer_Release(&pipeline->render_data_buffer);
+            Py_DECREF(pipeline);
         }
-        PyBuffer_Release(&pipeline->viewport_data_buffer);
-        PyBuffer_Release(&pipeline->render_data_buffer);
-        Py_DECREF(pipeline);
     } else if (PyUnicode_CheckExact(arg) && !PyUnicode_CompareWithASCIIString(arg, "shader_cache")) {
         PyObject * key = NULL;
         PyObject * value = NULL;
