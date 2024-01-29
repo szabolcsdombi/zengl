@@ -5,7 +5,7 @@ import pygame
 import zengl
 
 pygame.init()
-pygame.display.set_mode((640, 480), flags=pygame.OPENGL | pygame.DOUBLEBUF)
+pygame.display.set_mode((640, 480), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
 screen = pygame.surface.Surface((320, 240))
 
 ctx = zengl.context()
@@ -130,8 +130,6 @@ for _ in range(20):
     squares.append(square)
 
 
-clock = pygame.Clock()
-
 space_down = False
 
 while True:
@@ -167,4 +165,3 @@ while True:
     ctx.end_frame()
 
     pygame.display.flip()
-    clock.tick(60)

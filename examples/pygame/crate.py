@@ -4,7 +4,12 @@ import struct
 import pygame
 import zengl
 from meshtools import obj
-from zengl_extras import assets, tweaks
+from zengl_extras import assets
+
+pygame.init()
+pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
+
+ctx = zengl.context()
 
 
 def load_texture(name):
@@ -21,15 +26,9 @@ def load_model(name):
     return ctx.buffer(model)
 
 
-window_size = (1280, 720)
-
-pygame.init()
-pygame.display.set_mode(window_size, flags=pygame.OPENGL)
-
-ctx = zengl.context()
-
-image = ctx.image(window_size, 'rgba8unorm', samples=4)
-depth = ctx.image(window_size, 'depth24plus', samples=4)
+size = pygame.display.get_window_size()
+image = ctx.image(size, 'rgba8unorm', samples=4)
+depth = ctx.image(size, 'depth24plus', samples=4)
 
 texture = load_texture('crate.png')
 vertex_buffer = load_model('box.obj')
@@ -112,8 +111,6 @@ pipeline = ctx.pipeline(
     vertex_count=vertex_buffer.size // zengl.calcsize('3f 3f 2f'),
 )
 
-clock = pygame.Clock()
-
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -132,5 +129,3 @@ while True:
     ctx.end_frame()
 
     pygame.display.flip()
-    tweaks.vsync()
-    clock.tick()

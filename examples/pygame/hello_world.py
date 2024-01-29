@@ -1,14 +1,13 @@
 import pygame
 import zengl
 
-window_size = (1280, 720)
-
 pygame.init()
-pygame.display.set_mode(window_size, flags=pygame.OPENGL)
+pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
 
 ctx = zengl.context()
 
-image = ctx.image(window_size, 'rgba8unorm', samples=4)
+size = pygame.display.get_window_size()
+image = ctx.image(size, 'rgba8unorm', samples=4)
 
 pipeline = ctx.pipeline(
     vertex_shader='''
