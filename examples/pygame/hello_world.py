@@ -49,8 +49,6 @@ pipeline = ctx.pipeline(
     vertex_count=3,
 )
 
-clock = pygame.Clock()
-
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -64,4 +62,3 @@ while True:
     ctx.end_frame()
 
     pygame.display.flip()
-    clock.tick(60)

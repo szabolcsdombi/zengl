@@ -13,14 +13,12 @@ ctx = zengl.context()
 
 
 def load_texture(name):
-    ctx = zengl.context()
     img = pygame.image.load(assets.get(name))
     pixels = pygame.image.tobytes(img, 'RGBA')
     return ctx.image(img.get_size(), 'rgba8unorm', pixels)
 
 
 def load_model(name):
-    ctx = zengl.context()
     with open(assets.get(name)) as f:
         model = obj.parse_obj(f.read(), 'vnt')
     return ctx.buffer(model)
