@@ -1,18 +1,20 @@
-import numpy as np
+import os
+
+import pygame
 import zengl
 
-from window import Window
+pygame.init()
+pygame.display.set_mode((800, 800), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
 
-window = Window()
-width, height = window.size
 ctx = zengl.context()
 
-image = ctx.image(window.size, 'rgba8unorm')
-temp = ctx.image(window.size, 'rgba8unorm')
+size = pygame.display.get_window_size()
+image = ctx.image(size, 'rgba8unorm')
+temp = ctx.image(size, 'rgba8unorm')
 
 scene = ctx.pipeline(
     includes={
-        'size': f'ivec2 SIZE = ivec2({width}, {height});',
+        'size': f'ivec2 SIZE = ivec2({size[0]}, {size[1]});',
     },
     vertex_shader='''
         #version 300 es
@@ -31,6 +33,7 @@ scene = ctx.pipeline(
     fragment_shader='''
         #version 300 es
         precision highp float;
+        precision highp sampler2D;
 
         uniform sampler2D Texture;
 
@@ -72,11 +75,20 @@ scene = ctx.pipeline(
     vertex_count=3,
 )
 
-image.write((np.random.randint(0, 2, width * height, 'u1') * 255).repeat(4))
+image.write(os.urandom(size[0] * size[1] * 4))
 
-while window.update():
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            quit()
+
+    now = pygame.time.get_ticks() / 1000.0
+
     ctx.new_frame()
     image.blit(temp)
     scene.render()
     temp.blit()
     ctx.end_frame()
+
+    pygame.display.flip()
