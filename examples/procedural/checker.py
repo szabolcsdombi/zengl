@@ -1,11 +1,13 @@
+import pygame
 import zengl
 
-from window import Window
+pygame.init()
+pygame.display.set_mode((720, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF)
 
-window = Window((720, 720))
 ctx = zengl.context()
 
-image = ctx.image(window.size, 'rgba8unorm')
+size = pygame.display.get_window_size()
+image = ctx.image(size, 'rgba8unorm')
 
 pipeline = ctx.pipeline(
     vertex_shader='''
@@ -52,14 +54,25 @@ pipeline = ctx.pipeline(
         }
     ''',
     uniforms={
-        'resolution': window.size,
+        'resolution': size,
     },
     framebuffer=[image],
     topology='triangles',
     vertex_count=3,
 )
 
-while window.update():
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            quit()
+
+    now = pygame.time.get_ticks() / 1000.0
+
+    ctx.new_frame()
     image.clear()
     pipeline.render()
     image.blit()
+    ctx.end_frame()
+
+    pygame.display.flip()

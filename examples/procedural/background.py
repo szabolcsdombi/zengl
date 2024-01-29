@@ -1,11 +1,13 @@
+import pygame
 import zengl
 
-from window import Window
+pygame.init()
+pygame.display.set_mode((720, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF)
 
-window = Window()
 ctx = zengl.context()
 
-image = ctx.image(window.size, 'rgba8unorm', samples=4)
+size = pygame.display.get_window_size()
+image = ctx.image(size, 'rgba8unorm')
 
 background = ctx.pipeline(
     vertex_shader='''
@@ -38,7 +40,18 @@ background = ctx.pipeline(
     vertex_count=3,
 )
 
-while window.update():
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            quit()
+
+    now = pygame.time.get_ticks() / 1000.0
+
+    ctx.new_frame()
     image.clear()
     background.render()
     image.blit()
+    ctx.end_frame()
+
+    pygame.display.flip()
