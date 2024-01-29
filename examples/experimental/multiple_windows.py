@@ -22,7 +22,7 @@ import zengl
 
 def generate_surface(size, text):
     pygame.font.init()
-    font = pygame.font.SysFont("Consolas", 64)
+    font = pygame.font.SysFont('Consolas', 64)
     text = font.render(text, False, (0, 0, 255))
     tx, ty = text.get_size()
     surf = pygame.surface.Surface(size)
@@ -34,11 +34,16 @@ def generate_surface(size, text):
 
 def generate_texture(size, text):
     ctx = zengl.context()
-    return ctx.image(size, "rgba8unorm", generate_surface(size, text))
+    return ctx.image(size, 'rgba8unorm', generate_surface(size, text))
 
 
 def dpi_aware():
     ctypes.windll.shcore.SetProcessDpiAwareness(2)
+
+
+def glfunction(function, fmt, restype=None):
+    argtypes = tuple({'i': ctypes.c_int, 'p': ctypes.c_void_p, 'f': ctypes.c_float}[c] for c in fmt)
+    return ctypes.WINFUNCTYPE(restype, *argtypes)(function)
 
 
 class DetectContext:
@@ -62,15 +67,25 @@ class DetectGL:
         ctypes.windll.opengl32.wglGetProcAddress.argtypes = [ctypes.c_void_p]
         ctypes.windll.opengl32.wglGetProcAddress.restype = ctypes.c_void_p
 
-        self.glFlush = ctypes.WINFUNCTYPE(None)(ctypes.windll.opengl32.glFlush)
-        self.glReadBuffer = ctypes.WINFUNCTYPE(None, ctypes.c_int)(ctypes.windll.opengl32.glReadBuffer)
-        self.glDrawBuffers = ctypes.WINFUNCTYPE(None, ctypes.c_int, ctypes.c_void_p)(ctypes.windll.opengl32.wglGetProcAddress(b"glDrawBuffers"))
-        self.glBindFramebuffer = ctypes.WINFUNCTYPE(None, ctypes.c_int, ctypes.c_int)(ctypes.windll.opengl32.wglGetProcAddress(b"glBindFramebuffer"))
-        self.glGenFramebuffers = ctypes.WINFUNCTYPE(None, ctypes.c_int, ctypes.c_void_p)(ctypes.windll.opengl32.wglGetProcAddress(b"glGenFramebuffers"))
-        self.glFramebufferTexture2D = ctypes.WINFUNCTYPE(None, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int)(ctypes.windll.opengl32.wglGetProcAddress(b"glFramebufferTexture2D"))
-        self.glFramebufferRenderbuffer = ctypes.WINFUNCTYPE(None, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int)(ctypes.windll.opengl32.wglGetProcAddress(b"glFramebufferRenderbuffer"))
-        self.glBlitFramebuffer = ctypes.WINFUNCTYPE(None, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int)(ctypes.windll.opengl32.wglGetProcAddress(b"glBlitFramebuffer"))
-        self.wglSwapIntervalEXT = ctypes.WINFUNCTYPE(None, ctypes.c_int)(ctypes.windll.opengl32.wglGetProcAddress(b"wglSwapIntervalEXT"))
+        glFlush = ctypes.windll.opengl32.glFlush
+        glReadBuffer = ctypes.windll.opengl32.glReadBuffer
+        glDrawBuffers = ctypes.windll.opengl32.wglGetProcAddress(b'glDrawBuffers')
+        glBindFramebuffer = ctypes.windll.opengl32.wglGetProcAddress(b'glBindFramebuffer')
+        glGenFramebuffers = ctypes.windll.opengl32.wglGetProcAddress(b'glGenFramebuffers')
+        glFramebufferTexture2D = ctypes.windll.opengl32.wglGetProcAddress(b'glFramebufferTexture2D')
+        glFramebufferRenderbuffer = ctypes.windll.opengl32.wglGetProcAddress(b'glFramebufferRenderbuffer')
+        glBlitFramebuffer = ctypes.windll.opengl32.wglGetProcAddress(b'glBlitFramebuffer')
+        wglSwapIntervalEXT = ctypes.windll.opengl32.wglGetProcAddress(b'wglSwapIntervalEXT')
+
+        self.glFlush = glfunction(glFlush, '')
+        self.glReadBuffer = glfunction(glReadBuffer, 'i')
+        self.glDrawBuffers = glfunction(glDrawBuffers, 'ip')
+        self.glBindFramebuffer = glfunction(glBindFramebuffer, 'ii')
+        self.glGenFramebuffers = glfunction(glGenFramebuffers, 'ip')
+        self.glFramebufferTexture2D = glfunction(glFramebufferTexture2D, 'iiiii')
+        self.glFramebufferRenderbuffer = glfunction(glFramebufferRenderbuffer, 'iiii')
+        self.glBlitFramebuffer = glfunction(glBlitFramebuffer, 'iiiiiiiiii')
+        self.wglSwapIntervalEXT = glfunction(wglSwapIntervalEXT, 'i')
 
     def swap_interval(self, interval):
         self.wglSwapIntervalEXT(interval)
@@ -129,14 +144,14 @@ class GLWindow:
         restore = DetectContext()
         zengl_context.make_current()
         ctx = zengl.context()
-        self.image = ctx.image(size, "rgba8unorm", texture=False)
+        self.image = ctx.image(size, 'rgba8unorm', texture=False)
         self.window = pygame.Window(size=size, opengl=True)
         self.window.title = title
         self.window.position = position
         self.context = create_context(self.window)
         self.context.inherit(zengl_context)
-        # self.framebuffer = gl.create_framebuffer(texture=zengl.inspect(self.image)["texture"])
-        self.framebuffer = gl.create_framebuffer(renderbuffer=zengl.inspect(self.image)["renderbuffer"])
+        # self.framebuffer = gl.create_framebuffer(texture=zengl.inspect(self.image)['texture'])
+        self.framebuffer = gl.create_framebuffer(renderbuffer=zengl.inspect(self.image)['renderbuffer'])
         gl.swap_interval(0)
         restore.make_current()
 
@@ -149,7 +164,7 @@ class GLWindow:
 def make_pipeline(uniform_buffer, texture, framebuffer):
     ctx = zengl.context()
     return ctx.pipeline(
-        vertex_shader="""
+        vertex_shader='''
             #version 300 es
             precision highp float;
 
@@ -286,8 +301,8 @@ def make_pipeline(uniform_buffer, texture, framebuffer):
                 v_texcoord = texcoords[gl_VertexID];
                 gl_Position = mvp * vec4(v_vertex, 1.0);
             }
-        """,
-        fragment_shader="""
+        ''',
+        fragment_shader='''
             #version 300 es
             precision highp float;
             precision highp sampler2D;
@@ -311,32 +326,32 @@ def make_pipeline(uniform_buffer, texture, framebuffer):
                 float lum = dot(normalize(light.xyz), normalize(v_normal)) * 0.7 + 0.3;
                 out_color = vec4(pow(color * lum, vec3(1.0 / 2.2)), 1.0);
             }
-        """,
+        ''',
         layout=[
             {
-                "name": "Common",
-                "binding": 0,
+                'name': 'Common',
+                'binding': 0,
             },
             {
-                "name": "Texture",
-                "binding": 0,
+                'name': 'Texture',
+                'binding': 0,
             },
         ],
         resources=[
             {
-                "type": "uniform_buffer",
-                "binding": 0,
-                "buffer": uniform_buffer,
+                'type': 'uniform_buffer',
+                'binding': 0,
+                'buffer': uniform_buffer,
             },
             {
-                "type": "sampler",
-                "binding": 0,
-                "image": texture,
+                'type': 'sampler',
+                'binding': 0,
+                'image': texture,
             },
         ],
         framebuffer=framebuffer,
-        topology="triangles",
-        cull_face="back",
+        topology='triangles',
+        cull_face='back',
         vertex_count=36,
     )
 
@@ -352,13 +367,13 @@ class UniformBuffer:
         eye = (math.cos(self.time * 0.4) * 3.0, math.sin(self.time * 0.4) * 3.0, 1.5)
         camera = zengl.camera(eye, (0.0, 0.0, 0.0), aspect=1.0, fov=45.0)
         light = eye[0], eye[1], eye[2] + 2.0
-        self.buffer.write(struct.pack("64s3f4x3f4x", camera, *eye, *light))
+        self.buffer.write(struct.pack('64s3f4x3f4x', camera, *eye, *light))
 
 
 class CubeRenderer:
     def __init__(self, uniform_buffer, texture, output):
         self.output = output
-        self.depth = ctx.image(output.size, "depth24plus", texture=False)
+        self.depth = ctx.image(output.size, 'depth24plus', texture=False)
         self.pipeline = make_pipeline(uniform_buffer, texture, [output, self.depth])
 
     def render(self):
@@ -374,10 +389,10 @@ ctx = zengl.context()
 uniform_buffer = UniformBuffer()
 
 textures = [
-    generate_texture((128, 128), "Hi"),
-    generate_texture((128, 128), "Yo"),
-    generate_texture((128, 128), ":D"),
-    generate_texture((128, 128), ":)"),
+    generate_texture((128, 128), 'Hi'),
+    generate_texture((128, 128), 'Yo'),
+    generate_texture((128, 128), ':D'),
+    generate_texture((128, 128), ':)'),
 ]
 
 zengl_context = DetectContext()
@@ -385,15 +400,14 @@ gl = DetectGL()
 dpi_aware()
 
 windows = [
-    GLWindow((400, 400), (100, 100), "Window 1"),
-    GLWindow((400, 400), (600, 100), "Window 2"),
-    GLWindow((400, 400), (100, 600), "Window 3"),
-    GLWindow((400, 400), (600, 600), "Window 4"),
+    GLWindow((400, 400), (100, 100), 'Window 1'),
+    GLWindow((400, 400), (600, 100), 'Window 2'),
+    GLWindow((400, 400), (100, 600), 'Window 3'),
+    GLWindow((400, 400), (600, 600), 'Window 4'),
 ]
 
 renderers = [
-    CubeRenderer(uniform_buffer.buffer, texture, output=window.image)
-    for window, texture in zip(windows, textures)
+    CubeRenderer(uniform_buffer.buffer, texture, output=window.image) for window, texture in zip(windows, textures)
 ]
 
 while True:

@@ -9,10 +9,10 @@ pygame.display.set_mode(window_size, flags=pygame.OPENGL | pygame.RESIZABLE)
 ctx = zengl.context()
 
 scene_size = (800, 600)
-image = ctx.image(scene_size, "rgba8unorm", texture=False)
+image = ctx.image(scene_size, 'rgba8unorm', texture=False)
 
 pipeline = ctx.pipeline(
-    vertex_shader="""
+    vertex_shader='''
         #version 330 core
 
         out vec3 v_color;
@@ -33,8 +33,8 @@ pipeline = ctx.pipeline(
             gl_Position = vec4(vertices[gl_VertexID], 0.0, 1.0);
             v_color = colors[gl_VertexID];
         }
-    """,
-    fragment_shader="""
+    ''',
+    fragment_shader='''
         #version 330 core
 
         in vec3 v_color;
@@ -45,9 +45,9 @@ pipeline = ctx.pipeline(
             out_color = vec4(v_color, 1.0);
             out_color.rgb = pow(out_color.rgb, vec3(1.0 / 2.2));
         }
-    """,
+    ''',
     framebuffer=[image],
-    topology="triangles",
+    topology='triangles',
     vertex_count=3,
 )
 
