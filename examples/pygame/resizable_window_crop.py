@@ -1,15 +1,13 @@
 import pygame
 import zengl
 
-window_size = (1280, 720)
-
 pygame.init()
-pygame.display.set_mode(window_size, flags=pygame.OPENGL | pygame.RESIZABLE)
+pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF | pygame.RESIZABLE, vsync=True)
 
 ctx = zengl.context()
 
-scene_size = (800, 600)
-image = ctx.image(scene_size, 'rgba8unorm', texture=False)
+monitor_size = pygame.display.get_desktop_sizes()[0]
+image = ctx.image(monitor_size, 'rgba8unorm', samples=4)
 
 pipeline = ctx.pipeline(
     vertex_shader='''
@@ -64,8 +62,9 @@ while True:
 
     ctx.new_frame()
     image.clear()
+    pipeline.viewport = viewport
     pipeline.render()
-    image.blit(None, (0, 0), (width, height), filter=True)
+    image.blit(crop=viewport)
     ctx.end_frame()
 
     pygame.display.flip()
