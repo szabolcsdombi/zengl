@@ -3373,7 +3373,7 @@ static PyObject * meth_camera(PyObject * self, PyObject * args, PyObject * kwarg
     static char * keywords[] = {"eye", "target", "up", "fov", "aspect", "near", "far", "size", "clip", NULL};
 
     vec3 eye;
-    vec3 target;
+    vec3 target = {0.0, 0.0, 0.0};
     vec3 up = {0.0, 0.0, 1.0};
     double fov = 60.0;
     double aspect = 1.0;
@@ -3385,7 +3385,7 @@ static PyObject * meth_camera(PyObject * self, PyObject * args, PyObject * kwarg
     int args_ok = PyArg_ParseTupleAndKeywords(
         args,
         kwargs,
-        "(ddd)(ddd)|(ddd)dddddp",
+        "(ddd)|(ddd)(ddd)dddddp",
         keywords,
         &eye.x,
         &eye.y,

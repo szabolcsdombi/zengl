@@ -358,7 +358,7 @@ def context() -> Context: ...
 def inspect(self, obj: Buffer | Image | Pipeline): ...
 def camera(
     eye: Vec3,
-    target: Vec3,
+    target: Vec3 = (0.0, 0.0, 0.0),
     up: Vec3 = (0.0, 0.0, 1.0),
     fov: float = 45.0,
     aspect: float = 1.0,
