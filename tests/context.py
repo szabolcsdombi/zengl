@@ -41,7 +41,7 @@ def test_context():
     with pytest.raises(RuntimeError):
         zengl.init(BrokenLoader())
 
-    loader = egl.create_context(glversion=330, mode="standalone")
+    loader = egl.create_context(glversion=330, mode='standalone')
     zengl.init(loader)
 
     ctx1 = zengl.context()
