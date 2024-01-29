@@ -5,7 +5,7 @@ import zengl
 def test_render_triangle(ctx: zengl.Context):
     img = ctx.image((256, 256), 'rgba8unorm')
     triangle = ctx.pipeline(
-        vertex_shader="""
+        vertex_shader='''
             #version 330
 
             vec2 positions[3] = vec2[](
@@ -17,8 +17,8 @@ def test_render_triangle(ctx: zengl.Context):
             void main() {
                 gl_Position = vec4(positions[gl_VertexID], 0.0, 1.0);
             }
-        """,
-        fragment_shader="""
+        ''',
+        fragment_shader='''
             #version 330
 
             layout (location = 0) out vec4 out_color;
@@ -26,7 +26,7 @@ def test_render_triangle(ctx: zengl.Context):
             void main() {
                 out_color = vec4(1.0, 0.0, 0.0, 1.0);
             }
-        """,
+        ''',
         framebuffer=[img],
         vertex_count=3,
     )

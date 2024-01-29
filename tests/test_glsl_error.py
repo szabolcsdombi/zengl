@@ -7,14 +7,14 @@ def test_vertex_shader_error(ctx: zengl.Context):
 
     with pytest.raises(ValueError, match='Vertex Shader Error'):
         ctx.pipeline(
-            vertex_shader="""
+            vertex_shader='''
                 #version 330 core
 
                 void main() {
                     gl_Position = vec4(positions[gl_VertexID], 0.0, 1.0);
                 }
-            """,
-            fragment_shader="""
+            ''',
+            fragment_shader='''
                 #version 330 core
 
                 layout (location = 0) out vec4 out_color;
@@ -22,7 +22,7 @@ def test_vertex_shader_error(ctx: zengl.Context):
                 void main() {
                     out_color = vec4(0.0, 0.0, 0.0, 1.0);
                 }
-            """,
+            ''',
             framebuffer=[image],
             topology='triangles',
             vertex_count=3,
@@ -34,7 +34,7 @@ def test_fragment_shader_error(ctx: zengl.Context):
 
     with pytest.raises(ValueError, match='Fragment Shader Error'):
         ctx.pipeline(
-            vertex_shader="""
+            vertex_shader='''
                 #version 330 core
 
                 vec2 positions[3] = vec2[](
@@ -46,8 +46,8 @@ def test_fragment_shader_error(ctx: zengl.Context):
                 void main() {
                     gl_Position = vec4(positions[gl_VertexID], 0.0, 1.0);
                 }
-            """,
-            fragment_shader="""
+            ''',
+            fragment_shader='''
                 #version 330 core
 
                 layout (location = 0) out vec4 out_color;
@@ -55,7 +55,7 @@ def test_fragment_shader_error(ctx: zengl.Context):
                 void main() {
                     out_color = vec3(0.0, 0.0, 0.0);
                 }
-            """,
+            ''',
             framebuffer=[image],
             topology='triangles',
             vertex_count=3,
@@ -67,7 +67,7 @@ def test_linker_error(ctx: zengl.Context):
 
     with pytest.raises(ValueError, match='Linker Error'):
         ctx.pipeline(
-            vertex_shader="""
+            vertex_shader='''
                 #version 330 core
 
                 vec2 positions[3] = vec2[](
@@ -82,8 +82,8 @@ def test_linker_error(ctx: zengl.Context):
                     v_color = vec3(0.0, 0.0, 1.0);
                     gl_Position = vec4(positions[gl_VertexID], 0.0, 1.0);
                 }
-            """,
-            fragment_shader="""
+            ''',
+            fragment_shader='''
                 #version 330 core
 
                 in vec4 v_color;
@@ -93,7 +93,7 @@ def test_linker_error(ctx: zengl.Context):
                 void main() {
                     out_color = v_color;
                 }
-            """,
+            ''',
             framebuffer=[image],
             topology='triangles',
             vertex_count=3,

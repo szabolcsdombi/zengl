@@ -7,7 +7,7 @@ import zengl
 def test(ctx: zengl.Context):
     image = ctx.image((64, 64), 'rgba8unorm')
     pipeline = ctx.pipeline(
-        vertex_shader="""
+        vertex_shader='''
             #version 330 core
 
             uniform vec2 offset;
@@ -23,8 +23,8 @@ def test(ctx: zengl.Context):
             void main() {
                 gl_Position = vec4(positions[gl_VertexID * step] * scale + offset, 0.0, 1.0);
             }
-        """,
-        fragment_shader="""
+        ''',
+        fragment_shader='''
             #version 330 core
 
             uniform vec3 color;
@@ -34,7 +34,7 @@ def test(ctx: zengl.Context):
             void main() {
                 out_color = vec4(color, 1.0);
             }
-        """,
+        ''',
         uniforms={
             'offset': (0.0, 0.0),
             'scale': (1.0, 1.0),

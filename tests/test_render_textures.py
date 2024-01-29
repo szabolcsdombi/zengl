@@ -7,7 +7,7 @@ def test(ctx: zengl.Context):
     texture_1 = ctx.image((16, 16), 'rg32float', np.full((16, 16, 2), 0.5, 'f4'))
     texture_2 = ctx.image((16, 16), 'rgba8unorm', np.full((16, 16, 4), (0, 0, 255, 255), 'u1'))
     pipeline = ctx.pipeline(
-        vertex_shader="""
+        vertex_shader='''
             #version 330 core
 
             uniform sampler2D Texture_1;
@@ -21,8 +21,8 @@ def test(ctx: zengl.Context):
             void main() {
                 gl_Position = vec4(positions[gl_VertexID] + texture(Texture_1, vec2(0.5, 0.5)).rg, 0.0, 1.0);
             }
-        """,
-        fragment_shader="""
+        ''',
+        fragment_shader='''
             #version 330 core
 
             uniform sampler2D Texture_2;
@@ -32,7 +32,7 @@ def test(ctx: zengl.Context):
             void main() {
                 out_color = texture(Texture_2, vec2(0.5, 0.5));
             }
-        """,
+        ''',
         layout=[
             {
                 'name': 'Texture_1',

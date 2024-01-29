@@ -1,33 +1,33 @@
 import pytest
 import zengl
 
-simple_vertex_shader = """
+simple_vertex_shader = '''
     #version 300 es
     precision highp float;
     void main() {
         gl_Position = vec4(0.0, 0.0, 0.0, 1.0);
     }
-"""
+'''
 
-simple_fragment_shader = """
+simple_fragment_shader = '''
     #version 300 es
     precision highp float;
     layout (location = 0) out vec4 out_color;
     void main() {
         out_color = vec4(0.0);
     }
-"""
+'''
 
 
 def test_missing_vertex_shader(ctx: zengl.Context):
     image = ctx.image((4, 4), 'rgba8unorm')
     with pytest.raises(TypeError):
         ctx.pipeline(
-            fragment_shader="""
+            fragment_shader='''
                 #version 330 core
                 void main() {
                 }
-            """,
+            ''',
             framebuffer=[image],
         )
 
@@ -36,12 +36,12 @@ def test_missing_fragment_shader(ctx: zengl.Context):
     image = ctx.image((4, 4), 'rgba8unorm')
     with pytest.raises(TypeError):
         ctx.pipeline(
-            vertex_shader="""
+            vertex_shader='''
                 #version 330 core
                 void main() {
                     gl_Position = vec4(1.0);
                 }
-            """,
+            ''',
             framebuffer=[image],
         )
 
@@ -49,31 +49,31 @@ def test_missing_fragment_shader(ctx: zengl.Context):
 def test_missing_framebuffer(ctx: zengl.Context):
     with pytest.raises(TypeError):
         ctx.pipeline(
-            vertex_shader="""
+            vertex_shader='''
                 #version 330 core
                 void main() {
                     gl_Position = vec4(1.0);
                 }
-            """,
-            fragment_shader="""
+            ''',
+            fragment_shader='''
                 #version 330 core
                 void main() {
                 }
-            """,
+            ''',
         )
 
 
 def test_unbound_attribute(ctx: zengl.Context):
     with pytest.raises(ValueError):
         ctx.pipeline(
-            vertex_shader="""
+            vertex_shader='''
                 #version 300 es
                 precision highp float;
                 layout (location = 0) in vec2 in_vertex;
                 void main() {
                     gl_Position = vec4(in_vertex, 0.0, 1.0);
                 }
-            """,
+            ''',
             fragment_shader=simple_fragment_shader,
             framebuffer=None,
             viewport=(0, 0, 4, 4),
@@ -85,14 +85,14 @@ def test_invalid_vertex_format(ctx: zengl.Context):
 
     with pytest.raises(ValueError):
         ctx.pipeline(
-            vertex_shader="""
+            vertex_shader='''
                 #version 300 es
                 precision highp float;
                 layout (location = 0) in vec2 in_vertex;
                 void main() {
                     gl_Position = vec4(in_vertex, 0.0, 1.0);
                 }
-            """,
+            ''',
             fragment_shader=simple_fragment_shader,
             framebuffer=None,
             viewport=(0, 0, 4, 4),

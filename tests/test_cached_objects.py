@@ -3,7 +3,7 @@ import zengl
 
 def make_pipeline(ctx, framebuffer, viewport, color):
     return ctx.pipeline(
-        vertex_shader="""
+        vertex_shader='''
             #version 330 core
 
             vec2 positions[3] = vec2[](
@@ -15,8 +15,8 @@ def make_pipeline(ctx, framebuffer, viewport, color):
             void main() {
                 gl_Position = vec4(positions[gl_VertexID], 0.0, 1.0);
             }
-        """,
-        fragment_shader="""
+        ''',
+        fragment_shader='''
             #version 330 core
 
             #include "color"
@@ -26,7 +26,7 @@ def make_pipeline(ctx, framebuffer, viewport, color):
             void main() {
                 out_color = vec4(color, 1.0);
             }
-        """,
+        ''',
         framebuffer=framebuffer,
         viewport=viewport,
         topology='triangles',

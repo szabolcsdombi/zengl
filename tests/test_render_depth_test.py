@@ -4,7 +4,7 @@ import zengl
 
 def make_pipeline(ctx, framebuffer, viewport, depth_function):
     return ctx.pipeline(
-        vertex_shader="""
+        vertex_shader='''
             #version 330 core
 
             vec3 positions[3] = vec3[](
@@ -25,8 +25,8 @@ def make_pipeline(ctx, framebuffer, viewport, depth_function):
                 v_color = colors[gl_InstanceID];
                 gl_Position = vec4(positions[gl_VertexID] + vec3(0.0, 0.0, float(gl_InstanceID) - 1.0), 1.0);
             }
-        """,
-        fragment_shader="""
+        ''',
+        fragment_shader='''
             #version 330 core
 
             in vec3 v_color;
@@ -36,7 +36,7 @@ def make_pipeline(ctx, framebuffer, viewport, depth_function):
             void main() {
                 out_color = vec4(v_color, 1.0);
             }
-        """,
+        ''',
         framebuffer=framebuffer,
         depth={
             'func': depth_function,

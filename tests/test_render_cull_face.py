@@ -21,7 +21,7 @@ def test(ctx: zengl.Context):
         )
     )
     pipeline = ctx.pipeline(
-        vertex_shader="""
+        vertex_shader='''
             #version 330 core
 
             layout (location = 0) in vec2 in_vertex;
@@ -33,8 +33,8 @@ def test(ctx: zengl.Context):
                 v_color = in_color;
                 gl_Position = vec4(in_vertex + 0.5, 0.0, 1.0);
             }
-        """,
-        fragment_shader="""
+        ''',
+        fragment_shader='''
             #version 330 core
 
             in vec3 v_color;
@@ -44,7 +44,7 @@ def test(ctx: zengl.Context):
             void main() {
                 out_color = vec4(v_color, 1.0);
             }
-        """,
+        ''',
         framebuffer=[image],
         topology='triangles',
         vertex_buffers=zengl.bind(vertex_buffer, '2f 3f', 0, 1),

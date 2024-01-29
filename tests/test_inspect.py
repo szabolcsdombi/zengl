@@ -6,7 +6,7 @@ def test_inspect_pipeline(ctx: zengl.Context):
     texture = ctx.image((64, 64), 'rgba8unorm')
     uniform_buffer = ctx.buffer(size=64)
     pipeline = ctx.pipeline(
-        vertex_shader="""
+        vertex_shader='''
             #version 330 core
 
             layout (std140) uniform Common {
@@ -22,8 +22,8 @@ def test_inspect_pipeline(ctx: zengl.Context):
             void main() {
                 gl_Position = mvp * vec4(positions[gl_VertexID], 0.0, 1.0);
             }
-        """,
-        fragment_shader="""
+        ''',
+        fragment_shader='''
             #version 330 core
 
             uniform sampler2D Texture;
@@ -33,7 +33,7 @@ def test_inspect_pipeline(ctx: zengl.Context):
             void main() {
                 out_color = texture(Texture, vec2(0.5, 0.5));
             }
-        """,
+        ''',
         layout=[
             {
                 'name': 'Common',

@@ -20,7 +20,7 @@ def test(ctx: zengl.Context):
         ).T
     )
     pipeline = ctx.pipeline(
-        vertex_shader="""
+        vertex_shader='''
             #version 330 core
 
             layout (std140) uniform Common {
@@ -36,8 +36,8 @@ def test(ctx: zengl.Context):
                 v_text = in_text;
                 gl_Position = mvp * vec4(in_vert, 1.0);
             }
-        """,
-        fragment_shader="""
+        ''',
+        fragment_shader='''
             #version 330 core
 
             uniform sampler2D Texture;
@@ -49,7 +49,7 @@ def test(ctx: zengl.Context):
             void main() {
                 out_color = texture(Texture, v_text);
             }
-        """,
+        ''',
         layout=[
             {
                 'name': 'Common',

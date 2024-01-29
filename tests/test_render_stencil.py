@@ -4,7 +4,7 @@ import zengl
 
 def make_pipeline(ctx, framebuffer, color, stencil):
     return ctx.pipeline(
-        vertex_shader="""
+        vertex_shader='''
             #version 330 core
 
             vec2 positions[3] = vec2[](
@@ -16,8 +16,8 @@ def make_pipeline(ctx, framebuffer, color, stencil):
             void main() {
                 gl_Position = vec4(positions[gl_VertexID] + 0.5, 0.0, 1.0);
             }
-        """,
-        fragment_shader="""
+        ''',
+        fragment_shader='''
             #version 330 core
 
             uniform vec3 color;
@@ -27,7 +27,7 @@ def make_pipeline(ctx, framebuffer, color, stencil):
             void main() {
                 out_color = vec4(color, 1.0);
             }
-        """,
+        ''',
         uniforms={
             'color': color,
         },

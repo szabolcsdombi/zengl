@@ -4,15 +4,15 @@ import numpy as np
 
 def make_pipeline(ctx, image, gltype, color):
     return ctx.pipeline(
-        vertex_shader="""
+        vertex_shader='''
             #version 300 es
             precision highp float;
             vec2 positions[3] = vec2[](vec2(-1.0, -1.0), vec2(3.0, -1.0), vec2(-1.0, 3.0));
             void main() {
                 gl_Position = vec4(positions[gl_VertexID], 0.0, 1.0);
             }
-        """,
-        fragment_shader="""
+        ''',
+        fragment_shader='''
             #version 300 es
             precision highp float;
             precision highp int;
@@ -22,7 +22,7 @@ def make_pipeline(ctx, image, gltype, color):
             void main() {
                 out_color = color;
             }
-        """,
+        ''',
         includes={
             'TYPE': f'#define TYPE {gltype}',
         },
@@ -81,15 +81,15 @@ def test_uniform_mat4(ctx: zengl.Context):
     img = ctx.image((4, 4), 'rgba32float', bytearray(256))
 
     pipeline = ctx.pipeline(
-        vertex_shader="""
+        vertex_shader='''
             #version 300 es
             precision highp float;
             vec2 positions[3] = vec2[](vec2(-1.0, -1.0), vec2(3.0, -1.0), vec2(-1.0, 3.0));
             void main() {
                 gl_Position = vec4(positions[gl_VertexID], 0.0, 1.0);
             }
-        """,
-        fragment_shader="""
+        ''',
+        fragment_shader='''
             #version 300 es
             precision highp float;
             uniform mat4 kernel;
@@ -98,7 +98,7 @@ def test_uniform_mat4(ctx: zengl.Context):
             void main() {
                 out_color = kernel * color;
             }
-        """,
+        ''',
         uniforms={
             'kernel': [0.0] * 16,
             'color': [1.0, 2.0, 3.0, 4.0],
