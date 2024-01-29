@@ -1,11 +1,13 @@
+import pygame
 import zengl
 
-from window import Window
+pygame.init()
+pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
 
-window = Window()
 ctx = zengl.context()
 
-image = ctx.image(window.size, 'rgba8unorm', samples=4)
+size = pygame.display.get_window_size()
+image = ctx.image(size, 'rgba8unorm', samples=4)
 image.clear_value = (1.0, 1.0, 1.0, 1.0)
 
 triangle = ctx.pipeline(
@@ -49,7 +51,12 @@ triangle = ctx.pipeline(
     vertex_count=3,
 )
 
-while window.update():
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            quit()
+
     ctx.new_frame()
     image.clear()
     triangle.viewport = (0, 0, 640, 360)
@@ -62,3 +69,5 @@ while window.update():
     triangle.render()
     image.blit()
     ctx.end_frame()
+
+    pygame.display.flip()
