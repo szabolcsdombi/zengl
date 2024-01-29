@@ -2,7 +2,7 @@ import zengl
 
 
 def test_frame_time(ctx: zengl.Context):
-    image = ctx.image((64, 64), "rgba8unorm")
+    image = ctx.image((64, 64), 'rgba8unorm')
     pipeline = ctx.pipeline(
         vertex_shader="""
             #version 330 core
@@ -27,7 +27,7 @@ def test_frame_time(ctx: zengl.Context):
             }
         """,
         framebuffer=[image],
-        topology="triangles",
+        topology='triangles',
         vertex_count=3,
     )
 

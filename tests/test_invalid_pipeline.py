@@ -20,7 +20,7 @@ simple_fragment_shader = """
 
 
 def test_missing_vertex_shader(ctx: zengl.Context):
-    image = ctx.image((4, 4), "rgba8unorm")
+    image = ctx.image((4, 4), 'rgba8unorm')
     with pytest.raises(TypeError):
         ctx.pipeline(
             fragment_shader="""
@@ -33,7 +33,7 @@ def test_missing_vertex_shader(ctx: zengl.Context):
 
 
 def test_missing_fragment_shader(ctx: zengl.Context):
-    image = ctx.image((4, 4), "rgba8unorm")
+    image = ctx.image((4, 4), 'rgba8unorm')
     with pytest.raises(TypeError):
         ctx.pipeline(
             vertex_shader="""
@@ -98,12 +98,12 @@ def test_invalid_vertex_format(ctx: zengl.Context):
             viewport=(0, 0, 4, 4),
             vertex_buffers=[
                 {
-                    "location": 0,
-                    "buffer": vbo,
-                    "format": "float64x2",
-                    "offset": 0,
-                    "step": "vertex",
-                    "stride": 8,
+                    'location': 0,
+                    'buffer': vbo,
+                    'format': 'float64x2',
+                    'offset': 0,
+                    'step': 'vertex',
+                    'stride': 8,
                 },
             ],
         )
@@ -116,7 +116,7 @@ def test_invalid_topology(ctx: zengl.Context):
             fragment_shader=simple_fragment_shader,
             framebuffer=None,
             viewport=(0, 0, 4, 4),
-            topology="bad",
+            topology='bad',
         )
 
 
@@ -127,7 +127,7 @@ def test_invalid_render_data(ctx: zengl.Context):
             fragment_shader=simple_fragment_shader,
             framebuffer=None,
             viewport=(0, 0, 4, 4),
-            render_data="bad",
+            render_data='bad',
         )
 
 
@@ -149,5 +149,5 @@ def test_invalid_cull_face(ctx: zengl.Context):
             fragment_shader=simple_fragment_shader,
             framebuffer=None,
             viewport=(0, 0, 4, 4),
-            cull_face="bad",
+            cull_face='bad',
         )

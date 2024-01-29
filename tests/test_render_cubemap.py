@@ -5,7 +5,7 @@ import zengl
 
 
 def test(ctx: zengl.Context):
-    image = ctx.image((64, 64), "rgba8unorm")
+    image = ctx.image((64, 64), 'rgba8unorm')
     temp = np.concatenate(
         [
             np.full((16, 16, 2), (-0.5, -0.5)),
@@ -15,9 +15,9 @@ def test(ctx: zengl.Context):
             np.full((16, 16, 2), (0.0, 0.0)),
             np.full((16, 16, 2), (0.0, 0.0)),
         ],
-        dtype="f4",
+        dtype='f4',
     )
-    texture = ctx.image((16, 16), "rg32float", temp, cubemap=True)
+    texture = ctx.image((16, 16), 'rg32float', temp, cubemap=True)
     pipeline = ctx.pipeline(
         vertex_shader="""
             #version 330 core
@@ -47,37 +47,37 @@ def test(ctx: zengl.Context):
         """,
         layout=[
             {
-                "name": "Texture",
-                "binding": 5,
+                'name': 'Texture',
+                'binding': 5,
             },
         ],
         resources=[
             {
-                "type": "sampler",
-                "binding": 5,
-                "image": texture,
+                'type': 'sampler',
+                'binding': 5,
+                'image': texture,
             },
         ],
         uniforms={
-            "ray": (0.0, 0.0, 0.0),
+            'ray': (0.0, 0.0, 0.0),
         },
         framebuffer=[image],
-        topology="triangles",
+        topology='triangles',
         vertex_count=3,
     )
 
     ctx.new_frame()
     image.clear()
-    struct.pack_into("3f", pipeline.uniforms["ray"], 0, 0.9, 0.1, 0.2)
+    struct.pack_into('3f', pipeline.uniforms['ray'], 0, 0.9, 0.1, 0.2)
     pipeline.render()
-    struct.pack_into("3f", pipeline.uniforms["ray"], 0, -0.9, 0.2, 0.1)
+    struct.pack_into('3f', pipeline.uniforms['ray'], 0, -0.9, 0.2, 0.1)
     pipeline.render()
-    struct.pack_into("3f", pipeline.uniforms["ray"], 0, 0.1, 0.9, -0.2)
+    struct.pack_into('3f', pipeline.uniforms['ray'], 0, 0.1, 0.9, -0.2)
     pipeline.render()
-    struct.pack_into("3f", pipeline.uniforms["ray"], 0, -0.2, -0.9, 0.1)
+    struct.pack_into('3f', pipeline.uniforms['ray'], 0, -0.2, -0.9, 0.1)
     pipeline.render()
     ctx.end_frame()
-    pixels = np.frombuffer(image.read(), "u1").reshape(64, 64, 4)
+    pixels = np.frombuffer(image.read(), 'u1').reshape(64, 64, 4)
     np.testing.assert_array_equal(
         pixels[[16, 16, 48, 48], [16, 48, 16, 48]],
         [

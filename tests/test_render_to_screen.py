@@ -3,7 +3,7 @@ import zengl
 
 
 def test(ctx: zengl.Context):
-    image = ctx.image((64, 64), "rgba8unorm")
+    image = ctx.image((64, 64), 'rgba8unorm')
     pipeline = ctx.pipeline(
         vertex_shader="""
             #version 330 core
@@ -29,13 +29,13 @@ def test(ctx: zengl.Context):
         """,
         framebuffer=None,
         viewport=(0, 0, 64, 64),
-        topology="triangles",
+        topology='triangles',
         vertex_count=3,
     )
 
     assert ctx.screen == 0
 
-    framebuffer = zengl.inspect(image.face(0))["framebuffer"]
+    framebuffer = zengl.inspect(image.face(0))['framebuffer']
     assert framebuffer != 0
 
     ctx.screen = framebuffer
@@ -49,7 +49,7 @@ def test(ctx: zengl.Context):
     ctx.screen = 0
     assert ctx.screen == 0
 
-    pixels = np.frombuffer(image.read(), "u1").reshape(64, 64, 4)
+    pixels = np.frombuffer(image.read(), 'u1').reshape(64, 64, 4)
     np.testing.assert_array_equal(
         pixels[[16, 16, 48, 48], [16, 48, 16, 48]],
         [

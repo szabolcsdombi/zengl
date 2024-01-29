@@ -3,9 +3,9 @@ import zengl
 
 
 def test_vertex_shader_error(ctx: zengl.Context):
-    image = ctx.image((64, 64), "rgba8unorm")
+    image = ctx.image((64, 64), 'rgba8unorm')
 
-    with pytest.raises(ValueError, match="Vertex Shader Error"):
+    with pytest.raises(ValueError, match='Vertex Shader Error'):
         ctx.pipeline(
             vertex_shader="""
                 #version 330 core
@@ -24,15 +24,15 @@ def test_vertex_shader_error(ctx: zengl.Context):
                 }
             """,
             framebuffer=[image],
-            topology="triangles",
+            topology='triangles',
             vertex_count=3,
         )
 
 
 def test_fragment_shader_error(ctx: zengl.Context):
-    image = ctx.image((64, 64), "rgba8unorm")
+    image = ctx.image((64, 64), 'rgba8unorm')
 
-    with pytest.raises(ValueError, match="Fragment Shader Error"):
+    with pytest.raises(ValueError, match='Fragment Shader Error'):
         ctx.pipeline(
             vertex_shader="""
                 #version 330 core
@@ -57,15 +57,15 @@ def test_fragment_shader_error(ctx: zengl.Context):
                 }
             """,
             framebuffer=[image],
-            topology="triangles",
+            topology='triangles',
             vertex_count=3,
         )
 
 
 def test_linker_error(ctx: zengl.Context):
-    image = ctx.image((64, 64), "rgba8unorm")
+    image = ctx.image((64, 64), 'rgba8unorm')
 
-    with pytest.raises(ValueError, match="Linker Error"):
+    with pytest.raises(ValueError, match='Linker Error'):
         ctx.pipeline(
             vertex_shader="""
                 #version 330 core
@@ -95,6 +95,6 @@ def test_linker_error(ctx: zengl.Context):
                 }
             """,
             framebuffer=[image],
-            topology="triangles",
+            topology='triangles',
             vertex_count=3,
         )

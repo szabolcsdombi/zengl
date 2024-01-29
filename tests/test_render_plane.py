@@ -3,9 +3,9 @@ import zengl
 
 
 def test(ctx: zengl.Context):
-    image = ctx.image((64, 64), "rgba8unorm")
-    depth = ctx.image((64, 64), "depth24plus")
-    texture = ctx.image((16, 16), "rgba8unorm", np.full((16, 16, 4), (64, 64, 255, 255), "u1"))
+    image = ctx.image((64, 64), 'rgba8unorm')
+    depth = ctx.image((64, 64), 'depth24plus')
+    texture = ctx.image((16, 16), 'rgba8unorm', np.full((16, 16, 4), (64, 64, 255, 255), 'u1'))
     uniform_buffer = ctx.buffer(size=64)
     vertex_buffer = ctx.buffer(
         np.array(
@@ -16,7 +16,7 @@ def test(ctx: zengl.Context):
                 [0.0, 1.0, 0.0, 1.0],
                 [0.0, 0.0, 1.0, 1.0],
             ],
-            "f4",
+            'f4',
         ).T
     )
     pipeline = ctx.pipeline(
@@ -52,31 +52,31 @@ def test(ctx: zengl.Context):
         """,
         layout=[
             {
-                "name": "Common",
-                "binding": 0,
+                'name': 'Common',
+                'binding': 0,
             },
             {
-                "name": "Texture",
-                "binding": 0,
+                'name': 'Texture',
+                'binding': 0,
             },
         ],
         resources=[
             {
-                "type": "uniform_buffer",
-                "binding": 0,
-                "buffer": uniform_buffer,
+                'type': 'uniform_buffer',
+                'binding': 0,
+                'buffer': uniform_buffer,
             },
             {
-                "type": "sampler",
-                "binding": 0,
-                "image": texture,
+                'type': 'sampler',
+                'binding': 0,
+                'image': texture,
             },
         ],
         framebuffer=[image, depth],
-        topology="triangle_strip",
-        cull_face="back",
-        vertex_buffers=zengl.bind(vertex_buffer, "3f 2f", 0, 1),
-        vertex_count=vertex_buffer.size // zengl.calcsize("3f 2f"),
+        topology='triangle_strip',
+        cull_face='back',
+        vertex_buffers=zengl.bind(vertex_buffer, '3f 2f', 0, 1),
+        vertex_count=vertex_buffer.size // zengl.calcsize('3f 2f'),
     )
 
     camera = zengl.camera((0.4, 0.3, 0.2), (0.0, 0.0, 0.0), aspect=1.0, fov=45.0)
@@ -90,5 +90,5 @@ def test(ctx: zengl.Context):
     image.blit()
     ctx.end_frame()
 
-    pixels = np.frombuffer(image.read(), "u1").reshape(64, 64, 4)
+    pixels = np.frombuffer(image.read(), 'u1').reshape(64, 64, 4)
     np.testing.assert_array_equal(pixels[32, 32], [64, 64, 255, 255])

@@ -5,7 +5,7 @@ import zengl
 
 
 def test(ctx: zengl.Context):
-    image = ctx.image((64, 64), "rgba8unorm")
+    image = ctx.image((64, 64), 'rgba8unorm')
     pipeline = ctx.pipeline(
         vertex_shader="""
             #version 330 core
@@ -36,24 +36,24 @@ def test(ctx: zengl.Context):
             }
         """,
         uniforms={
-            "offset": (0.0, 0.0),
-            "scale": (1.0, 1.0),
-            "color": (0.0, 0.0, 0.0),
-            "step": 0,
+            'offset': (0.0, 0.0),
+            'scale': (1.0, 1.0),
+            'color': (0.0, 0.0, 0.0),
+            'step': 0,
         },
         framebuffer=[image],
-        topology="triangles",
+        topology='triangles',
         vertex_count=3,
     )
 
     ctx.new_frame()
     image.clear()
-    struct.pack_into("2f", pipeline.uniforms["offset"], 0, 0.5, 0.5)
-    struct.pack_into("3f", pipeline.uniforms["color"], 0, 0.0, 0.0, 1.0)
-    struct.pack_into("i", pipeline.uniforms["step"], 0, 1)
+    struct.pack_into('2f', pipeline.uniforms['offset'], 0, 0.5, 0.5)
+    struct.pack_into('3f', pipeline.uniforms['color'], 0, 0.0, 0.0, 1.0)
+    struct.pack_into('i', pipeline.uniforms['step'], 0, 1)
     pipeline.render()
     ctx.end_frame()
-    pixels = np.frombuffer(image.read(), "u1").reshape(64, 64, 4)
+    pixels = np.frombuffer(image.read(), 'u1').reshape(64, 64, 4)
     np.testing.assert_array_equal(
         pixels[[16, 16, 48, 48], [16, 48, 16, 48]],
         [

@@ -3,7 +3,7 @@ import zengl
 
 
 def test_render_triangle(ctx: zengl.Context):
-    img = ctx.image((256, 256), "rgba8unorm")
+    img = ctx.image((256, 256), 'rgba8unorm')
     triangle = ctx.pipeline(
         vertex_shader="""
             #version 330
@@ -34,7 +34,7 @@ def test_render_triangle(ctx: zengl.Context):
     img.clear()
     triangle.render()
     ctx.end_frame()
-    pixels = np.frombuffer(img.read(), "u1").reshape(256, 256, 4)
+    pixels = np.frombuffer(img.read(), 'u1').reshape(256, 256, 4)
     x = np.repeat(np.arange(4) * 50 + 50, 4)
     y = np.tile(np.arange(4) * 50 + 50, 4)
     r = [255, 0, 0, 255]
