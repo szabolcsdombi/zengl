@@ -1,6 +1,0 @@
-FROM python:3.12.1
-RUN pip install -U pip wheel setuptools &&\
-    pip install ruff
-WORKDIR /app
-COPY . .
-CMD ruff check .
