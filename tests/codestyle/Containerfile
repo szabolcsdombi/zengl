@@ -1,6 +1,6 @@
 FROM python:3.12.1
 RUN pip install -U pip wheel setuptools &&\
-    pip install black isort
+    pip install ruff
 WORKDIR /app
 COPY . .
-CMD python -m black --diff --line-length=120 --exclude 'examples/(advanced|experimental)' .
+CMD ruff check .
