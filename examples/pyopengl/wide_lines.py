@@ -1,35 +1,23 @@
-import numpy as np
-import zengl
-from OpenGL import GL
-
-from window import Window
-
 '''
     Line width is not managed by ZenGL because wide lines are not supported in core OpenGL profile.
     This example intends to demonstrate how to set the line width while rendering with ZenGL.
     To render nice lines please see the bezier_curves.py.
 '''
 
+import numpy as np
+import pygame
+import zengl
+from OpenGL import GL
+
+pygame.init()
+pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
+
+ctx = zengl.context()
+
 
 def create_helix(points, offset):
     t = np.linspace(0.0, 64.0, points)
     return np.array([np.sin(t) + offset, np.cos(t), t * 0.2 - 6.4]).T.astype('f4').tobytes()
-
-
-window = Window()
-ctx = zengl.context()
-
-image = ctx.image(window.size, 'rgba8unorm', samples=4)
-depth = ctx.image(window.size, 'depth24plus', samples=4)
-image.clear_value = (1.0, 1.0, 1.0, 1.0)
-
-uniform_buffer = ctx.buffer(size=64)
-
-vertex_buffers = [
-    ctx.buffer(create_helix(1000, -8.0)),
-    ctx.buffer(create_helix(1000, 0.0)),
-    ctx.buffer(create_helix(1000, 8.0)),
-]
 
 
 def build_pipeline(vertex_buffer):
@@ -78,12 +66,30 @@ def build_pipeline(vertex_buffer):
     )
 
 
+size = pygame.display.get_window_size()
+image = ctx.image(size, 'rgba8unorm', samples=4)
+depth = ctx.image(size, 'depth24plus', samples=4)
+image.clear_value = (1.0, 1.0, 1.0, 1.0)
+
+uniform_buffer = ctx.buffer(size=64)
+
+vertex_buffers = [
+    ctx.buffer(create_helix(1000, -8.0)),
+    ctx.buffer(create_helix(1000, 0.0)),
+    ctx.buffer(create_helix(1000, 8.0)),
+]
+
 pipelines = [build_pipeline(vbo) for vbo in vertex_buffers]
 
-camera = zengl.camera((0.0, -20.0, 0.0), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
+camera = zengl.camera((0.0, -20.0, 0.0), (0.0, 0.0, 0.0), aspect=1.777, fov=45.0)
 uniform_buffer.write(camera)
 
-while window.update():
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            quit()
+
     ctx.new_frame()
     image.clear()
     depth.clear()
@@ -95,3 +101,5 @@ while window.update():
     pipelines[2].render()
     image.blit()
     ctx.end_frame()
+
+    pygame.display.flip()

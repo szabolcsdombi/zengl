@@ -1,34 +1,45 @@
 import math
 import struct
 
+import pygame
 import zengl
-from objloader import Obj
+from meshtools import obj
 from OpenGL import GL
-from PIL import Image
+from zengl_extras import assets
 
-import assets
-from window import Window
+pygame.init()
+pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
 
-window = Window()
 ctx = zengl.context()
 
-image = ctx.image(window.size, 'rgba8unorm', samples=4)
-depth = ctx.image(window.size, 'depth24plus', samples=4)
-image.clear_value = (1.0, 1.0, 1.0, 1.0)
 
-model = Obj.open(assets.get('box.obj')).pack('vx vy vz nx ny nz tx ty')
+def load_texture(name):
+    img = pygame.image.load(assets.get(name))
+    pixels = pygame.image.tobytes(img, 'RGBA')
+    return ctx.image(img.get_size(), 'rgba8unorm', pixels)
+
+
+def load_model_raw(name):
+    with open(assets.get(name)) as f:
+        return obj.parse_obj(f.read(), 'vnt')
+
+
+size = pygame.display.get_window_size()
+image = ctx.image(size, 'rgba8unorm', samples=4)
+depth = ctx.image(size, 'depth24plus', samples=4)
+
+model = load_model_raw('box.obj')
 gl_buffer = GL.glGenBuffers(1)
 GL.glBindBuffer(GL.GL_ARRAY_BUFFER, gl_buffer)
 GL.glBufferData(GL.GL_ARRAY_BUFFER, len(model), model, GL.GL_STATIC_DRAW)
 
 vertex_buffer = ctx.buffer(size=len(model), external=gl_buffer)
 
-img = Image.open(assets.get('crate.png')).convert('RGBA')
-texture = ctx.image(img.size, 'rgba8unorm', img.tobytes())
+texture = load_texture('crate.png')
 
 uniform_buffer = ctx.buffer(size=80)
 
-crate = ctx.pipeline(
+pipeline = ctx.pipeline(
     vertex_shader='''
         #version 300 es
         precision highp float;
@@ -104,16 +115,21 @@ crate = ctx.pipeline(
     vertex_count=vertex_buffer.size // zengl.calcsize('3f 3f 2f'),
 )
 
-while window.update():
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            quit()
+
     ctx.new_frame()
-    x, y = math.sin(window.time * 0.5) * 3.0, math.cos(window.time * 0.5) * 3.0
-    camera = zengl.camera((x, y, 1.5), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
-
-    uniform_buffer.write(camera)
-    uniform_buffer.write(struct.pack('3f4x', x, y, 1.5), offset=64)
-
+    time = pygame.time.get_ticks() / 1000.0
+    eye = (math.cos(time * 0.6) * 3.0, math.sin(time * 0.6) * 3.0, 1.5)
+    camera = zengl.camera(eye, (0.0, 0.0, 0.0), aspect=16.0 / 9.0, fov=45.0)
+    uniform_buffer.write(struct.pack('64s3f4x', camera, *eye))
     image.clear()
     depth.clear()
-    crate.render()
+    pipeline.render()
     image.blit()
     ctx.end_frame()
+
+    pygame.display.flip()

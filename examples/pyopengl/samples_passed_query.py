@@ -1,26 +1,22 @@
+import math
 import struct
 
-import numpy as np
+import pygame
 import zengl
 from OpenGL import GL
-from progress.bar import Bar
 
-from window import Window
+pygame.init()
+pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
 
-window = Window()
 ctx = zengl.context()
 
-# query = ctypes.c_uint32()
-# query_result = ctypes.c_uint32()
-query = GL.glGenQueries(1)[0]
-
-image = ctx.image(window.size, 'rgba8unorm', samples=4)
-image.clear_value = (1.0, 1.0, 1.0, 1.0)
+size = pygame.display.get_window_size()
+image = ctx.image(size, 'rgba8unorm', samples=4)
 
 uniform_buffer = ctx.buffer(size=16)
 
 pipeline = ctx.pipeline(
-    vertex_shader='''
+    vertex_shader="""
         #version 300 es
         precision highp float;
 
@@ -37,17 +33,17 @@ pipeline = ctx.pipeline(
         void main() {
             gl_Position = vec4(positions[gl_VertexID] * scale, 0.0, 1.0);
         }
-    ''',
-    fragment_shader='''
+    """,
+    fragment_shader="""
         #version 300 es
         precision highp float;
 
         layout (location = 0) out vec4 out_color;
 
         void main() {
-            out_color = vec4(0.0, 0.0, 0.0, 1.0);
+            out_color = vec4(1.0, 1.0, 1.0, 1.0);
         }
-    ''',
+    """,
     layout=[
         {
             'name': 'Common',
@@ -66,17 +62,26 @@ pipeline = ctx.pipeline(
     vertex_count=3,
 )
 
-bar = Bar('Samples Passed:', fill='-')
+query = GL.glGenQueries(1)[0]
 
-while window.update():
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            quit()
+
+    now = pygame.time.get_ticks() / 1000.0
+
     ctx.new_frame()
     image.clear()
-    uniform_buffer.write(struct.pack('ff8x', np.sin(window.time), np.cos(window.time)))
+    uniform_buffer.write(struct.pack('ff8x', math.sin(now), math.cos(now)))
     GL.glBeginQuery(GL.GL_SAMPLES_PASSED, query)
     pipeline.render()
     GL.glEndQuery(GL.GL_SAMPLES_PASSED)
     query_result = GL.glGetQueryObjectuiv(query, GL.GL_QUERY_RESULT)
-    bar.max = max(bar.max, query_result)
-    bar.goto(query_result)
+    pygame.display.set_caption(f'Samples Passed: {query_result}')
     image.blit()
     ctx.end_frame()
+
+    pygame.display.flip()
+
