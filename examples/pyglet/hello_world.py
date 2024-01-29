@@ -1,8 +1,8 @@
 import pyglet
 import zengl
 
-pyglet.options["shadow_window"] = False
-pyglet.options["debug_gl"] = False
+pyglet.options['shadow_window'] = False
+pyglet.options['debug_gl'] = False
 
 window_size = (1280, 720)
 
@@ -19,10 +19,10 @@ window = pyglet.window.Window(*window_size, resizable=False, config=config, vsyn
 
 ctx = zengl.context()
 
-image = ctx.image(window_size, "rgba8unorm", samples=4)
+image = ctx.image(window_size, 'rgba8unorm', samples=4)
 
 pipeline = ctx.pipeline(
-    vertex_shader="""
+    vertex_shader='''
         #version 330 core
 
         out vec3 v_color;
@@ -43,8 +43,8 @@ pipeline = ctx.pipeline(
             gl_Position = vec4(vertices[gl_VertexID], 0.0, 1.0);
             v_color = colors[gl_VertexID];
         }
-    """,
-    fragment_shader="""
+    ''',
+    fragment_shader='''
         #version 330 core
 
         in vec3 v_color;
@@ -55,9 +55,9 @@ pipeline = ctx.pipeline(
             out_color = vec4(v_color, 1.0);
             out_color.rgb = pow(out_color.rgb, vec3(1.0 / 2.2));
         }
-    """,
+    ''',
     framebuffer=[image],
-    topology="triangles",
+    topology='triangles',
     vertex_count=3,
 )
 

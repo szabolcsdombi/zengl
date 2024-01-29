@@ -12,12 +12,12 @@ ctx = zengl.context()
 
 size = (canvas.width, canvas.height)
 
-image = ctx.image(size, "rgba8unorm", samples=4)
-depth = ctx.image(size, "depth24plus", samples=4)
-output = ctx.image(size, "rgba8unorm")
+image = ctx.image(size, 'rgba8unorm', samples=4)
+depth = ctx.image(size, 'depth24plus', samples=4)
+output = ctx.image(size, 'rgba8unorm')
 
 pipeline = ctx.pipeline(
-    vertex_shader="""
+    vertex_shader='''
         #version 300 es
         precision highp float;
 
@@ -77,8 +77,8 @@ pipeline = ctx.pipeline(
             gl_Position = mvp * vec4(rotation * v_vertex, 1.0);
             v_color = hsv2rgb(vec3(float(gl_InstanceID) / 10.0, 1.0, 0.5));
         }
-    """,
-    fragment_shader="""
+    ''',
+    fragment_shader='''
         #version 300 es
         precision highp float;
 
@@ -93,13 +93,13 @@ pipeline = ctx.pipeline(
             out_color = vec4(v_color * (u * v), 1.0);
             out_color.rgb = pow(out_color.rgb, vec3(1.0 / 2.2));
         }
-    """,
+    ''',
     uniforms={
-        "aspect": size[0] / size[1],
-        "time": 0.0,
+        'aspect': size[0] / size[1],
+        'time': 0.0,
     },
     framebuffer=[image, depth],
-    topology="triangle_strip",
+    topology='triangle_strip',
     vertex_count=4,
     instance_count=7,
 )
@@ -110,7 +110,7 @@ def render(timestamp=0.0):
     ctx.new_frame()
     image.clear()
     depth.clear()
-    pipeline.uniforms["time"][:] = struct.pack("f", timestamp / 1000.0)
+    pipeline.uniforms['time'][:] = struct.pack('f', timestamp / 1000.0)
     pipeline.render()
     image.blit(output)
     output.blit()

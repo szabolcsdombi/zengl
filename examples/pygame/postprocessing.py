@@ -9,9 +9,9 @@ pygame.display.set_mode((640, 480), flags=pygame.OPENGL | pygame.DOUBLEBUF)
 screen = pygame.surface.Surface((320, 240))
 
 ctx = zengl.context()
-image = ctx.image((320, 240), "rgba8unorm")
+image = ctx.image((320, 240), 'rgba8unorm')
 pipeline = ctx.pipeline(
-    vertex_shader="""
+    vertex_shader='''
         #version 300 es
         precision highp float;
 
@@ -28,8 +28,8 @@ pipeline = ctx.pipeline(
             gl_Position = vec4(vertices[gl_VertexID], 0.0, 1.0);
             vertex = vertices[gl_VertexID];
         }
-    """,
-    fragment_shader="""
+    ''',
+    fragment_shader='''
         #version 300 es
         precision highp float;
 
@@ -83,31 +83,31 @@ pipeline = ctx.pipeline(
             color /= 16.0;
             out_color = vec4(color, 1.0);
         }
-    """,
+    ''',
     layout=[
         {
-            "name": "Texture",
-            "binding": 0,
+            'name': 'Texture',
+            'binding': 0,
         },
     ],
     resources=[
         {
-            "type": "sampler",
-            "binding": 0,
-            "image": image,
-            "min_filter": "nearest",
-            "mag_filter": "nearest",
-            "wrap_x": "clamp_to_edge",
-            "wrap_y": "clamp_to_edge",
+            'type': 'sampler',
+            'binding': 0,
+            'image': image,
+            'min_filter': 'nearest',
+            'mag_filter': 'nearest',
+            'wrap_x': 'clamp_to_edge',
+            'wrap_y': 'clamp_to_edge',
         },
     ],
     uniforms={
-        "time": 0.0,
-        "screen_size": (320.0, 240.0),
+        'time': 0.0,
+        'screen_size': (320.0, 240.0),
     },
     framebuffer=None,
     viewport=(0, 0, 640, 480),
-    topology="triangle_strip",
+    topology='triangle_strip',
     vertex_count=4,
 )
 
@@ -122,12 +122,12 @@ squares = []
 for _ in range(20):
     size = random.randint(20, 80)
     color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
-    square = make_square(size, color)
-    squares.append({
-        "position": (random.randint(0, 320), random.randint(0, 240)),
-        "rotation": random.randint(0, 360),
-        "surface": square,
-    })
+    square = {
+        'position': (random.randint(0, 320), random.randint(0, 240)),
+        'rotation': random.randint(0, 360),
+        'surface': make_square(size, color),
+    }
+    squares.append(square)
 
 
 clock = pygame.Clock()
@@ -141,24 +141,24 @@ while True:
             quit()
 
         if event.type in (pygame.KEYDOWN, pygame.KEYUP) and event.key == pygame.K_SPACE:
-                space_down = event.type == pygame.KEYDOWN
+            space_down = event.type == pygame.KEYDOWN
 
     screen.fill((0, 0, 0))
 
     for square in squares:
-        square["rotation"] += 1
-        if square["rotation"] > 360:
-            square["rotation"] = 0
-        rotated_surface = pygame.transform.rotate(square["surface"], square["rotation"])
+        square['rotation'] += 1
+        if square['rotation'] > 360:
+            square['rotation'] = 0
+        rotated_surface = pygame.transform.rotate(square['surface'], square['rotation'])
         width, height = rotated_surface.get_size()
-        position = (square["position"][0] - width // 2, square["position"][1] - height // 2)
+        position = (square['position'][0] - width // 2, square['position'][1] - height // 2)
         screen.blit(rotated_surface, position)
 
     ctx.new_frame()
-    image.write(pygame.image.tobytes(screen, "RGBA", flipped=True))
+    image.write(pygame.image.tobytes(screen, 'RGBA', flipped=True))
 
     if not space_down:
-        pipeline.uniforms["time"][:] = struct.pack("f", pygame.time.get_ticks())
+        pipeline.uniforms['time'][:] = struct.pack('f', pygame.time.get_ticks())
         pipeline.render()
 
     else:
