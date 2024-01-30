@@ -1,13 +1,13 @@
-import pygame
-import zengl
+import os
 
-pygame.init()
-pygame.display.set_mode((720, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
+import zengl
+from PIL import Image
+
+zengl.init(zengl.loader(headless=True))
 
 ctx = zengl.context()
 
-size = pygame.display.get_window_size()
-image = ctx.image(size, 'rgba8unorm', texture=False)
+image = ctx.image((8192, 8192), 'rgba8unorm', texture=False)
 
 pipeline = ctx.pipeline(
     vertex_shader='''
@@ -64,16 +64,12 @@ pipeline = ctx.pipeline(
     vertex_count=3,
 )
 
-while True:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            quit()
+ctx.new_frame()
+image.clear()
+pipeline.render()
+ctx.end_frame()
 
-    ctx.new_frame()
-    image.clear()
-    pipeline.render()
-    image.blit()
-    ctx.end_frame()
+img = Image.frombuffer('RGBA', image.size, image.read(), 'raw', 'RGBA', 0, -1)
+img.save('fractal.png')
 
-    pygame.display.flip()
+print('Saved:', os.path.abspath('fractal.png'))

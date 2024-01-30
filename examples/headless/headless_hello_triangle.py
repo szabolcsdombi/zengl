@@ -1,11 +1,13 @@
+import os
+
 import zengl
 from PIL import Image
 
-ctx = zengl.context(zengl.loader(headless=True))
+zengl.init(zengl.loader(headless=True))
 
-size = (1280, 720)
-image = ctx.image(size, 'rgba8unorm', samples=4)
-image.clear_value = (0.05, 0.05, 0.05, 1.0)
+ctx = zengl.context()
+
+image = ctx.image((1280, 720), 'rgba8unorm', samples=4)
 
 pipeline = ctx.pipeline(
     vertex_shader='''
@@ -53,5 +55,6 @@ image.clear()
 pipeline.render()
 ctx.end_frame()
 
-img = Image.frombuffer('RGBA', size, image.read(), 'raw', 'RGBA', 0, -1)
+img = Image.frombuffer('RGBA', image.size, image.read(), 'raw', 'RGBA', 0, -1)
 img.save('hello.png')
+print('Created:', os.path.abspath('hello.png'))
