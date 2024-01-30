@@ -4,7 +4,7 @@ import pygame
 import zengl
 
 pygame.init()
-pygame.display.set_mode((720, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF)
+pygame.display.set_mode((720, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
 
 ctx = zengl.context()
 
