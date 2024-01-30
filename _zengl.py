@@ -598,11 +598,11 @@ def program(vertex_shader, fragment_shader, layout, includes):
         return content
 
     vert = textwrap.dedent(vertex_shader).strip()
-    vert = re.sub(r'#include\s+"([^"]*)"', include, vert)
+    vert = re.sub(r'#include\s+[<"]([^">]*)[">]', include, vert)
     vert = shader_source(vert)
 
     frag = textwrap.dedent(fragment_shader).strip()
-    frag = re.sub(r'#include\s+"([^"]*)"', include, frag)
+    frag = re.sub(r'#include\s+[<"]([^">]*)[">]', include, frag)
     frag = shader_source(frag)
 
     bindings = []
