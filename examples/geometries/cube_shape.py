@@ -26,37 +26,146 @@ pipeline = ctx.pipeline(
             vec4 camera_position;
         };
 
-        vec3 vertices[8] = vec3[](
+        vec3 vertices[36] = vec3[](
             vec3(-0.5, -0.5, -0.5),
-            vec3(-0.5, -0.5,  0.5),
             vec3(-0.5, 0.5, -0.5),
+            vec3(0.5, 0.5, -0.5),
+            vec3(0.5, 0.5, -0.5),
+            vec3(0.5, -0.5, -0.5),
+            vec3(-0.5, -0.5, -0.5),
+            vec3(-0.5, -0.5, 0.5),
+            vec3(0.5, -0.5, 0.5),
+            vec3(0.5, 0.5, 0.5),
+            vec3(0.5, 0.5, 0.5),
             vec3(-0.5, 0.5, 0.5),
+            vec3(-0.5, -0.5, 0.5),
+            vec3(-0.5, -0.5, -0.5),
             vec3(0.5, -0.5, -0.5),
             vec3(0.5, -0.5, 0.5),
+            vec3(0.5, -0.5, 0.5),
+            vec3(-0.5, -0.5, 0.5),
+            vec3(-0.5, -0.5, -0.5),
+            vec3(0.5, -0.5, -0.5),
             vec3(0.5, 0.5, -0.5),
-            vec3(0.5, 0.5, 0.5)
+            vec3(0.5, 0.5, 0.5),
+            vec3(0.5, 0.5, 0.5),
+            vec3(0.5, -0.5, 0.5),
+            vec3(0.5, -0.5, -0.5),
+            vec3(0.5, 0.5, -0.5),
+            vec3(-0.5, 0.5, -0.5),
+            vec3(-0.5, 0.5, 0.5),
+            vec3(-0.5, 0.5, 0.5),
+            vec3(0.5, 0.5, 0.5),
+            vec3(0.5, 0.5, -0.5),
+            vec3(-0.5, 0.5, -0.5),
+            vec3(-0.5, -0.5, -0.5),
+            vec3(-0.5, -0.5, 0.5),
+            vec3(-0.5, -0.5, 0.5),
+            vec3(-0.5, 0.5, 0.5),
+            vec3(-0.5, 0.5, -0.5)
         );
 
-        int indices[24] = int[](
-            0, 1, 1, 3, 3, 2, 2, 0,
-            4, 5, 5, 7, 7, 6, 6, 4,
-            0, 4, 1, 5, 2, 6, 3, 7
+        vec3 normals[36] = vec3[](
+            vec3(0.0, 0.0, -1.0),
+            vec3(0.0, 0.0, -1.0),
+            vec3(0.0, 0.0, -1.0),
+            vec3(0.0, 0.0, -1.0),
+            vec3(0.0, 0.0, -1.0),
+            vec3(0.0, 0.0, -1.0),
+            vec3(0.0, 0.0, 1.0),
+            vec3(0.0, 0.0, 1.0),
+            vec3(0.0, 0.0, 1.0),
+            vec3(0.0, 0.0, 1.0),
+            vec3(0.0, 0.0, 1.0),
+            vec3(0.0, 0.0, 1.0),
+            vec3(0.0, -1.0, 0.0),
+            vec3(0.0, -1.0, 0.0),
+            vec3(0.0, -1.0, 0.0),
+            vec3(0.0, -1.0, 0.0),
+            vec3(0.0, -1.0, 0.0),
+            vec3(0.0, -1.0, 0.0),
+            vec3(1.0, 0.0, 0.0),
+            vec3(1.0, 0.0, 0.0),
+            vec3(1.0, 0.0, 0.0),
+            vec3(1.0, 0.0, 0.0),
+            vec3(1.0, 0.0, 0.0),
+            vec3(1.0, 0.0, 0.0),
+            vec3(0.0, 1.0, 0.0),
+            vec3(0.0, 1.0, 0.0),
+            vec3(0.0, 1.0, 0.0),
+            vec3(0.0, 1.0, 0.0),
+            vec3(0.0, 1.0, 0.0),
+            vec3(0.0, 1.0, 0.0),
+            vec3(-1.0, 0.0, 0.0),
+            vec3(-1.0, 0.0, 0.0),
+            vec3(-1.0, 0.0, 0.0),
+            vec3(-1.0, 0.0, 0.0),
+            vec3(-1.0, 0.0, 0.0),
+            vec3(-1.0, 0.0, 0.0)
+        );
+
+        vec2 texcoords[36] = vec2[](
+            vec2(1.0, 0.0),
+            vec2(1.0, 1.0),
+            vec2(0.0, 1.0),
+            vec2(0.0, 1.0),
+            vec2(0.0, 0.0),
+            vec2(1.0, 0.0),
+            vec2(0.0, 0.0),
+            vec2(1.0, 0.0),
+            vec2(1.0, 1.0),
+            vec2(1.0, 1.0),
+            vec2(0.0, 1.0),
+            vec2(0.0, 0.0),
+            vec2(0.0, 0.0),
+            vec2(1.0, 0.0),
+            vec2(1.0, 1.0),
+            vec2(1.0, 1.0),
+            vec2(0.0, 1.0),
+            vec2(0.0, 0.0),
+            vec2(0.0, 0.0),
+            vec2(1.0, 0.0),
+            vec2(1.0, 1.0),
+            vec2(1.0, 1.0),
+            vec2(0.0, 1.0),
+            vec2(0.0, 0.0),
+            vec2(0.0, 0.0),
+            vec2(1.0, 0.0),
+            vec2(1.0, 1.0),
+            vec2(1.0, 1.0),
+            vec2(0.0, 1.0),
+            vec2(0.0, 0.0),
+            vec2(0.0, 0.0),
+            vec2(1.0, 0.0),
+            vec2(1.0, 1.0),
+            vec2(1.0, 1.0),
+            vec2(0.0, 1.0),
+            vec2(0.0, 0.0)
         );
 
         out vec3 v_vertex;
+        out vec3 v_normal;
+        out vec2 v_texcoord;
 
         void main() {
-            gl_Position = camera_matrix * vec4(vertices[indices[gl_VertexID]], 1.0);
+            v_vertex = vertices[gl_VertexID];
+            v_normal = normals[gl_VertexID];
+            v_texcoord = texcoords[gl_VertexID];
+            gl_Position = camera_matrix * vec4(v_vertex, 1.0);
         }
     ''',
     fragment_shader='''
         #version 300 es
         precision highp float;
 
+        in vec3 v_normal;
+
         layout (location = 0) out vec4 out_color;
 
         void main() {
-            out_color = vec4(1.0, 1.0, 1.0, 1.0);
+            vec3 light_direction = vec3(0.48, 0.32, 0.81);
+            float lum = dot(light_direction, normalize(v_normal)) * 0.7 + 0.3;
+            out_color = vec4(lum, lum, lum, 1.0);
         }
     ''',
     layout=[
@@ -73,8 +182,9 @@ pipeline = ctx.pipeline(
         },
     ],
     framebuffer=[image, depth],
-    topology='lines',
-    vertex_count=24,
+    topology='triangles',
+    cull_face='back',
+    vertex_count=36,
 )
 
 while True:
