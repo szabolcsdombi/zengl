@@ -3,6 +3,8 @@ import os
 import pygame
 import zengl
 
+os.environ["SDL_WINDOWS_DPI_AWARENESS"] = "permonitorv2"
+
 pygame.init()
 pygame.display.set_mode((800, 800), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
 

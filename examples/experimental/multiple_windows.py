@@ -382,6 +382,10 @@ class CubeRenderer:
         self.pipeline.render()
 
 
+import os
+
+os.environ["SDL_WINDOWS_DPI_AWARENESS"] = "permonitorv2"
+
 pygame.init()
 zengl.init(zengl.loader(headless=True))
 

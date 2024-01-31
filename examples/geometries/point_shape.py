@@ -1,7 +1,10 @@
+import os
 import struct
 
 import pygame
 import zengl
+
+os.environ["SDL_WINDOWS_DPI_AWARENESS"] = "permonitorv2"
 
 pygame.init()
 pygame.display.set_mode((720, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
