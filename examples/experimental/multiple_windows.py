@@ -14,10 +14,13 @@
 
 import ctypes
 import math
+import os
 import struct
 
 import pygame
 import zengl
+
+os.environ["SDL_WINDOWS_DPI_AWARENESS"] = "permonitorv2"
 
 
 def generate_surface(size, text):
@@ -35,10 +38,6 @@ def generate_surface(size, text):
 def generate_texture(size, text):
     ctx = zengl.context()
     return ctx.image(size, 'rgba8unorm', generate_surface(size, text))
-
-
-def dpi_aware():
-    ctypes.windll.shcore.SetProcessDpiAwareness(2)
 
 
 def glfunction(function, fmt, restype=None):
@@ -382,10 +381,6 @@ class CubeRenderer:
         self.pipeline.render()
 
 
-import os
-
-os.environ["SDL_WINDOWS_DPI_AWARENESS"] = "permonitorv2"
-
 pygame.init()
 zengl.init(zengl.loader(headless=True))
 
@@ -401,7 +396,6 @@ textures = [
 
 zengl_context = DetectContext()
 gl = DetectGL()
-dpi_aware()
 
 windows = [
     GLWindow((400, 400), (100, 100), 'Window 1'),
