@@ -7,7 +7,7 @@ import zengl
 from meshtools import obj
 from zengl_extras import assets
 
-os.environ["SDL_WINDOWS_DPI_AWARENESS"] = "permonitorv2"
+os.environ['SDL_WINDOWS_DPI_AWARENESS'] = 'permonitorv2'
 
 pygame.init()
 pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)

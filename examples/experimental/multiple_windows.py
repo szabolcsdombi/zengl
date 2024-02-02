@@ -20,7 +20,7 @@ import struct
 import pygame
 import zengl
 
-os.environ["SDL_WINDOWS_DPI_AWARENESS"] = "permonitorv2"
+os.environ['SDL_WINDOWS_DPI_AWARENESS'] = 'permonitorv2'
 
 
 def generate_surface(size, text):
