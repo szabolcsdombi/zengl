@@ -16,6 +16,7 @@ import ctypes
 import math
 import os
 import struct
+import sys
 
 import pygame
 import zengl
@@ -412,7 +413,7 @@ while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
-            quit()
+            sys.exit()
 
     zengl_context.make_current()
 

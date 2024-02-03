@@ -1,5 +1,6 @@
 import os
 import random
+import sys
 
 import pygame
 import zengl
@@ -102,7 +103,7 @@ while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
-            quit()
+            sys.exit()
 
     image.write(os.urandom(window_size[0] * window_size[1] * 4))
 

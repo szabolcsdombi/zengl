@@ -1,5 +1,6 @@
 import os
 import struct
+import sys
 
 import pygame
 import zengl
@@ -85,7 +86,7 @@ while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
-            quit()
+            sys.exit()
 
     size = pygame.display.get_window_size()
     pipeline.viewport = (0, 0, size[0], size[1])

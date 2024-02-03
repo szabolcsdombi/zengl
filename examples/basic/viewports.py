@@ -1,4 +1,5 @@
 import os
+import sys
 
 import pygame
 import zengl
@@ -58,7 +59,7 @@ while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
-            quit()
+            sys.exit()
 
     ctx.new_frame()
     image.clear()

@@ -1,6 +1,7 @@
 import os
 import random
 import struct
+import sys
 
 import pygame
 import zengl
@@ -139,7 +140,7 @@ while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
-            quit()
+            sys.exit()
 
         if event.type in (pygame.KEYDOWN, pygame.KEYUP) and event.key == pygame.K_SPACE:
             space_down = event.type == pygame.KEYDOWN

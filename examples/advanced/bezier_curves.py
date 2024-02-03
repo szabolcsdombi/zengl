@@ -1,8 +1,12 @@
+import os
+import sys
 from colorsys import hls_to_rgb
 
 import numpy as np
 import pygame
 import zengl
+
+os.environ['SDL_WINDOWS_DPI_AWARENESS'] = 'permonitorv2'
 
 pygame.init()
 pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
@@ -141,7 +145,7 @@ while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
-            quit()
+            sys.exit()
 
     now = pygame.time.get_ticks() / 1000.0
 

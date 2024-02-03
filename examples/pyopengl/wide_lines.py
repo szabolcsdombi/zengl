@@ -5,6 +5,7 @@
 '''
 
 import os
+import sys
 
 import numpy as np
 import pygame
@@ -92,7 +93,7 @@ while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
-            quit()
+            sys.exit()
 
     ctx.new_frame()
     image.clear()

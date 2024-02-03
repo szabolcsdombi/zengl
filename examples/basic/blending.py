@@ -1,5 +1,6 @@
 import os
 import struct
+import sys
 from array import array
 
 import pygame
@@ -77,7 +78,7 @@ while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
-            quit()
+            sys.exit()
 
     now = pygame.time.get_ticks() / 1000.0
     scale = 0.5
