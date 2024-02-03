@@ -522,7 +522,7 @@ Shader Includes
 
     pipeline = ctx.pipeline(
         vertex_shader='''
-            #version 330
+            #version 330 core
 
             #include "common"
             #include "qtransform"

@@ -6,7 +6,7 @@ def test_render_triangle(ctx: zengl.Context):
     img = ctx.image((256, 256), 'rgba8unorm')
     triangle = ctx.pipeline(
         vertex_shader='''
-            #version 330
+            #version 330 core
 
             vec2 positions[3] = vec2[](
                 vec2(0.0, 0.7),
@@ -19,7 +19,7 @@ def test_render_triangle(ctx: zengl.Context):
             }
         ''',
         fragment_shader='''
-            #version 330
+            #version 330 core
 
             layout (location = 0) out vec4 out_color;
 
