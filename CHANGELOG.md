@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 # [main](https://github.com/szabolcsdombi/zengl/compare/2.3.0...main)
 
+- Improved wayland support
+- Added automaic detection for both egl and x11 context types
+- Fixed default argument value for reset in `Context.new_frame`
+- Fixed the error message for multiple missing gl functions
+- Changed `Image.blit` parameters to `offset`, `size` and `crop`
+- Removed error messages from `Image.blit` for out of bounds regions
+- Added support for flipping images with a negative size in `Image.blit`
+- Added support to blit depth and stencil images
+- Added default value for the `target` parameter in the `zengl.camera` method
+- Added support for angle brackets in shader includes
+- Added support to hook the shader source right before compilation
+- Added tuple length error checking for sizes and viewports
+
 # [2.3.0](https://github.com/szabolcsdombi/zengl/compare/2.2.2...2.3.0)
 
 - Removed srgb image formats
