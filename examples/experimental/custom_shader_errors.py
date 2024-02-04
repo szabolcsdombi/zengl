@@ -49,13 +49,13 @@ def linker_error(vertex_shader: bytes, fragment_shader: bytes, log: bytes):
 _zengl.compile_error = compile_error
 _zengl.linker_error = linker_error
 
-ctx = zengl.context(zengl.loader(headless=True))
+zengl.init(zengl.loader(headless=True))
+ctx = zengl.context()
 image = ctx.image((256, 256), 'rgba8unorm')
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 300 es
-        precision highp float;
+        #version 330 core
 
         vec2 positions[3] = vec2[4](
             vec2(0.0, 0.8),
@@ -68,8 +68,7 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 300 es
-        precision highp float;
+        #version 330 core
 
         in vec3 v_color;
 
