@@ -25,7 +25,7 @@ jobs:
         run: python setup.py sdist -d package
 
       - name: upload
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: package
           path: package/*.tar.gz
@@ -57,7 +57,7 @@ jobs:
         run: python -m cibuildwheel --output-dir package
 
       - name: upload
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: package
           path: package/*.whl
