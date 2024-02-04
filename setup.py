@@ -77,7 +77,7 @@ with open('README.md') as readme:
 
 setup(
     name='zengl',
-    version='2.3.0',
+    version='2.4.0',
     ext_modules=[ext],
     py_modules=['_zengl'],
     license='MIT',
