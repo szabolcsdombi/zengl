@@ -9,13 +9,13 @@
 </head>
 <body>
   <canvas id="canvas"></canvas>
-  <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
   <script>
     (async () => {
       const pyodide = await loadPyodide();
       pyodide.canvas.setCanvas3D(document.getElementById("canvas"));
       await pyodide.loadPackage([
-        'zengl-2.4.0-cp311-abi3-emscripten_3_1_45_wasm32.whl',
+        'zengl-2.4.0-cp311-abi3-emscripten_3_1_46_wasm32.whl',
       ]);
       const main = await fetch('main.py');
       pyodide.runPython(await main.text());
