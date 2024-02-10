@@ -281,7 +281,7 @@ class DefaultLoader:
                 def loader(name):
                     return proc(name.encode())
 
-            except OSError:
+            except:
                 lib = ctypes.CDLL('libGL.so')
                 proc = ctypes.cast(lib.glXGetProcAddress, ctypes.CFUNCTYPE(ctypes.c_ulonglong, ctypes.c_char_p))
                 if not lib.glXGetCurrentContext():
