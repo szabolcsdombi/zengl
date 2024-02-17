@@ -27,8 +27,7 @@ vertex_buffer = ctx.buffer(triangle)
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 300 es
-        precision highp float;
+        #version 330 core
 
         uniform vec2 scale;
         uniform float rotation;
@@ -46,8 +45,7 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 300 es
-        precision highp float;
+        #version 330 core
 
         in vec4 v_color;
 

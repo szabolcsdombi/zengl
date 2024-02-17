@@ -35,8 +35,7 @@ count = 200
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 300 es
-        precision highp float;
+        #version 330 core
 
         #include "N"
         #include "grass"
@@ -79,8 +78,7 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 300 es
-        precision highp float;
+        #version 330 core
 
         in vec2 v_data;
 

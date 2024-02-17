@@ -18,8 +18,7 @@ depth = ctx.image(size, 'depth24plus', samples=16)
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 300 es
-        precision highp float;
+        #version 330 core
 
         mat4 perspective(float fovy, float aspect, float znear, float zfar) {
             float tan_half_fovy = tan(fovy * 0.008726646259971647884618453842);
@@ -79,8 +78,7 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 300 es
-        precision highp float;
+        #version 330 core
 
         in vec3 v_vertex;
         in vec3 v_color;
