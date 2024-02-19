@@ -28,8 +28,7 @@ def create_helix(points, offset):
 def build_pipeline(vertex_buffer):
     return ctx.pipeline(
         vertex_shader='''
-            #version 300 es
-            precision highp float;
+            #version 330 core
 
             layout (std140) uniform Common {
                 mat4 mvp;
@@ -42,8 +41,7 @@ def build_pipeline(vertex_buffer):
             }
         ''',
         fragment_shader='''
-            #version 300 es
-            precision highp float;
+            #version 330 core
 
             layout (location = 0) out vec4 out_color;
 

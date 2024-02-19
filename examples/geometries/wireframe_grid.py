@@ -19,8 +19,7 @@ uniform_buffer = ctx.buffer(size=80, uniform=True)
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 300 es
-        precision highp float;
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 camera_matrix;
@@ -41,8 +40,7 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 300 es
-        precision highp float;
+        #version 330 core
 
         layout (location = 0) out vec4 out_color;
 

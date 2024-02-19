@@ -165,8 +165,7 @@ def make_pipeline(uniform_buffer, texture, framebuffer):
     ctx = zengl.context()
     return ctx.pipeline(
         vertex_shader='''
-            #version 300 es
-            precision highp float;
+            #version 330 core
 
             layout (std140) uniform Common {
                 mat4 mvp;
@@ -303,9 +302,7 @@ def make_pipeline(uniform_buffer, texture, framebuffer):
             }
         ''',
         fragment_shader='''
-            #version 300 es
-            precision highp float;
-            precision highp sampler2D;
+            #version 330 core
 
             uniform sampler2D Texture;
 

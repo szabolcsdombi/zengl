@@ -20,9 +20,8 @@ image = ctx.image(size, 'rgba8unorm', samples=4)
 uniform_buffer = ctx.buffer(size=16)
 
 pipeline = ctx.pipeline(
-    vertex_shader="""
-        #version 300 es
-        precision highp float;
+    vertex_shader='''
+        #version 330 core
 
         layout (std140) uniform Common {
             vec2 scale;
@@ -37,17 +36,16 @@ pipeline = ctx.pipeline(
         void main() {
             gl_Position = vec4(positions[gl_VertexID] * scale, 0.0, 1.0);
         }
-    """,
-    fragment_shader="""
-        #version 300 es
-        precision highp float;
+    ''',
+    fragment_shader='''
+        #version 330 core
 
         layout (location = 0) out vec4 out_color;
 
         void main() {
             out_color = vec4(1.0, 1.0, 1.0, 1.0);
         }
-    """,
+    ''',
     layout=[
         {
             'name': 'Common',

@@ -30,9 +30,8 @@ vertex_buffer = load_model('monkey.obj')
 uniform_buffer = ctx.buffer(size=64)
 
 pipeline = ctx.pipeline(
-    vertex_shader="""
-        #version 300 es
-        precision highp float;
+    vertex_shader='''
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -47,10 +46,9 @@ pipeline = ctx.pipeline(
             gl_Position = mvp * vec4(in_vert, 1.0);
             v_norm = in_norm;
         }
-    """,
-    fragment_shader="""
-        #version 300 es
-        precision highp float;
+    ''',
+    fragment_shader='''
+        #version 330 core
 
         in vec3 v_norm;
 
@@ -61,7 +59,7 @@ pipeline = ctx.pipeline(
             float lum = dot(normalize(light), normalize(v_norm)) * 0.7 + 0.3;
             out_color = vec4(lum, lum, lum, 1.0);
         }
-    """,
+    ''',
     layout=[
         {
             'name': 'Common',

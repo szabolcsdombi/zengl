@@ -16,8 +16,7 @@ ctx = zengl.context()
 image = ctx.image((320, 240), 'rgba8unorm')
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 300 es
-        precision highp float;
+        #version 330 core
 
         vec2 vertices[4] = vec2[](
             vec2(-1.0, -1.0),
@@ -34,8 +33,7 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 300 es
-        precision highp float;
+        #version 330 core
 
         uniform float time;
         uniform vec2 screen_size;

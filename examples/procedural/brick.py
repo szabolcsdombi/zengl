@@ -16,16 +16,14 @@ image = ctx.image(size, 'rgba8unorm')
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 300 es
-        precision highp float;
+        #version 330 core
         vec2 positions[3] = vec2[](vec2(-1.0, -1.0), vec2(3.0, -1.0), vec2(-1.0, 3.0));
         void main() {
             gl_Position = vec4(positions[gl_VertexID], 0.0, 1.0);
         }
     ''',
     fragment_shader='''
-        #version 300 es
-        precision highp float;
+        #version 330 core
 
         layout (location = 0) out vec4 out_color;
 
