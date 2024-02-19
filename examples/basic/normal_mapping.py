@@ -1,26 +1,36 @@
+import os
 import struct
+import sys
 import zipfile
 
 import numpy as np
+import pygame
 import zengl
-from PIL import Image
+from zengl_extras import assets
 
-import assets
-from window import Window
+os.environ['SDL_WINDOWS_DPI_AWARENESS'] = 'permonitorv2'
 
-window = Window()
+pygame.init()
+pygame.display.set_mode((720, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
+
 ctx = zengl.context()
 
-pack = zipfile.ZipFile(assets.get('metal_plate_1k.gltf.zip'))
-img1 = Image.open(pack.open('textures/metal_plate_diff_1k.jpg')).convert('RGBA')
-img2 = Image.open(pack.open('textures/metal_plate_rough_1k.jpg')).convert('RGBA')
-img3 = Image.open(pack.open('textures/metal_plate_nor_gl_1k.jpg')).convert('RGBA')
-texture1 = ctx.image(img1.size, 'rgba8unorm', img1.tobytes())
-texture2 = ctx.image(img2.size, 'rgba8unorm', img2.tobytes())
-texture3 = ctx.image(img3.size, 'rgba8unorm', img3.tobytes())
 
-image = ctx.image(window.size, 'rgba8unorm', samples=4)
-depth = ctx.image(window.size, 'depth24plus', samples=4)
+def load_texture(buf):
+    img = pygame.image.load(buf)
+    pixels = pygame.image.tobytes(img, 'RGBA')
+    return ctx.image(img.get_size(), 'rgba8unorm', pixels)
+
+
+size = pygame.display.get_window_size()
+
+pack = zipfile.ZipFile(assets.get('metal_plate_1k.gltf.zip'))
+texture1 = load_texture(pack.open('textures/metal_plate_diff_1k.jpg'))
+texture2 = load_texture(pack.open('textures/metal_plate_rough_1k.jpg'))
+texture3 = load_texture(pack.open('textures/metal_plate_nor_gl_1k.jpg'))
+
+image = ctx.image(size, 'rgba8unorm', samples=4)
+depth = ctx.image(size, 'depth24plus', samples=4)
 image.clear_value = (0.2, 0.2, 0.2, 1.0)
 
 vertex_buffer = ctx.buffer(np.array([
@@ -148,23 +158,27 @@ pipeline = ctx.pipeline(
     vertex_count=index_buffer.size // 4,
 )
 
-while window.update():
-    x, y = window.mouse[0] / window.size[0] - 0.5, window.mouse[1] / window.size[1] - 0.5
-    eye_pos = (x * 2.0, y * 2.0, 3.0)
-    light_pos = (x * 2.0, y * 2.0, 1.0)
-    light_color = (1.0, 1.0, 1.0)
-    object_color = (1.0, 0.5, 0.3)
-    ambient = 0.1
-    shininess = 64.0
-    camera = zengl.camera(eye_pos, (0.0, 0.0, 0.0), (0.0, 1.0, 0.0), aspect=window.aspect, fov=45.0)
-    uniform_buffer_data = struct.pack(
-        '=64s3f4x3f4x3f4x3fff', camera, *eye_pos, *light_pos, *light_color, *object_color, ambient, shininess,
-    )
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
+    now = pygame.time.get_ticks() / 1000.0
+    mouse = pygame.mouse.get_pos()
 
     ctx.new_frame()
-    uniform_buffer.write(uniform_buffer_data)
     image.clear()
     depth.clear()
+
+    mx, my = mouse[0] / size[0] - 0.5, 0.5 - mouse[1] / size[1]
+    eye_pos = (mx * 2.0, my * 2.0, 3.0)
+    light_pos = (mx * 2.0, my * 2.0, 1.0)
+    camera = zengl.camera(eye_pos, (0.0, 0.0, 0.0), (0.0, 1.0, 0.0), fov=45.0)
+    uniform_buffer.write(struct.pack('=64s3f4x3f4x', camera, *eye_pos, *light_pos))
+
     pipeline.render()
     image.blit()
     ctx.end_frame()
+
+    pygame.display.flip()

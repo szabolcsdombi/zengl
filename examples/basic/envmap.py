@@ -1,35 +1,50 @@
 import math
+import os
 import struct
+import sys
 import zipfile
 
+import pygame
 import zengl
-from objloader import Obj
-from PIL import Image
+from meshtools import obj
+from zengl_extras import assets
 
-import assets
-from window import Window
+os.environ['SDL_WINDOWS_DPI_AWARENESS'] = 'permonitorv2'
+
+pygame.init()
+pygame.display.set_mode((720, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
+
+ctx = zengl.context()
+
+
+def load_texture(buf):
+    img = pygame.image.load(buf)
+    pixels = pygame.image.tobytes(img, 'RGBA')
+    return ctx.image(img.get_size(), 'rgba8unorm', pixels)
+
+
+def load_model(name):
+    with open(assets.get(name)) as f:
+        model = obj.parse_obj(f.read(), 'vn')
+    return ctx.buffer(model)
+
+
+size = pygame.display.get_window_size()
+
+image = ctx.image(size, 'rgba8unorm', samples=4)
+depth = ctx.image(size, 'depth24plus', samples=4)
 
 pack = zipfile.ZipFile(assets.get('forest-panorama.zip'))
 
-window = Window()
-ctx = zengl.context()
+texture = load_texture(pack.open('forest.jpg'))
 
-image = ctx.image(window.size, 'rgba8unorm', samples=4)
-depth = ctx.image(window.size, 'depth24plus', samples=4)
-image.clear_value = (0.2, 0.2, 0.2, 1.0)
-
-img = Image.open(pack.open('forest.jpg')).convert('RGBA')  # https://polyhaven.com/a/phalzer_forest_01
-texture = ctx.image(img.size, 'rgba8unorm', img.tobytes())
-
-model = Obj.open(assets.get('blob.obj')).pack('vx vy vz nx ny nz')
-vertex_buffer = ctx.buffer(model)
+vertex_buffer = load_model('blob.obj')
 
 uniform_buffer = ctx.buffer(size=80)
 
 pipeline = ctx.pipeline(
     vertex_shader='''
-        #version 300 es
-        precision highp float;
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -49,8 +64,7 @@ pipeline = ctx.pipeline(
         }
     ''',
     fragment_shader='''
-        #version 300 es
-        precision highp float;
+        #version 330 core
 
         layout (std140) uniform Common {
             mat4 mvp;
@@ -105,13 +119,16 @@ pipeline = ctx.pipeline(
     vertex_count=vertex_buffer.size // zengl.calcsize('3f 3f'),
 )
 
-camera = zengl.camera((3.0, 2.0, 2.0), (0.0, 0.0, 0.5), aspect=window.aspect, fov=45.0)
-uniform_buffer.write(camera)
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
 
-while window.update():
-    ctx.new_frame()
-    x, y = math.sin(window.time * 0.5) * 5.0, math.cos(window.time * 0.5) * 5.0
-    camera = zengl.camera((x, y, 2.0), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
+    now = pygame.time.get_ticks() / 1000.0
+
+    x, y = math.sin(now * 0.5) * 5.0, math.cos(now * 0.5) * 5.0
+    camera = zengl.camera((x, y, 2.0), (0.0, 0.0, 0.0), aspect=1.0, fov=45.0)
     uniform_buffer.write(camera)
     uniform_buffer.write(struct.pack('3f4x', x, y, 2.0), offset=64)
 
@@ -120,3 +137,5 @@ while window.update():
     pipeline.render()
     image.blit()
     ctx.end_frame()
+
+    pygame.display.flip()
