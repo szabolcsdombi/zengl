@@ -3,8 +3,9 @@ import struct
 
 import pyglet
 import zengl
-from meshtools import obj
-from zengl_extras import assets
+import zengl_extras
+
+zengl_extras.init()
 
 pyglet.options['shadow_window'] = False
 pyglet.options['debug_gl'] = False
@@ -12,14 +13,14 @@ pyglet.options['debug_gl'] = False
 
 def load_texture(name):
     ctx = zengl.context()
-    img = pyglet.image.load(assets.get(name))
+    img = pyglet.image.load(name)
     return ctx.image((img.width, img.height), 'rgba8unorm', img.get_data('RGBA', img.pitch))
 
 
 def load_model(name):
     ctx = zengl.context()
-    with open(assets.get(name)) as f:
-        model = obj.parse_obj(f.read(), 'vnt')
+    with open(name, 'rb') as f:
+        model = f.read()
     return ctx.buffer(model)
 
 
@@ -41,8 +42,8 @@ ctx = zengl.context()
 image = ctx.image(window_size, 'rgba8unorm', samples=4)
 depth = ctx.image(window_size, 'depth24plus', samples=4)
 
-texture = load_texture('crate.png')
-vertex_buffer = load_model('box.obj')
+texture = load_texture('downloads/crate/crate.png')
+vertex_buffer = load_model('downloads/crate/crate.bin')
 
 uniform_buffer = ctx.buffer(size=80, uniform=True)
 

@@ -3,8 +3,9 @@ import sys
 
 import pygame
 import zengl
+import zengl_extras
 
-os.environ['SDL_WINDOWS_DPI_AWARENESS'] = 'permonitorv2'
+zengl_extras.init()
 
 pygame.init()
 pygame.display.set_mode((800, 800), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
@@ -16,9 +17,6 @@ image = ctx.image(size, 'rgba8unorm')
 temp = ctx.image(size, 'rgba8unorm')
 
 scene = ctx.pipeline(
-    includes={
-        'size': f'ivec2 SIZE = ivec2({size[0]}, {size[1]});',
-    },
     vertex_shader='''
         #version 330 core
 
@@ -34,16 +32,14 @@ scene = ctx.pipeline(
     ''',
     fragment_shader='''
         #version 330 core
-        precision highp sampler2D;
 
         uniform sampler2D Texture;
-
-        #include "size"
+        uniform ivec2 Size;
 
         layout (location = 0) out vec4 out_color;
 
         int c(int x, int y) {
-            ivec2 at = (ivec2(gl_FragCoord.xy) + ivec2(x, y) + SIZE) % SIZE;
+            ivec2 at = (ivec2(gl_FragCoord.xy) + ivec2(x, y) + Size) % Size;
             return texelFetch(Texture, at, 0).r < 0.5 ? 1 : 0;
         }
 
@@ -58,6 +54,9 @@ scene = ctx.pipeline(
             out_color = vec4(res, res, res, 1.0);
         }
     ''',
+    uniforms={
+        'Size': size,
+    },
     layout=[
         {
             'name': 'Texture',

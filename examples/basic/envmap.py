@@ -1,13 +1,10 @@
 import math
-import os
 import struct
 import sys
 
 import pygame
 import zengl
 import zengl_extras
-
-os.environ['SDL_WINDOWS_DPI_AWARENESS'] = 'permonitorv2'
 
 zengl_extras.init()
 zengl_extras.download('blob.zip')
@@ -52,7 +49,7 @@ background = ctx.pipeline(
     fragment_shader='''
         #version 330 core
 
-        const float pi = 3.141592658979323;
+        const float pi = 3.14159265358979323;
 
         uniform sampler2D Texture;
 
@@ -139,7 +136,7 @@ pipeline = ctx.pipeline(
     fragment_shader='''
         #version 330 core
 
-        const float pi = 3.141592658979323;
+        const float pi = 3.14159265358979323;
 
         uniform sampler2D Texture;
 

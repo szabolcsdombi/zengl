@@ -21,57 +21,34 @@ pipeline = ctx.pipeline(
     vertex_shader='''
         #version 330 core
 
+        const float pi = 3.14159265358979323;
+
         layout (std140) uniform Common {
             mat4 camera_matrix;
             vec4 camera_position;
         };
 
-        vec2 vertices[16] = vec2[](
-            vec2(1.0000, 0.0000),
-            vec2(0.9239, 0.3827),
-            vec2(0.7071, 0.7071),
-            vec2(0.3827, 0.9239),
-            vec2(0.0000, 1.0000),
-            vec2(-0.3827, 0.9239),
-            vec2(-0.7071, 0.7071),
-            vec2(-0.9239, 0.3827),
-            vec2(-1.0000, 0.0000),
-            vec2(-0.9239, -0.3827),
-            vec2(-0.7071, -0.7071),
-            vec2(-0.3827, -0.9239),
-            vec2(0.0000, -1.0000),
-            vec2(0.3827, -0.9239),
-            vec2(0.7071, -0.7071),
-            vec2(0.9239, -0.3827)
-        );
-
-        vec3 position = vec3(0.0, 0.0, 0.0);
-        vec3 up = vec3(0.0, 0.0, 1.0);
-
         out vec3 v_vertex;
-        out vec3 v_normal;
-        out vec2 v_texcoord;
 
         void main() {
-            v_normal = normalize(camera_position.xyz - position);
-            vec3 tangent = normalize(cross(up, v_normal));
-            vec3 bitangent = cross(v_normal, tangent);
-            v_vertex = position + tangent * vertices[gl_VertexID].x + bitangent * vertices[gl_VertexID].y;
-            v_texcoord = vertices[gl_VertexID] + 0.5;
-            gl_Position = camera_matrix * vec4(v_vertex, 1.0);
+            int axis = gl_VertexID / 64;
+            float f = (float(gl_VertexID % 64) - 0.5) / 64.0;
+            vec3 vertex = vec3(cos(f * pi * 2.0), sin(f * pi * 2.0), 0.0);
+            switch (axis) {
+                case 0: vertex = vertex.xyz; break;
+                case 1: vertex = vertex.xzy; break;
+                case 2: vertex = vertex.zxy; break;
+            }
+            gl_Position = camera_matrix * vec4(vertex, 1.0);
         }
     ''',
     fragment_shader='''
         #version 330 core
 
-        in vec3 v_normal;
-
         layout (location = 0) out vec4 out_color;
 
         void main() {
-            vec3 light_direction = vec3(0.48, 0.32, 0.81);
-            float lum = dot(light_direction, normalize(v_normal)) * 0.7 + 0.3;
-            out_color = vec4(lum, lum, lum, 1.0);
+            out_color = vec4(1.0, 1.0, 1.0, 1.0);
         }
     ''',
     layout=[
@@ -88,9 +65,8 @@ pipeline = ctx.pipeline(
         },
     ],
     framebuffer=[image, depth],
-    topology='triangle_fan',
-    cull_face='back',
-    vertex_count=16,
+    topology='lines',
+    vertex_count=64*3,
 )
 
 while True:

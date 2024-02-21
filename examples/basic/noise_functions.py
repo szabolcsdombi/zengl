@@ -1,9 +1,19 @@
-import os
 import struct
 import sys
 
 import pygame
 import zengl
+import zengl_extras
+
+zengl_extras.init()
+
+pygame.init()
+pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
+
+ctx = zengl.context()
+
+size = pygame.display.get_window_size()
+image = ctx.image(size, 'rgba8unorm')
 
 hash_functions = '''
     float hash11(float p) {
@@ -85,16 +95,6 @@ hash_functions = '''
         return fract((p4.xxyz + p4.yzzw) * p4.zywx);
     }
 '''
-
-os.environ['SDL_WINDOWS_DPI_AWARENESS'] = 'permonitorv2'
-
-pygame.init()
-pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
-
-ctx = zengl.context()
-
-size = pygame.display.get_window_size()
-image = ctx.image(size, 'rgba8unorm')
 
 pipeline = ctx.pipeline(
     includes={

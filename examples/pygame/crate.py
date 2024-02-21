@@ -5,26 +5,27 @@ import sys
 
 import pygame
 import zengl
-from meshtools import obj
-from zengl_extras import assets
+import zengl_extras
 
 os.environ['SDL_WINDOWS_DPI_AWARENESS'] = 'permonitorv2'
 
+zengl_extras.download('crate.zip')
+
 pygame.init()
-pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
+pygame.display.set_mode((720, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
 
 ctx = zengl.context()
 
 
 def load_texture(name):
-    img = pygame.image.load(assets.get(name))
+    img = pygame.image.load(name)
     pixels = pygame.image.tobytes(img, 'RGBA')
     return ctx.image(img.get_size(), 'rgba8unorm', pixels)
 
 
 def load_model(name):
-    with open(assets.get(name)) as f:
-        model = obj.parse_obj(f.read(), 'vnt')
+    with open(name, 'rb') as f:
+        model = f.read()
     return ctx.buffer(model)
 
 
@@ -32,8 +33,8 @@ size = pygame.display.get_window_size()
 image = ctx.image(size, 'rgba8unorm', samples=4)
 depth = ctx.image(size, 'depth24plus', samples=4)
 
-texture = load_texture('crate.png')
-vertex_buffer = load_model('box.obj')
+texture = load_texture('downloads/crate/crate.png')
+vertex_buffer = load_model('downloads/crate/crate.bin')
 
 uniform_buffer = ctx.buffer(size=80, uniform=True)
 
@@ -120,7 +121,7 @@ while True:
     ctx.new_frame()
     time = pygame.time.get_ticks() / 1000.0
     eye = (math.cos(time * 0.6) * 3.0, math.sin(time * 0.6) * 3.0, 1.5)
-    camera = zengl.camera(eye, (0.0, 0.0, 0.0), aspect=16.0 / 9.0, fov=45.0)
+    camera = zengl.camera(eye, (0.0, 0.0, 0.0), aspect=1.0, fov=45.0)
     uniform_buffer.write(struct.pack('64s3f4x', camera, *eye))
     image.clear()
     depth.clear()

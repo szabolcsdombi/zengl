@@ -1,15 +1,15 @@
-import os
 import struct
 import sys
 from array import array
 
 import pygame
 import zengl
+import zengl_extras
 
-os.environ['SDL_WINDOWS_DPI_AWARENESS'] = 'permonitorv2'
+zengl_extras.init()
 
 pygame.init()
-pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
+pygame.display.set_mode((720, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
 
 ctx = zengl.context()
 
@@ -57,7 +57,7 @@ pipeline = ctx.pipeline(
         }
     ''',
     uniforms={
-        'scale': (0.5, 0.5 * 16.0 / 9.0),
+        'scale': (0.8, 0.8),
         'rotation': 0.0,
     },
     blend={

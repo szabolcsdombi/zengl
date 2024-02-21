@@ -1,47 +1,35 @@
 import math
-import os
 import struct
 import sys
 
 import pygame
 import zengl
-from meshtools import obj
+import zengl_extras
 from OpenGL import GL
-from zengl_extras import assets
 
-os.environ['SDL_WINDOWS_DPI_AWARENESS'] = 'permonitorv2'
+zengl_extras.init()
+zengl_extras.download('crate.zip')
 
 pygame.init()
-pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
+pygame.display.set_mode((720, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
 
 ctx = zengl.context()
-
-
-def load_texture_raw(name):
-    img = pygame.image.load(assets.get(name))
-    pixels = pygame.image.tobytes(img, 'RGBA')
-    return img.get_size(), pixels
-
-
-def load_model(name):
-    with open(assets.get(name)) as f:
-        model = obj.parse_obj(f.read(), 'vnt')
-    return ctx.buffer(model)
-
 
 size = pygame.display.get_window_size()
 image = ctx.image(size, 'rgba8unorm', samples=4)
 depth = ctx.image(size, 'depth24plus', samples=4)
 
-vertex_buffer = load_model('box.obj')
+model = open('downloads/crate/crate.bin', 'rb').read()
+vertex_buffer = ctx.buffer(model)
 
-texture_size, texture_pixels = load_texture_raw('crate.png')
+img = pygame.image.load('downloads/crate/crate.png')
+img_size, img_data = img.get_size(), pygame.image.tobytes(img, 'RGBA', True)
 gl_texture = GL.glGenTextures(1)
 GL.glActiveTexture(GL.GL_TEXTURE0)
 GL.glBindTexture(GL.GL_TEXTURE_2D, gl_texture)
-GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA8, *texture_size, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, texture_pixels)
+GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA8, *img_size, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, img_data)
 
-texture = ctx.image(texture_size, 'rgba8unorm', external=gl_texture)
+texture = ctx.image(img_size, 'rgba8unorm', external=gl_texture)
 
 uniform_buffer = ctx.buffer(size=80)
 
@@ -128,7 +116,7 @@ while True:
     ctx.new_frame()
     time = pygame.time.get_ticks() / 1000.0
     eye = (math.cos(time * 0.6) * 3.0, math.sin(time * 0.6) * 3.0, 1.5)
-    camera = zengl.camera(eye, (0.0, 0.0, 0.0), aspect=16.0 / 9.0, fov=45.0)
+    camera = zengl.camera(eye, (0.0, 0.0, 0.0), aspect=1.0, fov=45.0)
     uniform_buffer.write(struct.pack('64s3f4x', camera, *eye))
     image.clear()
     depth.clear()
