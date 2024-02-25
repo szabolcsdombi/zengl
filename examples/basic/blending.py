@@ -1,6 +1,6 @@
+import array
 import struct
 import sys
-from array import array
 
 import pygame
 import zengl
@@ -15,9 +15,8 @@ ctx = zengl.context()
 
 size = pygame.display.get_window_size()
 image = ctx.image(size, 'rgba8unorm', samples=4)
-depth = ctx.image(size, 'depth24plus', samples=4)
 
-triangle = array('f', [
+triangle = array.array('f', [
     1.0, 0.0, 1.0, 0.0, 0.0, 0.5,
     -0.5, 0.86, 0.0, 1.0, 0.0, 0.5,
     -0.5, -0.86, 0.0, 0.0, 1.0, 0.5,
@@ -32,7 +31,7 @@ pipeline = ctx.pipeline(
         uniform vec2 scale;
         uniform float rotation;
 
-        layout (location = 0) in vec2 in_vert;
+        layout (location = 0) in vec2 in_vertex;
         layout (location = 1) in vec4 in_color;
 
         out vec4 v_color;
@@ -40,7 +39,7 @@ pipeline = ctx.pipeline(
         void main() {
             float r = rotation * (0.5 + float(gl_InstanceID) * 0.05);
             mat2 rot = mat2(cos(r), sin(r), -sin(r), cos(r));
-            gl_Position = vec4((rot * in_vert) * scale, 0.0, 1.0);
+            gl_Position = vec4((rot * in_vertex) * scale, 0.0, 1.0);
             v_color = in_color;
         }
     ''',
@@ -79,7 +78,6 @@ while True:
             sys.exit()
 
     now = pygame.time.get_ticks() / 1000.0
-    scale = 0.5
 
     ctx.new_frame()
     image.clear()
