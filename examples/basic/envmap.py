@@ -27,7 +27,7 @@ texture = ctx.image(img_size, 'rgba8unorm', img_data)
 model = open('downloads/blob/blob-3.bin', 'rb').read()
 vertex_buffer = ctx.buffer(model)
 
-uniform_buffer = ctx.buffer(size=80)
+uniform_buffer = ctx.buffer(size=80, uniform=True)
 
 background = ctx.pipeline(
     vertex_shader='''

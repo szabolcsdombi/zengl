@@ -32,7 +32,7 @@ normal_texture = load_texture('downloads/metal_plate/normal_2k.jpg')
 model = open('downloads/metal_plate/plate.bin', 'rb').read()
 vertex_buffer = ctx.buffer(model)
 
-uniform_buffer = ctx.buffer(size=144)
+uniform_buffer = ctx.buffer(size=144, uniform=True)
 
 background = ctx.pipeline(
     vertex_shader='''
