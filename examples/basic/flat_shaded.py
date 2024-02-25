@@ -33,7 +33,6 @@ depth = ctx.image(size, 'depth24plus', samples=4)
 
 texture = load_texture('downloads/arena/arena.png')
 vertex_buffer = load_model('downloads/arena/arena.bin')
-
 uniform_buffer = ctx.buffer(size=96, uniform=True)
 
 background = ctx.pipeline(
@@ -82,7 +81,7 @@ background = ctx.pipeline(
             } else {
                 vec3 color1 = vec3(1.0, 1.0, 1.0);
                 vec3 color2 = vec3(0.2, 0.2, 0.2);
-                color = mix(color1, color2, pow(direction.z, 0.1));
+                color = mix(color1, color2, pow(-direction.z, 0.1));
             }
 
             out_color = vec4(color, 1.0);
@@ -192,14 +191,17 @@ while True:
             pygame.quit()
             sys.exit()
 
+    now = pygame.time.get_ticks() / 1000.0
+
     ctx.new_frame()
-    time = pygame.time.get_ticks() / 1000.0
-    eye = (math.cos(time * 0.1) * 10.0, math.sin(time * 0.1) * 10.0, 3.0)
+    image.clear()
+    depth.clear()
+
+    eye = (math.cos(now * 0.1) * 10.0, math.sin(now * 0.1) * 10.0, 3.0)
     light = (3.0, 4.0, 30.0)
     camera = zengl.camera(eye, (0.0, 0.0, 0.0), aspect=1.0, fov=45.0)
     uniform_buffer.write(struct.pack('64s3f4x3f4x', camera, *eye, *light))
-    image.clear()
-    depth.clear()
+
     background.render()
     pipeline.render()
     image.blit()
