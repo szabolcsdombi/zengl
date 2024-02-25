@@ -16,7 +16,7 @@ size = pygame.display.get_window_size()
 image = ctx.image(size, 'rgba8unorm')
 temp = ctx.image(size, 'rgba8unorm')
 
-scene = ctx.pipeline(
+pipeline = ctx.pipeline(
     vertex_shader='''
         #version 330 core
 
@@ -40,16 +40,16 @@ scene = ctx.pipeline(
 
         int c(int x, int y) {
             ivec2 at = (ivec2(gl_FragCoord.xy) + ivec2(x, y) + Size) % Size;
-            return texelFetch(Texture, at, 0).r < 0.5 ? 1 : 0;
+            return texelFetch(Texture, at, 0).r < 0.5 ? 0 : 1;
         }
 
         void main() {
             float res;
             int neighbours = c(-1, -1) + c(-1, 0) + c(0, 1) + c(0, -1) + c(-1, 1) + c(1, -1) + c(1, 0) + c(1, 1);
             if (c(0, 0) == 1) {
-                res = (neighbours == 2 || neighbours == 3) ? 0.0 : 1.0;
+                res = (neighbours == 2 || neighbours == 3) ? 1.0 : 0.0;
             } else {
-                res = (neighbours == 3) ? 0.0 : 1.0;
+                res = (neighbours == 3) ? 1.0 : 0.0;
             }
             out_color = vec4(res, res, res, 1.0);
         }
@@ -87,8 +87,8 @@ while True:
 
     ctx.new_frame()
     image.blit(temp)
-    scene.render()
-    temp.blit()
+    pipeline.render()
+    image.blit()
     ctx.end_frame()
 
     pygame.display.flip()
