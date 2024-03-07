@@ -418,18 +418,18 @@ def calcsize(layout):
     return stride
 
 
-def bind(buffer, layout, *attributes):
+def bind(buffer, layout, *attributes, offset=0, instance=False):
     nodes = layout.split(' ')
-    step = 'vertex'
+    step = 'instance' if instance else 'vertex'
     if nodes[-1] == '/i':
         step = 'instance'
         nodes.pop()
     res = []
-    offset = 0
+    sub_offset = 0
     idx = 0
     for node in nodes:
         if node[-1] == 'x':
-            offset += int(node[:-1])
+            sub_offset += int(node[:-1])
             continue
         if len(attributes) == idx:
             raise ValueError(f'Not enough vertex attributes for format "{layout}"')
@@ -441,18 +441,18 @@ def bind(buffer, layout, *attributes):
                     'location': location,
                     'buffer': buffer,
                     'format': format,
-                    'offset': offset,
+                    'offset': offset + sub_offset,
                     'step': step,
                 }
             )
-        offset += size
+        sub_offset += size
         idx += 1
 
     if len(attributes) != idx:
         raise ValueError(f'Too many vertex attributes for format "{layout}"')
 
     for x in res:
-        x['stride'] = offset
+        x['stride'] = sub_offset
 
     return res
 
