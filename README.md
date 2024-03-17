@@ -44,7 +44,9 @@ bloom.render()
 
 ```py
 # init time
-pipeline = ctx.pipeline(..., framebuffer=[image, depth])
+pipeline = ctx.pipeline(
+    framebuffer=[image, depth],
+)
 ```
 
 ```py
@@ -58,7 +60,6 @@ image.blit()
 Programs are simple, easy, and cached. Unique shader sources are only compiled once.
 
 ```py
-# init time
 pipeline = ctx.pipeline(
     vertex_shader='''
         #version 330 core
