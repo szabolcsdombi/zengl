@@ -9,6 +9,7 @@ downloads
 __pycache__
 
 *.egg-info
+*.dll
 *.pyd
 *.whl
 *.so
