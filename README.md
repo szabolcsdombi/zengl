@@ -1,5 +1,3 @@
-# ZenGL
-
 [![ZenGL](https://repository-images.githubusercontent.com/420309094/f7c17e13-4d5b-4a38-8b52-ab2dfdacd5a0)](#zengl)
 
 ```
@@ -10,19 +8,202 @@ pip install zengl
 - [zengl on Github](https://github.com/szabolcsdombi/zengl/)
 - [zengl on PyPI](https://pypi.org/project/zengl/)
 
-## Concept
+# ZenGL
 
-ZenGL is a low level graphics library.
+ZenGL is a low level graphics library. Works on all platforms including the browser.
 
-- ZenGL turns OpenGL into Vulkan like [Rendering Pipelines](https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkGraphicsPipelineCreateInfo.html)
-- ZenGL uses **OpenGL 3.3 Core** and **OpenGL 3.0 ES** - runs everywhere
-- ZenGL provides a developer friendly experience in protyping complex scenes
+ZenGL provides a developer friendly interface to OpenGL.
 
-ZenGL emerged from an experimental version of [ModernGL](https://github.com/moderngl/moderngl).
-To keep ModernGL backward compatible, ZenGL was re-designed from the ground-up to support a strict subset of OpenGL.
-On the other hand, ModernGL supports a wide variety of OpenGL versions and extensions.
+## Description
 
-ZenGL is "ModernGL hard mode"
+- **Context** is the root object to access OpenGL
+- **Image** is an OpenGL Textures or OpenGL Renderbuffer
+- **Buffer** is an OpenGL Buffer
+- **Pipeline** is an OpenGL Program + OpenGL Vertex Array + OpenGL Framebuffer + _complete state for rendering_
+
+```py
+ctx = zengl.context()
+texture = ctx.image(size, 'rgba8unorm', pixels)
+renderbuffer = ctx.image(size, 'rgba8unorm', samples=4)
+vertex_buffer = ctx.buffer(vertices)
+pipeline = ctx.pipeline(...)
+```
+
+The complete OpenGL state is encapsulated by the **Pipeline**.
+
+Rendering with multiple pipelines guarantees proper state with minimal changes and api calls.
+
+```py
+background.render()
+scene.render()
+particles.render()
+bloom.render()
+```
+
+**Pipelines** render to framebuffers, **Images** can be blit to the screen.
+
+```py
+# init time
+pipeline = ctx.pipeline(..., framebuffer=[image, depth])
+```
+
+```py
+# per frame
+image.clear()
+depth.clear()
+pipeline.render()
+image.blit()
+```
+
+Programs are simple, easy, and cached. Unique shader sources are only compiled once.
+
+```py
+# init time
+pipeline = ctx.pipeline(
+    vertex_shader='''
+        #version 330 core
+
+        void main() {
+            gl_Position = ...
+        }
+    ''',
+    fragment_shader='''
+        #version 330 core
+
+        out vec4 frag_color;
+
+        void main() {
+            frag_color = ...
+        }
+    ''',
+)
+```
+
+Vertex Arrays are simple.
+
+```py
+# simple
+pipeline = ctx.pipeline(
+    vertex_buffers=zengl.bind(vertex_buffer, '3f 3f 2f', 0, 1, 2),
+    vertex_count=vertex_buffer.size // zengl.calcsize('3f 3f 2f'),
+)
+```
+
+```py
+# indexed
+pipeline = ctx.pipeline(
+    vertex_buffers=zengl.bind(vertex_buffer, '3f 3f 2f', 0, 1, 2),
+    index_buffer=index_buffer,
+    vertex_count=index_buffer.size // 4,
+)
+```
+
+```py
+# instanced
+pipeline = ctx.pipeline(
+    vertex_buffers=[
+        *zengl.bind(vertex_buffer, '3f 3f 2f', 0, 1, 2),
+        *zengl.bind(instance_buffer, '3f 4f /i', 3, 4),
+    ],
+    vertex_count=vertex_buffer.size // zengl.calcsize('3f 3f 2f'),
+    instance_count=1000,
+)
+```
+
+Uniform Buffer, Texture, and Sampler binding is easy.
+
+```py
+# uniform buffers
+pipeline = ctx.pipeline(
+    layout=[
+        {
+            'name': 'Common',
+            'binding': 0,
+        },
+    ],
+    resources=[
+        {
+            'type': 'uniform_buffer',
+            'binding': 0,
+            'buffer': uniform_buffer,
+        },
+    ],
+)
+```
+
+```py
+# textures
+pipeline = ctx.pipeline(
+    layout=[
+        {
+            'name': 'Texture',
+            'binding': 0,
+        },
+    ],
+    resources=[
+        {
+            'type': 'sampler',
+            'binding': 0,
+            'image': texture,
+            'wrap_x': 'clamp_to_edge',
+            'wrap_y': 'clamp_to_edge',
+            'min_filter': 'nearest',
+            'mag_filter': 'nearest',
+        },
+    ],
+)
+```
+
+Postprocessing and Compute can be implemented as rendering a fullscreen quad.
+
+```py
+pipeline = ctx.pipeline(
+    vertex_shader='''
+        #version 330 core
+
+        vec2 vertices[3] = vec2[](
+            vec2(-1.0, -1.0),
+            vec2(3.0, -1.0),
+            vec2(-1.0, 3.0)
+        );
+
+        void main() {
+            gl_Position = vec4(vertices[gl_VertexID], 0.0, 1.0);
+        }
+    ''',
+    fragment_shader='''
+        #version 330 core
+
+        out vec4 frag_color;
+
+        void main() {
+            frag_color = ...
+        }
+    ''',
+    topology='triangles',
+    vertex_count=3,
+)
+```
+
+```py
+particle_system = ctx.pipeline(
+    fragment_shader='''
+        #version 330 core
+
+        uniform sampler2D Position;
+        uniform sampler2D Velocity;
+        uniform vec3 Acceleration;
+
+        layout (location = 0) out vec3 OutputPosition;
+        layout (location = 1) out vec3 OutputVelocity;
+
+        void main() {
+            OutputPosition = Position + Velocity;
+            OutputVelocity = Velocity + Acceleration;
+        }
+    ''',
+)
+```
 
 ZenGL intentionally does not support:
 
@@ -70,6 +251,10 @@ ZenGL avoids this by providing cached pipeline creation, pipeline templating and
 It is supported to create pipelines on the fly or template them for certain use-cases.
 
 > TODO: examples for such patters
+
+ZenGL emerged from an experimental version of [ModernGL](https://github.com/moderngl/moderngl).
+To keep ModernGL backward compatible, ZenGL was re-designed from the ground-up to support a strict subset of OpenGL.
+On the other hand, ModernGL supports a wide variety of OpenGL versions and extensions.
 
 ## Disambiguation
 
