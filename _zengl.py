@@ -801,6 +801,8 @@ def validate(interface, layout, resources, vertex_buffers, info):
             name = uniform_binding_map[binding]['name']
             if binding in bound_uniforms:
                 raise ValueError(f'Duplicate sampler binding for "{name}" with binding {binding}')
+            if image.renderbuffer:
+                raise ValueError(f'Renderbuffers cannot be attached to "{name}" with binding {binding}')
             if image.samples != 1:
                 raise ValueError(f'Multisample images cannot be attached to "{name}" with binding {binding}')
             bound_uniforms.add(binding)

@@ -3545,6 +3545,7 @@ static PyMemberDef Image_members[] = {
     {"format", T_OBJECT, offsetof(Image, format), READONLY, NULL},
     {"samples", T_INT, offsetof(Image, samples), READONLY, NULL},
     {"array", T_INT, offsetof(Image, array), READONLY, NULL},
+    {"renderbuffer", T_BOOL, offsetof(Image, renderbuffer), READONLY, NULL},
     {0},
 };
 

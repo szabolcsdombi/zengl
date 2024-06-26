@@ -265,6 +265,7 @@ class Image:
     format: ImageFormat
     samples: int
     color: bool
+    renderbuffer: bool
     clear_value: Iterable[int | float] | int | float
     def face(self, layer: int = 0, level: int = 0) -> ImageFace: ...
     def clear(self) -> None: ...
