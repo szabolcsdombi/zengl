@@ -312,7 +312,7 @@ class Context:
     def image(
         self,
         size: Tuple[int, int],
-        format: ImageFormat,
+        format: ImageFormat = 'rgba8unorm',
         data: Data | None = None,
         samples: int = 1,
         array: int = 0,

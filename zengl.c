@@ -81,6 +81,7 @@ typedef struct ModuleState {
     PyObject * str_triangles;
     PyObject * str_static_draw;
     PyObject * str_dynamic_draw;
+    PyObject * str_rgba8unorm;
     PyObject * default_context;
     PyTypeObject * Context_type;
     PyTypeObject * Buffer_type;
@@ -1841,7 +1842,7 @@ static Image * Context_meth_image(Context * self, PyObject * args, PyObject * kw
 
     int width;
     int height;
-    PyObject * format;
+    PyObject * format = self->module_state->str_rgba8unorm;
     PyObject * data = Py_None;
     int samples = 1;
     int array = 0;
@@ -1853,7 +1854,7 @@ static Image * Context_meth_image(Context * self, PyObject * args, PyObject * kw
     int args_ok = PyArg_ParseTupleAndKeywords(
         args,
         kwargs,
-        "(ii)O!|OiiiOpi",
+        "(ii)|O!OiiiOpi",
         keywords,
         &width,
         &height,
@@ -3663,6 +3664,7 @@ static int module_exec(PyObject * self) {
     state->str_triangles = PyUnicode_FromString("triangles");
     state->str_static_draw = PyUnicode_FromString("static_draw");
     state->str_dynamic_draw = PyUnicode_FromString("dynamic_draw");
+    state->str_rgba8unorm = PyUnicode_FromString("rgba8unorm");
     state->default_context = new_ref(Py_None);
     state->Context_type = (PyTypeObject *)PyType_FromSpec(&Context_spec);
     state->Buffer_type = (PyTypeObject *)PyType_FromSpec(&Buffer_spec);
@@ -3719,6 +3721,7 @@ static void module_free(PyObject * self) {
         Py_DECREF(state->str_triangles);
         Py_DECREF(state->str_static_draw);
         Py_DECREF(state->str_dynamic_draw);
+        Py_DECREF(state->str_rgba8unorm);
         Py_DECREF(state->default_context);
         Py_DECREF(state->Context_type);
         Py_DECREF(state->Buffer_type);
