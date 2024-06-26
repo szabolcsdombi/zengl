@@ -91,6 +91,7 @@ typedef struct ModuleState {
     PyTypeObject * DescriptorSet_type;
     PyTypeObject * GlobalSettings_type;
     PyTypeObject * GLObject_type;
+    int initialized;
 } ModuleState;
 
 typedef struct GCHeader {
@@ -1590,8 +1591,6 @@ static PyObject * read_image_face(ImageFace * src, IntPair size, IntPair offset,
     Py_RETURN_NONE;
 }
 
-static int initialized;
-
 static PyObject * meth_init(PyObject * self, PyObject * args, PyObject * kwargs) {
     static char * keywords[] = {"loader", NULL};
 
@@ -1618,9 +1617,8 @@ static PyObject * meth_init(PyObject * self, PyObject * args, PyObject * kwargs)
         return NULL;
     }
 
-    Py_DECREF(loader);
-
-    initialized = 1;
+    PyModule_AddObject(self, "default_loader", loader);
+    module_state->initialized = 1;
     Py_RETURN_NONE;
 }
 
@@ -1640,16 +1638,17 @@ static int get_limit(int pname, int min, int max) {
 }
 
 static Context * meth_context(PyObject * self, PyObject * args) {
-    if (!initialized) {
+    ModuleState * module_state = (ModuleState *)PyModule_GetState(self);
+
+    if (module_state->default_context != Py_None) {
+        return (Context *)new_ref(module_state->default_context);
+    }
+
+    if (!module_state->initialized) {
         Py_XDECREF(PyObject_CallMethod(self, "init", NULL));
         if (PyErr_Occurred()) {
             return NULL;
         }
-    }
-
-    ModuleState * module_state = (ModuleState *)PyModule_GetState(self);
-    if (module_state->default_context != Py_None) {
-        return (Context *)new_ref(module_state->default_context);
     }
 
     GLObject * default_framebuffer = PyObject_New(GLObject, module_state->GLObject_type);
@@ -3674,6 +3673,7 @@ static int module_exec(PyObject * self) {
     state->DescriptorSet_type = (PyTypeObject *)PyType_FromSpec(&DescriptorSet_spec);
     state->GlobalSettings_type = (PyTypeObject *)PyType_FromSpec(&GlobalSettings_spec);
     state->GLObject_type = (PyTypeObject *)PyType_FromSpec(&GLObject_spec);
+    state->initialized = 0;
 
     PyModule_AddObject(self, "Context", new_ref(state->Context_type));
     PyModule_AddObject(self, "Buffer", new_ref(state->Buffer_type));
@@ -3685,6 +3685,7 @@ static int module_exec(PyObject * self) {
     PyModule_AddObject(self, "loader", PyObject_GetAttrString(state->helper, "loader"));
     PyModule_AddObject(self, "calcsize", PyObject_GetAttrString(state->helper, "calcsize"));
     PyModule_AddObject(self, "bind", PyObject_GetAttrString(state->helper, "bind"));
+    PyModule_AddObject(self, "default_loader", new_ref(Py_None));
 
     #ifdef EXTERN_GL
     PyModule_AddObject(self, "_extern_gl", PyUnicode_FromString(EXTERN_GL));
