@@ -84,7 +84,7 @@ setup(
     py_modules=['_zengl'],
     license='MIT',
     platforms=['any'],
-    description='Self-Contained OpenGL Rendering Pipelines for Python',
+    description='OpenGL Pipelines for Python',
     long_description=long_description,
     long_description_content_type='text/markdown',
     author='Szabolcs Dombi',
