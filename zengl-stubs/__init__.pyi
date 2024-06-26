@@ -264,7 +264,7 @@ class Image:
     size: Tuple[int, int]
     format: ImageFormat
     samples: int
-    color: bool
+    array: int
     renderbuffer: bool
     clear_value: Iterable[int | float] | int | float
     def face(self, layer: int = 0, level: int = 0) -> ImageFace: ...
