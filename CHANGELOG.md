@@ -5,7 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-# [main](https://github.com/szabolcsdombi/zengl/compare/2.4.1...main)
+# [main](https://github.com/szabolcsdombi/zengl/compare/2.5.0...main)
+
+# [2.5.0](https://github.com/szabolcsdombi/zengl/compare/2.4.1...2.5.0)
+
+- Implemented the `offset` parameter for `zengl.bind`
+- Implemented the `instance` parameter for `zengl.bind`
+- Implemented the `Image.renderbuffer` attribute
+- Fixed the `Image.array` type hints
+- Added the `zengl.default_loader` to hold a reference to the loader
+- Added an error message when invalid images are attached as textures
+- Added `rgba8unorm` as the default value for the `format` parameter in the `Context.image` method
+- Removed the `Context.before_frame` callback
+- Removed the `Context.after_frame` callback
 
 # [2.4.1](https://github.com/szabolcsdombi/zengl/compare/2.4.0...2.4.1)
 
@@ -13,31 +25,31 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 # [2.4.0](https://github.com/szabolcsdombi/zengl/compare/2.3.0...2.4.0)
 
-- Improved wayland support
+- Improved the wayland support
 - Added detection for both egl and x11 context types
 - Fixed default argument value for reset in `Context.new_frame`
 - Fixed the error message for multiple missing gl functions
-- Changed `Image.blit` parameters to `offset`, `size` and `crop`
-- Removed error messages from `Image.blit` for out of bounds regions
+- Changed the `Image.blit` parameters to `offset`, `size` and `crop`
+- Removed the error messages from `Image.blit` for out of bounds regions
 - Added support for flipping images with a negative size in `Image.blit`
 - Added support to blit depth and stencil images
-- Added default value for the `target` parameter in the `zengl.camera` method
+- Added a default value for the `target` parameter in the `zengl.camera` method
 - Added support for angle brackets in shader includes
 - Added support to hook the shader source right before compilation
 - Added tuple length error checking for sizes and viewports
 
 # [2.3.0](https://github.com/szabolcsdombi/zengl/compare/2.2.2...2.3.0)
 
-- Removed srgb image formats
+- Removed the srgb image formats
 
 # [2.2.2](https://github.com/szabolcsdombi/zengl/compare/2.2.1...2.2.2)
 
-- Improved typehints and documentation
+- Improved the typehints and documentation
 
 # [2.2.1](https://github.com/szabolcsdombi/zengl/compare/2.2.0...2.2.1)
 
-- Fixed canvas detection in a web environment
-- Fixed `zengl.bind` typehints
+- Fixed the canvas detection in a web environment
+- Fixed the `zengl.bind` typehints
 
 # [2.2.0](https://github.com/szabolcsdombi/zengl/compare/2.1.0...2.2.0)
 

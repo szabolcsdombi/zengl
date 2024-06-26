@@ -12,8 +12,6 @@ pip install zengl
 
 ZenGL is a low level graphics library. Works on all platforms including the browser.
 
-ZenGL provides a developer friendly interface to OpenGL.
-
 ## Description
 
 - **Context** is the root object to access OpenGL
