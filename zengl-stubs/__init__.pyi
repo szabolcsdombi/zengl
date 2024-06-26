@@ -298,8 +298,6 @@ class Pipeline:
 class Context:
     info: Info
     includes: Dict[str, str]
-    before_frame: Callable | None
-    after_frame: Callable | None
     frame_time: int
     screen: int
     def buffer(

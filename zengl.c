@@ -172,8 +172,6 @@ typedef struct Context {
     PyObject * shader_cache;
     PyObject * includes;
     GLObject * default_framebuffer;
-    PyObject * before_frame_callback;
-    PyObject * after_frame_callback;
     PyObject * info_dict;
     DescriptorSet * current_descriptor_set;
     GlobalSettings * current_global_settings;
@@ -1672,8 +1670,6 @@ static Context * meth_context(PyObject * self, PyObject * args) {
     res->shader_cache = PyDict_New();
     res->includes = PyDict_New();
     res->default_framebuffer = default_framebuffer;
-    res->before_frame_callback = new_ref(Py_None);
-    res->after_frame_callback = new_ref(Py_None);
     res->info_dict = NULL;
     res->current_descriptor_set = NULL;
     res->current_global_settings = NULL;
@@ -2362,14 +2358,6 @@ static PyObject * Context_meth_new_frame(Context * self, PyObject * args, PyObje
         return NULL;
     }
 
-    if (self->before_frame_callback != Py_None) {
-        PyObject * temp = PyObject_CallObject(self->before_frame_callback, NULL);
-        Py_XDECREF(temp);
-        if (!temp) {
-            return NULL;
-        }
-    }
-
     if (reset) {
         self->current_descriptor_set = NULL;
         self->current_global_settings = NULL;
@@ -2463,14 +2451,6 @@ static PyObject * Context_meth_end_frame(Context * self, PyObject * args, PyObje
         void * fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
         glClientWaitSync(fence, GL_SYNC_FLUSH_COMMANDS_BIT, -1);
         glDeleteSync(fence);
-    }
-
-    if (self->after_frame_callback != Py_None) {
-        PyObject * temp = PyObject_CallObject(self->after_frame_callback, NULL);
-        Py_XDECREF(temp);
-        if (!temp) {
-            return NULL;
-        }
     }
 
     Py_RETURN_NONE;
@@ -3454,8 +3434,6 @@ static void Context_dealloc(Context * self) {
     Py_DECREF(self->shader_cache);
     Py_DECREF(self->includes);
     Py_DECREF(self->default_framebuffer);
-    Py_DECREF(self->before_frame_callback);
-    Py_DECREF(self->after_frame_callback);
     Py_DECREF(self->info_dict);
     PyObject_Del(self);
 }
@@ -3531,8 +3509,6 @@ static PyGetSetDef Context_getset[] = {
 static PyMemberDef Context_members[] = {
     {"includes", T_OBJECT, offsetof(Context, includes), READONLY, NULL},
     {"info", T_OBJECT, offsetof(Context, info_dict), READONLY, NULL},
-    {"before_frame", T_OBJECT, offsetof(Context, before_frame_callback), 0, NULL},
-    {"after_frame", T_OBJECT, offsetof(Context, after_frame_callback), 0, NULL},
     {"frame_time", T_INT, offsetof(Context, frame_time), READONLY, NULL},
     {0},
 };
