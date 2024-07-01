@@ -12,6 +12,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
 
       - name: deps
         run: python -m pip install -U pip wheel setuptools
@@ -20,7 +22,7 @@ jobs:
         run: python setup.py sdist -d package
 
       - name: upload
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: package
           path: package/*.tar.gz
@@ -33,20 +35,22 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-13, macos-14]
 
     env:
-      CIBW_BUILD: cp38-* cp39-* cp310-* cp311-* cp312-*
+      CIBW_SKIP: pp*
 
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
 
       - name: deps
-        run: python -m pip install cibuildwheel==2.19.1
+        run: python -m pip install -U cibuildwheel
 
       - name: wheels
         run: python -m cibuildwheel --output-dir package
 
       - name: upload
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: package
           path: package/*.whl
