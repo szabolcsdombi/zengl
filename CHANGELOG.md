@@ -5,7 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-# [main](https://github.com/szabolcsdombi/zengl/compare/2.5.0...main)
+# [main](https://github.com/szabolcsdombi/zengl/compare/2.5.1...main)
+
+# [2.5.1](https://github.com/szabolcsdombi/zengl/compare/2.5.0...2.5.1)
+
+- Removed abi3 builds entirely
 
 # [2.5.0](https://github.com/szabolcsdombi/zengl/compare/2.4.1...2.5.0)
 
@@ -18,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Added `rgba8unorm` as the default value for the `format` parameter in the `Context.image` method
 - Removed the `Context.before_frame` callback
 - Removed the `Context.after_frame` callback
+- Removed abi3 builds for the web
 
 # [2.4.1](https://github.com/szabolcsdombi/zengl/compare/2.4.0...2.4.1)
 
