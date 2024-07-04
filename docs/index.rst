@@ -1,7 +1,7 @@
 ZenGL
 -----
 
-ZenGL is a minimalist Python module providing exactly **one** way to render scenes with OpenGL.
+ZenGL is a low level graphics library. Works on all platforms including the browser.
 
 .. code::
 
@@ -11,16 +11,266 @@ ZenGL is a minimalist Python module providing exactly **one** way to render scen
 - `zengl on Github <https://github.com/szabolcsdombi/zengl/>`_
 - `zengl on PyPI <https://pypi.org/project/zengl/>`_
 
-**ZenGL is ...**
+Description
+===========
 
-- **high-performance**
-- **simple** - *buffers, images, pipelines and there you go*
-- **easy-to-learn** - *it is simply OpenGL with no magic added*
-- **verbose** - *most common mistakes are caught and reported in a clear and understandable way*
-- **robust** - *there is no global state or external trouble-maker affecting the render*
-- **backward-compatible** - *it requires OpenGL 3.3 - it is just enough*
-- **cached** - *most OpenGL objects are reused between renders*
-- **zen** - *there is one way to do it*
+- **Context** is the root object to access OpenGL
+- **Image** is an OpenGL Texture or Renderbuffer
+- **Buffer** is an OpenGL Buffer
+- **Pipeline** is an OpenGL Program + Vertex Array + Framebuffer + *complete state for rendering*
+
+.. code::
+
+    ctx = zengl.context()
+    texture = ctx.image(size, 'rgba8unorm', pixels)
+    renderbuffer = ctx.image(size, 'rgba8unorm', samples=4)
+    vertex_buffer = ctx.buffer(vertices)
+    pipeline = ctx.pipeline(...)
+
+The complete OpenGL state is encapsulated by the **Pipeline**.
+
+Rendering with multiple pipelines guarantees proper state with minimal changes and api calls.
+
+.. code::
+
+    background.render()
+    scene.render()
+    particles.render()
+    bloom.render()
+
+**Pipelines** render to framebuffers, **Images** can be blit to the screen.
+
+.. code::
+
+    # init time
+    pipeline = ctx.pipeline(
+        framebuffer=[image, depth],
+    )
+
+.. code::
+
+    # per frame
+    image.clear()
+    depth.clear()
+    pipeline.render()
+    image.blit()
+
+Programs are simple, easy, and cached. Unique shader sources are only compiled once.
+
+.. code::
+
+    pipeline = ctx.pipeline(
+        vertex_shader='''
+            #version 330 core
+
+            void main() {
+                gl_Position = ...
+            }
+        ''',
+        fragment_shader='''
+            #version 330 core
+
+            out vec4 frag_color;
+
+            void main() {
+                frag_color = ...
+            }
+        ''',
+    )
+
+Vertex Arrays are simple.
+
+.. code::
+
+    # simple
+    pipeline = ctx.pipeline(
+        vertex_buffers=zengl.bind(vertex_buffer, '3f 3f 2f', 0, 1, 2),
+        vertex_count=vertex_buffer.size // zengl.calcsize('3f 3f 2f'),
+    )
+
+.. code::
+
+    # indexed
+    pipeline = ctx.pipeline(
+        vertex_buffers=zengl.bind(vertex_buffer, '3f 3f 2f', 0, 1, 2),
+        index_buffer=index_buffer,
+        vertex_count=index_buffer.size // 4,
+    )
+
+.. code::
+
+    # instanced
+    pipeline = ctx.pipeline(
+        vertex_buffers=[
+            *zengl.bind(vertex_buffer, '3f 3f 2f', 0, 1, 2),
+            *zengl.bind(instance_buffer, '3f 4f /i', 3, 4),
+        ],
+        vertex_count=vertex_buffer.size // zengl.calcsize('3f 3f 2f'),
+        instance_count=1000,
+    )
+
+Uniform Buffer, Texture, and Sampler binding is easy.
+
+.. code::
+
+    # uniform buffers
+    pipeline = ctx.pipeline(
+        layout=[
+            {
+                'name': 'Common',
+                'binding': 0,
+            },
+        ],
+        resources=[
+            {
+                'type': 'uniform_buffer',
+                'binding': 0,
+                'buffer': uniform_buffer,
+            },
+        ],
+    )
+
+.. code::
+
+    # textures
+    pipeline = ctx.pipeline(
+        layout=[
+            {
+                'name': 'Texture',
+                'binding': 0,
+            },
+        ],
+        resources=[
+            {
+                'type': 'sampler',
+                'binding': 0,
+                'image': texture,
+                'wrap_x': 'clamp_to_edge',
+                'wrap_y': 'clamp_to_edge',
+                'min_filter': 'nearest',
+                'mag_filter': 'nearest',
+            },
+        ],
+    )
+
+Postprocessing and Compute can be implemented as rendering a fullscreen quad.
+
+.. code::
+
+    pipeline = ctx.pipeline(
+        vertex_shader='''
+            #version 330 core
+
+            vec2 vertices[3] = vec2[](
+                vec2(-1.0, -1.0),
+                vec2(3.0, -1.0),
+                vec2(-1.0, 3.0)
+            );
+
+            void main() {
+                gl_Position = vec4(vertices[gl_VertexID], 0.0, 1.0);
+            }
+        ''',
+        fragment_shader='''
+            #version 330 core
+
+            out vec4 frag_color;
+
+            void main() {
+                frag_color = ...
+            }
+        ''',
+        topology='triangles',
+        vertex_count=3,
+    )
+
+.. code::
+
+    particle_system = ctx.pipeline(
+        fragment_shader='''
+            #version 330 core
+
+            uniform sampler2D Position;
+            uniform sampler2D Velocity;
+            uniform vec3 Acceleration;
+
+            layout (location = 0) out vec3 OutputPosition;
+            layout (location = 1) out vec3 OutputVelocity;
+
+            void main() {
+                OutputPosition = Position + Velocity;
+                OutputVelocity = Velocity + Acceleration;
+            }
+        ''',
+    )
+
+ZenGL intentionally does not support:
+
+- Transform Feedback
+- Geometry Shaders
+- Tesselation
+- Compute Shaders
+- 3D Textures
+- Storage Buffers
+
+Most of the above can be implemented in a more hardware friendly way using the existing ZenGL API.
+Interoperability with other modules is also possible. Using such may reduce the application's portablity.
+It is even possible to use direct OpenGL calls together with ZenGL, however this is likely not necessary.
+
+It is common to render directly to the screen with OpenGL.
+With ZenGL, the right way is to render to a framebuffer and blit the final image to the screen.
+This allows fine-grained control of the framebuffer format, guaranteed multisampling settings, correct depth/stencil precison.
+It is also possible to render directly to the screen, however this feature is designed to be used for the postprocessing step.
+
+This design allows ZenGL to support:
+
+- Rendering without a window
+- Rendering to multiple windows
+- Rendering to HDR monitors
+- Refreshing the screen without re-rendering the scene
+- Apply post-processing without changing how the scene is rendered
+- Making reusable shaders and components
+- Taking screenshots or exporting a video
+
+The `default framebuffer <https://www.khronos.org/opengl/wiki/Default_Framebuffer>`_ in OpenGL is highly dependent on how the Window is created.
+It is often necessary to configure the Window to provide the proper depth precision, stencil buffer, multisampling and double buffering.
+Often the "best pixel format" lacks all of these features on purpose. ZenGL aims to allow choosing these pixel formats and ensures the user specifies the rendering requirements.
+It is even possible to render low-resolution images and upscale them for high-resolution monitors.
+Tearing can be easily prevented by decoupling the scene rendering from the screen updates.
+
+ZenGL was designed for Prototyping
+
+It is tempting to start a project with Vulkan, however even getting a simple scene rendered requires tremendous work and advanced tooling to compile shaders ahead of time. ZenGL provides self-contained Pipelines which can be easily ported to Vulkan.
+ZenGL code is verbose and easy to read.
+
+ZenGL support multiple design patters
+
+Many libraries enfore certain design patterns.
+ZenGL avoids this by providing cached pipeline creation, pipeline templating and lean resourece and framebuffer definition.
+It is supported to create pipelines on the fly or template them for certain use-cases.
+
+ZenGL emerged from an experimental version of `ModernGL <https://github.com/moderngl/moderngl>`_.
+To keep ModernGL backward compatible, ZenGL was re-designed from the ground-up to support a strict subset of OpenGL.
+On the other hand, ModernGL supports a wide variety of OpenGL versions and extensions.
+
+Disambiguation
+==============
+
+- ZenGL is a drop-in replacement for pure OpenGL code
+- Using ZenGL requires some OpenGL knowledge
+- ZenGL Images are OpenGL `Texture Objects <https://www.khronos.org/opengl/wiki/Texture>`_ or `Renderbuffer Objects <https://www.khronos.org/opengl/wiki/Renderbuffer_Object>`_
+- ZenGL Buffers are OpenGL `Buffer Objects <https://www.khronos.org/opengl/wiki/Buffer_Object>`_
+- ZenGL Pipelines contain an OpenGL `Vertex Array Object <https://www.khronos.org/opengl/wiki/Vertex_Specification#Vertex_Array_Object>`_, a `Program Object <https://www.khronos.org/opengl/wiki/GLSL_Object#Program_objects>`_, and a `Framebuffer Object <https://www.khronos.org/opengl/wiki/Framebuffer>`_
+- ZenGL Pielines may also contain OpenGL `Sampler Objects <https://www.khronos.org/opengl/wiki/Sampler_Object>`_
+- Creating ZenGL Pipelines does not necessarily compile the shader from source
+- The ZenGL Shader Cache exists independently from the Pipeline objects
+- A Framebuffer is always represented by a Python list of ZenGL Images
+- There is no `Pipeline.clear()` method, individual images must be cleared independently
+- GLSL Uniform Blocks and sampler2D objects are bound in the Pipeline layout
+- Textures and Uniform Buffers are bound in the Pipeline resources
+
+Documentation
+=============
 
 .. py:class:: Context
 
@@ -39,36 +289,8 @@ ZenGL is a minimalist Python module providing exactly **one** way to render scen
 | Represents an entire rendering pipeline including the global state, shader program, framebuffer, vertex state,
   uniform buffer bindings, samplers, and sampler bindings.
 
-Concept
--------
-
-| ZenGL provides a simple way to render from Python. We aim to support headless rendering first,
-  rendering to a window is done by blitting the final image to the screen. By doing this we have full control of
-  what we render. The window does not have to be multisample, and it requires no depth buffer at all.
-
-| Offscreen rendering works out of the box on all platforms if the right loader is provided.
-| Loaders implement a load method to resolve a subset of OpenGL 3.3 core. The return value of the load method is
-  an int, a void pointer to the function implementation.
-| Virtualized, traced, and debug environments can be provided by custom loaders.
-| The current implementation uses the glcontext from moderngl to load the OpenGL methods.
-
-| ZenGL's main focus is on readability and maintainability. Pipelines in ZenGL are almost entirely immutable and they
-  cannot affect each other except when one draws on top of the other's result that is expected.
-  No global state is affecting the render, if something breaks there is one place to debug.
-
-| ZenGL does not use anything beyond OpenGL 3.3 core, not even if the more convenient methods are available.
-  Implementation is kept simple. Usually, this is not a bottleneck.
-
-| ZenGL does not implement transform feedback, storage buffers or storage images, tesselation, geometry shader, and maybe many more.
-  We have a strong reason not to include them in the feature list. They add to the complexity and are against ZenGL's main philosophy.
-  ZenGL was built on top experience gathered on real-life projects that could never make good use of any of that.
-
-| ZenGL is using the same vertex and image format naming as WebGPU and keeping the vertex array definition from ModernGL.
-  ZenGL is not the next version of ModernGL. ZenGL is a simplification of a subset of ModernGL with some extras
-  that was not possible to include in ModernGL.
-
 Context
--------
+=======
 
 .. py:method:: zengl.context() -> Context
 
@@ -132,7 +354,7 @@ This method is automatically called by :py:meth:`zengl.context`.
     | A boolean to wait for a ``glFenceSync``.
 
 Buffer
-------
+======
 
 | Buffers hold vertex, index, and uniform data used by rendering.
 | Buffers have a fixed size allocated upfront in the device memory.
@@ -215,7 +437,7 @@ Buffer
     An int, representing the size of the buffer in bytes.
 
 Image
------
+=====
 
 | Images hold texture data or render outputs.
 | Images with texture support are implemented with OpenGL textures.
@@ -357,7 +579,7 @@ Generate mipmaps for the image.
 | For depth and stencil images this value is False.
 
 Pipeline
---------
+========
 
 .. py:method:: Context.pipeline(vertex_shader, fragment_shader, layout, resources, uniforms, depth, stencil, blend, framebuffer, vertex_buffers, index_buffer, short_index, cull_face, topology, vertex_count, instance_count, first_vertex, viewport, uniform_data, viewport_data, render_data, includes, template) -> Pipeline
 
@@ -487,7 +709,7 @@ Pipeline
     | Execute the rendering pipeline.
 
 Shader Code
------------
+===========
 
 - **do** use ``#version 330 core`` or ``#version 300 es`` as the first line in the shader.
 - **do** use ``layout (std140)`` for uniform buffers.
@@ -509,7 +731,7 @@ Shader Code
 - **do** arrange pipelines in such an order to minimize framebuffer then program changes.
 
 Shader Includes
----------------
+===============
 
 | Shader includes were designed to solve a single problem of sharing code among shaders without having to field format the shader code.
 | Includes are simple string replacements from :py:attr:`Context.includes`
@@ -539,7 +761,7 @@ Shader Includes
     )
 
 Include Patterns
-----------------
+================
 
 **common uniform buffer**
 
@@ -570,7 +792,7 @@ Include Patterns
         y = np.exp(-x * x / (s * s / 4))
         y /= y.sum()
         v = ', '.join(f'{t:.8f}' for t in y)
-        return f'const int N = {s * 2 + 1};\nfloat coeff[N] = float[]({v});'
+        return f'const int N = {s * 2 + 1};\nfloat coeff[N] = float[ <{v});'
 
     ctx.includes['kernel'] = kernel(19)
 
@@ -587,14 +809,14 @@ Include Patterns
     '''
 
 Rendering to Texture
---------------------
+====================
 
 Rendering to texture is supported. However, multisampled images must be downsampled before being used as textures.
 In that case, an intermediate render target must be samples > 1 and texture = False.
 Then this image can be downsampled with :py:meth:`Image.blit` to another image with samples = 1 and texture = True.
 
 Cleanup
--------
+=======
 
 Clean only if necessary. It is ok not to clean up before the program ends.
 
@@ -610,7 +832,7 @@ it calls glDeleteShader for all the previously created vertex and fragment shade
 When the string ``all`` is passed to this method, it releases all the resources allocated from this context.
 
 Interoperability
-----------------
+================
 
 | Some window implementations expose a framebuffer object for drawing.
 | Detecting this framebuffer is an error-prone and non-reliable solution.
@@ -631,7 +853,7 @@ Returns a dictionary with all of the OpenGL objects.
 | You may want to change this attribute when using PyQt.
 
 Utils
------
+=====
 
 .. py:attribute:: Context.info
 
@@ -674,7 +896,7 @@ Utils
 .. _Image Formats:
 
 Image Formats
--------------
+=============
 
 ==================== ===================== ================== =================
 ZenGL format         internal format       format             type
@@ -718,7 +940,7 @@ depth32float         GL_DEPTH_COMPONENT32F GL_DEPTH_COMPONENT GL_FLOAT
 .. _Vertex Formats:
 
 Vertex Formats
---------------
+==============
 
 ========== ============= ================== ==== ==========
 ZenGL bind ZenGL format  type               size normalized

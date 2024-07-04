@@ -15,9 +15,9 @@ ZenGL is a low level graphics library. Works on all platforms including the brow
 ## Description
 
 - **Context** is the root object to access OpenGL
-- **Image** is an OpenGL Textures or OpenGL Renderbuffer
+- **Image** is an OpenGL Texture or Renderbuffer
 - **Buffer** is an OpenGL Buffer
-- **Pipeline** is an OpenGL Program + OpenGL Vertex Array + OpenGL Framebuffer + _complete state for rendering_
+- **Pipeline** is an OpenGL Program + Vertex Array + Framebuffer + _complete state for rendering_
 
 ```py
 ctx = zengl.context()
@@ -259,9 +259,9 @@ On the other hand, ModernGL supports a wide variety of OpenGL versions and exten
 
 - ZenGL is a drop-in replacement for pure OpenGL code
 - Using ZenGL requires some OpenGL knowledge
-- ZenGL Images are OpenGL [Texture Objects](https://www.khronos.org/opengl/wiki/Texture) or OpenGL [Renderbuffer Objects](https://www.khronos.org/opengl/wiki/Renderbuffer_Object)
+- ZenGL Images are OpenGL [Texture Objects](https://www.khronos.org/opengl/wiki/Texture) or [Renderbuffer Objects](https://www.khronos.org/opengl/wiki/Renderbuffer_Object)
 - ZenGL Buffers are OpenGL [Buffer Objects](https://www.khronos.org/opengl/wiki/Buffer_Object)
-- ZenGL Pipelines contain an OpenGL [Vertex Array Object](https://www.khronos.org/opengl/wiki/Vertex_Specification#Vertex_Array_Object), an OpenGL [Program Object](https://www.khronos.org/opengl/wiki/GLSL_Object#Program_objects), and an OpenGL [Framebuffer Object](https://www.khronos.org/opengl/wiki/Framebuffer)
+- ZenGL Pipelines contain an OpenGL [Vertex Array Object](https://www.khronos.org/opengl/wiki/Vertex_Specification#Vertex_Array_Object), a [Program Object](https://www.khronos.org/opengl/wiki/GLSL_Object#Program_objects), and a [Framebuffer Object](https://www.khronos.org/opengl/wiki/Framebuffer)
 - ZenGL Pielines may also contain OpenGL [Sampler Objects](https://www.khronos.org/opengl/wiki/Sampler_Object)
 - Creating ZenGL Pipelines does not necessarily compile the shader from source
 - The ZenGL Shader Cache exists independently from the Pipeline objects
