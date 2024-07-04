@@ -271,13 +271,19 @@ Image
     | An OpenGL Texture Object returned by glGenTextures.
     | The default value is 0.
 
-.. py:method:: Image.blit(target, target_viewport, source_viewport, filter)
+.. py:method:: Image.blit(target, offset, size, crop, filter)
 
 **target**
     | The target image to copy to. The default value is None and it means to copy to the screen.
 
-**target_viewport** and **source_viewport**
-    | The source and target viewports defined as tuples of four ints in (x, y, width, height) format.
+**size and offset**
+    | The size and offset, defining a sub-part of the image to copy to.
+
+**size**
+    | The size of the target image area to copy to. The default value is None and it means the full size of the image.
+
+**crop**
+    | The crop area in the source image to copy from. The default value is None and it means the full size of the image.
 
 **filter**
     | A boolean to enable linear filtering for scaled images. By default it is True.
