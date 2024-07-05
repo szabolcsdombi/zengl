@@ -261,7 +261,7 @@ Disambiguation
 - ZenGL Images are OpenGL `Texture Objects <https://www.khronos.org/opengl/wiki/Texture>`_ or `Renderbuffer Objects <https://www.khronos.org/opengl/wiki/Renderbuffer_Object>`_
 - ZenGL Buffers are OpenGL `Buffer Objects <https://www.khronos.org/opengl/wiki/Buffer_Object>`_
 - ZenGL Pipelines contain an OpenGL `Vertex Array Object <https://www.khronos.org/opengl/wiki/Vertex_Specification#Vertex_Array_Object>`_, a `Program Object <https://www.khronos.org/opengl/wiki/GLSL_Object#Program_objects>`_, and a `Framebuffer Object <https://www.khronos.org/opengl/wiki/Framebuffer>`_
-- ZenGL Pielines may also contain OpenGL `Sampler Objects <https://www.khronos.org/opengl/wiki/Sampler_Object>`_
+- ZenGL Pipelines may also contain OpenGL `Sampler Objects <https://www.khronos.org/opengl/wiki/Sampler_Object>`_
 - Creating ZenGL Pipelines does not necessarily compile the shader from source
 - The ZenGL Shader Cache exists independently from the Pipeline objects
 - A Framebuffer is always represented by a Python list of ZenGL Images
