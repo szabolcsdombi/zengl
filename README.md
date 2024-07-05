@@ -262,7 +262,7 @@ On the other hand, ModernGL supports a wide variety of OpenGL versions and exten
 - ZenGL Images are OpenGL [Texture Objects](https://www.khronos.org/opengl/wiki/Texture) or [Renderbuffer Objects](https://www.khronos.org/opengl/wiki/Renderbuffer_Object)
 - ZenGL Buffers are OpenGL [Buffer Objects](https://www.khronos.org/opengl/wiki/Buffer_Object)
 - ZenGL Pipelines contain an OpenGL [Vertex Array Object](https://www.khronos.org/opengl/wiki/Vertex_Specification#Vertex_Array_Object), a [Program Object](https://www.khronos.org/opengl/wiki/GLSL_Object#Program_objects), and a [Framebuffer Object](https://www.khronos.org/opengl/wiki/Framebuffer)
-- ZenGL Pielines may also contain OpenGL [Sampler Objects](https://www.khronos.org/opengl/wiki/Sampler_Object)
+- ZenGL Pipelines may also contain OpenGL [Sampler Objects](https://www.khronos.org/opengl/wiki/Sampler_Object)
 - Creating ZenGL Pipelines does not necessarily compile the shader from source
 - The ZenGL Shader Cache exists independently from the Pipeline objects
 - A Framebuffer is always represented by a Python list of ZenGL Images
