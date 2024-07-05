@@ -187,6 +187,7 @@ Postprocessing and Compute can be implemented as rendering a fullscreen quad.
 .. code::
 
     particle_system = ctx.pipeline(
+        vertex_shader=...,
         fragment_shader='''
             #version 330 core
 
@@ -198,10 +199,12 @@ Postprocessing and Compute can be implemented as rendering a fullscreen quad.
             layout (location = 1) out vec3 OutputVelocity;
 
             void main() {
-                OutputPosition = Position + Velocity;
-                OutputVelocity = Velocity + Acceleration;
+                ivec2 at = ivec2(gl_FragCoord.xy);
+                vec3 position = texelFetch(Position, at, 0).xyz;
+                vec3 velocity = texelFetch(Velocity, at, 0).xyz;
+                OutputPosition = position + velocity;
+                OutputVelocity = velocity + Acceleration;
             }
-        ''',
     )
 
 ZenGL intentionally does not support:
