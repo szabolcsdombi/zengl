@@ -755,8 +755,12 @@ def validate(interface, layout, resources, vertex_buffers, info):
         binding = obj['binding']
         if name in uniform_map:
             uniform_binding_map[binding] = obj
+            if binding < 0 or binding >= info['max_combined_texture_image_units']:
+                raise ValueError(f'Invalid sampler binding for "{name}" with binding {binding}')
         elif name in uniform_buffer_map:
             uniform_buffer_binding_map[binding] = obj
+            if binding < 0 or binding >= info['max_uniform_buffer_bindings']:
+                raise ValueError(f'Invalid uniform buffer binding for "{name}" with binding {binding}')
         else:
             raise ValueError(f'Cannot set layout binding for "{name}"')
 
