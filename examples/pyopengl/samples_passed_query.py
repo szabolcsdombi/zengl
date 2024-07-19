@@ -27,14 +27,14 @@ pipeline = ctx.pipeline(
             vec2 scale;
         };
 
-        vec2 positions[3] = vec2[](
+        vec2 vertices[3] = vec2[](
             vec2(0.0, 0.08),
             vec2(-0.06, -0.08),
             vec2(0.06, -0.08)
         );
 
         void main() {
-            gl_Position = vec4(positions[gl_VertexID] * scale, 0.0, 1.0);
+            gl_Position = vec4(vertices[gl_VertexID] * scale, 0.0, 1.0);
         }
     ''',
     fragment_shader='''

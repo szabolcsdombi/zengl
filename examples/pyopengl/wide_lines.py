@@ -31,13 +31,13 @@ def build_pipeline(vertex_buffer):
             #version 330 core
 
             layout (std140) uniform Common {
-                mat4 mvp;
+                mat4 camera;
             };
 
-            layout (location = 0) in vec3 in_vert;
+            layout (location = 0) in vec3 in_vertex;
 
             void main() {
-                gl_Position = mvp * vec4(in_vert, 1.0);
+                gl_Position = camera * vec4(in_vertex, 1.0);
             }
         ''',
         fragment_shader='''

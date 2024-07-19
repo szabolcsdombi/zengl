@@ -31,51 +31,51 @@ GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA8, *img_size, 0, GL.GL_RGBA, GL.G
 
 texture = ctx.image(img_size, 'rgba8unorm', external=gl_texture)
 
-uniform_buffer = ctx.buffer(size=80)
+uniform_buffer = ctx.buffer(size=80, uniform=True)
 
 pipeline = ctx.pipeline(
     vertex_shader='''
         #version 330 core
 
         layout (std140) uniform Common {
-            mat4 mvp;
+            mat4 camera;
             vec3 light;
         };
 
-        layout (location = 0) in vec3 in_vert;
-        layout (location = 1) in vec3 in_norm;
-        layout (location = 2) in vec2 in_text;
+        layout (location = 0) in vec3 in_vertex;
+        layout (location = 1) in vec3 in_normal;
+        layout (location = 2) in vec2 in_uv;
 
-        out vec3 v_vert;
-        out vec3 v_norm;
-        out vec2 v_text;
+        out vec3 v_vertex;
+        out vec3 v_normal;
+        out vec2 v_uv;
 
         void main() {
-            gl_Position = mvp * vec4(in_vert, 1.0);
-            v_vert = in_vert;
-            v_norm = in_norm;
-            v_text = in_text;
+            gl_Position = camera * vec4(in_vertex, 1.0);
+            v_vertex = in_vertex;
+            v_normal = in_normal;
+            v_uv = in_uv;
         }
     ''',
     fragment_shader='''
         #version 330 core
 
         layout (std140) uniform Common {
-            mat4 mvp;
+            mat4 camera;
             vec3 light;
         };
 
         uniform sampler2D Texture;
 
-        in vec3 v_vert;
-        in vec3 v_norm;
-        in vec2 v_text;
+        in vec3 v_vertex;
+        in vec3 v_normal;
+        in vec2 v_uv;
 
         layout (location = 0) out vec4 out_color;
 
         void main() {
-            float lum = clamp(dot(normalize(light - v_vert), normalize(v_norm)), 0.0, 1.0) * 0.6 + 0.4;
-            out_color = vec4(texture(Texture, v_text).rgb * lum, 1.0);
+            float lum = clamp(dot(normalize(light - v_vertex), normalize(v_normal)), 0.0, 1.0) * 0.6 + 0.4;
+            out_color = vec4(texture(Texture, v_uv).rgb * lum, 1.0);
         }
     ''',
     layout=[
