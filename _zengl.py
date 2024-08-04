@@ -614,12 +614,12 @@ def program(vertex_shader, fragment_shader, layout, includes):
 
 def compile_error(shader: bytes, shader_type: int, log: bytes):
     name = {0x8B31: 'Vertex Shader', 0x8B30: 'Fragment Shader'}[shader_type]
-    log = log.rstrip(b'\x00').decode()
+    log = log.rstrip(b'\x00').decode(errors='ignore')
     raise ValueError(f'{name} Error\n\n{log}')
 
 
 def linker_error(vertex_shader: bytes, fragment_shader: bytes, log: bytes):
-    log = log.rstrip(b'\x00').decode()
+    log = log.rstrip(b'\x00').decode(errors='ignore')
     raise ValueError(f'Linker Error\n\n{log}')
 
 
