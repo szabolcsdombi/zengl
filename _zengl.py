@@ -313,7 +313,6 @@ class DefaultLoader:
 
 def headless_context_windows():
     from ctypes import c_int, c_void_p, cast, create_string_buffer, windll
-
     GetModuleHandle = windll.kernel32.GetModuleHandleA
     GetModuleHandle.restype = c_void_p
     RegisterClass = windll.user32.RegisterClassA
@@ -345,23 +344,26 @@ def headless_context_windows():
     SetPixelFormat(hdc, 1, pfd)
     hglrc = wglCreateContext(hdc)
     wglMakeCurrent(hdc, hglrc)
+    return hwnd, hdc, hglrc
 
 
 def headless_context_glcontext():
     import glcontext
+    return glcontext.default_backend()(glversion=330, mode='standalone')
 
-    glcontext.default_backend()(glversion=330, mode='standalone')
 
-
-def web_context_pyodide():
+def web_context():
     import js
-    import pyodide_js
     import zengl
 
-    canvas = pyodide_js.canvas.getCanvas3D()
+    try:
+        import pyodide_js
+        module = pyodide_js._module
 
-    if canvas is None:
-        canvas = js.document.getElementById('canvas')
+    except ImportError:
+        module = js.window
+
+    canvas = js.document.getElementById('canvas')
 
     if canvas is None:
         canvas = js.document.createElement('canvas')
@@ -371,38 +373,38 @@ def web_context_pyodide():
         canvas.style.right = '0'
         canvas.style.zIndex = '10'
         js.document.body.appendChild(canvas)
-        pyodide_js.canvas.setCanvas3D(canvas)
 
-    gl = canvas.getContext(
-        'webgl2',
-        powerPreference='high-performance',
-        premultipliedAlpha=False,
-        antialias=False,
-        alpha=False,
-        depth=False,
-        stencil=False,
-    )
+    options = js.Object()
+    options.powerPreference = 'high-performance'
+    options.premultipliedAlpha = False
+    options.antialias = False
+    options.alpha = False
+    options.depth = False
+    options.stencil = False
 
+    gl = canvas.getContext('webgl2', options)
     callback = js.window.eval(zengl._extern_gl)
-    symbols = callback(pyodide_js._module, gl)
-    pyodide_js._module.mergeLibSymbols(symbols)
+    symbols = callback(module, gl)
+    module.mergeLibSymbols(symbols)
+    return canvas, gl, symbols
 
 
 def loader(headless=False):
+    extra = None
+
     if headless:
         if sys.platform.startswith('win'):
-            headless_context_windows()
+            extra = headless_context_windows()
 
         else:
-            headless_context_glcontext()
+            extra = headless_context_glcontext()
 
     if sys.platform.startswith('emscripten'):
-        import zengl
+        extra = web_context()
 
-        if zengl._extern_gl:
-            web_context_pyodide()
-
-    return DefaultLoader()
+    loader = DefaultLoader()
+    loader.extra = extra
+    return loader
 
 
 def calcsize(layout):
