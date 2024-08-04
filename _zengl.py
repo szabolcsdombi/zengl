@@ -3,6 +3,8 @@ import struct
 import sys
 import textwrap
 
+__version__ = '2.5.4'
+
 VERTEX_FORMAT = {
     'uint8x2': (0x1401, 2, 0, 1),
     'uint8x4': (0x1401, 4, 0, 1),
