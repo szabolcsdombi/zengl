@@ -7,7 +7,7 @@ pip install zengl
 - [Documentation](https://zengl.readthedocs.io/)
 - [zengl on Github](https://github.com/szabolcsdombi/zengl/)
 - [zengl on PyPI](https://pypi.org/project/zengl/)
-- [Discord](https://discord.com/channels/550302843777712148/1262363799382396949)
+- [Discord](https://discord.gg/nM34Uv7x)
 
 # ZenGL
 
