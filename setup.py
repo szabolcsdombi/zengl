@@ -1,6 +1,7 @@
 import os
 import re
 import sys
+import sysconfig
 
 from setuptools import Extension, setup
 
@@ -11,7 +12,7 @@ define_macros = []
 if sys.platform.startswith('darwin'):
     extra_compile_args += ['-Wno-writable-strings']
 
-if os.getenv('PYODIDE'):
+if os.getenv('PYODIDE') or str(sysconfig.get_config_var('HOST_GNU_TYPE')).startswith('wasm'):
     with open('zengl.js') as zengl_js:
         code = re.sub(r'\s+', ' ', zengl_js.read())
         define_macros += [('EXTERN_GL', f'"{code}"')]
