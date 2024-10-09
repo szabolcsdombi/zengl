@@ -500,7 +500,9 @@ static void * load_opengl_function(PyObject * loader_function, const char * meth
     if (!res) {
         return NULL;
     }
-    return PyLong_AsVoidPtr(res);
+    void * ptr = PyLong_AsVoidPtr(res);
+    Py_DECREF(res);
+    return ptr;
 }
 
 static void load_gl(PyObject * loader) {
@@ -636,9 +638,10 @@ static void load_gl(PyObject * loader) {
     #undef load
     #undef check
 
+    Py_DECREF(loader_function);
+
     if (PyList_Size(missing)) {
         PyErr_Format(PyExc_RuntimeError, "cannot load opengl %R", missing);
-        return;
     }
 
     Py_DECREF(missing);
@@ -1743,9 +1746,8 @@ static Context * meth_context(PyObject * self, PyObject * args) {
         glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
     }
 
-    PyObject * old_context = module_state->default_context;
+    Py_DECREF(module_state->default_context);
     module_state->default_context = new_ref(res);
-    Py_DECREF(old_context);
     return res;
 }
 
