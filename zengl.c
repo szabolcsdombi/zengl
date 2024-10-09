@@ -1614,6 +1614,9 @@ static PyObject * meth_init(PyObject * self, PyObject * args, PyObject * kwargs)
         ctx->is_lost = 1;
     }
 
+    Py_DECREF(module_state->default_context);
+    module_state->default_context = new_ref(Py_None);
+
     if (loader == Py_None) {
         loader = PyObject_CallMethod(module_state->helper, "loader", NULL);
         if (!loader) {
