@@ -93,7 +93,6 @@ typedef struct ModuleState {
     PyTypeObject * DescriptorSet_type;
     PyTypeObject * GlobalSettings_type;
     PyTypeObject * GLObject_type;
-    int initialized;
 } ModuleState;
 
 typedef struct GCHeader {
