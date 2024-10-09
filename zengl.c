@@ -1654,6 +1654,19 @@ static int get_limit(int pname, int min, int max) {
     return value;
 }
 
+static Context * meth_cleanup(PyObject * self, PyObject * args) {
+    ModuleState * module_state = (ModuleState *)PyModule_GetState(self);
+    if (module_state->default_context != Py_None) {
+        Context * ctx = (Context *)module_state->default_context;
+        ctx->is_lost = 1;
+    }
+    Py_DECREF(module_state->default_context);
+    module_state->default_context = new_ref(Py_None);
+    Py_DECREF(module_state->default_loader);
+    module_state->default_loader = new_ref(Py_None);
+    Py_RETURN_NONE;
+}
+
 static Context * meth_context(PyObject * self, PyObject * args) {
     ModuleState * module_state = (ModuleState *)PyModule_GetState(self);
 
@@ -3834,6 +3847,7 @@ static PyModuleDef_Slot module_slots[] = {
 
 static PyMethodDef module_methods[] = {
     {"init", (PyCFunction)meth_init, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"cleanup", (PyCFunction)meth_cleanup, METH_NOARGS, NULL},
     {"context", (PyCFunction)meth_context, METH_NOARGS, NULL},
     {"inspect", (PyCFunction)meth_inspect, METH_O, NULL},
     {"camera", (PyCFunction)meth_camera, METH_VARARGS | METH_KEYWORDS, NULL},
