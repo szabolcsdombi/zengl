@@ -82,6 +82,7 @@ typedef struct ModuleState {
     PyObject * str_static_draw;
     PyObject * str_dynamic_draw;
     PyObject * str_rgba8unorm;
+    PyObject * default_loader;
     PyObject * default_context;
     PyTypeObject * Context_type;
     PyTypeObject * Buffer_type;
@@ -1620,7 +1621,9 @@ static PyObject * meth_init(PyObject * self, PyObject * args, PyObject * kwargs)
         return NULL;
     }
 
-    PyModule_AddObject(self, "default_loader", loader);
+    Py_DECREF(module_state->default_loader);
+    module_state->default_loader = loader;
+
     gl_initialized = 1;
     Py_RETURN_NONE;
 }
@@ -2639,6 +2642,10 @@ static int Context_set_screen(Context * self, PyObject * value, void * closure) 
     return 0;
 }
 
+static PyObject * Context_get_loader(Context * self, void * closure) {
+    return new_ref(self->module_state->default_loader);
+}
+
 static PyObject * Buffer_meth_write(Buffer * self, PyObject * args, PyObject * kwargs) {
     static char * keywords[] = {"data", "offset", NULL};
 
@@ -3505,6 +3512,7 @@ static PyMethodDef Context_methods[] = {
 
 static PyGetSetDef Context_getset[] = {
     {"screen", (getter)Context_get_screen, (setter)Context_set_screen, NULL, NULL},
+    {"loader", (getter)Context_get_loader, NULL, NULL, NULL},
     {0},
 };
 
@@ -3668,6 +3676,7 @@ static int module_exec(PyObject * self) {
     state->str_static_draw = PyUnicode_FromString("static_draw");
     state->str_dynamic_draw = PyUnicode_FromString("dynamic_draw");
     state->str_rgba8unorm = PyUnicode_FromString("rgba8unorm");
+    state->default_loader = new_ref(Py_None);
     state->default_context = new_ref(Py_None);
     state->Context_type = (PyTypeObject *)PyType_FromSpec(&Context_spec);
     state->Buffer_type = (PyTypeObject *)PyType_FromSpec(&Buffer_spec);
@@ -3724,6 +3733,7 @@ static void module_free(PyObject * self) {
         Py_DECREF(state->str_static_draw);
         Py_DECREF(state->str_dynamic_draw);
         Py_DECREF(state->str_rgba8unorm);
+        Py_DECREF(state->default_loader);
         Py_DECREF(state->default_context);
         Py_DECREF(state->Context_type);
         Py_DECREF(state->Buffer_type);
