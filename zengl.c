@@ -373,6 +373,8 @@ typedef Py_ssize_t intptr;
 #define GL_PRIMITIVE_RESTART_FIXED_INDEX 0x8D69
 #define GL_TEXTURE_MAX_ANISOTROPY 0x84FE
 
+static int gl_initialized = 0;
+
 RESOLVE(void, glCullFace, int);
 RESOLVE(void, glClear, int);
 RESOLVE(void, glTexParameteri, int, int, int);
@@ -1619,7 +1621,7 @@ static PyObject * meth_init(PyObject * self, PyObject * args, PyObject * kwargs)
     }
 
     PyModule_AddObject(self, "default_loader", loader);
-    module_state->initialized = 1;
+    gl_initialized = 1;
     Py_RETURN_NONE;
 }
 
@@ -1645,7 +1647,7 @@ static Context * meth_context(PyObject * self, PyObject * args) {
         return (Context *)new_ref(module_state->default_context);
     }
 
-    if (!module_state->initialized) {
+    if (!gl_initialized) {
         Py_XDECREF(PyObject_CallMethod(self, "init", NULL));
         if (PyErr_Occurred()) {
             return NULL;
@@ -3676,7 +3678,6 @@ static int module_exec(PyObject * self) {
     state->DescriptorSet_type = (PyTypeObject *)PyType_FromSpec(&DescriptorSet_spec);
     state->GlobalSettings_type = (PyTypeObject *)PyType_FromSpec(&GlobalSettings_spec);
     state->GLObject_type = (PyTypeObject *)PyType_FromSpec(&GLObject_spec);
-    state->initialized = 0;
 
     PyModule_AddObject(self, "Context", new_ref(state->Context_type));
     PyModule_AddObject(self, "Buffer", new_ref(state->Buffer_type));
