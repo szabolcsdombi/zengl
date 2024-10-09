@@ -194,6 +194,7 @@ typedef struct Context {
     int default_texture_unit;
     int is_gles;
     int is_webgl;
+    int is_lost;
     Limits limits;
 } Context;
 
@@ -1606,6 +1607,11 @@ static PyObject * meth_init(PyObject * self, PyObject * args, PyObject * kwargs)
 
     ModuleState * module_state = (ModuleState *)PyModule_GetState(self);
 
+    if (module_state->default_context != Py_None) {
+        Context * ctx = (Context *)module_state->default_context;
+        ctx->is_lost = 1;
+    }
+
     if (loader == Py_None) {
         loader = PyObject_CallMethod(module_state->helper, "loader", NULL);
         if (!loader) {
@@ -1697,6 +1703,7 @@ static Context * meth_context(PyObject * self, PyObject * args) {
     res->default_texture_unit = 0;
     res->is_gles = 0;
     res->is_webgl = 0;
+    res->is_lost = 0;
 
     res->limits.max_uniform_buffer_bindings = get_limit(GL_MAX_UNIFORM_BUFFER_BINDINGS, 8, MAX_BUFFER_BINDINGS);
     res->limits.max_uniform_block_size = get_limit(GL_MAX_UNIFORM_BLOCK_SIZE, 0x4000, 0x40000000);
@@ -1754,6 +1761,11 @@ static Buffer * Context_meth_buffer(Context * self, PyObject * args, PyObject * 
     int external = 0;
 
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O$OOppi", keywords, &data, &size_arg, &access_arg, &index, &uniform, &external)) {
+        return NULL;
+    }
+
+    if (self->is_lost) {
+        PyErr_Format(PyExc_RuntimeError, "the context is lost");
         return NULL;
     }
 
@@ -1881,6 +1893,11 @@ static Image * Context_meth_image(Context * self, PyObject * args, PyObject * kw
     int max_levels = count_mipmaps(width, height);
     if (levels <= 0) {
         levels = max_levels;
+    }
+
+    if (self->is_lost) {
+        PyErr_Format(PyExc_RuntimeError, "the context is lost");
+        return NULL;
     }
 
     if (texture != Py_True && texture != Py_False && texture != Py_None) {
@@ -2132,6 +2149,11 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
         uniforms = NULL;
     }
 
+    if (self->is_lost) {
+        PyErr_Format(PyExc_RuntimeError, "the context is lost");
+        return NULL;
+    }
+
     if (!vertex_shader) {
         PyErr_Format(PyExc_TypeError, "no vertex_shader was specified");
         return NULL;
@@ -2363,6 +2385,11 @@ static PyObject * Context_meth_new_frame(Context * self, PyObject * args, PyObje
         return NULL;
     }
 
+    if (self->is_lost) {
+        PyErr_Format(PyExc_RuntimeError, "the context is lost");
+        return NULL;
+    }
+
     if (reset) {
         self->current_descriptor_set = NULL;
         self->current_global_settings = NULL;
@@ -2413,6 +2440,11 @@ static PyObject * Context_meth_end_frame(Context * self, PyObject * args, PyObje
     int sync = 0;
 
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|ppp", keywords, &clean, &flush, &sync)) {
+        return NULL;
+    }
+
+    if (self->is_lost) {
+        PyErr_Format(PyExc_RuntimeError, "the context is lost");
         return NULL;
     }
 
@@ -2470,7 +2502,9 @@ static void release_descriptor_set(Context * self, DescriptorSet * set) {
                 sampler->uses -= 1;
                 if (!sampler->uses) {
                     remove_dict_value(self->sampler_cache, (PyObject *)sampler);
-                    glDeleteSamplers(1, &sampler->obj);
+                    if (!self->is_lost) {
+                        glDeleteSamplers(1, &sampler->obj);
+                    }
                 }
             }
         }
@@ -2503,9 +2537,11 @@ static void release_framebuffer(Context * self, GLObject * framebuffer) {
     if (!framebuffer->uses) {
         remove_dict_value(self->framebuffer_cache, (PyObject *)framebuffer);
         if (framebuffer->obj) {
-            bind_draw_framebuffer(self, 0);
-            bind_read_framebuffer(self, 0);
-            glDeleteFramebuffers(1, &framebuffer->obj);
+            if (!self->is_lost) {
+                bind_draw_framebuffer(self, 0);
+                bind_read_framebuffer(self, 0);
+                glDeleteFramebuffers(1, &framebuffer->obj);
+            }
         }
         self->current_viewport.x = -1;
         self->current_viewport.y = -1;
@@ -2518,8 +2554,10 @@ static void release_program(Context * self, GLObject * program) {
     program->uses -= 1;
     if (!program->uses) {
         remove_dict_value(self->program_cache, (PyObject *)program);
-        bind_program(self, 0);
-        glDeleteProgram(program->obj);
+        if (!self->is_lost) {
+            bind_program(self, 0);
+            glDeleteProgram(program->obj);
+        }
     }
 }
 
@@ -2527,8 +2565,10 @@ static void release_vertex_array(Context * self, GLObject * vertex_array) {
     vertex_array->uses -= 1;
     if (!vertex_array->uses) {
         remove_dict_value(self->vertex_array_cache, (PyObject *)vertex_array);
-        bind_vertex_array(self, 0);
-        glDeleteVertexArrays(1, &vertex_array->obj);
+        if (!self->is_lost) {
+            bind_vertex_array(self, 0);
+            glDeleteVertexArrays(1, &vertex_array->obj);
+        }
     }
 }
 
@@ -2544,7 +2584,9 @@ static PyObject * Context_meth_release(Context * self, PyObject * arg) {
         Buffer * buffer = (Buffer *)arg;
         if (buffer->gc_prev) {
             release_gc_object((GCHeader *)buffer);
-            glDeleteBuffers(1, &buffer->buffer);
+            if (!self->is_lost) {
+                glDeleteBuffers(1, &buffer->buffer);
+            }
             Py_DECREF(buffer);
         }
     } else if (Py_TYPE(arg) == self->module_state->Image_type) {
@@ -2561,10 +2603,12 @@ static PyObject * Context_meth_release(Context * self, PyObject * arg) {
                 }
                 PyDict_Clear(image->faces);
             }
-            if (image->renderbuffer) {
-                glDeleteRenderbuffers(1, &image->image);
-            } else {
-                glDeleteTextures(1, &image->image);
+            if (!self->is_lost) {
+                if (image->renderbuffer) {
+                    glDeleteRenderbuffers(1, &image->image);
+                } else {
+                    glDeleteTextures(1, &image->image);
+                }
             }
             Py_DECREF(image);
         }
@@ -2591,7 +2635,9 @@ static PyObject * Context_meth_release(Context * self, PyObject * arg) {
         Py_ssize_t pos = 0;
         while (PyDict_Next(self->shader_cache, &pos, &key, &value)) {
             GLObject * shader = (GLObject *)value;
-            glDeleteShader(shader->obj);
+            if (!self->is_lost) {
+                glDeleteShader(shader->obj);
+            }
         }
         PyDict_Clear(self->shader_cache);
     } else if (PyUnicode_CheckExact(arg) && !PyUnicode_CompareWithASCIIString(arg, "all")) {
@@ -2653,6 +2699,11 @@ static PyObject * Buffer_meth_write(Buffer * self, PyObject * args, PyObject * k
     int offset = 0;
 
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|i", keywords, &data, &offset)) {
+        return NULL;
+    }
+
+    if (self->ctx->is_lost) {
+        PyErr_Format(PyExc_RuntimeError, "the context is lost");
         return NULL;
     }
 
@@ -2729,6 +2780,11 @@ static PyObject * Buffer_meth_read(Buffer * self, PyObject * args, PyObject * kw
     PyObject * into = Py_None;
 
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|OiO", keywords, &size_arg, &offset, &into)) {
+        return NULL;
+    }
+
+    if (self->ctx->is_lost) {
+        PyErr_Format(PyExc_RuntimeError, "the context is lost");
         return NULL;
     }
 
@@ -2817,6 +2873,11 @@ static BufferView * Buffer_meth_view(Buffer * self, PyObject * args, PyObject * 
         size = to_int(size_arg);
     }
 
+    if (self->ctx->is_lost) {
+        PyErr_Format(PyExc_RuntimeError, "the context is lost");
+        return NULL;
+    }
+
     if (offset < 0 || offset > self->size) {
         PyErr_Format(PyExc_ValueError, "invalid offset");
         return NULL;
@@ -2835,6 +2896,11 @@ static BufferView * Buffer_meth_view(Buffer * self, PyObject * args, PyObject * 
 }
 
 static PyObject * Image_meth_clear(Image * self, PyObject * args) {
+    if (self->ctx->is_lost) {
+        PyErr_Format(PyExc_RuntimeError, "the context is lost");
+        return NULL;
+    }
+
     const int count = (int)PyTuple_Size(self->layers);
     for (int i = 0; i < count; ++i) {
         ImageFace * face = (ImageFace *)PyTuple_GetItem(self->layers, i);
@@ -2854,6 +2920,11 @@ static PyObject * Image_meth_write(Image * self, PyObject * args, PyObject * kwa
     int level = 0;
 
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|OOOi", keywords, &data, &size_arg, &offset_arg, &layer_arg, &level)) {
+        return NULL;
+    }
+
+    if (self->ctx->is_lost) {
+        PyErr_Format(PyExc_RuntimeError, "the context is lost");
         return NULL;
     }
 
@@ -3018,6 +3089,11 @@ static PyObject * Image_meth_write(Image * self, PyObject * args, PyObject * kwa
 }
 
 static PyObject * Image_meth_mipmaps(Image * self, PyObject * args) {
+    if (self->ctx->is_lost) {
+        PyErr_Format(PyExc_RuntimeError, "the context is lost");
+        return NULL;
+    }
+
     glActiveTexture(self->ctx->default_texture_unit);
     glBindTexture(self->target, self->image);
     glGenerateMipmap(self->target);
@@ -3038,6 +3114,11 @@ static PyObject * Image_meth_read(Image * self, PyObject * args, PyObject * kwar
     IntPair size, offset;
     ImageFace * first_layer = (ImageFace *)PyTuple_GetItem(self->layers, 0);
     if (!parse_size_and_offset(first_layer, size_arg, offset_arg, &size, &offset)) {
+        return NULL;
+    }
+
+    if (self->ctx->is_lost) {
+        PyErr_Format(PyExc_RuntimeError, "the context is lost");
         return NULL;
     }
 
@@ -3078,6 +3159,11 @@ static PyObject * Image_meth_blit(Image * self, PyObject * args, PyObject * kwar
         return NULL;
     }
 
+    if (self->ctx->is_lost) {
+        PyErr_Format(PyExc_RuntimeError, "the context is lost");
+        return NULL;
+    }
+
     ImageFace * src = (ImageFace *)PyTuple_GetItem(self->layers, 0);
     return blit_image_face(src, target, offset, size, crop, filter);
 }
@@ -3089,6 +3175,11 @@ static ImageFace * Image_meth_face(Image * self, PyObject * args, PyObject * kwa
     int level = 0;
 
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|ii", keywords, &layer, &level)) {
+        return NULL;
+    }
+
+    if (self->ctx->is_lost) {
+        PyErr_Format(PyExc_RuntimeError, "the context is lost");
         return NULL;
     }
 
@@ -3193,6 +3284,11 @@ static int Image_set_clear_value(Image * self, PyObject * value, void * closure)
 }
 
 static PyObject * Pipeline_meth_render(Pipeline * self, PyObject * args) {
+    if (self->ctx->is_lost) {
+        PyErr_Format(PyExc_RuntimeError, "the context is lost");
+        return NULL;
+    }
+
     Viewport * viewport = (Viewport *)self->viewport_data_buffer.buf;
     bind_viewport(self->ctx, viewport);
     bind_global_settings(self->ctx, self->global_settings);
@@ -3285,6 +3381,11 @@ static PyObject * meth_inspect(PyObject * self, PyObject * arg) {
 }
 
 static PyObject * ImageFace_meth_clear(ImageFace * self, PyObject * args) {
+    if (self->ctx->is_lost) {
+        PyErr_Format(PyExc_RuntimeError, "the context is lost");
+        return NULL;
+    }
+
     bind_draw_framebuffer(self->ctx, self->framebuffer->obj);
     clear_bound_image(self->image);
     Py_RETURN_NONE;
@@ -3298,6 +3399,11 @@ static PyObject * ImageFace_meth_read(ImageFace * self, PyObject * args, PyObjec
     PyObject * into = Py_None;
 
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|OOO", keywords, &size_arg, &offset_arg, &into)) {
+        return NULL;
+    }
+
+    if (self->ctx->is_lost) {
+        PyErr_Format(PyExc_RuntimeError, "the context is lost");
         return NULL;
     }
 
@@ -3319,6 +3425,11 @@ static PyObject * ImageFace_meth_blit(ImageFace * self, PyObject * args, PyObjec
     int filter = 0;
 
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|OOOOp", keywords, &target, &offset, &size, &crop, &filter)) {
+        return NULL;
+    }
+
+    if (self->ctx->is_lost) {
+        PyErr_Format(PyExc_RuntimeError, "the context is lost");
         return NULL;
     }
 
@@ -3520,6 +3631,7 @@ static PyMemberDef Context_members[] = {
     {"includes", T_OBJECT, offsetof(Context, includes), READONLY, NULL},
     {"info", T_OBJECT, offsetof(Context, info_dict), READONLY, NULL},
     {"frame_time", T_INT, offsetof(Context, frame_time), READONLY, NULL},
+    {"lost", T_BOOL, offsetof(Context, is_lost), 0, NULL},
     {0},
 };
 
