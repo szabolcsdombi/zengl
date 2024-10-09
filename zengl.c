@@ -2684,7 +2684,7 @@ static PyObject * Context_get_screen(Context * self, void * closure) {
 
 static int Context_set_screen(Context * self, PyObject * value, void * closure) {
     if (!PyLong_CheckExact(value)) {
-        PyErr_Format(PyExc_TypeError, "the clear value must be an int");
+        PyErr_Format(PyExc_TypeError, "screen must be an int");
         return -1;
     }
 
