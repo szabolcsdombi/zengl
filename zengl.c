@@ -1617,6 +1617,12 @@ static PyObject * meth_init(PyObject * self, PyObject * args, PyObject * kwargs)
     Py_DECREF(module_state->default_context);
     module_state->default_context = new_ref(Py_None);
 
+    #ifdef _WIN64
+    if (loader == Py_None) {
+        loader = new_ref(self);
+    }
+    #endif
+
     if (loader == Py_None) {
         loader = PyObject_CallMethod(module_state->helper, "loader", NULL);
         if (!loader) {
@@ -3827,7 +3833,6 @@ static int module_exec(PyObject * self) {
     PyModule_AddObject(self, "loader", PyObject_GetAttrString(state->helper, "loader"));
     PyModule_AddObject(self, "calcsize", PyObject_GetAttrString(state->helper, "calcsize"));
     PyModule_AddObject(self, "bind", PyObject_GetAttrString(state->helper, "bind"));
-    PyModule_AddObject(self, "default_loader", new_ref(Py_None));
 
     #ifdef EXTERN_GL
     PyModule_AddObject(self, "_extern_gl", PyUnicode_FromString(EXTERN_GL));
@@ -3845,12 +3850,38 @@ static PyModuleDef_Slot module_slots[] = {
     {0},
 };
 
+#ifdef _WIN64
+extern void * LoadLibraryA(const char * lpLibFileName);
+extern void * GetProcAddress(void * hModule, const char * lpProcName);
+static PyObject * meth_load_opengl_function(PyObject * self, PyObject * arg) {
+    if (!PyUnicode_CheckExact(arg)) {
+        PyErr_BadInternalCall();
+        return NULL;
+    }
+    const char * name = PyUnicode_AsUTF8(arg);
+    static void * opengl = NULL;
+    static void * (* wglGetProcAddress)(const char *);
+    if (!opengl) {
+        opengl = LoadLibraryA("opengl32");
+        wglGetProcAddress = GetProcAddress(opengl, "wglGetProcAddress");
+    }
+    void * proc = (void *)GetProcAddress(opengl, name);
+    if (!proc) {
+        proc = (void *)wglGetProcAddress(name);
+    }
+    return PyLong_FromVoidPtr(proc);
+}
+#endif
+
 static PyMethodDef module_methods[] = {
     {"init", (PyCFunction)meth_init, METH_VARARGS | METH_KEYWORDS, NULL},
     {"cleanup", (PyCFunction)meth_cleanup, METH_NOARGS, NULL},
     {"context", (PyCFunction)meth_context, METH_NOARGS, NULL},
     {"inspect", (PyCFunction)meth_inspect, METH_O, NULL},
     {"camera", (PyCFunction)meth_camera, METH_VARARGS | METH_KEYWORDS, NULL},
+    #ifdef _WIN64
+    {"load_opengl_function", (PyCFunction)meth_load_opengl_function, METH_O, NULL},
+    #endif
     {0},
 };
 
