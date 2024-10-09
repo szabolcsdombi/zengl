@@ -1660,7 +1660,7 @@ static int get_limit(int pname, int min, int max) {
     return value;
 }
 
-static Context * meth_cleanup(PyObject * self, PyObject * args) {
+static PyObject * meth_cleanup(PyObject * self, PyObject * args) {
     ModuleState * module_state = (ModuleState *)PyModule_GetState(self);
     if (module_state->default_context != Py_None) {
         Context * ctx = (Context *)module_state->default_context;
@@ -3840,7 +3840,7 @@ static int module_exec(PyObject * self) {
     PyModule_AddObject(self, "_extern_gl", new_ref(Py_None));
     #endif
 
-    PyModule_AddObject(self, "__version__", PyUnicode_FromString("2.5.5"));
+    PyModule_AddObject(self, "__version__", PyUnicode_FromString("2.6.0"));
 
     return 0;
 }
