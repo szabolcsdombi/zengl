@@ -1663,9 +1663,9 @@ static int get_limit(int pname, int min, int max) {
 static PyObject * meth_cleanup(PyObject * self, PyObject * args) {
     ModuleState * module_state = (ModuleState *)PyModule_GetState(self);
     if (module_state->default_context != Py_None) {
+        Py_DECREF(PyObject_CallMethod(module_state->default_context, "release", "(s)", "shader_cache"));
+        Py_DECREF(PyObject_CallMethod(module_state->default_context, "release", "(s)", "all"));
         Context * ctx = (Context *)module_state->default_context;
-        Py_DECREF(PyObject_CallMethod(ctx, "release", "(s)", "shader_cache"));
-        Py_DECREF(PyObject_CallMethod(ctx, "release", "(s)", "all"));
         ctx->is_lost = 1;
     }
     Py_DECREF(module_state->default_context);
