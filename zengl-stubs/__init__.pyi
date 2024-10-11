@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, Iterable, List, Literal, Protocol, Tuple, TypedDict
+from typing import Any, Dict, Iterable, List, Literal, Protocol, Tuple, TypedDict
 
 CullFace = Literal['front', 'back', 'front_and_back', 'none']
 Topology = Literal['points', 'lines', 'line_loop', 'line_strip', 'triangles', 'triangle_strip', 'triangle_fan']
@@ -299,7 +299,6 @@ class Pipeline:
 class Context:
     info: Info
     includes: Dict[str, str]
-    frame_time: int
     screen: int
     loader: ContextLoader
     lost: bool
@@ -350,8 +349,8 @@ class Context:
         includes: Dict[str, str] | None = None,
         template: Pipeline = ...,
     ) -> Pipeline: ...
-    def new_frame(self, reset: bool = True, clear: bool = True, frame_time: bool = False) -> None: ...
-    def end_frame(self, clean: bool = True, flush: bool = True, sync: bool = False) -> None: ...
+    def new_frame(self, reset: bool = True, clear: bool = True) -> None: ...
+    def end_frame(self, clean: bool = True, flush: bool = True) -> None: ...
     def release(self, obj: Buffer | Image | Pipeline | Literal['shader_cache'] | Literal['all']) -> None: ...
     def gc(self) -> List[Buffer | Image | Pipeline]: ...
 

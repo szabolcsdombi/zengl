@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 # [main](https://github.com/szabolcsdombi/zengl/compare/2.6.1...main)
 
+- Removed the `frame_time` parameter from `Context.new_frame` method
+- Removed the `sync` parameter from `Context.end_frame` method
+
 # [2.6.1](https://github.com/szabolcsdombi/zengl/compare/2.6.0...2.6.1)
 
 - Changed `zengl.cleanup` to release objects

@@ -124,21 +124,6 @@
     zengl_glBlendFuncSeparate(sfactorRGB, dfactorRGB, sfactorAlpha, dfactorAlpha) {
       gl.blendFuncSeparate(sfactorRGB, dfactorRGB, sfactorAlpha, dfactorAlpha);
     },
-    zengl_glGenQueries(n, ids) {
-      gl.getExtension('EXT_disjoint_timer_query_webgl2');
-      const query = glid++;
-      glo[query] = gl.createQuery();
-      wasm.HEAP32[ids >> 2] = query;
-    },
-    zengl_glBeginQuery(target, id) {
-      gl.beginQuery(target, glo[id]);
-    },
-    zengl_glEndQuery(target) {
-      gl.endQuery(target);
-    },
-    zengl_glGetQueryObjectuiv(id, pname, params) {
-      wasm.HEAP32[params >> 2] = gl.getQueryParameter(glo[id], pname);
-    },
     zengl_glBindBuffer(target, buffer) {
       gl.bindBuffer(target, glo[buffer]);
     },
@@ -420,18 +405,6 @@
     },
     zengl_glUniformBlockBinding(program, uniformBlockIndex, uniformBlockBinding) {
       gl.uniformBlockBinding(glo[program], uniformBlockIndex, uniformBlockBinding);
-    },
-    zengl_glFenceSync(condition, flags) {
-      const sync = glid++;
-      glo[sync] = gl.fenceSync(condition, flags);
-      return sync;
-    },
-    zengl_glDeleteSync(sync) {
-      gl.deleteSync(glo[sync]);
-      glo.delete(sync);
-    },
-    zengl_glClientWaitSync(sync, flags, timeout) {
-      gl.clientWaitSync(glo[sync], flags, gl.MAX_CLIENT_WAIT_TIMEOUT_WEBGL);
     },
     zengl_glGenSamplers(count, samplers) {
       const sampler = glid++;

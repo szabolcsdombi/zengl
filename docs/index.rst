@@ -332,7 +332,7 @@ This method is automatically called by :py:meth:`zengl.context`.
 
 **Rendering**
 
-.. py:method:: Context.new_frame(reset: bool = True, clear: bool = True, frame_time: bool = False)
+.. py:method:: Context.new_frame(reset: bool = True, clear: bool = True)
 
 **reset**
     | A boolean to clear ZenGL internals assuming OpenGL global state.
@@ -340,11 +340,7 @@ This method is automatically called by :py:meth:`zengl.context`.
 **clear**
     | A boolean to clear the default framebuffer.
 
-**frame_time**
-    | A boolean to start a query with ``GL_TIME_ELAPSED``.
-    | The :py:attr:`Context.frame_time` is set by :py:meth:`Context.end_frame`.
-
-.. py:method:: Context.end_frame(clean: bool = True, flush: bool = True, sync: bool = False)
+.. py:method:: Context.end_frame(clean: bool = True, flush: bool = True)
 
 **clean**
     | A boolean to unset OpenGL object bindings managed by ZenGL.
@@ -352,9 +348,6 @@ This method is automatically called by :py:meth:`zengl.context`.
 
 **flush**
     | A boolean to call ``glFlush``.
-
-**sync**
-    | A boolean to wait for a ``glFenceSync``.
 
 Buffer
 ======
@@ -871,11 +864,6 @@ Utils
 - max_vertex_attribs
 - max_draw_buffers
 - max_samples
-
-.. py:attribute:: Context.frame_time
-
-| An int representing the time elapsed between the :py:meth:`Context.new_frame` and :py:meth:`Context.end_frame`.
-| The value is in nanoseconds and it is zero if the frame_time was not enabled.
 
 .. py:method:: zengl.camera(eye, target, up, fov, aspect, near, far, size, clip) -> bytes
 

@@ -187,9 +187,6 @@ typedef struct Context {
     int current_vertex_array;
     int current_depth_mask;
     int current_stencil_mask;
-    int frame_time_query;
-    int frame_time_query_running;
-    int frame_time;
     int default_texture_unit;
     int is_gles;
     int is_webgl;
@@ -331,7 +328,6 @@ typedef Py_ssize_t intptr;
 #define GL_TEXTURE_LOD_BIAS 0x8501
 #define GL_TEXTURE_COMPARE_MODE 0x884C
 #define GL_TEXTURE_COMPARE_FUNC 0x884D
-#define GL_QUERY_RESULT 0x8866
 #define GL_ARRAY_BUFFER 0x8892
 #define GL_ELEMENT_ARRAY_BUFFER 0x8893
 #define GL_STATIC_DRAW 0x88E4
@@ -368,9 +364,6 @@ typedef Py_ssize_t intptr;
 #define GL_UNIFORM_BLOCK_DATA_SIZE 0x8A40
 #define GL_PROGRAM_POINT_SIZE 0x8642
 #define GL_TEXTURE_CUBE_MAP_SEAMLESS 0x884F
-#define GL_SYNC_GPU_COMMANDS_COMPLETE 0x9117
-#define GL_SYNC_FLUSH_COMMANDS_BIT 0x0001
-#define GL_TIME_ELAPSED 0x88BF
 #define GL_PRIMITIVE_RESTART_FIXED_INDEX 0x8D69
 #define GL_TEXTURE_MAX_ANISOTROPY 0x84FE
 
@@ -399,10 +392,6 @@ RESOLVE(void, glTexImage3D, int, int, int, int, int, int, int, int, int, const v
 RESOLVE(void, glTexSubImage3D, int, int, int, int, int, int, int, int, int, int, const void *);
 RESOLVE(void, glActiveTexture, int);
 RESOLVE(void, glBlendFuncSeparate, int, int, int, int);
-RESOLVE(void, glGenQueries, int, int *);
-RESOLVE(void, glBeginQuery, int, int);
-RESOLVE(void, glEndQuery, int);
-RESOLVE(void, glGetQueryObjectuiv, int, int, void *);
 RESOLVE(void, glBindBuffer, int, int);
 RESOLVE(void, glDeleteBuffers, int, const int *);
 RESOLVE(void, glGenBuffers, int, int *);
@@ -483,9 +472,6 @@ RESOLVE(int, glGetUniformBlockIndex, int, const char *);
 RESOLVE(void, glGetActiveUniformBlockiv, int, int, int, int *);
 RESOLVE(void, glGetActiveUniformBlockName, int, int, int, int *, char *);
 RESOLVE(void, glUniformBlockBinding, int, int, int);
-RESOLVE(void *, glFenceSync, int, int);
-RESOLVE(void, glDeleteSync, void *);
-RESOLVE(int, glClientWaitSync, void *, int, long long);
 RESOLVE(void, glGenSamplers, int, int *);
 RESOLVE(void, glDeleteSamplers, int, const int *);
 RESOLVE(void, glBindSampler, int, int);
@@ -541,10 +527,6 @@ static void load_gl(PyObject * loader) {
     load(glTexSubImage3D);
     load(glActiveTexture);
     load(glBlendFuncSeparate);
-    load(glGenQueries);
-    load(glBeginQuery);
-    load(glEndQuery);
-    load(glGetQueryObjectuiv);
     load(glBindBuffer);
     load(glDeleteBuffers);
     load(glGenBuffers);
@@ -625,9 +607,6 @@ static void load_gl(PyObject * loader) {
     load(glGetActiveUniformBlockiv);
     load(glGetActiveUniformBlockName);
     load(glUniformBlockBinding);
-    load(glFenceSync);
-    load(glDeleteSync);
-    load(glClientWaitSync);
     load(glGenSamplers);
     load(glDeleteSamplers);
     load(glBindSampler);
@@ -1723,9 +1702,6 @@ static Context * meth_context(PyObject * self, PyObject * args) {
     res->current_vertex_array = 0;
     res->current_depth_mask = 0;
     res->current_stencil_mask = 0;
-    res->frame_time_query = 0;
-    res->frame_time_query_running = 0;
-    res->frame_time = 0;
     res->default_texture_unit = 0;
     res->is_gles = 0;
     res->is_webgl = 0;
@@ -2400,13 +2376,12 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
 }
 
 static PyObject * Context_meth_new_frame(Context * self, PyObject * args, PyObject * kwargs) {
-    static char * keywords[] = {"reset", "clear", "frame_time", NULL};
+    static char * keywords[] = {"reset", "clear", NULL};
 
     int reset = 1;
     int clear = 1;
-    int frame_time = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|ppp", keywords, &reset, &clear, &frame_time)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|pp", keywords, &reset, &clear)) {
         return NULL;
     }
 
@@ -2438,15 +2413,6 @@ static PyObject * Context_meth_new_frame(Context * self, PyObject * args, PyObje
         glClear(GL_COLOR_BUFFER_BIT);
     }
 
-    if (frame_time) {
-        if (!self->frame_time_query) {
-            glGenQueries(1, &self->frame_time_query);
-        }
-        glBeginQuery(GL_TIME_ELAPSED, self->frame_time_query);
-        self->frame_time_query_running = 1;
-        self->frame_time = 0;
-    }
-
     if (!self->is_webgl) {
         glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
     }
@@ -2458,13 +2424,12 @@ static PyObject * Context_meth_new_frame(Context * self, PyObject * args, PyObje
 }
 
 static PyObject * Context_meth_end_frame(Context * self, PyObject * args, PyObject * kwargs) {
-    static char * keywords[] = {"clean", "flush", "sync", NULL};
+    static char * keywords[] = {"clean", "flush", NULL};
 
     int clean = 1;
     int flush = 1;
-    int sync = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|ppp", keywords, &clean, &flush, &sync)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|pp", keywords, &clean, &flush)) {
         return NULL;
     }
 
@@ -2497,22 +2462,8 @@ static PyObject * Context_meth_end_frame(Context * self, PyObject * args, PyObje
         }
     }
 
-    if (self->frame_time_query_running) {
-        glEndQuery(GL_TIME_ELAPSED);
-        glGetQueryObjectuiv(self->frame_time_query, GL_QUERY_RESULT, &self->frame_time);
-        self->frame_time_query_running = 0;
-    } else {
-        self->frame_time = 0;
-    }
-
     if (flush) {
         glFlush();
-    }
-
-    if (sync) {
-        void * fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-        glClientWaitSync(fence, GL_SYNC_FLUSH_COMMANDS_BIT, -1);
-        glDeleteSync(fence);
     }
 
     Py_RETURN_NONE;
@@ -3655,7 +3606,6 @@ static PyGetSetDef Context_getset[] = {
 static PyMemberDef Context_members[] = {
     {"includes", T_OBJECT, offsetof(Context, includes), READONLY, NULL},
     {"info", T_OBJECT, offsetof(Context, info_dict), READONLY, NULL},
-    {"frame_time", T_INT, offsetof(Context, frame_time), READONLY, NULL},
     {"lost", T_BOOL, offsetof(Context, is_lost), 0, NULL},
     {0},
 };
