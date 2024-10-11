@@ -5,7 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-# [main](https://github.com/szabolcsdombi/zengl/compare/2.6.0...main)
+# [main](https://github.com/szabolcsdombi/zengl/compare/2.6.1...main)
+
+# [2.6.1](https://github.com/szabolcsdombi/zengl/compare/2.6.0...2.6.1)
+
+- Changed `zengl.cleanup` to release objects
+- Added the `zengl.cleanup` missing stubs
 
 # [2.6.0](https://github.com/szabolcsdombi/zengl/compare/2.5.5...2.6.0)
 
