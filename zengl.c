@@ -3803,8 +3803,8 @@ static PyModuleDef_Slot module_slots[] = {
 };
 
 #ifdef _WIN64
-extern void * LoadLibraryA(const char * lpLibFileName);
-extern void * GetProcAddress(void * hModule, const char * lpProcName);
+extern void * LoadLibraryA(const char * name);
+extern void * GetProcAddress(void * module, const char * name);
 static PyObject * meth_load_opengl_function(PyObject * self, PyObject * arg) {
     if (!PyUnicode_CheckExact(arg)) {
         PyErr_BadInternalCall();
