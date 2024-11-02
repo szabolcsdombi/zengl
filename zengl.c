@@ -3792,7 +3792,7 @@ static int module_exec(PyObject * self) {
     PyModule_AddObject(self, "_extern_gl", new_ref(Py_None));
     #endif
 
-    PyModule_AddObject(self, "__version__", PyUnicode_FromString("2.6.1"));
+    PyModule_AddObject(self, "__version__", PyUnicode_FromString("2.7.0"));
 
     return 0;
 }
