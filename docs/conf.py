@@ -2,7 +2,7 @@ project = 'ZenGL'
 copyright = '2024, Szabolcs Dombi'
 author = 'Szabolcs Dombi'
 
-release = '2.7.0'
+release = '2.7.1'
 
 extensions = []
 templates_path = []
