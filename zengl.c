@@ -1827,6 +1827,9 @@ static Buffer * Context_meth_buffer(Context * self, PyObject * args, PyObject * 
     if (external) {
         buffer = external;
     } else {
+        if (target == GL_ELEMENT_ARRAY_BUFFER) {
+            bind_vertex_array(self, 0);
+        }
         glGenBuffers(1, &buffer);
         glBindBuffer(target, buffer);
         glBufferData(target, size, NULL, access);
