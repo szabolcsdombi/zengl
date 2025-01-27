@@ -18,11 +18,12 @@ image.clear_value = (1.0, 1.0, 1.0, 1.0)
 model = Obj.open(assets.get('box.obj')).pack('vx vy vz nx ny nz tx ty')
 vertex_buffer = ctx.buffer(model)
 
-instance_buffer = ctx.buffer(np.array([
+instance_array = np.array([
     np.repeat(np.linspace(-20.0, 20.0, 30), 30),
     np.tile(np.linspace(-20.0, 20.0, 30), 30),
     np.random.normal(0.0, 0.2, 30 * 30),
-]).T.astype('f4').tobytes())
+]).T.astype('f4')
+instance_buffer = ctx.buffer(instance_array.tobytes())
 
 img = Image.open(assets.get('crate.png')).convert('RGBA')
 texture = ctx.image(img.size, 'rgba8unorm', img.tobytes())
@@ -120,9 +121,8 @@ uniform_buffer.write(struct.pack('3f4x', 3.0, 2.0, 1.5), offset=64)
 
 while window.update():
     ctx.new_frame()
-    z = np.frombuffer(instance_buffer.map(), 'f4').reshape(-1, 3)
-    z[:, 2] += np.random.normal(0.0, 0.01, z.shape[0])
-    instance_buffer.unmap()
+    instance_array[:, 2] += np.random.normal(0.0, 0.01, instance_array.shape[0])
+    instance_buffer.write(instance_array)
 
     image.clear()
     depth.clear()
