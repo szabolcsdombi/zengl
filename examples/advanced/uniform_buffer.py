@@ -73,14 +73,13 @@ triangle = ctx.pipeline(
 while window.update():
     ctx.new_frame()
     t = window.time
-    z = np.frombuffer(uniform_buffer.map(), 'f4')
-    z[:] = [
+    z = np.array([
         np.sin(t) * 0.1,
         np.cos(t) * 0.1,
         0.7 + np.sin(t * 5) * 0.05,
         0.7 + np.sin(t * 5) * 0.05,
-    ]
-    uniform_buffer.unmap()
+    ], "f4")
+    uniform_buffer.write(z)
 
     image.clear()
     triangle.render()
