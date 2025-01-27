@@ -37,7 +37,8 @@ image.clear_value = (1.0, 1.0, 1.0, 1.0)
 model = Obj.open(assets.get('box.obj')).pack('vx vy vz nx ny nz tx ty')
 vertex_buffer = ctx.buffer(model)
 
-instance_buffer = ctx.buffer(np.zeros((crates, 8)).astype('f4').tobytes())
+instance_array = np.zeros((crates, 8)).astype('f4')
+instance_buffer = ctx.buffer(instance_array.tobytes())
 
 img = Image.open(assets.get('crate.png')).convert('RGBA')
 texture = ctx.image(img.size, 'rgba8unorm', img.tobytes())
@@ -146,13 +147,12 @@ while window.update():
     pb.stepSimulation()
 
     ctx.new_frame()
-    z = np.frombuffer(instance_buffer.map(), 'f4').reshape(-1, 8)
     for i, obj in enumerate(bullet_crates):
         pos, rot = pb.getBasePositionAndOrientation(obj)
-        z[i, :3] = pos
-        z[i, 4:] = rot
+        instance_array[i, :3] = pos
+        instance_array[i, 4:] = rot
 
-    instance_buffer.unmap()
+    instance_buffer.write(instance_array)
 
     image.clear()
     depth.clear()
