@@ -41,6 +41,14 @@ BlendConstant = Literal[
     'one_minus_src1_alpha',
 ]
 
+BlendFunc = Literal[
+    'add',
+    'subtract',
+    'reverse_subtract',
+    'min',
+    'max',
+]
+
 VertexFormatShort = Literal[
     '2u1',
     '4u1',
@@ -222,6 +230,8 @@ class BlendSettings(TypedDict, total=False):
     dst_color: BlendConstant
     src_alpha: BlendConstant
     dst_alpha: BlendConstant
+    op_color: BlendFunc
+    op_alpha: BlendFunc
 
 class Info(TypedDict):
     vendor: str
