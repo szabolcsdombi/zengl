@@ -1,4 +1,3 @@
-import os
 import sys
 
 import numpy as np
@@ -7,7 +6,9 @@ from scipy.spatial import ConvexHull
 
 import pygame
 
-os.environ['SDL_WINDOWS_DPI_AWARENESS'] = 'permonitorv2'
+import zengl_extras
+
+zengl_extras.init()
 
 pygame.init()
 pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)

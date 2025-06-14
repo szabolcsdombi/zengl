@@ -1,4 +1,3 @@
-import os
 import math
 import struct
 import sys
@@ -9,6 +8,7 @@ import zengl
 from PIL import Image
 
 import assets
+import zengl_extras
 
 
 class Crate:
@@ -123,7 +123,7 @@ class Crate:
 
 class App:
     def __init__(self):
-        os.environ['SDL_WINDOWS_DPI_AWARENESS'] = 'permonitorv2'
+        zengl_extras.init()
         pygame.init()
         pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)        
         self.ctx = zengl.context()

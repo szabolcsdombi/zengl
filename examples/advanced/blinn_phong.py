@@ -1,4 +1,3 @@
-import os
 import struct
 import sys
 
@@ -9,7 +8,9 @@ from objloader import Obj
 
 import assets
 
-os.environ['SDL_WINDOWS_DPI_AWARENESS'] = 'permonitorv2'
+import zengl_extras
+
+zengl_extras.init()
 
 pygame.init()
 pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)

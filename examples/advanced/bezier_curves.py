@@ -1,4 +1,3 @@
-import os
 import sys
 from colorsys import hls_to_rgb
 
@@ -6,7 +5,9 @@ import numpy as np
 import pygame
 import zengl
 
-os.environ['SDL_WINDOWS_DPI_AWARENESS'] = 'permonitorv2'
+import zengl_extras
+
+zengl_extras.init()
 
 pygame.init()
 pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
