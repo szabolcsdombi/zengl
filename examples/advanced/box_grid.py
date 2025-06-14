@@ -1,8 +1,10 @@
 import math
 import struct
+import sys
 
-import glwindow
+import pygame
 import zengl
+import zengl_extras
 
 
 class BoxGrid:
@@ -139,9 +141,11 @@ class BoxGrid:
 
 class App:
     def __init__(self):
-        self.wnd = glwindow.get_window()
+        zengl_extras.init()
+        pygame.init()
+        pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)        
         self.ctx = zengl.context()
-        self.scene = BoxGrid(self.wnd.size)
+        self.scene = BoxGrid(pygame.display.get_window_size())
 
     def update(self):
         self.ctx.new_frame()
@@ -149,6 +153,16 @@ class App:
         self.scene.output.blit()
         self.ctx.end_frame()
 
+    def run(self):
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+
+            self.update()
+            pygame.display.flip()
+
 
 if __name__ == "__main__":
-    glwindow.run(App)
+    App().run()

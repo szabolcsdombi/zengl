@@ -2,7 +2,8 @@ import numpy as np
 import zengl
 from matplotlib import pyplot as plt
 
-ctx = zengl.context(zengl.loader(headless=True))
+zengl.init(zengl.loader(headless=True))
+ctx = zengl.context()
 
 size = (256, 256)
 image = ctx.image(size, 'r32float')

@@ -1,14 +1,30 @@
+# TODO:
+# model = Obj.frombytes(gzip.decompress(open(assets.get('cubemap-tester.obj.gz'), 'rb').read())).pack('vx vy vz nx ny nz')
+# Exception: {
+#   "code": "not_found",
+#   "message": "File with such name does not exist.",
+#   "status": 404
+# }
+
 import gzip
 import struct
+import sys
 from math import sin
 
+import assets
+import pygame
 import zengl
+import zengl_extras
 from objloader import Obj
 
-import assets
-from window import Window
+zengl_extras.init()
 
-window = Window()
+pygame.init()
+pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
+
+window_size = pygame.display.get_window_size()
+window_aspect = window_size[0] / window_size[1]
+
 ctx = zengl.context()
 
 image = ctx.image((512, 512), 'rgba8unorm')
@@ -283,7 +299,12 @@ def cubemap_face_pipeline(face):
 
 scene_pipelines = [cubemap_face_pipeline(i) for i in range(6)]
 
-while window.update():
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
     ctx.new_frame()
 
     texture.clear()
@@ -291,13 +312,20 @@ while window.update():
         temp_depth.clear()
         pipeline.render()
 
-    t = window.time * 0.5
+    now = pygame.time.get_ticks() / 1000.0
+    t = now * 0.5
     cube.uniforms['view'][:] = struct.pack('ff', t, sin(t))
 
     image.clear()
-    if not window.key_down('space'):
+
+    keys = pygame.key.get_pressed()
+
+    if not keys[pygame.K_SPACE]:
         cube.render()
     else:
         flat.render()
+
     image.blit()
     ctx.end_frame()
+
+    pygame.display.flip()
