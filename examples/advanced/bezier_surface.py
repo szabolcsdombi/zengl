@@ -814,25 +814,26 @@ offset = np.random.uniform(0.0, 2.0 * np.pi, 16)
 radius = np.random.uniform(0.2, 0.5, 16)
 speed = np.random.uniform(0.3, 0.7, 16)
 
+t = 0.0
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
 
-    now = pygame.time.get_ticks() / 1000.0
+    t += 1.0 / 60.0
 
     pts = np.array([
         np.tile(np.linspace(0.0, 1.0, 4), 4) - 0.5,
         np.repeat(np.linspace(0.0, 1.0, 4), 4) - 0.5,
-        height + np.sin(offset + now * speed) * radius,
+        height + np.sin(offset + t * speed) * radius,
         np.zeros(16),
     ]).T
 
     ctx.new_frame()
     control_points_buffer.write(pts.astype('f4').tobytes())
 
-    x, y = np.sin(now * 0.5) * 3.0, np.cos(now * 0.5) * 3.0
+    x, y = np.sin(t * 0.5) * 3.0, np.cos(t * 0.5) * 3.0
     camera = zengl.camera((x, y, 2.0), (0.0, 0.0, 0.0), aspect=window_aspect, fov=45.0)
     uniform_buffer.write(camera + struct.pack('3f4x3f4x', x, y, 2.0, 4.0, 4.0, 10.0))
 
