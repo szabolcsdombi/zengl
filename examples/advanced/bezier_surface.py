@@ -1,15 +1,23 @@
 import struct
+import sys
 
 import numpy as np
+import pygame
 import zengl
+import zengl_extras
 
-from window import Window
+zengl_extras.init()
 
-window = Window()
+pygame.init()
+pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
+
+window_size = pygame.display.get_window_size()
+window_aspect = window_size[0] / window_size[1]
+
 ctx = zengl.context()
 
-image = ctx.image(window.size, 'rgba8unorm', samples=4)
-depth = ctx.image(window.size, 'depth24plus', samples=4)
+image = ctx.image(window_size, 'rgba8unorm', samples=4)
+depth = ctx.image(window_size, 'depth24plus', samples=4)
 image.clear_value = (0.01, 0.01, 0.01, 1.0)
 
 N = 33
@@ -805,8 +813,12 @@ radius = np.random.uniform(0.2, 0.5, 16)
 speed = np.random.uniform(0.3, 0.7, 16)
 
 t = 0.0
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
 
-while window.update():
     t += 1.0 / 60.0
 
     pts = np.array([
@@ -819,8 +831,8 @@ while window.update():
     ctx.new_frame()
     control_points_buffer.write(pts.astype('f4').tobytes())
 
-    x, y = np.sin(window.time * 0.5) * 3.0, np.cos(window.time * 0.5) * 3.0
-    camera = zengl.camera((x, y, 2.0), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
+    x, y = np.sin(t * 0.5) * 3.0, np.cos(t * 0.5) * 3.0
+    camera = zengl.camera((x, y, 2.0), (0.0, 0.0, 0.0), aspect=window_aspect, fov=45.0)
     uniform_buffer.write(camera + struct.pack('3f4x3f4x', x, y, 2.0, 4.0, 4.0, 10.0))
 
     image.clear()
@@ -833,3 +845,5 @@ while window.update():
     lines_pipeline_seethrough.render()
     image.blit()
     ctx.end_frame()
+
+    pygame.display.flip()

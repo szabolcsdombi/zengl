@@ -1,3 +1,6 @@
+# TODO:
+# Blending, Grass, WireframeTerrain, ZenglLogo examples are no longer classes
+
 import glwindow
 import zengl
 from blending import Blending

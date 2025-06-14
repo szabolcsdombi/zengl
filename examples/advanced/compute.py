@@ -1,13 +1,20 @@
 import struct
+import sys
 
+import pygame
 import zengl
+import zengl_extras
 
-from window import Window
+zengl_extras.init()
 
-window = Window()
+pygame.init()
+pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
+
+window_size = pygame.display.get_window_size()
+window_aspect = window_size[0] / window_size[1]
 ctx = zengl.context()
 
-image = ctx.image(window.size, 'rgba8unorm')
+image = ctx.image(window_size, 'rgba8unorm')
 
 pipeline = ctx.pipeline(
     vertex_shader='''
@@ -47,8 +54,16 @@ pipeline = ctx.pipeline(
     vertex_count=3,
 )
 
-while window.update():
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+    
+    now = pygame.time.get_ticks() / 1000.0
     image.clear()
-    pipeline.uniforms['time'][:] = struct.pack('f', window.time)
+    pipeline.uniforms['time'][:] = struct.pack('f', now)
     pipeline.render()
     image.blit()
+
+    pygame.display.flip()

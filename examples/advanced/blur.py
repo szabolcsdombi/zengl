@@ -1,4 +1,7 @@
-import glwindow
+import os
+import sys
+
+import pygame
 import zengl
 from monkey import Monkey
 
@@ -99,10 +102,13 @@ class Blur2D:
 
 class App:
     def __init__(self):
-        self.wnd = glwindow.get_window()
+        os.environ['SDL_WINDOWS_DPI_AWARENESS'] = 'permonitorv2'
+        pygame.init()
+        pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
+
         self.ctx = zengl.context()
 
-        self.scene = Monkey(self.wnd.size, samples=1)
+        self.scene = Monkey(pygame.display.get_window_size(), samples=1)
         self.blur = Blur2D(self.scene.output, self.scene.output)
 
     def update(self):
@@ -112,6 +118,16 @@ class App:
         self.scene.output.blit()
         self.ctx.end_frame()
 
+    def run(self):
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+
+            self.update()
+            pygame.display.flip()
+
 
 if __name__ == "__main__":
-    glwindow.run(App)
+    App().run()

@@ -1,13 +1,22 @@
 import gzip
+import sys
 from colorsys import hls_to_rgb
 
+import assets
 import numpy as np
+import pygame
 import zengl
+import zengl_extras
 from chull import make_hull
 from objloader import Obj
 
-import assets
-from window import Window
+zengl_extras.init()
+
+pygame.init()
+pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
+
+window_size = pygame.display.get_window_size()
+window_aspect = window_size[0] / window_size[1]
 
 
 def gen_sphere(radius, res=100):
@@ -18,15 +27,14 @@ def gen_sphere(radius, res=100):
     return np.array([x, y, z]).T * radius
 
 
-window = Window()
 ctx = zengl.context()
 
-# image = ctx.image(window.size, 'rgba8unorm')
+# image = ctx.image(window_size, 'rgba8unorm')
 
-vertex = ctx.image(window.size, 'rgba32float')
-normal = ctx.image(window.size, 'rgba32float')
-color = ctx.image(window.size, 'rgba8unorm')
-depth = ctx.image(window.size, 'depth24plus')
+vertex = ctx.image(window_size, 'rgba32float')
+normal = ctx.image(window_size, 'rgba32float')
+color = ctx.image(window_size, 'rgba8unorm')
+depth = ctx.image(window_size, 'depth24plus')
 color.clear_value = (0.2, 0.2, 0.2, 1.0)
 normal.clear_value = (0.0, 0.0, 0.0, 1.0)
 
@@ -188,7 +196,7 @@ lights = ctx.pipeline(
         },
     ],
     framebuffer=None,
-    viewport=(0, 0, *window.size),
+    viewport=(0, 0, *window_size),
     topology='triangles',
     cull_face='back',
     vertex_buffers=[
@@ -203,7 +211,7 @@ lights = ctx.pipeline(
     vertex_count=light_vertex_buffer.size // zengl.calcsize('3f'),
 )
 
-camera = zengl.camera((20.0, 0.0, 10.0), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
+camera = zengl.camera((20.0, 0.0, 10.0), (0.0, 0.0, 0.0), aspect=window_aspect, fov=45.0)
 uniform_buffer.write(camera)
 
 light_color = np.array([hls_to_rgb(x, 0.3, 0.8) for x in np.random.uniform(0.0, 1.0, 49)])
@@ -221,12 +229,21 @@ offset = np.random.uniform(0.0, np.pi, 49)
 radius1 = np.random.uniform(1.5, 3.0, 49)
 radius2 = np.random.uniform(1.5, 3.0, 49)
 
-while window.update():
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
+    now = pygame.time.get_ticks() / 1000.0
+
     ctx.new_frame()
-    light_instances[:, 3] = (radius1 + radius2) / 2.0 + (radius1 - radius2) * np.sin(offset + window.time)
+    light_instances[:, 3] = (radius1 + radius2) / 2.0 + (radius1 - radius2) * np.sin(offset + now)
     light_instance_buffer.write(light_instances.tobytes())
     lights.instance_count = 49
     depth.clear()
     pipeline.render()
     lights.render()
     ctx.end_frame()
+
+    pygame.display.flip()

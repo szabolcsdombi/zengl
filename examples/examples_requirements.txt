@@ -1,0 +1,13 @@
+zengl
+zengl-extras
+pygame-ce
+numpy
+requests
+progress
+vmath
+objloader
+pillow
+chull
+ffmpeg-python
+matplotlib
+pyglm
