@@ -1,19 +1,28 @@
+import os
 import struct
+import sys
 from colorsys import hls_to_rgb
 
 import numpy as np
+import pygame
 import vmath
 import zengl
 from objloader import Obj
 
 import assets
-from window import Window
 
-window = Window()
+os.environ['SDL_WINDOWS_DPI_AWARENESS'] = 'permonitorv2'
+
+pygame.init()
+pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
+
+window_size = pygame.display.get_window_size()
+window_aspect = window_size[0] / window_size[1]
+
 ctx = zengl.context()
 
-image = ctx.image(window.size, 'rgba8unorm', samples=4)
-depth = ctx.image(window.size, 'depth24plus', samples=4)
+image = ctx.image(window_size, 'rgba8unorm', samples=4)
+depth = ctx.image(window_size, 'depth24plus', samples=4)
 image.clear_value = (0.2, 0.2, 0.2, 1.0)
 
 model = Obj.open(assets.get('blob.obj')).pack('vx vy vz nx ny nz')
@@ -173,9 +182,14 @@ for i in range(instance_count):
     instances[i][7:10] = hls_to_rgb(np.random.uniform(0.0, 1.0), 0.5, 0.5)
     instances[i][10:13] = ambient, facing, shininess
 
-while window.update():
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
     ctx.new_frame()
-    camera = zengl.camera((0.0, -15.0, 10.0), (0.0, 10.0, 0.0), aspect=window.aspect, fov=45.0)
+    camera = zengl.camera((0.0, -15.0, 10.0), (0.0, 10.0, 0.0), aspect=window_aspect, fov=45.0)
     uniform_buffer.write(camera + struct.pack('=3f4x', 0.0, -15.0, 10.0))
 
     for i in range(instance_count):
@@ -187,3 +201,5 @@ while window.update():
     pipeline.render()
     image.blit()
     ctx.end_frame()
+
+    pygame.display.flip()

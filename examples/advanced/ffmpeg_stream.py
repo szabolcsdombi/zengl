@@ -1,3 +1,6 @@
+# NOTE: You must have FFMPEG installed and available in PATH to run this example.
+# https://ffmpeg.org/download.html
+
 import math
 import struct
 
@@ -8,7 +11,8 @@ from objloader import Obj
 
 import assets
 
-ctx = zengl.context(zengl.loader(headless=True))
+zengl.init(zengl.loader(headless=True))
+ctx = zengl.context()
 
 width, height = 1280, 720
 output = ctx.image((width, height), 'rgba8unorm')

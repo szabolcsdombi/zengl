@@ -1,8 +1,19 @@
+import os
+import sys
+
 import numpy as np
 import zengl
 from scipy.spatial import ConvexHull
 
-from window import Window
+import pygame
+
+os.environ['SDL_WINDOWS_DPI_AWARENESS'] = 'permonitorv2'
+
+pygame.init()
+pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
+
+window_size = pygame.display.get_window_size()
+window_aspect = window_size[0] / window_size[1]
 
 
 def make_hull(points):
@@ -80,7 +91,6 @@ def transform(frame, mesh):
     return mesh
 
 
-window = Window()
 ctx = zengl.context()
 
 # vertex_buffer = ctx.buffer(make_hull(np.random.uniform(-0.5, 0.5, (100, 3))))
@@ -94,8 +104,8 @@ ctx = zengl.context()
 # vertex_buffer = ctx.buffer(make_hull(gen_capsule(0.3, 1.0)))
 vertex_buffer = ctx.buffer(make_hull(gen_multisphere([[0.0, 0.0, 0.0, 0.3], [0.0, 0.0, 1.0, 0.1]])))
 
-image = ctx.image(window.size, 'rgba8unorm', samples=4)
-depth = ctx.image(window.size, 'depth24plus', samples=4)
+image = ctx.image(window_size, 'rgba8unorm', samples=4)
+depth = ctx.image(window_size, 'depth24plus', samples=4)
 image.clear_value = (0.2, 0.2, 0.2, 1.0)
 
 uniform_buffer = ctx.buffer(size=80)
@@ -153,13 +163,20 @@ shape = ctx.pipeline(
     vertex_count=vertex_buffer.size // zengl.calcsize('3f 3f 3f'),
 )
 
-camera = zengl.camera((3.0, 2.0, 2.0), (0.0, 0.0, 0.5), aspect=window.aspect, fov=45.0)
+camera = zengl.camera((3.0, 2.0, 2.0), (0.0, 0.0, 0.5), aspect=window_aspect, fov=45.0)
 uniform_buffer.write(camera)
 
-while window.update():
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
     ctx.new_frame()
     image.clear()
     depth.clear()
     shape.render()
     image.blit()
     ctx.end_frame()
+
+    pygame.display.flip()

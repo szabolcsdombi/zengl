@@ -1,8 +1,10 @@
+import os
 import math
 import struct
+import sys
 
-import glwindow
 import objloader
+import pygame
 import zengl
 from PIL import Image
 
@@ -121,9 +123,11 @@ class Crate:
 
 class App:
     def __init__(self):
-        self.wnd = glwindow.get_window()
+        os.environ['SDL_WINDOWS_DPI_AWARENESS'] = 'permonitorv2'
+        pygame.init()
+        pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)        
         self.ctx = zengl.context()
-        self.scene = Crate(self.wnd.size)
+        self.scene = Crate(pygame.display.get_window_size())
 
     def update(self):
         self.ctx.new_frame()
@@ -131,6 +135,16 @@ class App:
         self.scene.output.blit()
         self.ctx.end_frame()
 
+    def run(self):
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+
+            self.update()
+            pygame.display.flip()
+
 
 if __name__ == "__main__":
-    glwindow.run(App)
+    App().run()
