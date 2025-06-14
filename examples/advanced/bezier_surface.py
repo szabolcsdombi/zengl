@@ -2,11 +2,8 @@ import struct
 import sys
 
 import numpy as np
-import zengl
-
 import pygame
 import zengl
-
 import zengl_extras
 
 zengl_extras.init()

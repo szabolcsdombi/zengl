@@ -2,13 +2,12 @@ import math
 import struct
 import sys
 
+import assets
 import objloader
 import pygame
 import zengl
-from PIL import Image
-
-import assets
 import zengl_extras
+from PIL import Image
 
 
 class Crate:

@@ -11,13 +11,11 @@ import struct
 import sys
 from math import sin
 
+import assets
 import pygame
 import zengl
-from objloader import Obj
-
-import assets
-
 import zengl_extras
+from objloader import Obj
 
 zengl_extras.init()
 

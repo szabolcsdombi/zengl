@@ -3,7 +3,6 @@ import sys
 
 import pygame
 import zengl
-
 import zengl_extras
 
 zengl_extras.init()

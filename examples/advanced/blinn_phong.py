@@ -1,14 +1,12 @@
 import struct
 import sys
 
+import assets
 import numpy as np
 import pygame
 import zengl
-from objloader import Obj
-
-import assets
-
 import zengl_extras
+from objloader import Obj
 
 zengl_extras.init()
 

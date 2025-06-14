@@ -2,15 +2,13 @@ import struct
 import sys
 from colorsys import hls_to_rgb
 
+import assets
 import numpy as np
 import pygame
 import vmath
 import zengl
-from objloader import Obj
-
-import assets
-
 import zengl_extras
+from objloader import Obj
 
 zengl_extras.init()
 

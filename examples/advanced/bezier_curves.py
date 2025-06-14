@@ -4,7 +4,6 @@ from colorsys import hls_to_rgb
 import numpy as np
 import pygame
 import zengl
-
 import zengl_extras
 
 zengl_extras.init()

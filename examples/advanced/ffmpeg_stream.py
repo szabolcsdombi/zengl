@@ -4,12 +4,11 @@
 import math
 import struct
 
+import assets
 import ffmpeg
 import numpy as np
 import zengl
 from objloader import Obj
-
-import assets
 
 zengl.init(zengl.loader(headless=True))
 ctx = zengl.context()

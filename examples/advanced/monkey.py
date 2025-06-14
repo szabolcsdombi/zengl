@@ -1,13 +1,11 @@
 import math
 import sys
 
+import assets
 import pygame
 import zengl
-
-from objloader import Obj
-
-import assets
 import zengl_extras
+from objloader import Obj
 
 
 class Monkey:

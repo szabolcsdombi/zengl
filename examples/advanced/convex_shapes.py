@@ -1,12 +1,10 @@
 import sys
 
 import numpy as np
-import zengl
-from scipy.spatial import ConvexHull
-
 import pygame
-
+import zengl
 import zengl_extras
+from scipy.spatial import ConvexHull
 
 zengl_extras.init()
 
