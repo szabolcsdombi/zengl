@@ -1,5 +1,4 @@
 import gzip
-import os
 import sys
 from colorsys import hls_to_rgb
 
