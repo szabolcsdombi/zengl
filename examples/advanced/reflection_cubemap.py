@@ -1,14 +1,22 @@
 import gzip
 import struct
+import sys
 from math import cos, sin
 
+import assets
+import pygame
 import zengl
+import zengl_extras
 from objloader import Obj
 
-import assets
-from window import Window
+zengl_extras.init()
 
-window = Window()
+pygame.init()
+pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
+
+window_size = pygame.display.get_window_size()
+window_aspect = window_size[0] / window_size[1]
+
 ctx = zengl.context()
 
 
@@ -91,8 +99,8 @@ class Cubemap:
 
 class Scene:
     def __init__(self):
-        self.image = ctx.image(window.size, 'rgba8unorm', samples=4)
-        self.depth = ctx.image(window.size, 'depth24plus', samples=4)
+        self.image = ctx.image(window_size, 'rgba8unorm', samples=4)
+        self.depth = ctx.image(window_size, 'depth24plus', samples=4)
         self.image.clear_value = (0.2, 0.2, 0.2, 1.0)
         self.uniform_buffer = ctx.buffer(size=80, uniform=True)
         self.uniform_buffer_data = bytearray(80)
@@ -184,7 +192,7 @@ class Scene:
 
     def update(self, t):
         eye = (cos(t) * 5.0, sin(t) * 5.0, 2.0)
-        self.uniform_buffer_data[:64] = zengl.camera(eye, (0.0, 0.0, 0.5), aspect=window.aspect, fov=45.0)
+        self.uniform_buffer_data[:64] = zengl.camera(eye, (0.0, 0.0, 0.5), aspect=window_aspect, fov=45.0)
         self.uniform_buffer_data[64:76] = struct.pack('3f', *eye)
         self.uniform_buffer.write(self.uniform_buffer_data)
 
@@ -210,10 +218,19 @@ scene.pipeline(boxgrid_vertex_buffer, False)
 scene.pipeline(monkey_vertex_buffer, True)
 
 
-while window.update():
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
+    now = pygame.time.get_ticks() / 1000.0
+
     ctx.new_frame()
     cubemap.render()
-    scene.update(window.time)
+    scene.update(now)
     scene.render()
     scene.image.blit()
     ctx.end_frame()
+
+    pygame.display.flip()

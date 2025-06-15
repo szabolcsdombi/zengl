@@ -1,8 +1,16 @@
+import sys
+
+import pygame
 import zengl
+import zengl_extras
 
-from window import Window
+zengl_extras.init()
 
-window = Window()
+pygame.init()
+pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
+
+window_size = pygame.display.get_window_size()
+
 ctx = zengl.context()
 
 image_size = (640, 720)
@@ -54,11 +62,17 @@ triangle = ctx.pipeline(
     vertex_count=3,
 )
 
-while window.update():
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
     ctx.new_frame()
     image1.clear()
     image2.clear()
     triangle.render()
-    image1.blit(None, (0, 0, 640, 720))
-    image2.blit(None, (640, 0, 640, 720))
+    image1.blit(None, (0, 0))
+    image2.blit(None, (640, 0))
     ctx.end_frame()
+
+    pygame.display.flip()

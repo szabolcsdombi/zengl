@@ -1,10 +1,20 @@
+import sys
+
 import numpy as np
+import pygame
 import zengl
+import zengl_extras
 from skimage import measure
 from skimage.draw import ellipsoid
 from skimage.filters import gaussian
 
-from window import Window
+zengl_extras.init()
+
+pygame.init()
+pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
+
+window_size = pygame.display.get_window_size()
+window_aspect = window_size[0] / window_size[1]
 
 volume = np.full((50, 50, 50), 1.0)
 volume[15:35, 15:35, 15:35] = -1.0
@@ -16,11 +26,10 @@ volume = gaussian(volume, 1.5)
 verts, faces, normals, values = measure.marching_cubes(volume, 0.0)
 verts -= (np.max(verts, axis=0) + np.min(verts, axis=0)) / 2.0
 
-window = Window()
 ctx = zengl.context()
 
-image = ctx.image(window.size, 'rgba8unorm', samples=4)
-depth = ctx.image(window.size, 'depth24plus', samples=4)
+image = ctx.image(window_size, 'rgba8unorm', samples=4)
+depth = ctx.image(window_size, 'depth24plus', samples=4)
 image.clear_value = (0.2, 0.2, 0.2, 1.0)
 
 mesh = np.concatenate([verts, -normals], axis=1).astype('f4').tobytes()
@@ -85,10 +94,17 @@ model = ctx.pipeline(
     vertex_count=index_buffer.size // 4,
 )
 
-while window.update():
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
+    now = pygame.time.get_ticks() / 1000.0
+
     ctx.new_frame()
-    x, y = np.sin(window.time * 0.5) * 80.0, np.cos(window.time * 0.5) * 80.0
-    camera = zengl.camera((x, y, 40.0), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
+    x, y = np.sin(now * 0.5) * 80.0, np.cos(now * 0.5) * 80.0
+    camera = zengl.camera((x, y, 40.0), (0.0, 0.0, 0.0), aspect=window_aspect, fov=45.0)
 
     uniform_buffer.write(camera)
 
@@ -97,3 +113,5 @@ while window.update():
     model.render()
     image.blit()
     ctx.end_frame()
+
+    pygame.display.flip()

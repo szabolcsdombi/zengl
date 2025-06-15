@@ -1,12 +1,20 @@
+import sys
+
 import numpy as np
+import pygame
 import pygmsh
 import zengl
+import zengl_extras
 
-from window import Window
+zengl_extras.init()
 
-window = Window()
+pygame.init()
+pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
+
+window_size = pygame.display.get_window_size()
+
 ctx = zengl.context()
-image = ctx.image(window.size, 'rgba8unorm', samples=4)
+image = ctx.image(window_size, 'rgba8unorm', samples=4)
 image.clear_value = (1.0, 1.0, 1.0, 1.0)
 
 with pygmsh.geo.Geometry() as geom:
@@ -127,7 +135,12 @@ edges = ctx.pipeline(
     vertex_count=lines_index_buffer.size // 4,
 )
 
-while window.update():
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
     ctx.new_frame()
     image.clear()
     mesh.render()
@@ -135,3 +148,5 @@ while window.update():
     edges.render()
     image.blit()
     ctx.end_frame()
+
+    pygame.display.flip()

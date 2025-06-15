@@ -1,14 +1,22 @@
-import numpy as np
-import zengl
+import sys
 
-from window import Window
+import numpy as np
+import pygame
+import zengl
+import zengl_extras
 
 N = 128
 
-window = Window((512, 512))
+zengl_extras.init()
+
+pygame.init()
+pygame.display.set_mode((512, 512), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
+
+window_size = pygame.display.get_window_size()
+
 ctx = zengl.context()
 
-image = ctx.image(window.size, 'rgba8unorm', samples=4)
+image = ctx.image(window_size, 'rgba8unorm', samples=4)
 image.clear_value = (1.0, 1.0, 1.0, 1.0)
 
 uniform_buffer = ctx.buffer(size=16)
@@ -165,9 +173,15 @@ render_pipeline = ctx.pipeline(
 
 cx, cy = 0.0, 0.0
 
-while window.update():
-    cx = cx * 0.95 + (window.mouse[0] / window.size[0] * 2.0 - 1.0) * 0.05
-    cy = cy * 0.95 + (window.mouse[1] / window.size[1] * 2.0 - 1.0) * 0.05
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
+    mouse_pos = pygame.mouse.get_pos()
+    cx = cx * 0.95 + (mouse_pos[0] / window_size[0] * 2.0 - 1.0) * 0.05
+    cy = cy * 0.95 + -(mouse_pos[1] / window_size[1] * 2.0 - 1.0) * 0.05
     ctx.new_frame()
     uniform_buffer.write(np.array([cx, cy, 0.0, 0.0], 'f4'))
     image.clear()
@@ -177,3 +191,5 @@ while window.update():
     points[2].blit(points[1])
     image.blit()
     ctx.end_frame()
+
+    pygame.display.flip()
