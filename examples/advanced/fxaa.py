@@ -1,5 +1,8 @@
-import glwindow
+import sys
+
+import pygame
 import zengl
+import zengl_extras
 from monkey import Monkey
 
 
@@ -90,10 +93,12 @@ class FXAA:
 
 class App:
     def __init__(self):
-        self.wnd = glwindow.get_window()
+        zengl_extras.init()
+        pygame.init()
+        pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)        
         self.ctx = zengl.context()
 
-        self.scene = Monkey(self.wnd.size, samples=1)
+        self.scene = Monkey(pygame.display.get_window_size(), samples=1)
         self.fxaa = FXAA(self.scene.image)
 
     def update(self):
@@ -103,6 +108,16 @@ class App:
         self.fxaa.output.blit()
         self.ctx.end_frame()
 
+    def run(self):
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
 
-if __name__ == '__main__':
-    glwindow.run(App)
+            self.update()
+            pygame.display.flip()
+
+
+if __name__ == "__main__":
+    App().run()
