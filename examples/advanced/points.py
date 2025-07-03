@@ -1,9 +1,10 @@
+import sys
 from colorsys import hls_to_rgb
 
 import numpy as np
+import pygame
 import zengl
-
-from window import Window
+import zengl_extras
 
 
 class ParticleSystem:
@@ -26,10 +27,16 @@ class ParticleSystem:
         return self.position.astype('f4').tobytes()
 
 
-window = Window()
+zengl_extras.init()
+
+pygame.init()
+pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
+
+window_size = pygame.display.get_window_size()
+
 ctx = zengl.context()
 
-image = ctx.image(window.size, 'rgba8unorm', samples=4)
+image = ctx.image(window_size, 'rgba8unorm', samples=4)
 image.clear_value = (1.0, 1.0, 1.0, 1.0)
 
 
@@ -83,7 +90,12 @@ triangle = ctx.pipeline(
     vertex_count=ps.N,
 )
 
-while window.update():
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
     ctx.new_frame()
     image.clear()
     ps.update()
@@ -91,3 +103,5 @@ while window.update():
     triangle.render()
     image.blit()
     ctx.end_frame()
+
+    pygame.display.flip()

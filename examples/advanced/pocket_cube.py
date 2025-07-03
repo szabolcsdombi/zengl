@@ -1,12 +1,13 @@
 import json
 import re
 import struct
-
-import numpy as np
-import zengl
+import sys
 
 import assets
-from window import Window
+import numpy as np
+import pygame
+import zengl
+import zengl_extras
 
 N = 2
 
@@ -86,11 +87,18 @@ def make_rotations(axis, angle, sign, count):
     return np.full((count, 4), quat)
 
 
-window = Window()
+zengl_extras.init()
+
+pygame.init()
+pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
+
+window_size = pygame.display.get_window_size()
+window_aspect = window_size[0] / window_size[1]
+
 ctx = zengl.context()
 
-image = ctx.image(window.size, 'rgba8unorm', samples=4)
-depth = ctx.image(window.size, 'depth24plus', samples=4)
+image = ctx.image(window_size, 'rgba8unorm', samples=4)
+depth = ctx.image(window_size, 'depth24plus', samples=4)
 image.clear_value = (0.03, 0.03, 0.03, 1.0)
 
 model = read_cube(assets.get('rounded-cube.glb'))
@@ -239,13 +247,17 @@ class Rotateions:
             self.rotate = None
 
 
-camera = zengl.camera((4.0, 3.0, 2.0), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
+camera = zengl.camera((4.0, 3.0, 2.0), (0.0, 0.0, 0.0), aspect=window_aspect, fov=45.0)
 uniform_buffer.write(camera)
 
 moves = [f'{sign}{axis}{level}' for sign in '+-' for axis in 'xyz' for level in range(N)]
 animation = Rotateions(rotations, np.random.choice(moves, 1000))
 
-while window.update():
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
     ctx.new_frame()
     animation.update()
     rotation_buffer.write(rotations)
@@ -255,3 +267,5 @@ while window.update():
     cube.render()
     image.blit()
     ctx.end_frame()
+
+    pygame.display.flip()

@@ -11,3 +11,6 @@ chull
 ffmpeg-python
 matplotlib
 pyglm
+scikit-image
+pybullet
+pygmsh

@@ -1,15 +1,24 @@
-import numpy as np
-import zengl
-from objloader import Obj
+import sys
 
 import assets
-from window import Window
+import numpy as np
+import pygame
+import zengl
+import zengl_extras
+from objloader import Obj
 
-window = Window()
+zengl_extras.init()
+
+pygame.init()
+pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
+
+window_size = pygame.display.get_window_size()
+window_aspect = window_size[0] / window_size[1]
+
 ctx = zengl.context()
 
-image = ctx.image(window.size, 'rgba8unorm', samples=4)
-depth = ctx.image(window.size, 'depth24plus', samples=4)
+image = ctx.image(window_size, 'rgba8unorm', samples=4)
+depth = ctx.image(window_size, 'depth24plus', samples=4)
 image.clear_value = (0.2, 0.2, 0.2, 1.0)
 
 model = Obj.open(assets.get('monkey.obj')).pack('vx vy vz nx ny nz')
@@ -125,10 +134,15 @@ monkey_wire = ctx.pipeline(
     vertex_count=index_buffer.size // 4 - 124 * 4,
 )
 
-camera = zengl.camera((3.0, 2.0, 2.0), (0.0, 0.0, 0.5), aspect=window.aspect, fov=45.0)
+camera = zengl.camera((3.0, 2.0, 2.0), (0.0, 0.0, 0.5), aspect=window_aspect, fov=45.0)
 uniform_buffer.write(camera)
 
-while window.update():
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
     ctx.new_frame()
     image.clear()
     depth.clear()
@@ -136,3 +150,5 @@ while window.update():
     monkey_wire.render()
     image.blit()
     ctx.end_frame()
+
+    pygame.display.flip()

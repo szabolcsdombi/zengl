@@ -1,9 +1,9 @@
+import assets
 import zengl
 from PIL import Image
 
-import assets
-
-ctx = zengl.context(zengl.loader(headless=True))
+zengl.init(zengl.loader(headless=True))
+ctx = zengl.context()
 
 img = Image.open(assets.get('comfy_cafe.jpg'))  # https://polyhaven.com/a/comfy_cafe
 texture = ctx.image(img.size, 'rgba8unorm', img.convert('RGBA').tobytes())

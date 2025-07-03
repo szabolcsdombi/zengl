@@ -1,13 +1,14 @@
 import struct
-
-import numpy as np
-import pybullet as pb
-import zengl
-from objloader import Obj
-from PIL import Image
+import sys
 
 import assets
-from window import Window
+import numpy as np
+import pybullet as pb
+import pygame
+import zengl
+import zengl_extras
+from objloader import Obj
+from PIL import Image
 
 pb.connect(pb.DIRECT)
 
@@ -27,11 +28,18 @@ for i in range(crates):
     obj = pb.createMultiBody(baseMass=1.0, basePosition=(x, y, i * 1.2 + 1), baseCollisionShapeIndex=box_shape)
     bullet_crates.append(obj)
 
-window = Window()
+zengl_extras.init()
+
+pygame.init()
+pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
+
+window_size = pygame.display.get_window_size()
+window_aspect = window_size[0] / window_size[1]
+
 ctx = zengl.context()
 
-image = ctx.image(window.size, 'rgba8unorm', samples=4)
-depth = ctx.image(window.size, 'depth24plus', samples=4)
+image = ctx.image(window_size, 'rgba8unorm', samples=4)
+depth = ctx.image(window_size, 'depth24plus', samples=4)
 image.clear_value = (1.0, 1.0, 1.0, 1.0)
 
 model = Obj.open(assets.get('box.obj')).pack('vx vy vz nx ny nz tx ty')
@@ -138,12 +146,16 @@ crate = ctx.pipeline(
     instance_count=crates,
 )
 
-camera = zengl.camera((8.0, 6.0, 4.0), (0.0, 0.0, 0.5), aspect=window.aspect, fov=45.0)
+camera = zengl.camera((8.0, 6.0, 4.0), (0.0, 0.0, 0.5), aspect=window_aspect, fov=45.0)
 
 uniform_buffer.write(camera)
 uniform_buffer.write(struct.pack('3f4x', 8.0, 6.0, 14.0), offset=64)
 
-while window.update():
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
     pb.stepSimulation()
 
     ctx.new_frame()
@@ -159,3 +171,5 @@ while window.update():
     crate.render()
     image.blit()
     ctx.end_frame()
+
+    pygame.display.flip()

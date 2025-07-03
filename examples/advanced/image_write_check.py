@@ -1,7 +1,16 @@
-import numpy as np
-import zengl
+import sys
 
-from window import Window
+import numpy as np
+import pygame
+import zengl
+import zengl_extras
+
+zengl_extras.init()
+
+pygame.init()
+pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
+
+window_size = pygame.display.get_window_size()
 
 
 def noise(width, height, red, green, blue):
@@ -24,9 +33,8 @@ def quad(x, y, width, height, layer, level):
     ], 'f4')
 
 
-window = Window()
 ctx = zengl.context()
-image = ctx.image(window.size, 'rgba8unorm', samples=4)
+image = ctx.image(window_size, 'rgba8unorm', samples=4)
 image.clear_value = (0.2, 0.2, 0.2, 1.0)
 
 texture = ctx.image((64, 64), 'rgba8unorm', array=4, levels=3)
@@ -65,7 +73,7 @@ vertex_buffer = ctx.buffer(np.concatenate([
     quad(820.0, 590.0, 200.0, 200.0, 3.0, 2.0),
 ]))
 
-width, height = window.size
+width, height = window_size
 ctx.includes['screen_size'] = f'const vec2 screen_size = vec2({width}, {height});'
 
 pipeline = ctx.pipeline(
@@ -131,9 +139,16 @@ pipeline = ctx.pipeline(
     vertex_count=vertex_buffer.size // zengl.calcsize('2f 2f 1f 1f'),
 )
 
-while window.update():
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
     ctx.new_frame()
     image.clear()
     pipeline.render()
     image.blit()
     ctx.end_frame()
+
+    pygame.display.flip()

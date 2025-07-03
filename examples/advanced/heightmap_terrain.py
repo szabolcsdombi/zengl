@@ -1,10 +1,20 @@
-import imageio
-import numpy as np
-import zengl
-from skimage.filters import gaussian
+import sys
 
 import assets
-from window import Window
+import imageio
+import numpy as np
+import pygame
+import zengl
+import zengl_extras
+from skimage.filters import gaussian
+
+zengl_extras.init()
+
+pygame.init()
+pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
+
+window_size = pygame.display.get_window_size()
+window_aspect = window_size[0] / window_size[1]
 
 imageio.plugins.freeimage.download()
 img = imageio.imread(assets.get('Terrain002.exr'))  # https://ambientcg.com/view?id=Terrain002
@@ -38,11 +48,10 @@ def create_terrain(N):
     return vert, idx
 
 
-window = Window()
 ctx = zengl.context()
 
-image = ctx.image(window.size, 'rgba8unorm', samples=4)
-depth = ctx.image(window.size, 'depth24plus', samples=4)
+image = ctx.image(window_size, 'rgba8unorm', samples=4)
+depth = ctx.image(window_size, 'depth24plus', samples=4)
 image.clear_value = (1.0, 1.0, 1.0, 1.0)
 
 vertices, indices = create_terrain(512)
@@ -154,10 +163,17 @@ terrain = ctx.pipeline(
     vertex_count=index_buffer.size // 4,
 )
 
-while window.update():
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
+    now = pygame.time.get_ticks() / 1000.0
+
     ctx.new_frame()
-    x, y = np.sin(window.time * 0.5) * 30.0, np.cos(window.time * 0.5) * 30.0
-    camera = zengl.camera((x, y, 25.0), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
+    x, y = np.sin(now * 0.5) * 30.0, np.cos(now * 0.5) * 30.0
+    camera = zengl.camera((x, y, 25.0), (0.0, 0.0, 0.0), aspect=window_aspect, fov=45.0)
     uniform_buffer.write(camera)
 
     image.clear()
@@ -165,3 +181,5 @@ while window.update():
     terrain.render()
     image.blit()
     ctx.end_frame()
+
+    pygame.display.flip()
