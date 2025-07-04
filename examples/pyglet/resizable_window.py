@@ -17,7 +17,7 @@ window = pyglet.window.Window(1280, 720, resizable=True, config=config, vsync=Tr
 
 ctx = zengl.context()
 
-display = pyglet.canvas.Display()
+display = pyglet.display.get_display()
 screen = display.get_default_screen()
 image = ctx.image((screen.width, screen.height), 'rgba8unorm', samples=4)
 
