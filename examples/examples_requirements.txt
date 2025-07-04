@@ -17,3 +17,5 @@ pygmsh
 https://github.com/fogleman/sdf/archive/refs/heads/main.zip
 imageio[ffmpeg]
 opencv-python
+meshtools
+pyopengl
