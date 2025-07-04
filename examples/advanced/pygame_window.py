@@ -1,12 +1,11 @@
 import math
 import struct
 
+import assets
 import pygame as pg
 import zengl
 from objloader import Obj
 from PIL import Image
-
-import assets
 
 window_size = (1280, 720)
 window_aspect = 16.0 / 9.0

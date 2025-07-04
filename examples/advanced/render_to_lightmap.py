@@ -1,22 +1,31 @@
+import sys
+
+import assets
 import numpy as np
+import pygame
 import zengl
+import zengl_extras
 from objloader import Obj
 from PIL import Image
 from progress.bar import Bar
 
-import assets
-from window import Window
-
 samples = 64
 size = 1024
 
-window = Window()
+zengl_extras.init()
+
+pygame.init()
+pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
+
+window_size = pygame.display.get_window_size()
+window_aspect = window_size[0] / window_size[1]
+
 ctx = zengl.context()
 
 ctx.includes['samples'] = f'const int samples = {samples};'
 
-image = ctx.image(window.size, 'rgba8unorm', samples=4)
-depth = ctx.image(window.size, 'depth24plus', samples=4)
+image = ctx.image(window_size, 'rgba8unorm', samples=4)
+depth = ctx.image(window_size, 'depth24plus', samples=4)
 image.clear_value = (0.0, 0.0, 0.0, 1.0)
 
 model = Obj.open(assets.get('suzanne-lightmap-uv.obj')).pack('vx vy vz tx ty')
@@ -309,10 +318,17 @@ fill_pipeline.render()
 ao = np.frombuffer(texture.read(), 'f4').reshape(size, size)[::-1]
 Image.fromarray((ao * 255.0).astype('u1'), 'L').save('generated-ao-map.png')
 
-while window.update():
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
+    now  = pygame.time.get_ticks() / 1000.0
+
     ctx.new_frame()
-    x, y = np.sin(window.time * 0.5 + 1.0) * 5.0, np.cos(window.time * 0.5 + 1.0) * 5.0
-    camera = zengl.camera((x, y, 1.5), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
+    x, y = np.sin(now * 0.5 + 1.0) * 5.0, np.cos(now * 0.5 + 1.0) * 5.0
+    camera = zengl.camera((x, y, 1.5), (0.0, 0.0, 0.0), aspect=window_aspect, fov=45.0)
     uniform_buffer.write(camera)
 
     image.clear()
@@ -320,3 +336,5 @@ while window.update():
     pipeline.render()
     image.blit()
     ctx.end_frame()
+
+    pygame.display.flip()

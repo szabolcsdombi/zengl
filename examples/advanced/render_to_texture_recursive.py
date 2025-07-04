@@ -1,17 +1,25 @@
 import math
 import struct
-
-import zengl
-from objloader import Obj
+import sys
 
 import assets
-from window import Window
+import pygame
+import zengl
+import zengl_extras
+from objloader import Obj
 
-window = Window()
+zengl_extras.init()
+
+pygame.init()
+pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
+
+window_size = pygame.display.get_window_size()
+window_aspect = window_size[0] / window_size[1]
+
 ctx = zengl.context()
 
-image = ctx.image(window.size, 'rgba8unorm', samples=4)
-depth = ctx.image(window.size, 'depth24plus', samples=4)
+image = ctx.image(window_size, 'rgba8unorm', samples=4)
+depth = ctx.image(window_size, 'depth24plus', samples=4)
 image.clear_value = (1.0, 1.0, 1.0, 1.0)
 
 model = Obj.open(assets.get('box.obj')).pack('vx vy vz nx ny nz tx ty')
@@ -114,10 +122,17 @@ crate_2 = crate_pipeline(texture_1, texture_2, depth_2)
 crate_3 = crate_pipeline(texture_2, texture_3, depth_3)
 crate_4 = crate_pipeline(texture_3, image, depth)
 
-while window.update():
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
+    now  = pygame.time.get_ticks() / 1000.0
+
     ctx.new_frame()
-    x, y = math.sin(window.time * 0.5) * 2.0, math.cos(window.time * 0.5) * 2.0
-    camera = zengl.camera((x, y, 0.8), (0.0, 0.0, -0.15), aspect=window.aspect, fov=45.0)
+    x, y = math.sin(now * 0.5) * 2.0, math.cos(now * 0.5) * 2.0
+    camera = zengl.camera((x, y, 0.8), (0.0, 0.0, -0.15), aspect=window_aspect, fov=45.0)
 
     uniform_buffer.write(camera)
     uniform_buffer.write(struct.pack('3f4x', x, y, 1.5), offset=64)
@@ -140,3 +155,5 @@ while window.update():
 
     image.blit()
     ctx.end_frame()
+
+    pygame.display.flip()

@@ -1,8 +1,8 @@
-import os
 import sys
 
 import pygame
 import zengl
+import zengl_extras
 from monkey import Monkey
 
 
@@ -102,7 +102,7 @@ class Blur2D:
 
 class App:
     def __init__(self):
-        os.environ['SDL_WINDOWS_DPI_AWARENESS'] = 'permonitorv2'
+        zengl_extras.init()
         pygame.init()
         pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
 
