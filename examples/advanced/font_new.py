@@ -1,3 +1,4 @@
+# TODO: port to pygame window and replace `glwindow.load_font``
 import string
 import struct
 import zipfile

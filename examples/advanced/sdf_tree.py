@@ -1,11 +1,12 @@
 # pip install https://github.com/fogleman/sdf/archive/refs/heads/main.zip
 import math
+import sys
 
 import numpy as np
+import pygame
 import sdf
 import zengl
-
-from window import Window
+import zengl_extras
 
 
 def tree(depth=0):
@@ -26,11 +27,18 @@ tmp = points.reshape(-1, 3, 3)
 normals = np.repeat(np.cross(tmp[:, 1] - tmp[:, 0], tmp[:, 2] - tmp[:, 0]), 3, axis=0)
 radius = np.max(np.sqrt(np.sum(points * points, axis=1)))
 
-window = Window()
+zengl_extras.init()
+
+pygame.init()
+pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
+
+window_size = pygame.display.get_window_size()
+window_aspect = window_size[0] / window_size[1]
+
 ctx = zengl.context()
 
-image = ctx.image(window.size, 'rgba8unorm', samples=4)
-depth = ctx.image(window.size, 'depth24plus', samples=4)
+image = ctx.image(window_size, 'rgba8unorm', samples=4)
+depth = ctx.image(window_size, 'depth24plus', samples=4)
 image.clear_value = (0.2, 0.2, 0.2, 1.0)
 
 mesh = np.concatenate([points, normals], axis=1).astype('f4').tobytes()
@@ -93,10 +101,17 @@ model = ctx.pipeline(
     vertex_count=vertex_buffer.size // 24,
 )
 
-while window.update():
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
+    now  = pygame.time.get_ticks() / 1000.0
+
     ctx.new_frame()
-    x, y = math.sin(window.time * 0.5) * 2.5 * radius, math.cos(window.time * 0.5) * 2.5 * radius
-    camera = zengl.camera((x, y, 1.5 * radius), (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
+    x, y = math.sin(now * 0.5) * 2.5 * radius, math.cos(now * 0.5) * 2.5 * radius
+    camera = zengl.camera((x, y, 1.5 * radius), (0.0, 0.0, 0.0), aspect=window_aspect, fov=45.0)
 
     uniform_buffer.write(camera)
 
@@ -105,3 +120,5 @@ while window.update():
     model.render()
     image.blit()
     ctx.end_frame()
+
+    pygame.display.flip()

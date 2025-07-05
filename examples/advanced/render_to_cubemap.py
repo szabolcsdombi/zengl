@@ -1,17 +1,25 @@
 import gzip
-
-import numpy as np
-import zengl
-from objloader import Obj
+import sys
 
 import assets
-from window import Window
+import numpy as np
+import pygame
+import zengl
+import zengl_extras
+from objloader import Obj
 
-window = Window()
+zengl_extras.init()
+
+pygame.init()
+pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
+
+window_size = pygame.display.get_window_size()
+window_aspect = window_size[0] / window_size[1]
+
 ctx = zengl.context()
 
-image = ctx.image(window.size, 'rgba8unorm', samples=4)
-depth = ctx.image(window.size, 'depth24plus', samples=4)
+image = ctx.image(window_size, 'rgba8unorm', samples=4)
+depth = ctx.image(window_size, 'depth24plus', samples=4)
 image.clear_value = (0.2, 0.2, 0.2, 1.0)
 
 uniform_buffer = ctx.buffer(size=64)
@@ -192,7 +200,14 @@ scene_uniform_buffer.write(b''.join([
     zengl.camera((0.0, 0.0, 0.0), (0.0, 0.0, -1.0), (0.0, -1.0, 0.0), fov=90.0),
 ]))
 
-while window.update():
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
+    now  = pygame.time.get_ticks() / 1000.0
+
     ctx.new_frame()
 
     for face, pipeline in scene_pipelines:
@@ -200,9 +215,9 @@ while window.update():
         temp_depth.clear()
         pipeline.render()
 
-    t = window.time * 0.5
+    t = now * 0.5
     eye = (np.cos(t) * 5.0, np.sin(t) * 5.0, np.sin(t * 0.7) * 2.0)
-    camera = zengl.camera(eye, (0.0, 0.0, 0.0), aspect=window.aspect, fov=45.0)
+    camera = zengl.camera(eye, (0.0, 0.0, 0.0), aspect=window_aspect, fov=45.0)
     uniform_buffer.write(camera)
 
     image.clear()
@@ -210,3 +225,5 @@ while window.update():
     shape.render()
     image.blit()
     ctx.end_frame()
+
+    pygame.display.flip()

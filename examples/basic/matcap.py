@@ -1,3 +1,5 @@
+# TODO: missing assets for 'downloads/matcap/*.png'
+
 import glob
 import itertools
 import math

@@ -1,12 +1,21 @@
+import sys
+
 import numpy as np
+import pygame
 import zengl
+import zengl_extras
 
-from window import Window
+zengl_extras.init()
 
-window = Window()
+pygame.init()
+pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
+
+window_size = pygame.display.get_window_size()
+window_aspect = window_size[0] / window_size[1]
+
 ctx = zengl.context()
 
-image = ctx.image(window.size, 'rgba8unorm', samples=4)
+image = ctx.image(window_size, 'rgba8unorm', samples=4)
 image.clear_value = (1.0, 1.0, 1.0, 1.0)
 
 uniform_buffer = ctx.buffer(size=16)
@@ -70,14 +79,20 @@ triangle = ctx.pipeline(
     vertex_count=3,
 )
 
-while window.update():
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
+    now  = pygame.time.get_ticks() / 1000.0
+
     ctx.new_frame()
-    t = window.time
     z = np.array([
-        np.sin(t) * 0.1,
-        np.cos(t) * 0.1,
-        0.7 + np.sin(t * 5) * 0.05,
-        0.7 + np.sin(t * 5) * 0.05,
+        np.sin(now) * 0.1,
+        np.cos(now) * 0.1,
+        0.7 + np.sin(now * 5) * 0.05,
+        0.7 + np.sin(now * 5) * 0.05,
     ], "f4")
     uniform_buffer.write(z)
 
@@ -85,3 +100,5 @@ while window.update():
     triangle.render()
     image.blit()
     ctx.end_frame()
+
+    pygame.display.flip()

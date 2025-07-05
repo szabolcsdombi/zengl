@@ -1,14 +1,23 @@
-import zengl
-from objloader import Obj
+import sys
 
 import assets
-from window import Window
+import pygame
+import zengl
+import zengl_extras
+from objloader import Obj
 
-window = Window()
+zengl_extras.init()
+
+pygame.init()
+pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
+
+window_size = pygame.display.get_window_size()
+window_aspect = window_size[0] / window_size[1]
+
 ctx = zengl.context()
 
-image = ctx.image(window.size, 'rgba8unorm', samples=4)
-depth_stencil = ctx.image(window.size, 'depth24plus-stencil8', samples=4)
+image = ctx.image(window_size, 'rgba8unorm', samples=4)
+depth_stencil = ctx.image(window_size, 'depth24plus-stencil8', samples=4)
 image.clear_value = (1.0, 1.0, 1.0, 1.0)
 depth_stencil.clear_value = (1.0, 0)
 
@@ -142,10 +151,15 @@ monkey = ctx.pipeline(
     vertex_count=vertex_buffer.size // zengl.calcsize('3f 3f'),
 )
 
-camera = zengl.camera((3.0, 2.0, 2.0), (0.0, 0.0, 0.5), aspect=window.aspect, fov=45.0)
+camera = zengl.camera((3.0, 2.0, 2.0), (0.0, 0.0, 0.5), aspect=window_aspect, fov=45.0)
 uniform_buffer.write(camera)
 
-while window.update():
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
     ctx.new_frame()
     depth_stencil.clear()
     image.clear()
@@ -153,3 +167,5 @@ while window.update():
     monkey.render()
     image.blit()
     ctx.end_frame()
+
+    pygame.display.flip()

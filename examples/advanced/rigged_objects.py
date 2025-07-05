@@ -1,14 +1,15 @@
 import io
 import json
 import struct
+import sys
 import zipfile
 
+import assets
 import numpy as np
+import pygame
 import vmath
 import zengl
-
-import assets
-from window import Window
+import zengl_extras
 
 
 def read_gltf(f):
@@ -105,11 +106,18 @@ names = [x for x in pack.namelist() if x.startswith('Models/GLTF format') and x.
 for name in names:
     loader.load(pack.read(name))
 
-window = Window()
+zengl_extras.init()
+
+pygame.init()
+pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
+
+window_size = pygame.display.get_window_size()
+window_aspect = window_size[0] / window_size[1]
+
 ctx = zengl.context()
 
-image = ctx.image(window.size, 'rgba8unorm', samples=4)
-depth = ctx.image(window.size, 'depth24plus', samples=4)
+image = ctx.image(window_size, 'rgba8unorm', samples=4)
+depth = ctx.image(window_size, 'depth24plus', samples=4)
 image.clear_value = (0.2, 0.2, 0.2, 1.0)
 
 vertex_buffer = ctx.buffer(loader.output.getvalue())
@@ -200,7 +208,7 @@ pipeline = ctx.pipeline(
     vertex_count=vertex_buffer.size // zengl.calcsize('3f 3f 4nu1 1i'),
 )
 
-camera = zengl.camera((1.0, -4.0, 2.0), (0.0, 0.0, 0.5), aspect=window.aspect, fov=45.0)
+camera = zengl.camera((1.0, -4.0, 2.0), (0.0, 0.0, 0.5), aspect=window_aspect, fov=45.0)
 uniform_buffer.write(camera)
 
 bones = np.full((256, 8), [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0], 'f4')
@@ -229,11 +237,18 @@ vertical_radius = np.random.uniform(0.1, 0.2, 256)
 rotation_speed = np.random.uniform(0.01, 0.02, 256)
 rotation_axis = [vmath.random_axis() for _ in range(256)]
 
-while window.update():
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
+    now  = pygame.time.get_ticks() / 1000.0
+
     bones[2, 4:8] = vmath.rotate_z(0.3) * vmath.quat(bones[2, 4:8])
-    s = np.sin(offset + window.time * speed) * radius
-    c = np.cos(offset + window.time * speed) * radius
-    v = np.sin(vertical_offset + window.time * vertical_speed) * vertical_radius + 0.5
+    s = np.sin(offset + now * speed) * radius
+    c = np.cos(offset + now * speed) * radius
+    v = np.sin(vertical_offset + now * vertical_speed) * vertical_radius + 0.5
     for i in range(7, loader.idx):
         bones[i, 0:3] = c[i], s[i], v[i]
         bones[i, 4:8] = vmath.rotate(rotation_axis[i], rotation_speed[i]) * vmath.quat(bones[i, 4:8])
@@ -244,3 +259,5 @@ while window.update():
     pipeline.render()
     image.blit()
     ctx.end_frame()
+
+    pygame.display.flip()

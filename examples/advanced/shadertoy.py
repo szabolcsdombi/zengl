@@ -1,13 +1,21 @@
 import struct
+import sys
 
+import pygame
 import zengl
+import zengl_extras
 
-from window import Window
+zengl_extras.init()
 
-window = Window()
+pygame.init()
+pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
+
+window_size = pygame.display.get_window_size()
+window_aspect = window_size[0] / window_size[1]
+
 ctx = zengl.context()
 
-image = ctx.image(window.size, 'rgba8unorm')
+image = ctx.image(window_size, 'rgba8unorm')
 uniform_buffer = ctx.buffer(size=64)
 
 # Tested with:
@@ -93,21 +101,31 @@ canvas = ctx.pipeline(
 )
 
 ubo = struct.Struct('=3f1f1f1i8x4f4f')
-last_time = window.time
+last_time = 0.0
 frame = 0
 
-while window.update():
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
+    mouse_pos = pygame.mouse.get_pos()
+    now  = pygame.time.get_ticks() / 1000.0
+
     ctx.new_frame()
     image.clear()
     uniform_buffer.write(ubo.pack(
-        window.size[0], window.size[1], 0.0,
-        window.time,
-        window.time - last_time,
+        window_size[0], window_size[1], 0.0,
+        now,
+        now - last_time,
         frame,
-        window.mouse[0], window.mouse[1], 0.0, 0.0,
+        mouse_pos[0], mouse_pos[1], 0.0, 0.0,
         0.0, 0.0, 0.0, 0.0,
     ))
     canvas.render()
     image.blit()
     ctx.end_frame()
     frame += 1
+
+    pygame.display.flip()

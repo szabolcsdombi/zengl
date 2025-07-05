@@ -14,14 +14,14 @@
 
 import ctypes
 import math
-import os
 import struct
 import sys
 
 import pygame
 import zengl
+import zengl_extras
 
-os.environ['SDL_WINDOWS_DPI_AWARENESS'] = 'permonitorv2'
+zengl_extras.init()
 
 
 def generate_surface(size, text):
@@ -408,9 +408,18 @@ renderers = [
 
 while True:
     for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
+        if event.type == pygame.WINDOWCLOSE:
+            win_id = event.window.id
+            for i in range(len(windows)):
+                if windows[i].window.id == win_id:
+                    windows[i].window.destroy()
+                    del windows[i]
+                    del renderers[i]
+                    break
+
+            if not windows:
+                pygame.quit()
+                sys.exit()
 
     zengl_context.make_current()
 
