@@ -120,7 +120,7 @@ while True:
         now,
         now - last_time,
         frame,
-        mouse_pos[0], mouse_pos[1], 0.0, 0.0,
+        mouse_pos[0], window_size[1] - mouse_pos[1], 0.0, 0.0,
         0.0, 0.0, 0.0, 0.0,
     ))
     canvas.render()

@@ -1,9 +1,12 @@
+# NOTE: Copy a 'libGLESv2.dll' file to the same directory as this script. (VSCode or Chrome has one next to their exe)
 import ctypes
 import sys
 
 import pygame
 import zengl
+import zengl_extras
 
+zengl_extras.init()
 pygame.init()
 pygame.display.set_mode((800, 600))
 

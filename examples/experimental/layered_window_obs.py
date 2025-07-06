@@ -1,10 +1,13 @@
+# pip install https://github.com/szabolcsdombi/layered-window/archive/refs/heads/main.zip
 import array
 import struct
 import time
 
 import layered_window
 import zengl
+import zengl_extras
 
+zengl_extras.init()
 zengl.init(zengl.loader(headless=True))
 ctx = zengl.context()
 
