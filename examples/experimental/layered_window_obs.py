@@ -1,10 +1,13 @@
+# pip install https://github.com/szabolcsdombi/layered-window/archive/refs/heads/main.zip
 import array
 import struct
 import time
 
 import layered_window
 import zengl
+import zengl_extras
 
+zengl_extras.init()
 zengl.init(zengl.loader(headless=True))
 ctx = zengl.context()
 
@@ -67,7 +70,7 @@ pipeline = ctx.pipeline(
     instance_count=10,
 )
 
-mem = layered_window.init((400, 400), title='Animation')
+mem = layered_window.init((400, 400), title='Animation', always_on_top=True, tool_window=True)
 start_time = time.perf_counter()
 
 while True:

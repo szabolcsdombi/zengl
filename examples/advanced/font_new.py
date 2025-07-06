@@ -1,10 +1,13 @@
-# TODO: port to pygame window and replace `glwindow.load_font``
+# pip install https://github.com/szabolcsdombi/font-atlas/archive/refs/heads/main.zip
 import string
 import struct
+import sys
 import zipfile
 
-import glwindow
+from font_atlas import load_font
+import pygame
 import zengl
+import zengl_extras
 
 import assets
 
@@ -26,7 +29,7 @@ class FontDemo:
         code_points = [ord(x) for x in string.printable]
 
         texture_size = (512, 512)
-        pixels, glyphs = glwindow.load_font(texture_size, fonts, self.font_sizes, code_points)
+        pixels, glyphs = load_font(texture_size, fonts, self.font_sizes, code_points)
 
         self.glyph_lookup = {x: i for i, x in enumerate(code_points)}
         self.glyph_struct = struct.Struct("Q3f")
@@ -149,9 +152,11 @@ class FontDemo:
 
 class App:
     def __init__(self):
-        self.wnd = glwindow.get_window()
+        zengl_extras.init()
+        pygame.init()
+        pygame.display.set_mode((1280, 720), flags=pygame.OPENGL | pygame.DOUBLEBUF, vsync=True)
         self.ctx = zengl.context()
-        self.scene = FontDemo(self.wnd.size)
+        self.scene = FontDemo(pygame.display.get_window_size())
 
         self.scene.clear()
         self.scene.text(100.0, 100.0, "Hello World!", "regular", 16.0, "#ff0000")
@@ -168,6 +173,16 @@ class App:
         self.scene.output.blit()
         self.ctx.end_frame()
 
+    def run(self):
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+
+            self.update()
+            pygame.display.flip()
+
 
 if __name__ == "__main__":
-    glwindow.run(App)
+    App().run()
