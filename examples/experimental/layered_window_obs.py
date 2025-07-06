@@ -70,7 +70,7 @@ pipeline = ctx.pipeline(
     instance_count=10,
 )
 
-mem = layered_window.init((400, 400), title='Animation', always_on_top=True, tool_window=True)
+mem = layered_window.init((400, 400), title='Animation')
 start_time = time.perf_counter()
 
 while True:
