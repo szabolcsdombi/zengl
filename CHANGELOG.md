@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 # [main](https://github.com/szabolcsdombi/zengl/compare/2.7.1...main)
 
+- Fixed swapped paremeters `depth_fail_op`, `pass_op` in `glStencilOpSeparate`
+- Added missing stubs for blend functions
+
 # [2.7.1](https://github.com/szabolcsdombi/zengl/compare/2.7.0...2.7.1)
 
 - Fixed the Pipeline index buffer binding changed by buffer create
