@@ -870,8 +870,8 @@ static void bind_global_settings(Context * self, GlobalSettings * settings) {
         glStencilMaskSeparate(GL_BACK, settings->stencil_back.write_mask);
         glStencilFuncSeparate(GL_FRONT, settings->stencil_front.compare_op, settings->stencil_front.reference, settings->stencil_front.compare_mask);
         glStencilFuncSeparate(GL_BACK, settings->stencil_back.compare_op, settings->stencil_back.reference, settings->stencil_back.compare_mask);
-        glStencilOpSeparate(GL_FRONT, settings->stencil_front.fail_op, settings->stencil_front.pass_op, settings->stencil_front.depth_fail_op);
-        glStencilOpSeparate(GL_BACK, settings->stencil_back.fail_op, settings->stencil_back.pass_op, settings->stencil_back.depth_fail_op);
+        glStencilOpSeparate(GL_FRONT, settings->stencil_front.fail_op, settings->stencil_front.depth_fail_op, settings->stencil_front.pass_op);
+        glStencilOpSeparate(GL_BACK, settings->stencil_back.fail_op, settings->stencil_back.depth_fail_op, settings->stencil_back.pass_op);
         self->current_stencil_mask = settings->stencil_front.write_mask;
     } else {
         glDisable(GL_STENCIL_TEST);
