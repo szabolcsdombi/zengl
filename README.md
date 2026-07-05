@@ -8,6 +8,7 @@ pip install zengl
 - [zengl on Github](https://github.com/szabolcsdombi/zengl/)
 - [zengl on PyPI](https://pypi.org/project/zengl/)
 - [Discord](https://discord.gg/nM34Uv7x)
+- [ZenGL web playground](https://www.zengl-playground.com/)
 
 # ZenGL
 
@@ -276,6 +277,8 @@ On the other hand, ModernGL supports a wide variety of OpenGL versions and exten
 - Textures and Uniform Buffers are bound in the Pipeline resources
 
 ## [Examples](./examples/)
+
+Browse and try the examples in your browser at the [live playground](https://www.zengl-playground.com/).
 
 [![bezier_curves](https://user-images.githubusercontent.com/11232402/235417415-f04815bf-3380-45fa-9804-f9f36016f46c.png)](#native-examples)
 [![deferred_rendering](https://user-images.githubusercontent.com/11232402/235417431-4dd870ea-1804-4b00-bfd2-49e3ca72e2b1.png)](#native-examples)
