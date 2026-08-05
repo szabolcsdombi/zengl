@@ -2223,6 +2223,8 @@ static Pipeline * Context_meth_pipeline(Context * self, PyObject * args, PyObjec
         }
     }
 
+    bind_program(self, program->obj);
+
     PyObject * uniform_layout = NULL;
 
     if (uniforms) {
