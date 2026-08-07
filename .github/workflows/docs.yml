@@ -14,10 +14,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: build
-        run: docker build . -f tests/docs/Containerfile -t docs
+        run: docker build . -f docs/Containerfile -t docs
 
       - name: docs
         run: docker run --rm -t docs
