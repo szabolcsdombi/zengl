@@ -30,7 +30,6 @@ jobs:
         env:
           CIBW_PROJECT_REQUIRES_PYTHON: ">=3.10"
           CIBW_ARCHS: native
-          CIBW_SKIP: pp*
 
       - uses: actions/upload-artifact@v6
         with:
