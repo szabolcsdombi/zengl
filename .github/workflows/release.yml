@@ -45,5 +45,5 @@ jobs:
     steps:
       - uses: actions/upload-artifact/merge@v6
         with:
-          name: zengl-2.7.2
+          name: zengl-2.7.3
           delete-merged: true
