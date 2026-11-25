@@ -13,7 +13,8 @@ image_size = (1024, 1024)
 
 img = Image.open(assets.get('comfy_cafe.jpg'))  # https://polyhaven.com/a/comfy_cafe
 
-ctx = zengl.context(zengl.loader(headless=True))
+zengl.init(zengl.loader(headless=True))
+ctx = zengl.context()
 
 texture = ctx.image(img.size, 'rgba8unorm', img.convert('RGBA').tobytes())
 texture.mipmaps()
